@@ -319,6 +319,17 @@ const PasswordSettingsForm: React.FC = () => {
                   onToggleVisibility={() => setShowRepeatPassword(!showRepeatPassword)}
                 />
               </div>
+              
+              {!isForgotPasswordMode && (
+                <div className="pt-4">
+                  <Button
+                    onClick={handleNormalPasswordChange}
+                    className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white border-blue-500 font-medium transition-all duration-200 hover:shadow-md rounded-md"
+                  >
+                    Ndrysho fjalëkalimin
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -345,21 +356,13 @@ const PasswordSettingsForm: React.FC = () => {
             
             <div className="space-y-4">
               {!isForgotPasswordMode ? (
-                <>
-                  <Button
-                    onClick={handleNormalPasswordChange}
-                    className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white border-blue-500 font-medium transition-all duration-200 hover:shadow-md rounded-md"
-                  >
-                    Ndrysho fjalëkalimin
-                  </Button>
-                  <Button
-                    onClick={handleForgotPassword}
-                    variant="outline"
-                    className="w-full px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300 font-medium transition-all duration-200 hover:shadow-md rounded-md"
-                  >
-                    Keni harruar fjalëkalimin?
-                  </Button>
-                </>
+                <Button
+                  onClick={handleForgotPassword}
+                  variant="outline"
+                  className="w-full px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300 font-medium transition-all duration-200 hover:shadow-md rounded-md"
+                >
+                  Keni harruar fjalëkalimin?
+                </Button>
               ) : (
                 otpVerified && (
                   <Button
