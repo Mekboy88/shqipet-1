@@ -324,7 +324,8 @@ const PasswordSettingsForm: React.FC = () => {
                 <div className="pt-4">
                   <Button
                     onClick={handleNormalPasswordChange}
-                    className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white border-blue-500 font-medium transition-all duration-200 hover:shadow-md rounded-md"
+                    variant="ghost"
+                    className="flex-1 p-4 bg-gradient-to-r from-red-500/10 to-gray-800/10 rounded-xl border border-red-200"
                   >
                     Ndrysho fjalëkalimin
                   </Button>
