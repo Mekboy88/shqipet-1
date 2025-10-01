@@ -1,8 +1,8 @@
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { settingsSections as originalSettingsSections } from './settingsData';
-import { Award } from 'lucide-react';
+import { Award, ChevronDown } from 'lucide-react';
 import CustomProfileIcon from './CustomProfileIcon';
 import CustomMyPointsIcon from './CustomMyPointsIcon';
 import CustomGeneralIcon from './CustomGeneralIcon';
@@ -36,6 +36,33 @@ const ProfileSettingsSidebar: React.FC<ProfileSettingsSidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const navRef = useRef<HTMLDivElement>(null);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+
+  useEffect(() => {
+    const checkScroll = () => {
+      if (navRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = navRef.current;
+        const isScrollable = scrollHeight > clientHeight;
+        const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
+        setShowScrollIndicator(isScrollable && !isAtBottom);
+      }
+    };
+
+    checkScroll();
+    const nav = navRef.current;
+    if (nav) {
+      nav.addEventListener('scroll', checkScroll);
+      window.addEventListener('resize', checkScroll);
+    }
+
+    return () => {
+      if (nav) {
+        nav.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+      }
+    };
+  }, []);
   const myPointsSection = {
     id: 'my-points',
     label: 'My Points',
@@ -81,7 +108,7 @@ const ProfileSettingsSidebar: React.FC<ProfileSettingsSidebarProps> = ({
         </div>
         
         {/* Settings Navigation Menu */}
-        <nav className="absolute top-12 left-2 right-2 bottom-0 overflow-y-auto py-1">
+        <nav ref={navRef} className="absolute top-12 left-2 right-2 bottom-0 overflow-y-auto py-1">
           {settingsSections.map(section => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
@@ -326,8 +353,21 @@ const ProfileSettingsSidebar: React.FC<ProfileSettingsSidebarProps> = ({
                )}
              </div>
            );
-        })}
-        </nav>
+         })}
+         </nav>
+
+        {/* Glassmorphic Scroll Indicator */}
+        {showScrollIndicator && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-full backdrop-blur-md bg-white/30 border border-white/50 shadow-lg flex items-center justify-center animate-bounce">
+                <ChevronDown className="w-6 h-6 text-gray-700 animate-pulse" strokeWidth={2.5} />
+              </div>
+              {/* Glow effect */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/40 to-transparent blur-sm -z-10"></div>
+            </div>
+          </div>
+        )}
       </div>
     </div>;
 };
