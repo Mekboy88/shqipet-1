@@ -132,32 +132,32 @@ export const OTPVerificationFlow: React.FC<OTPVerificationFlowProps> = ({
             maxLength={6}
             value={otpCode}
             onChange={setOtpCode}
-            className="gap-2"
+            className="gap-1.5"
           >
-            <InputOTPGroup className="gap-2">
+            <InputOTPGroup className="gap-1.5">
               <InputOTPSlot 
                 index={0} 
-                className="w-12 h-12 text-lg font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
+                className="w-9 h-9 text-base font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
               />
               <InputOTPSlot 
                 index={1} 
-                className="w-12 h-12 text-lg font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
+                className="w-9 h-9 text-base font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
               />
               <InputOTPSlot 
                 index={2} 
-                className="w-12 h-12 text-lg font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
+                className="w-9 h-9 text-base font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
               />
               <InputOTPSlot 
                 index={3} 
-                className="w-12 h-12 text-lg font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
+                className="w-9 h-9 text-base font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
               />
               <InputOTPSlot 
                 index={4} 
-                className="w-12 h-12 text-lg font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
+                className="w-9 h-9 text-base font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
               />
               <InputOTPSlot 
                 index={5} 
-                className="w-12 h-12 text-lg font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
+                className="w-9 h-9 text-base font-mono border-2 border-gray-300 rounded-md bg-white text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200" 
               />
             </InputOTPGroup>
           </InputOTP>
