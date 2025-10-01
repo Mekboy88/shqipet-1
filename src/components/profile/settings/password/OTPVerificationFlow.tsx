@@ -40,71 +40,75 @@ export const OTPVerificationFlow: React.FC<OTPVerificationFlowProps> = ({
 }) => {
   if (!otpSent) {
     return (
-      <div className="space-y-4">
-        <Label>Zgjidhni metodën e verifikimit:</Label>
-        <div className="space-y-3">
-          {userProfile.email ? (
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="email-method"
-                name="verification-method"
-                value="email"
-                checked={selectedMethod === 'email'}
-                onChange={(e) => setSelectedMethod(e.target.value)}
-                className="w-4 h-4"
-              />
-              <label htmlFor="email-method" className="text-sm">
-                Email: <span className="font-medium text-blue-600">{userProfile.email}</span>
-              </label>
-            </div>
-          ) : (
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <p className="text-sm text-orange-700">
-                <strong>Email i mungon!</strong> Ju rekomandojmë fuqishëm të shtoni një email në profilin tuaj për më shumë siguri dhe për të përdorur funksionet e verifikimit.
-              </p>
-            </div>
-          )}
-          
-          {userProfile.phone_number ? (
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="phone-method"
-                name="verification-method"
-                value="phone"
-                checked={selectedMethod === 'phone'}
-                onChange={(e) => setSelectedMethod(e.target.value)}
-                className="w-4 h-4"
-              />
-              <label htmlFor="phone-method" className="text-sm">
-                Telefon: <span className="font-medium text-green-600">{userProfile.phone_number}</span>
-              </label>
-            </div>
-          ) : (
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <p className="text-sm text-orange-700">
-                <strong>Numri i telefonit mungon!</strong> Ju rekomandojmë fuqishëm të shtoni një numër telefoni në profilin tuaj për më shumë siguri dhe për të përdorur funksionet e verifikimit.
-              </p>
-            </div>
-          )}
+      <div className="flex flex-col min-h-full">
+        <div className="space-y-4 flex-1">
+          <Label>Zgjidhni metodën e verifikimit:</Label>
+          <div className="space-y-3">
+            {userProfile.email ? (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="email-method"
+                  name="verification-method"
+                  value="email"
+                  checked={selectedMethod === 'email'}
+                  onChange={(e) => setSelectedMethod(e.target.value)}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="email-method" className="text-sm">
+                  Email: <span className="font-medium text-blue-600">{userProfile.email}</span>
+                </label>
+              </div>
+            ) : (
+              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-sm text-orange-700">
+                  <strong>Email i mungon!</strong> Ju rekomandojmë fuqishëm të shtoni një email në profilin tuaj për më shumë siguri dhe për të përdorur funksionet e verifikimit.
+                </p>
+              </div>
+            )}
+            
+            {userProfile.phone_number ? (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="phone-method"
+                  name="verification-method"
+                  value="phone"
+                  checked={selectedMethod === 'phone'}
+                  onChange={(e) => setSelectedMethod(e.target.value)}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="phone-method" className="text-sm">
+                  Telefon: <span className="font-medium text-green-600">{userProfile.phone_number}</span>
+                </label>
+              </div>
+            ) : (
+              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-sm text-orange-700">
+                  <strong>Numri i telefonit mungon!</strong> Ju rekomandojmë fuqishëm të shtoni një numër telefoni në profilin tuaj për më shumë siguri dhe për të përdorur funksionet e verifikimit.
+                </p>
+              </div>
+            )}
 
-          {!userProfile.email && !userProfile.phone_number && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-700 font-medium">
-                <strong>Asnjë kontakt nuk është shtuar!</strong> Ju duhet të shtoni të paktën një email ose numër telefoni në profilin tuaj për të përdorur funksionin e rikuperimit të fjalëkalimit.
-              </p>
-            </div>
-          )}
+            {!userProfile.email && !userProfile.phone_number && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700 font-medium">
+                  <strong>Asnjë kontakt nuk është shtuar!</strong> Ju duhet të shtoni të paktën një email ose numër telefoni në profilin tuaj për të përdorur funksionin e rikuperimit të fjalëkalimit.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
         
-        <Button 
-          onClick={onSendOTP}
-          disabled={!selectedMethod || isGenerating || (!userProfile.email && !userProfile.phone_number)}
-          className="w-full"
-        >
-          {isGenerating ? 'Duke dërguar...' : 'Dërgo kodin e verifikimit'}
-        </Button>
+        <div className="mt-auto pt-6">
+          <Button 
+            onClick={onSendOTP}
+            disabled={!selectedMethod || isGenerating || (!userProfile.email && !userProfile.phone_number)}
+            className="w-full"
+          >
+            {isGenerating ? 'Duke dërguar...' : 'Dërgo kodin e verifikimit'}
+          </Button>
+        </div>
       </div>
     );
   }
