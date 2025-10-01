@@ -157,6 +157,23 @@ function App() {
     };
   }, []);
   
+  // Prevent default navigation for dummy anchors to avoid page jumps/reloads
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest('a');
+      if (anchor) {
+        const href = anchor.getAttribute('href');
+        // Block only empty/hash links used as placeholders
+        if (href === '#' || href === '' || (href && href.startsWith('#'))) {
+          e.preventDefault();
+        }
+      }
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, []);
+  
   // Video security notification system
   const { blockedCount, showBanner, reportBlockedVideo, dismissBanner } = useVideoSecurityNotification();
   
