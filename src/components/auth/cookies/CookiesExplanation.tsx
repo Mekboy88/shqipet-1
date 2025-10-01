@@ -49,7 +49,7 @@ const CookiesExplanation = () => {
       <p className="text-gray-700 pt-2">
         You have control over the optional cookies that we use. Learn more about cookies 
         and how we use them in our{" "}
-        <a href="#" className="text-blue-600 hover:underline">Cookies Policy</a>.
+        <a href="#" onClick={(e) => e.preventDefault()} className="text-blue-600 hover:underline">Cookies Policy</a>.
       </p>
     </div>
   );

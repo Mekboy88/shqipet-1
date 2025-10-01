@@ -16,7 +16,7 @@ const TrendingCard = () => {
           <ul>
             {trendingTopics.map((topic) => (
               <li key={topic.tag} className="mb-3">
-                <a href="#" className="font-semibold text-gray-800 hover:underline">
+                <a href="#" onClick={(e) => e.preventDefault()} className="font-semibold text-gray-800 hover:underline">
                   <div className="flex items-center">
                     <TrendingUp className="w-4 h-4 mr-2 text-red-500" />
                     <span>#{topic.tag}</span>

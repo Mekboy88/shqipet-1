@@ -80,10 +80,8 @@ class ErrorRecoveryService {
       console.warn('Error clearing localStorage:', error);
     }
 
-    // Refresh the page to reset state
-    setTimeout(() => {
-      window.location.reload();
-    }, 2000);
+    // Previously reloaded the page — now we avoid hard reloads to prevent UX issues.
+    // We rely on component-level error boundaries to re-render gracefully.
   };
 
   // Handle network errors
@@ -93,10 +91,7 @@ class ErrorRecoveryService {
     // Show user-friendly message
     this.showErrorMessage('Connection issue detected. Retrying...');
     
-    // Retry after delay
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000);
+    // Avoid auto-reload; let the app retry queries naturally and show a message.
   };
 
   // Handle permission errors
@@ -121,10 +116,7 @@ class ErrorRecoveryService {
     // Show error message
     this.showErrorMessage('Something went wrong. Recovering...');
     
-    // Soft refresh after delay
-    setTimeout(() => {
-      window.location.reload();
-    }, 2000);
+    // Avoid hard reloads; components should handle re-render/retry without full refresh.
   };
 
   // Show user-friendly error message

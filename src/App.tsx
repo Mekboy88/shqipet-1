@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useInstantUpdates } from '@/hooks/useInstantUpdates';
 import GlobalSkeleton from '@/components/ui/GlobalSkeleton';
@@ -127,30 +127,6 @@ const AppBackground: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   );
 };
 
-const NavigationInterceptor: React.FC = () => {
-  const navigate = useNavigate();
-  React.useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (e.defaultPrevented) return;
-      const target = e.target as Element | null;
-      const anchor = target?.closest('a') as HTMLAnchorElement | null;
-      if (!anchor) return;
-      const href = anchor.getAttribute('href');
-      if (!href || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-      const url = new URL(href, window.location.origin);
-      const isInternal = url.origin === window.location.origin;
-      const isModified = (e as any).metaKey || (e as any).ctrlKey || (e as any).shiftKey || (e as any).altKey || (e as any).button !== 0;
-      const hasTarget = !!anchor.target && anchor.target !== '_self';
-      if (isInternal && !isModified && !hasTarget) {
-        e.preventDefault();
-        navigate(url.pathname + url.search + url.hash);
-      }
-    };
-    document.addEventListener('click', handler);
-    return () => document.removeEventListener('click', handler);
-  }, [navigate]);
-  return null;
-};
 
 function App() {
   // Enable instant updates and cache clearing
@@ -203,7 +179,6 @@ function App() {
                   <PublishingProgressProvider>
                     <PostsProvider>
                 <Router>
-                  <NavigationInterceptor />
                   <RootAuthRedirect>
                     <AppBackground>
                     {/* Removed toast system - using notification system */}

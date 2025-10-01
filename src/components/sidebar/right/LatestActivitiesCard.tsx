@@ -38,9 +38,9 @@ const LatestActivitiesCard = () => {
                                     </div>
                                 </div>
                                 <p className="text-sm text-gray-500">
-                                    <a href="#" className="font-semibold text-red-600 hover:underline">{activity.user}</a>
+                                    <a href="#" onClick={(e) => e.preventDefault()} className="font-semibold text-red-600 hover:underline">{activity.user}</a>
                                     {' '}{activity.action}{' '}
-                                    <a href="#" className="font-bold text-gray-800 hover:underline">{activity.target}</a>.
+                                    <a href="#" onClick={(e) => e.preventDefault()} className="font-bold text-gray-800 hover:underline">{activity.target}</a>.
                                     {' '}{activity.time}
                                 </p>
                             </li>

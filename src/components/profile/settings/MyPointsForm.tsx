@@ -74,7 +74,7 @@ const MyPointsForm: React.FC<MyPointsFormProps> = ({ userInfo }) => {
                     <p className="text-blue-800 font-medium text-sm">Konvertimi Automatik</p>
                     <p className="text-blue-700 text-xs mt-1">
                       Pikat tuaja do të shkojnë automatikisht në{' '}
-                      <a href="#" className="font-semibold hover:underline">Portofolin</a>
+                      <a href="#" onClick={(e) => e.preventDefault()} className="font-semibold hover:underline">Portofolin</a>
                     </p>
                   </div>
                 </div>

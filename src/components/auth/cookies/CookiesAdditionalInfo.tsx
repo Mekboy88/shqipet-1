@@ -18,7 +18,7 @@ const CookiesAdditionalInfo = () => {
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-3 pt-3 pl-6">
           <div className="text-sm text-gray-600">
-            <a href="#" className="text-blue-600 hover:underline block">
+            <a href="#" onClick={(e) => e.preventDefault()} className="text-blue-600 hover:underline block">
               Manage your ad experience in Shqipet Settings
             </a>
             <p className="mt-1">
@@ -27,7 +27,7 @@ const CookiesAdditionalInfo = () => {
           </div>
           
           <div className="text-sm text-gray-600">
-            <a href="#" className="text-blue-600 hover:underline block">
+            <a href="#" onClick={(e) => e.preventDefault()} className="text-blue-600 hover:underline block">
               More information about online advertising
             </a>
             <p className="mt-1">
@@ -36,7 +36,7 @@ const CookiesAdditionalInfo = () => {
           </div>
           
           <div className="text-sm text-gray-600">
-            <a href="#" className="text-blue-600 hover:underline block">
+            <a href="#" onClick={(e) => e.preventDefault()} className="text-blue-600 hover:underline block">
               Controlling cookies with browser settings
             </a>
             <p className="mt-1">

@@ -60,19 +60,9 @@ export const ErrorRecoveryProvider: React.FC<Props> = ({ children }) => {
       reportError(new Error(`Unhandled promise rejection: ${event.reason}`));
     };
 
-    // Listen for console errors
-    const originalConsoleError = console.error;
-    console.error = (...args: any[]) => {
-      // Check if this is an actual error
-      if (args[0] instanceof Error) {
-        reportError(args[0]);
-      } else if (typeof args[0] === 'string' && args[0].includes('Error')) {
-        reportError(new Error(args.join(' ')));
-      }
-      
-      // Call original console.error
-      originalConsoleError(...args);
-    };
+    // Note: We intentionally do NOT override console.error to avoid false positives
+    // from non-critical logs (e.g., network 404s). Global window error listeners below
+    // will still capture real runtime exceptions.
 
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
@@ -80,7 +70,6 @@ export const ErrorRecoveryProvider: React.FC<Props> = ({ children }) => {
     return () => {
       window.removeEventListener('error', handleGlobalError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-      console.error = originalConsoleError;
     };
   }, []);
 
