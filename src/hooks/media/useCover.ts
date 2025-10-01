@@ -1,0 +1,635 @@
+/**
+ * useCover - New unified cover photo management hook
+ * Handles loading, uploading, positioning, and real-time sync
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { mediaService } from '@/services/media/MediaService';
+import { uploadService } from '@/services/media/UploadService';
+import { toast } from '@/utils/toastToNotification';
+import { errorRecoveryService } from '@/utils/errorBoundary/ErrorRecoveryService';
+
+// Simplified persistence function that uses only the edge function
+const persistCoverToDatabase = async (userId: string, coverKey: string, position?: string): Promise<boolean> => {
+  console.log('💾 Persisting cover via edge function:', { userId, coverKey, position });
+  
+  try {
+    const { data: fnData, error: fnErr } = await supabase.functions.invoke('set-profile-cover', {
+      body: { cover_key: coverKey, position: position || null }
+    });
+    
+    if (!fnErr && (fnData as any)?.success) {
+      console.log('✅ Cover persisted successfully via edge function:', fnData);
+      return true;
+    } else {
+      console.warn('⚠️ Edge function failed:', fnErr, fnData);
+      return false;
+    }
+  } catch (e) {
+    console.error('❌ Edge function invocation error:', e);
+    return false;
+  }
+};
+
+interface CoverState {
+  key: string | null;
+  resolvedUrl: string | null;
+  position: string;
+  loading: boolean;
+  lastGoodUrl: string | null;
+  isPositionChanging: boolean;
+  isPositionSaving: boolean;
+}
+
+// Global state for cross-component sync
+let globalCoverState: CoverState = {
+  key: null,
+  resolvedUrl: null,
+  position: 'center 50%',
+  loading: true,
+  lastGoodUrl: null,
+  isPositionChanging: false,
+  isPositionSaving: false
+};
+
+const coverListeners = new Set<(state: CoverState) => void>();
+
+const notifyCoverChange = (newState: CoverState) => {
+  globalCoverState = newState;
+  
+  // Real-time debug logging
+  console.log('🖼️ Cover Photo Debug:', {
+    globalCoverUrl: newState.resolvedUrl,
+    resolvedUrl: newState.resolvedUrl,
+    baseCandidate: newState.resolvedUrl,
+    displayUrl: newState.resolvedUrl,
+    coverPositionGlobal: newState.position,
+    coverPositionV2: newState.position,
+    effectivePosition: newState.position,
+    coverLoadingCombined: newState.loading,
+    isPositionChanging: newState.isPositionChanging,
+    isPositionSaving: newState.isPositionSaving
+  });
+  
+  coverListeners.forEach(listener => {
+    try {
+      listener(newState);
+    } catch (error) {
+      console.error('Error in cover listener:', error);
+    }
+  });
+  
+  // Emit global position change event
+  window.dispatchEvent(new CustomEvent('cover-position-changed', { 
+    detail: { position: newState.position, isChanging: newState.isPositionChanging } 
+  }));
+};
+
+// Normalize background-position to vertical-only 'center N%'
+const normalizePosition = (input: string | null | undefined): string => {
+  if (!input) return 'center 50%';
+  const s = String(input).trim().toLowerCase();
+  // Prefer explicit 'center <y>%' if present
+  const mCenter = s.match(/center\s+(-?\d+(?:\.\d+)?)%/);
+  if (mCenter) return `center ${Math.round(parseFloat(mCenter[1]))}%`;
+  // Extract last percentage number as Y
+  const mAll = s.match(/(-?\d+(?:\.\d+)?)%/g);
+  if (mAll && mAll.length > 0) {
+    const y = parseFloat(mAll[mAll.length - 1]);
+    return `center ${Math.round(y)}%`;
+  }
+  return 'center 50%';
+};
+
+export const useCover = (userId?: string) => {
+  const { user } = useAuth();
+  const targetUserId = userId || user?.id;
+  
+  // Initialize with cached data immediately to prevent position shake
+  const [coverState, setCoverState] = useState<CoverState>(() => {
+    if (!targetUserId) return globalCoverState;
+    
+      try {
+        const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
+          const cachedPos = normalizePosition(cached?.position || 'center');
+          
+          if (cachedUrl) {
+            const initialState = {
+              ...globalCoverState,
+              resolvedUrl: cachedUrl,
+              lastGoodUrl: cachedUrl,
+              position: cachedPos,
+              loading: true
+            };
+            // Update global state immediately
+            globalCoverState = initialState;
+            return initialState;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load cached cover on init:', e);
+      }
+    
+    return globalCoverState;
+  });
+
+  // Subscribe to global changes
+  useEffect(() => {
+    const handleStateChange = (newState: CoverState) => {
+      setCoverState(newState);
+    };
+
+    coverListeners.add(handleStateChange);
+    return () => {
+      coverListeners.delete(handleStateChange);
+    };
+  }, []);
+
+  // Load cover when user changes
+  useEffect(() => {
+    if (!targetUserId) {
+      const emptyState = { key: null, resolvedUrl: null, position: 'center', loading: false, lastGoodUrl: null, isPositionChanging: false, isPositionSaving: false };
+      setCoverState(emptyState);
+      notifyCoverChange(emptyState);
+      return;
+    }
+
+    loadCover();
+  }, [targetUserId]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!targetUserId) return;
+
+    const channel = supabase
+      .channel(`profile-cover-${targetUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          try {
+            const row: any = (payload as any).new || (payload as any).old || {};
+            const changedUserId = row.auth_user_id || row.user_id || row.id;
+            if (changedUserId === targetUserId) {
+              console.log('🔄 Cover real-time update:', payload);
+              loadCover();
+            }
+          } catch (e) {
+            console.warn('Realtime handler error:', e);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [targetUserId]);
+
+  const loadCover = async () => {
+    if (!targetUserId) return;
+
+    try {
+      console.log('🔄 Loading cover for user:', targetUserId);
+      // Optimistic: show last cached cover immediately while DB loads
+        try {
+          const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
+          if (cachedRaw) {
+            const cached = JSON.parse(cachedRaw);
+            const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
+            const cachedPos = normalizePosition(cached?.position || coverState.position);
+            if (cachedUrl) {
+              const cachedState = { ...coverState, resolvedUrl: cachedUrl, lastGoodUrl: cachedUrl, position: cachedPos, loading: true };
+              setCoverState(cachedState);
+              notifyCoverChange(cachedState);
+            }
+          }
+        } catch {}
+      
+      // Always load fresh from database with comprehensive fallbacks
+      let anyProfile: any = null;
+      let position = 'center';
+      
+      try {
+        const baseSelect = 'cover_key, cover_image_url, cover_photo_url, cover_position, cover_photo_position, auth_user_id, user_id, id, updated_at';
+
+        const tryFetch = async (schema: 'public' | 'api') => {
+          console.log(`🔍 Trying to fetch from ${schema} schema...`);
+          const columns: Array<'auth_user_id' | 'id' | 'user_id'> = ['auth_user_id', 'id', 'user_id'];
+          
+          for (const column of columns) {
+            try {
+              const { data, error } = await supabase
+                .schema(schema)
+                .from('profiles')
+                .select(baseSelect)
+                .eq(column, targetUserId)
+                .maybeSingle();
+              
+              if (!error && data) {
+                console.log(`✅ Found profile via ${column} in ${schema}:`, { 
+                  hasKey: !!data.cover_key, 
+                  hasUrl: !!data.cover_photo_url,
+                  userId: data.auth_user_id || data.id,
+                  updatedAt: data.updated_at
+                });
+                return data;
+              }
+            } catch (e) {
+              console.warn(`⚠️ Failed to fetch via ${column} from ${schema}:`, e);
+            }
+          }
+          return null;
+        };
+
+        // Try api schema first (primary), then public schema (fallback)
+        anyProfile = await tryFetch('api');
+        if (!anyProfile) {
+          console.log('🔄 API schema had no results, trying public schema...');
+          anyProfile = await tryFetch('public');
+        }
+        
+        if (!anyProfile) {
+          console.log('❌ No profile found in any schema');
+        }
+      } catch (err) {
+        console.error('❌ Critical error during profile fetch:', err);
+      }
+
+      const candidate = anyProfile?.cover_key || anyProfile?.cover_photo_url || anyProfile?.cover_image_url;
+      position = normalizePosition(anyProfile?.cover_position || anyProfile?.cover_photo_position || 'center 50%');
+      
+      console.log('🔍 Cover loading debug:', { 
+        anyProfile: anyProfile ? `${anyProfile.auth_user_id || anyProfile.id}` : null,
+        cover_key: anyProfile?.cover_key, 
+        cover_photo_url: anyProfile?.cover_photo_url,
+        cover_image_url: anyProfile?.cover_image_url,
+        candidate,
+        position,
+        updatedAt: anyProfile?.updated_at
+      });
+      
+      if (!candidate) {
+        console.log('❌ No cover candidate found for user:', targetUserId);
+        // Fallback: try last cached cover from localStorage to avoid blank on refresh
+        try {
+          const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
+          if (cachedRaw) {
+            const cached = JSON.parse(cachedRaw);
+            const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
+            if (cachedUrl) {
+              const cachedState = { key: cached?.key ?? null, resolvedUrl: cachedUrl, position, loading: false, lastGoodUrl: cachedUrl, isPositionChanging: false, isPositionSaving: false };
+              setCoverState(cachedState);
+              notifyCoverChange(cachedState);
+              console.log('✅ Using cached cover from localStorage');
+              // Best-effort: derive key from URL and persist so next refresh uses DB
+              setTimeout(async () => {
+                try {
+                  if (!user?.id) return;
+                  const url = cachedUrl as string;
+                  let derivedKey: string | null = null;
+                  try {
+                    const u = new URL(url);
+                    derivedKey = u.searchParams.get('key');
+                    if (!derivedKey && u.hostname.includes('wasabisys.com')) {
+                      const parts = u.pathname.split('/').filter(Boolean);
+                      if (parts.length >= 2) derivedKey = parts.slice(1).join('/');
+                    }
+                  } catch {
+                    // Not a full URL (maybe already a key)
+                    if (!/^blob:|^data:|^https?:/.test(url)) derivedKey = url;
+                  }
+                  if (derivedKey) {
+                    console.log('🛠️ Persisting derived cover key from cache');
+                    await persistCoverToDatabase(user.id, derivedKey);
+                  }
+                } catch (e) {
+                  console.warn('Cache persistence attempt failed:', e);
+                }
+              }, 0);
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn('LocalStorage cover cache read failed:', e);
+        }
+        const emptyState = { key: null, resolvedUrl: null, position, loading: false, lastGoodUrl: coverState.lastGoodUrl, isPositionChanging: false, isPositionSaving: false };
+        setCoverState(emptyState);
+        notifyCoverChange(emptyState);
+        return;
+      }
+
+      // Don't reload if same key/url and we have a resolved URL
+      if (candidate === coverState.key && coverState.resolvedUrl && position === coverState.position) {
+        return;
+      }
+
+      // Set loading state
+      const currentKey = anyProfile?.cover_key || candidate;
+      const loadingState = { ...coverState, key: currentKey, position, loading: true };
+      setCoverState(loadingState);
+      notifyCoverChange(loadingState);
+
+      // Resolve URL (support both keys and direct URLs)
+      const isDirectUrl = typeof candidate === 'string' && /^(https?:|blob:|data:)/.test(candidate);
+      let resolvedUrl: string;
+      if (isDirectUrl) {
+        const direct = String(candidate);
+        try {
+          // If it's a Wasabi/S3 signed URL, normalize to a key to get a fresh URL for every pane
+          const u = new URL(direct);
+          const looksWasabi = /wasabisys\.com|s3\.|shqipet\//i.test(u.hostname + u.pathname);
+          let derivedKey: string | null = u.searchParams.get('key');
+          if (!derivedKey && looksWasabi) {
+            const parts = u.pathname.split('/').filter(Boolean);
+            // Expect something like /shqipet/<folder>/<rest-of-key>
+            const idx = parts.findIndex(p => p === 'shqipet');
+            if (idx >= 0 && parts.length > idx + 1) {
+              derivedKey = parts.slice(idx + 1).join('/');
+            } else if (parts.length >= 2) {
+              derivedKey = parts.slice(1).join('/');
+            }
+          }
+          if (derivedKey) {
+            resolvedUrl = await mediaService.getUrl(derivedKey);
+            await mediaService.preloadImage(resolvedUrl);
+          } else {
+            resolvedUrl = direct;
+          }
+        } catch {
+          // Not a full URL (or URL parsing failed) — just use the direct string
+          resolvedUrl = direct;
+        }
+      } else {
+        try {
+          resolvedUrl = await mediaService.getUrl(candidate as string);
+          // Preload to prevent flicker
+          await mediaService.preloadImage(resolvedUrl);
+        } catch (e) {
+          // Ultimate fallback: use any persisted media cache for this key
+          try {
+            const raw = localStorage.getItem(`media:last:${String(candidate)}`);
+            if (raw) {
+              const j = JSON.parse(raw);
+              if (typeof j?.url === 'string') {
+                console.warn('🟡 Falling back to persisted media cache for cover');
+                resolvedUrl = j.url as string;
+              } else {
+                throw e;
+              }
+            } else {
+              throw e;
+            }
+          } catch {
+            throw e;
+          }
+        }
+      }
+
+      const finalState = {
+        key: currentKey,
+        resolvedUrl,
+        position,
+        loading: false,
+        lastGoodUrl: resolvedUrl,
+        isPositionChanging: false,
+        isPositionSaving: false
+      };
+
+      setCoverState(finalState);
+      try { localStorage.setItem(`cover:last:${targetUserId}`, JSON.stringify({ url: finalState.resolvedUrl, key: finalState.key, position: finalState.position, ts: Date.now() })); } catch {}
+      notifyCoverChange(finalState);
+
+      // No local cache - rely on database + in-memory resolution
+
+      console.log('✅ Cover loaded:', { key: currentKey, position, resolvedUrl: resolvedUrl.substring(0, 100) + '...' });
+
+    } catch (error) {
+      console.error('❌ Failed to load cover:', error);
+      
+      // Keep last good URL on error
+      const errorState = {
+        ...coverState,
+        loading: false,
+        resolvedUrl: coverState.lastGoodUrl,
+        isPositionChanging: false,
+        isPositionSaving: false
+      };
+      
+      setCoverState(errorState);
+      notifyCoverChange(errorState);
+    }
+  };
+
+  const updatePosition = useCallback(async (newPosition: string, persist: boolean = false): Promise<boolean> => {
+    if (!targetUserId) return false;
+    
+    const normalizedPosition = normalizePosition(newPosition);
+    
+    // Optimistic update - show immediately
+    const optimisticState = {
+      ...coverState,
+      position: normalizedPosition,
+      isPositionChanging: true,
+      isPositionSaving: persist
+    };
+    
+    setCoverState(optimisticState);
+    notifyCoverChange(optimisticState);
+    
+    console.log('🎯 Position update:', { newPosition: normalizedPosition, persist });
+    
+    if (persist && user?.id) {
+      try {
+        // Persist to database via edge function
+        const success = await persistCoverToDatabase(user.id, coverState.key || '', normalizedPosition);
+        
+        const finalState = {
+          ...coverState,
+          position: normalizedPosition,
+          isPositionChanging: false,
+          isPositionSaving: false
+        };
+        
+        if (success) {
+          // Cache locally for resilience
+          try {
+            localStorage.setItem(`cover:last:${user.id}`, JSON.stringify({ 
+              url: coverState.resolvedUrl, 
+              key: coverState.key, 
+              position: normalizedPosition, 
+              ts: Date.now() 
+            }));
+          } catch {}
+          
+          setCoverState(finalState);
+          notifyCoverChange(finalState);
+          console.log('✅ Position persisted successfully');
+          return true;
+        } else {
+          // Rollback on failure
+          const rollbackState = {
+            ...coverState,
+            isPositionChanging: false,
+            isPositionSaving: false
+          };
+          setCoverState(rollbackState);
+          notifyCoverChange(rollbackState);
+          console.error('❌ Position persistence failed');
+          return false;
+        }
+      } catch (error) {
+        console.error('❌ Position update error:', error);
+        // Rollback on error
+        const rollbackState = {
+          ...coverState,
+          isPositionChanging: false,
+          isPositionSaving: false
+        };
+        setCoverState(rollbackState);
+        notifyCoverChange(rollbackState);
+        return false;
+      }
+    } else {
+      // Just update position without persistence
+      const tempState = {
+        ...coverState,
+        position: normalizedPosition,
+        isPositionChanging: false,
+        isPositionSaving: false
+      };
+      setCoverState(tempState);
+      notifyCoverChange(tempState);
+      return true;
+    }
+  }, [coverState, targetUserId, user?.id]);
+
+  const updateCover = useCallback(async (file: File): Promise<string> => {
+    if (!user?.id) {
+      throw new Error('You must be logged in to upload a cover photo');
+    }
+    if (!targetUserId) {
+      throw new Error('User must be authenticated');
+    }
+
+    try {
+      console.log('📤 Uploading new cover...', { user: user?.id, targetUserId });
+
+      // Emit upload start event for animation
+      window.dispatchEvent(new CustomEvent('cover-upload-start'));
+
+      // Create local preview for instant feedback
+      const previewUrl = URL.createObjectURL(file);
+
+      // Set optimistic loading state with preview
+      const optimisticState = { ...coverState, loading: true, resolvedUrl: previewUrl, lastGoodUrl: previewUrl };
+      setCoverState(optimisticState);
+      notifyCoverChange(optimisticState);
+
+      console.log('🔄 Starting Wasabi upload...');
+      const { key } = await uploadService.upload(file, 'cover');
+      console.log('✅ Wasabi upload complete:', key);
+
+      // Resolve final URL now so we can persist both key and URL
+      mediaService.clearCache(key);
+      const finalUrl = await mediaService.getUrl(key);
+
+      // Save to localStorage immediately for resilience (before persistence)
+      try {
+        const cacheData = { url: finalUrl, key, position: coverState.position, ts: Date.now() };
+        localStorage.setItem(`cover:last:${user.id}`, JSON.stringify(cacheData));
+        console.log('💾 Cover cached to localStorage before persistence');
+      } catch (e) {
+        console.warn('localStorage save failed:', e);
+      }
+
+      // Step 1: Ensure persistence via dedicated cover RPC
+      const profilePersisted = await persistCoverToDatabase(user.id, key, coverState.position);
+      
+      // Prepare mirror payload for api schema
+      const updatePayload = {
+        cover_key: key,
+        cover_photo_url: key,
+        cover_image_url: key,
+        updated_at: new Date().toISOString()
+      };
+
+      // Step 2: Verify persistence was successful
+      console.log('📊 Cover persistence result:', { profilePersisted });
+      if (!profilePersisted) {
+        throw new Error('Failed to persist cover photo to database after all attempts');
+      }
+
+      // Notify UI of persistence success
+      try { window.dispatchEvent(new CustomEvent('cover-persisted')); } catch {}
+
+      // Step 3: Edge function handles all persistence - no manual mirroring needed
+      console.log('✅ Cover persistence completed via edge function');
+
+      // Step 4: Update local state and refresh
+      const finalState = {
+        key,
+        resolvedUrl: finalUrl,
+        position: coverState.position,
+        loading: false,
+        lastGoodUrl: finalUrl,
+        isPositionChanging: false,
+        isPositionSaving: false
+      };
+      setCoverState(finalState);
+      try { localStorage.setItem(`cover:last:${user.id}`, JSON.stringify({ url: finalState.resolvedUrl, key: finalState.key, position: finalState.position, ts: Date.now() })); } catch {}
+      notifyCoverChange(finalState);
+
+      // Step 5: Background refresh to verify persistence
+      setTimeout(() => loadCover(), 100);
+
+      console.log('✅ Cover updated successfully:', key);
+      toast.success('Cover updated successfully');
+      
+      // Emit upload end event for animation
+      window.dispatchEvent(new CustomEvent('cover-upload-end'));
+      
+      return key;
+    } catch (error) {
+      console.error('❌ Failed to update cover:', error);
+      const errorState = { ...coverState, loading: false };
+      setCoverState(errorState);
+      notifyCoverChange(errorState);
+      
+      // Emit upload end event for animation
+      window.dispatchEvent(new CustomEvent('cover-upload-end'));
+      
+      if (error instanceof Error) {
+        toast.error(`Failed to update cover: ${error.message}`);
+      } else {
+        toast.error('Failed to update cover. Please try again.');
+      }
+      throw error;
+    }
+  }, [user, targetUserId, coverState]);
+
+  return {
+    key: coverState.key,
+    resolvedUrl: coverState.resolvedUrl,
+    position: coverState.position,
+    loading: coverState.loading,
+    lastGoodUrl: coverState.lastGoodUrl,
+    isPositionChanging: coverState.isPositionChanging,
+    isPositionSaving: coverState.isPositionSaving,
+    updateCover,
+    updatePosition,
+    refresh: loadCover,
+    preloadImage: mediaService.preloadImage,
+    clearCache: mediaService.clearCache,
+    loadCover
+  };
+};

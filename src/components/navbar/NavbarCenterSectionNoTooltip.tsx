@@ -1,0 +1,24 @@
+
+import React from "react";
+import NavTabsNoTooltip from "./NavTabsNoTooltip";
+
+const NavbarCenterSectionNoTooltip = React.memo(() => {
+  return (
+    <div 
+      className="h-full flex items-center justify-center"
+      style={{
+        transition: 'none',
+        transform: 'translateZ(0)',
+        willChange: 'auto',
+        zIndex: 10,
+        position: 'relative'
+      }}
+    >
+      <NavTabsNoTooltip />
+    </div>
+  );
+});
+
+NavbarCenterSectionNoTooltip.displayName = 'NavbarCenterSectionNoTooltip';
+
+export default NavbarCenterSectionNoTooltip;

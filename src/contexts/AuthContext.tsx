@@ -1,0 +1,379 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { immediateLogoutService } from '@/utils/auth/immediateLogoutService';
+import { userDataSynchronizer } from '@/services/userDataSynchronizer';
+
+interface UserProfile {
+  id: string;
+  user_id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  email_verified?: boolean;
+  phone_verified?: boolean;
+  account_status?: string;
+  profile_image_url?: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  userProfile: UserProfile | null;
+  loading: boolean;
+  isAdmin: boolean;
+  adminRole: string | null;
+  userRole: string | null;
+  userLevel: number;
+  isSuperAdmin: boolean;
+  isModerator: boolean;
+  isPlatformOwner: boolean;
+  canManageUsers: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  adminOnlyLogout: () => Promise<void>;
+  validateUserAccess: (userId: string) => boolean;
+  getCurrentAuthUserId: () => string | null;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userLevel, setUserLevel] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
+  const [authDataCached, setAuthDataCached] = useState(false);
+
+  // Role hierarchy levels (from RBAC types)
+  const ROLE_LEVELS = {
+    'user': 1,
+    'global_content_moderator': 25,
+    'user_directory_admin': 35,
+    'access_admin': 85,
+    'admin': 90,
+    'super_admin': 95,
+    'platform_owner_root': 100
+  };
+
+  const isAdmin = userRole && ['admin', 'super_admin', 'moderator', 'support', 'developer', 'access_admin', 'platform_owner_root'].includes(userRole);
+  const adminRole = isAdmin ? userRole : null;
+  const isSuperAdmin = userRole === 'super_admin' || userRole === 'platform_owner_root';
+  const isModerator = userLevel >= ROLE_LEVELS.global_content_moderator;
+  const isPlatformOwner = userRole === 'platform_owner_root';
+  const canManageUsers = userLevel >= ROLE_LEVELS.user_directory_admin;
+
+  useEffect(() => {
+    let isMounted = true;
+    console.log('🚀 AuthProvider: Starting auth initialization...');
+
+    const initializeAuth = async () => {
+      try {
+        // Set up auth state listener FIRST to catch any auth events
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!isMounted) return;
+            
+            console.log('🔄 AuthProvider: Auth state changed:', event, !!session?.user);
+            
+            // Update auth state immediately
+            setSession(session);
+            setUser(session?.user ?? null);
+            
+            // Set loading to false on any auth event
+            if (authInitialized) {
+              setLoading(false);
+            }
+            
+            // Handle different events
+            if (event === 'SIGNED_OUT') {
+              setUserProfile(null);
+              setUserRole(null);
+              setUserLevel(0);
+              setAuthDataCached(false);
+              // Clear synchronized user data
+              userDataSynchronizer.clearUserData();
+            } else if (event === 'SIGNED_IN' && session?.user) {
+              // Only fetch if not already cached to prevent constant reloading
+              if (!authDataCached) {
+                fetchUserProfile(session.user.id).catch(console.warn);
+                fetchUserRole(session.user.id).catch(console.warn);
+                // Prefetch profile settings so settings pages are instant
+                import('@/lib/profileSettingsCache').then(m => m.prefetchProfileSettings(session.user!.id)).catch(console.warn);
+                // Synchronize all user data immediately
+                userDataSynchronizer.syncUserData(session.user.id).catch(console.warn);
+              }
+            }
+          }
+        );
+
+        // Store subscription for cleanup
+        const cleanupSubscription = () => subscription.unsubscribe();
+        
+        // Then get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ AuthProvider: Session check error:', error);
+          throw error;
+        }
+
+        if (!isMounted) {
+          cleanupSubscription();
+          return;
+        }
+
+        // Set auth state immediately
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+        setAuthInitialized(true);
+
+        console.log('✅ AuthProvider: Auth initialized -', !!session?.user ? 'User found' : 'No user');
+
+        // Fetch user data in background if user exists and not already cached
+        if (session?.user && !authDataCached) {
+          fetchUserProfile(session.user.id).catch(console.warn);
+          fetchUserRole(session.user.id).catch(console.warn);
+          // Prefetch profile settings eagerly on app load
+          import('@/lib/profileSettingsCache').then(m => m.prefetchProfileSettings(session.user!.id)).catch(console.warn);
+          // Immediately synchronize all user data for instant loading
+          userDataSynchronizer.syncUserData(session.user.id).catch(console.warn);
+        } else if (!session?.user) {
+          // Clear user data if no session
+          userDataSynchronizer.clearUserData();
+          setAuthDataCached(false);
+        }
+
+        return cleanupSubscription;
+
+      } catch (error) {
+        console.error('❌ AuthProvider: Auth initialization failed:', error);
+        if (isMounted) {
+          setSession(null);
+          setUser(null);
+          setUserProfile(null);
+          setUserRole(null);
+          setUserLevel(0);
+          setLoading(false);
+          setAuthInitialized(true);
+          setAuthDataCached(false);
+        }
+      }
+    };
+
+    // Start initialization and get cleanup function
+    const cleanup = initializeAuth();
+
+    return () => {
+      console.log('🧹 AuthProvider: Cleaning up...');
+      isMounted = false;
+      if (cleanup && typeof cleanup.then === 'function') {
+        cleanup.then(cleanupFn => cleanupFn?.()).catch(console.warn);
+      }
+    };
+  }, []);
+
+  const fetchUserProfile = async (userId: string): Promise<void> => {
+    if (!userId) {
+      console.warn('⚠️ fetchUserProfile: No userId provided');
+      return;
+    }
+    
+    const started = performance.now();
+    try {
+      console.log('🔍 fetchUserProfile: Fetching profile for user:', userId);
+      
+      // Fetch from public.profiles table
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('⚠️ fetchUserProfile: Database error:', error);
+        setUserProfile(null);
+        return;
+      }
+
+      if (data) {
+        console.log('✅ fetchUserProfile: Profile found in', Math.round(performance.now() - started), 'ms');
+        // Map the profile data to match the interface
+        setUserProfile({
+          id: data.id,
+          user_id: data.id,
+          email: data.email || '',
+          first_name: data.full_name?.split(' ')[0],
+          last_name: data.full_name?.split(' ').slice(1).join(' '),
+          profile_image_url: data.avatar_url
+        } as UserProfile);
+        setAuthDataCached(true);
+      } else {
+        console.log('⚠️ fetchUserProfile: No profile found for user:', userId);
+        setUserProfile(null);
+        setAuthDataCached(true);
+      }
+    } catch (error: any) {
+      console.error('❌ fetchUserProfile: Exception:', error?.message || error);
+    }
+  };
+
+  const fetchUserRole = async (userId: string): Promise<void> => {
+    if (!userId) {
+      console.warn('⚠️ fetchUserRole: No userId provided');
+      setUserRole('user');
+      setUserLevel(1);
+      return;
+    }
+
+    // For now, all users are just 'user' role until we implement roles
+    console.log('🔍 fetchUserRole: Setting default user role');
+    setUserRole('user');
+    setUserLevel(1);
+    setAuthDataCached(true);
+  };
+  const signIn = async (email: string, password: string) => {
+    try {
+      console.log('🔐 BULLETPROOF LOGIN: Starting authentication for:', email);
+      
+      // Clean the email input
+      const cleanEmail = email.trim().toLowerCase();
+      
+      // Validate inputs
+      if (!cleanEmail || !password) {
+        throw new Error('Email dhe fjalëkalimi janë të detyrueshme');
+      }
+      
+      if (!cleanEmail.includes('@')) {
+        throw new Error('Formati i email-it nuk është valid');
+      }
+      
+      // Attempt authentication with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email: cleanEmail, 
+        password 
+      });
+      
+      if (error) {
+        console.error('🔴 Authentication failed:', error);
+        
+        // Map common errors to user-friendly messages
+        let userMessage = 'Email ose fjalëkalim i pasaktë';
+        if (error.message.includes('Invalid login credentials')) {
+          userMessage = 'Email ose fjalëkalim i pasaktë';
+        } else if (error.message.includes('Email not confirmed')) {
+          userMessage = 'Ju lutemi konfirmoni email-in tuaj para se të identifikoheni';
+        } else if (error.message.includes('Too many requests')) {
+          userMessage = 'Shumë përpjekje për t\'u identifikuar. Provoni përsëri pas disa minutash';
+        }
+        
+        throw new Error(userMessage);
+      }
+      
+      if (!data.user || !data.session) {
+        throw new Error('Gabim në sistem. Ju lutemi provoni përsëri');
+      }
+      
+      console.log('✅ BULLETPROOF LOGIN: Authentication successful');
+      
+      // Update states immediately for instant UI response
+      setUser(data.user);
+      setSession(data.session);
+      
+    } catch (error: any) {
+      console.error('❌ BULLETPROOF LOGIN: Failed with error:', error);
+      throw error;
+    }
+  };
+
+  const signUp = async (email: string, password: string) => {
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('❌ SignUp error:', error);
+      throw error;
+    }
+  };
+
+  const signOut = async () => {
+    console.log('🚪 Starting sign out process...');
+    
+    try {
+      // Clear states immediately
+      setUser(null);
+      setSession(null);
+      setUserProfile(null);
+      setUserRole(null);
+      setUserLevel(0);
+      setAuthDataCached(false);
+      
+      // Perform immediate logout
+      await immediateLogoutService.performImmediateLogout();
+      
+      console.log('✅ Sign out completed');
+    } catch (error) {
+      console.error('❌ Sign out error:', error);
+    }
+  };
+
+  const adminOnlyLogout = async () => {
+    await immediateLogoutService.performAdminOnlyLogout();
+  };
+
+  const validateUserAccess = (requestedUserId: string): boolean => {
+    return user?.id === requestedUserId;
+  };
+
+  const getCurrentAuthUserId = (): string | null => {
+    return user?.id || null;
+  };
+
+  const value = {
+    user,
+    session,
+    userProfile,
+    loading,
+    isAdmin,
+    adminRole,
+    userRole,
+    userLevel,
+    isSuperAdmin,
+    isModerator,
+    isPlatformOwner,
+    canManageUsers,
+    signIn,
+    signUp,
+    signOut,
+    adminOnlyLogout,
+    validateUserAccess,
+    getCurrentAuthUserId,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
