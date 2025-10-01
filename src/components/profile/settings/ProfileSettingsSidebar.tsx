@@ -360,11 +360,11 @@ const ProfileSettingsSidebar: React.FC<ProfileSettingsSidebarProps> = ({
         {showScrollIndicator && (
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
             <div className="relative">
-              <div className="w-12 h-12 rounded-full backdrop-blur-md bg-white/30 border border-white/50 shadow-lg flex items-center justify-center animate-bounce">
-                <ChevronDown className="w-6 h-6 text-gray-700 animate-pulse" strokeWidth={2.5} />
+              <div className="w-12 h-12 rounded-full backdrop-blur-xl bg-white/10 border border-white/30 shadow-2xl flex items-center justify-center animate-bounce">
+                <ChevronDown className="w-6 h-6 text-gray-800 animate-pulse" strokeWidth={2.5} />
               </div>
               {/* Glow effect */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/40 to-transparent blur-sm -z-10"></div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/20 to-transparent blur-md -z-10"></div>
             </div>
           </div>
         )}
