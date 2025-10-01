@@ -10,7 +10,7 @@
  * - db.functions.invoke('function-name')
  */
 
-import { supabase } from '@/integrations/cloud/client';
+import { supabase } from '@/integrations/supabase/client';
 
 // Export with clearer naming
 export const db = supabase;
