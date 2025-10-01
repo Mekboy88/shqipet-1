@@ -22,8 +22,8 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
       <div className="absolute top-[57px] left-0 right-0 bottom-0 bg-gray-100 pointer-events-none"></div>
       
       {/* Windows container */}
-      <div className="relative w-[1040px] h-[910px] overflow-visible absolute left-1/2 transform -translate-x-1/2 z-10 pointer-events-auto" style={{ top: '80px' }}>
-        <div className="w-full h-full flex flex-row">
+      <div className="relative w-[1040px] max-h-[calc(100vh-100px)] overflow-visible absolute left-1/2 transform -translate-x-1/2 z-10 pointer-events-auto" style={{ top: '80px' }}>
+        <div className="w-full h-full max-h-[calc(100vh-100px)] flex flex-row">
           <div className="bg-white rounded-lg shadow-lg overflow-hidden w-80 flex-shrink-0 -ml-2">
             <ProfileSettingsSidebar activeSection={activeSection} setActiveSection={setActiveSection} onClose={onClose} />
           </div>
