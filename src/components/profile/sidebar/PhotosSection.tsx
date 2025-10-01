@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { useUserPhotos } from '@/hooks/useUserPhotos';
-import { useNavigate } from 'react-router-dom';
 
 interface Photo {
   id: number;
@@ -16,7 +15,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   photos: propPhotos = []
 }) => {
   const { getPhotosForDisplay, loading } = useUserPhotos();
-  const navigate = useNavigate();
   const [displayedPhotos, setDisplayedPhotos] = useState<Photo[]>([]);
   const [photoIndex, setPhotoIndex] = useState(0);
   const maxPhotosToDisplay = 9; // 3x3 grid
@@ -81,7 +79,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         <h2 className="text-xl font-semibold">Fotot</h2>
           {photos.length > 0 && (
             <button 
-              onClick={() => navigate('/photos/gallery')}
+              onClick={() => window.location.href = '/photos/gallery'}
               className="text-blue-500 text-sm font-medium hover:underline cursor-pointer"
             >
               See All Photos

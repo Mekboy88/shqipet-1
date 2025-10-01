@@ -287,7 +287,6 @@ const PasswordSettingsForm: React.FC = () => {
                     onReset={resetForgotPassword}
                     isGenerating={isGenerating}
                     isVerifying={isVerifying}
-                    hideSendButton={!otpSent}
                   />
                 </div>
               ) : (
@@ -319,31 +318,19 @@ const PasswordSettingsForm: React.FC = () => {
                   showPassword={showRepeatPassword}
                   onToggleVisibility={() => setShowRepeatPassword(!showRepeatPassword)}
                 />
-
-                {isForgotPasswordMode && !otpSent && (
-                  <div className="pt-2">
-                    <Button
-                      onClick={handleSendOTP}
-                      disabled={!selectedMethod || isGenerating || (!userProfile.email && !userProfile.phone_number)}
-                      className="w-full"
-                    >
-                      Dërgo kodin e verifikimit
-                    </Button>
-                  </div>
-                )}
-                
-                {!isForgotPasswordMode && (
-                  <div className="pt-2">
-                    <Button
-                      onClick={handleNormalPasswordChange}
-                      variant="ghost"
-                      className="w-full p-4 bg-gradient-to-r from-red-500/10 to-gray-800/10 rounded-xl border border-red-200"
-                    >
-                      Ndrysho fjalëkalimin
-                    </Button>
-                  </div>
-                )}
               </div>
+              
+              {!isForgotPasswordMode && (
+                <div className="pt-4">
+                  <Button
+                    onClick={handleNormalPasswordChange}
+                    variant="ghost"
+                    className="flex-1 p-4 bg-gradient-to-r from-red-500/10 to-gray-800/10 rounded-xl border border-red-200"
+                  >
+                    Ndrysho fjalëkalimin
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
