@@ -9,6 +9,7 @@ import TwoFactorAuthForm from './TwoFactorAuthForm';
 import AvatarAndCoverForm from './AvatarAndCoverForm';
 import LocationPreferencesForm from './LocationPreferencesForm';
 import MonetizationForm from './MonetizationForm';
+import MyEarningsForm from './MyEarningsForm';
 import { ProfileSettingsData } from '@/hooks/useProfileSettings';
 
 // Placeholder components for sections not yet implemented
@@ -142,7 +143,7 @@ export const settingsComponentMap: Record<string, React.ComponentType<any>> = {
   'location-preferences': LocationPreferencesForm,
   verification: PlaceholderComponent,
   monetization: MonetizationForm,
-  earnings: PlaceholderComponent,
+  earnings: MyEarningsForm,
   affiliates: AffiliatesComponent,
   'my-points': MyPointsComponent,
   wallet: WalletComponent,
