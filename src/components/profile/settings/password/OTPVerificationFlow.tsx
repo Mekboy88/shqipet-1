@@ -21,6 +21,7 @@ interface OTPVerificationFlowProps {
   onReset: () => void;
   isGenerating: boolean;
   isVerifying: boolean;
+  hideSendButton?: boolean;
 }
 
 export const OTPVerificationFlow: React.FC<OTPVerificationFlowProps> = ({
@@ -36,7 +37,8 @@ export const OTPVerificationFlow: React.FC<OTPVerificationFlowProps> = ({
   onVerifyOTP,
   onReset,
   isGenerating,
-  isVerifying
+  isVerifying,
+  hideSendButton
 }) => {
   if (!otpSent) {
     return (
@@ -100,15 +102,17 @@ export const OTPVerificationFlow: React.FC<OTPVerificationFlowProps> = ({
           </div>
         </div>
         
-        <div className="mt-auto pt-6">
-          <Button 
-            onClick={onSendOTP}
-            disabled={!selectedMethod || isGenerating || (!userProfile.email && !userProfile.phone_number)}
-            className="w-full"
-          >
-            {isGenerating ? 'Duke dërguar...' : 'Dërgo kodin e verifikimit'}
-          </Button>
-        </div>
+        {!hideSendButton && (
+          <div className="mt-auto pt-6">
+            <Button 
+              onClick={onSendOTP}
+              disabled={!selectedMethod || isGenerating || (!userProfile.email && !userProfile.phone_number)}
+              className="w-full"
+            >
+              {isGenerating ? 'Duke dërguar...' : 'Dërgo kodin e verifikimit'}
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
