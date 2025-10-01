@@ -22,12 +22,6 @@ import {
 
 export const settingsSections = [
   {
-    id: 'general',
-    label: 'General',
-    icon: Settings,
-    color: 'text-gray-600'
-  },
-  {
     id: 'profile',
     label: 'Profile',
     icon: User,

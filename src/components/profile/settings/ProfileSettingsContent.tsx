@@ -21,9 +21,9 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
   }, [loading]);
   const stableLoading = hasLoadedOnceRef.current ? false : loading;
 
-  // Determine section robustly and default to 'general' if the activeSection is invalid.
+  // Determine section robustly and default to 'profile' if the activeSection is invalid.
   const resolveSection = (section?: string) => {
-    if (!section) return 'general';
+    if (!section) return 'profile';
     const s = section.toLowerCase();
     if (settingsComponentMap[s]) return s;
     const norm = s.replace(/_/g, '-');
@@ -32,7 +32,7 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
     if (s.includes('session') && (settingsComponentMap['manage-sessions'] || settingsComponentMap['sessions'])) {
       return settingsComponentMap['manage-sessions'] ? 'manage-sessions' : 'sessions';
     }
-    return 'general';
+    return 'profile';
   };
   const currentSection = resolveSection(activeSection);
   const Component = settingsComponentMap[currentSection];

@@ -1,6 +1,5 @@
 
 import React from 'react';
-import GeneralSettingsForm from './GeneralSettingsForm';
 import ProfileInfoForm from './ProfileInfoForm';
 import SocialLinksForm from './SocialLinksForm';
 import NotificationSettingsForm from './NotificationSettingsForm';
@@ -24,7 +23,6 @@ import LocationPreferencesForm from './LocationPreferencesForm';
 
 
 export const settingsComponentMap: { [key: string]: React.ComponentType<any> } = {
-  general: GeneralSettingsForm,
   profile: ProfileInfoForm,
   social: SocialLinksForm,
   notifications: NotificationSettingsForm,

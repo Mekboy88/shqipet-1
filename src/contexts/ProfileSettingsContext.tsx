@@ -26,10 +26,10 @@ export const useProfileSettings = () => {
 
 export const ProfileSettingsProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('general');
+  const [activeSection, setActiveSection] = useState('profile');
   const [userInfo, setUserInfo] = useState(null);
 
-  const openSettings = (sectionId = 'general') => {
+  const openSettings = (sectionId = 'profile') => {
     setActiveSection(sectionId);
     setIsSettingsOpen(true);
   };
