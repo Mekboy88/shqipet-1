@@ -301,55 +301,6 @@ const GeneralSettingsForm: React.FC<GeneralSettingsFormProps> = ({
         {/* Left Column */}
         <div className="space-y-6">
           
-          {/* Account Security Overview */}
-          <Card className="shadow-lg border border-gray-200/50">
-            <CardHeader className="border-b border-gray-200 pb-4">
-              <CardTitle className="flex items-center gap-3 text-xl text-gray-800">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary">
-                  <path opacity="0.4" d="M20.9099 11.12C20.9099 16.01 17.3599 20.59 12.5099 21.93C12.1799 22.02 11.8198 22.02 11.4898 21.93C6.63984 20.59 3.08984 16.01 3.08984 11.12V6.73006C3.08984 5.91006 3.70986 4.98007 4.47986 4.67007L10.0498 2.39007C11.2998 1.88007 12.7098 1.88007 13.9598 2.39007L19.5298 4.67007C20.2898 4.98007 20.9199 5.91006 20.9199 6.73006L20.9099 11.12Z" fill="currentColor"></path>
-                  <path d="M14.5 10.5C14.5 9.12 13.38 8 12 8C10.62 8 9.5 9.12 9.5 10.5C9.5 11.62 10.24 12.55 11.25 12.87V15.5C11.25 15.91 11.59 16.25 12 16.25C12.41 16.25 12.75 15.91 12.75 15.5V12.87C13.76 12.55 14.5 11.62 14.5 10.5Z" fill="currentColor"></path>
-                </svg>
-                Account Security
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div>
-                <div className="text-sm font-medium text-gray-500 mb-2">Two-Factor Authentication (2FA)</div>
-                <div className="flex items-center gap-2">
-                  {userInfo.two_factor_enabled ? (
-                    <>
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="text-gray-600">2FA Enabled</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-5 w-5 text-red-600" />
-                      <span className="text-gray-600">2FA Not Enabled</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                <Button
-                  onClick={() => handleManageClick('two-factor')}
-                  variant="outline"
-                  className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/30 !h-auto !min-h-[2.5rem] !px-2 !py-2 !text-xs flex items-center justify-center"
-                >
-                  <ExternalLink className="h-3 w-3 mr-1 flex-shrink-0" />
-                  <span>Configure 2FA</span>
-                </Button>
-                <Button
-                  onClick={() => handleManageClick('password')}
-                  variant="outline"
-                  className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/30 !h-auto !min-h-[3rem] !px-3 !py-3 !text-xs flex items-center justify-center !leading-tight gap-1"
-                >
-                  <Settings className="h-3 w-3 flex-shrink-0" />
-                  <span className="whitespace-nowrap">Change Password</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Right Column */}
