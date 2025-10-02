@@ -20,7 +20,6 @@ import {
 
 import { supabase } from '@/integrations/supabase/client';
 import { mediaService } from '@/services/media/MediaService';
-import { ProfileRepairButton } from '../ProfileRepairButton';
 
 /* --------------------------- helpers & utilities -------------------------- */
 
@@ -221,11 +220,6 @@ useEffect(() => {
 
   return (
     <div className="space-y-6 p-6">
-      {/* Profile Repair Button - Restore photos from history */}
-      <div className="flex justify-end">
-        <ProfileRepairButton />
-      </div>
-      
       {/* Custom Cover Upload Animation - Full Screen Overlay */}
       <CoverUploadAnimation 
         isUploading={isCoverLoading} 
