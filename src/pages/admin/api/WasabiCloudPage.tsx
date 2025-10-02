@@ -1526,6 +1526,13 @@ const WasabiEdgeTestsOnly = () => {
         if (validKey) {
           append(`• Using valid file key: ${validKey.split('/').pop()}`);
         }
+      } else if (key === 'wasabi-download' || key === 'wasabi-delete' || key === 'wasabi-metadata') {
+        // These functions require a key in the request body
+        const validKey = lastFileKey || await fetchValidTestKey();
+        testBody = { key: validKey || 'connectivity-tests/test-file.txt' };
+        if (validKey) {
+          append(`• Using valid file key: ${validKey.split('/').pop()}`);
+        }
       } else {
         testBody = { ping: true };
       }
@@ -1536,13 +1543,12 @@ const WasabiEdgeTestsOnly = () => {
 
       if (!error) {
         setStatuses(s => ({ ...s, [key]: 'ok' }));
+        setCodes(c => ({ ...c, [key]: '200' }));
         append(`✓ ${key} responded 200`);
-      } else {
-        setStatuses(s => ({ ...s, [key]: 'down' }));
-        append(`✖ ${key} error: ${error.message || 'unknown'}`);
+        return; // prevent false 'network' logs
       }
 
-
+      // Map error to an HTTP-like status code when available
       const statusRaw = (error as any)?.status ?? (error as any)?.code ?? (error as any)?.context?.status;
       let status = typeof statusRaw === 'number' ? statusRaw : Number(statusRaw);
       if (Number.isNaN(status)) {
@@ -1552,22 +1558,14 @@ const WasabiEdgeTestsOnly = () => {
       }
       const statusNum = status;
 
-      // Special handling for proxy/get-url: only show success when they actually work
-      // Don't fake 404s as success - let them fail if the file doesn't exist
-      
-      // Standardized mapping: 2xx = ok, 4xx = warn, 5xx/network = down
-      if (!Number.isNaN(statusNum) && statusNum >= 200 && statusNum < 300) {
-        setStatuses(s => ({ ...s, [key]: "ok" }));
-        setCodes(c => ({ ...c, [key]: String(statusNum) }));
-        append(`✓ ${key} responded ${statusNum}`);
-        return;
-      }
       if (!Number.isNaN(statusNum) && statusNum >= 400 && statusNum < 500) {
         setStatuses(s => ({ ...s, [key]: "warn" }));
         setCodes(c => ({ ...c, [key]: String(statusNum) }));
         append(`⚠ ${key} responded ${statusNum}`);
         return;
       }
+
+      // 5xx or network
       setStatuses(s => ({ ...s, [key]: "down" }));
       setCodes(c => ({ ...c, [key]: String(statusNum || 'net') }));
       append(`✖ ${key} responded ${statusNum || 'network'}`);
@@ -1621,7 +1619,16 @@ const WasabiEdgeTestsOnly = () => {
               <Play className="w-4 h-4" /> Run All (sequential)
             </button>
             <button
-              onClick={() => { setLog(""); }}
+              onClick={() => {
+                setLog("");
+                setCodes({});
+                setLastFileKey(null);
+                setStatuses(() => {
+                  const reset: Record<string, ConnStatusEdge> = {} as any;
+                  EDGE_FUNCTIONS.forEach(f => (reset[f.key] = "idle"));
+                  return reset;
+                });
+              }}
               className="inline-flex items-center gap-2 rounded-xl bg-white hover:bg-gray-100 border px-4 py-2 text-sm shadow-sm"
             >
               <RefreshCcw className="w-4 h-4" /> Clear Log
