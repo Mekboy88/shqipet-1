@@ -81,7 +81,9 @@ export const useUserPhotos = (userId?: string) => {
   const getPhotosForDisplay = () => {
     return photos.map((photo, index) => ({
       id: index + 1, // Legacy format expected by PhotosSection
-      url: photo.photo_key // Will be resolved by AvatarImage component
+      url: photo.photo_key, // Will be resolved by AvatarImage component
+      type: photo.photo_type, // Include type for labeling
+      photoId: photo.id // Include actual photo ID for deletion
     }));
   };
 

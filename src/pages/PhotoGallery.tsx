@@ -24,6 +24,14 @@ const PhotoGallery: React.FC = () => {
     }
   };
 
+  const getPhotoTypeLabelAlbanian = (type: string) => {
+    switch (type) {
+      case 'profile': return 'foto avatari';
+      case 'cover': return 'foto kopertine';
+      default: return null;
+    }
+  };
+
   const getPhotoTypeColor = (type: string) => {
     switch (type) {
       case 'profile': return 'bg-blue-100 text-blue-800';
@@ -155,11 +163,17 @@ const PhotoGallery: React.FC = () => {
               }>
                 {viewMode === 'grid' ? (
                   <>
-                    <div className="aspect-square rounded-lg overflow-hidden cursor-pointer">
+                    <div className="aspect-square rounded-lg overflow-hidden cursor-pointer relative">
                       <AvatarImage
                         src={photo.photo_key}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       />
+                      {/* Albanian label at bottom for avatar and cover photos only */}
+                      {getPhotoTypeLabelAlbanian(photo.photo_type) && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1 py-0.5 text-center">
+                          {getPhotoTypeLabelAlbanian(photo.photo_type)}
+                        </div>
+                      )}
                     </div>
                     <div className="absolute top-2 left-2">
                       <span className={`text-xs px-2 py-1 rounded-full ${getPhotoTypeColor(photo.photo_type)}`}>

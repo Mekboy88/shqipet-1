@@ -6,6 +6,8 @@ import { useUserPhotos } from '@/hooks/useUserPhotos';
 interface Photo {
   id: number;
   url: string;
+  type?: 'profile' | 'cover' | 'gallery';
+  photoId?: string;
 }
 
 interface PhotosSectionProps {
@@ -93,12 +95,18 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
       {photos.length > 0 ? (
         <div className="grid grid-cols-3 gap-1">
           {displayedPhotos.map(photo => (
-            <div key={photo.id} className="aspect-square rounded-md overflow-hidden">
+            <div key={photo.id} className="aspect-square rounded-md overflow-hidden relative group">
               <img 
                 src={photo.url} 
                 alt={`Photo ${photo.id}`} 
                 className="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer" 
               />
+              {/* Albanian label for avatar and cover photos only */}
+              {photo.type && (photo.type === 'profile' || photo.type === 'cover') && (
+                <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1 py-0.5 text-center">
+                  {photo.type === 'profile' ? 'foto avatari' : 'foto kopertine'}
+                </div>
+              )}
             </div>
           ))}
           

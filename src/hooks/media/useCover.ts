@@ -197,6 +197,12 @@ export const useCover = (userId?: string) => {
   const loadCover = async () => {
     if (!targetUserId) return;
 
+    // CRITICAL: Don't reload during upload
+    if (coverState.loading && globalCoverState.resolvedUrl?.startsWith('blob:')) {
+      console.log('⏸️ Skipping cover load - upload in progress');
+      return;
+    }
+
     try {
       console.log('🔄 Loading cover for user:', targetUserId);
       // Optimistic: show last cached cover immediately while DB loads
@@ -561,6 +567,26 @@ export const useCover = (userId?: string) => {
 
       // Step 3: Edge function handles all persistence - no manual mirroring needed
       console.log('✅ Cover persistence completed via edge function');
+
+      // Save cover photo to user's photo collection
+      try {
+        const { userPhotosService } = await import('@/services/photos/UserPhotosService');
+        await userPhotosService.addPhoto(
+          user.id,
+          key,
+          'cover',
+          {
+            photoUrl: finalUrl,
+            originalFilename: file.name,
+            fileSize: file.size,
+            contentType: file.type,
+            isCurrent: true
+          }
+        );
+        console.log('✅ Cover photo saved to collection');
+      } catch (e) {
+        console.warn('⚠️ Failed to save cover photo to collection:', e);
+      }
 
       // Step 4: Update local state and refresh
       const finalState = {
