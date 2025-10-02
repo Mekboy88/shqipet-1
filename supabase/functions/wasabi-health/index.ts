@@ -24,24 +24,25 @@ Deno.serve(async (req) => {
 
     const ok = res.ok;
 
+    // Always return 200 so UI can read flags without treating as network error
     return new Response(JSON.stringify({
-      status: ok ? 'healthy' : 'unhealthy',
-      bucket,
-      region,
+      supabase: { online: true },
+      s3: { online: ok, bucket, region },
       timestamp: new Date().toISOString(),
     }), {
-      status: ok ? 200 : 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Health check error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
+    // Still return 200 with flags false so UI shows degraded state
     return new Response(JSON.stringify({
-      status: 'unhealthy',
-      error: message,
+      supabase: { online: true },
+      s3: { online: false, error: message },
       timestamp: new Date().toISOString(),
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }

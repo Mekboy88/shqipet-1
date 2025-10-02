@@ -736,34 +736,39 @@ const WasabiCloudPage: React.FC = () => {
         setUploadLog(prev => (prev ? prev + "\n" : "") + `✖ Health check failed: ${e?.message || e}`);
       }
 
-      // Step C: Upload test
+      // Step C: Upload test (use multipart FormData to edge function)
       try {
-        const body = {
-          filename: "connectivity.test",
-          contentType: "application/octet-stream",
-          fileSize: 1024,
-          metadata: { context: "connection-test" },
-          folder: "connectivity-tests",
-          isPublic: false,
-        };
-        const { data, error } = await supabase.functions.invoke('wasabi-upload', { body });
-        if (error) throw error;
-        const payload = typeof data === 'string' ? (() => { try { return JSON.parse(data as any); } catch { return null; } })() : (data as any);
-        const presigned = payload?.presignedUrl as string | undefined;
-        if (presigned) {
-          const tiny = new Blob([new Uint8Array(1024)], { type: "application/octet-stream" });
-          const putRes = await fetch(presigned, { method: "PUT", headers: { "Content-Type": "application/octet-stream" }, body: tiny });
-          if (putRes.ok) {
-            setCheckStatus(s => ({ ...s, upload: true }));
-            setEdgeStatus(s => ({ ...s, supabase_wasabi: 'ok' }));
-            setUploadLog(prev => (prev ? prev + "\n" : "") + `• Upload test OK (PUT ${putRes.status}). Key: ${payload.fileKey || "(unknown)"}`);
-          } else {
-            setCheckStatus(s => ({ ...s, upload: false }));
-            setUploadLog(prev => (prev ? prev + "\n" : "") + `✖ Upload test failed (${putRes.status}). Check CORS & presign headers.`);
-          }
-        } else {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const { data: userData } = await supabase.auth.getUser();
+        const session = sessionData?.session;
+        if (!session) throw new Error('Not authenticated');
+
+        const baseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+        const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+        const blob = new Blob([new Uint8Array(256)], { type: 'application/octet-stream' });
+        const file = new File([blob], 'connectivity.test', { type: 'application/octet-stream' });
+        const form = new FormData();
+        form.append('file', file);
+        form.append('mediaType', 'avatar');
+        if (userData?.user?.id) form.append('userId', userData.user.id);
+
+        const res = await fetch(`${baseUrl}/functions/v1/wasabi-upload`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: apiKey,
+          },
+          body: form,
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.success) {
           setCheckStatus(s => ({ ...s, upload: false }));
-          setUploadLog(prev => (prev ? prev + "\n" : "") + `✖ Upload test error: Missing presignedUrl`);
+          setUploadLog(prev => (prev ? prev + "\n" : "") + `✖ Upload test error: Edge Function returned ${res.status}`);
+        } else {
+          setCheckStatus(s => ({ ...s, upload: true }));
+          setEdgeStatus(s => ({ ...s, supabase_wasabi: 'ok' }));
+          setUploadLog(prev => (prev ? prev + "\n" : "") + `• Upload test OK. Key: ${data.key}`);
         }
       } catch (e: any) {
         setCheckStatus(s => ({ ...s, upload: false }));
