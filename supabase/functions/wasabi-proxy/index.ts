@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.713.0";
+import { AwsClient } from "https://esm.sh/aws4fetch@1.0.17";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +11,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { key } = await req.json();
+    const url = new URL(req.url);
+    let key = url.searchParams.get('key') || '';
+    if (!key && req.headers.get('content-type')?.includes('application/json')) {
+      const body = await req.json().catch(() => ({}));
+      key = body.key || '';
+    }
 
     if (!key) {
       return new Response(JSON.stringify({ error: 'No key provided' }), {
@@ -20,35 +25,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    const s3Client = new S3Client({
-      region: Deno.env.get('WASABI_REGION'),
-      endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com`,
-      credentials: {
-        accessKeyId: Deno.env.get('WASABI_ACCESS_KEY_ID')!,
-        secretAccessKey: Deno.env.get('WASABI_SECRET_ACCESS_KEY')!,
-      },
-    });
+    const region = Deno.env.get('WASABI_REGION')!;
+    const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
+    const accessKeyId = Deno.env.get('WASABI_ACCESS_KEY_ID')!;
+    const secretAccessKey = Deno.env.get('WASABI_SECRET_ACCESS_KEY')!;
+    const endpoint = `https://s3.${region}.wasabisys.com`;
 
-    const command = new GetObjectCommand({
-      Bucket: Deno.env.get('WASABI_BUCKET_NAME'),
-      Key: key,
-    });
+    const aws = new AwsClient({ accessKeyId, secretAccessKey, service: 's3', region });
 
-    const response = await s3Client.send(command);
-    const blob = await response.Body?.transformToByteArray();
+    const getUrl = `${endpoint}/${bucket}/${key}`;
+    const res = await aws.fetch(getUrl, { method: 'GET' });
 
-    if (!blob) {
-      throw new Error('Failed to retrieve file');
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Wasabi GET failed: ${res.status} ${res.statusText} ${text}`);
     }
 
-    return new Response(blob.buffer as BodyInit, {
+    // Stream through response
+    return new Response(res.body, {
       headers: {
         ...corsHeaders,
-        'Content-Type': response.ContentType || 'application/octet-stream',
-        'Cache-Control': 'public, max-age=31536000',
+        'Content-Type': res.headers.get('content-type') || 'application/octet-stream',
+        'Cache-Control': 'public, max-age=900',
       }
     });
-
   } catch (error) {
     console.error('Proxy error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';

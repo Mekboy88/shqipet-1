@@ -1,4 +1,4 @@
-import { S3Client, HeadBucketCommand } from "https://esm.sh/@aws-sdk/client-s3@3.713.0";
+import { AwsClient } from "https://esm.sh/aws4fetch@1.0.17";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,30 +11,28 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const s3Client = new S3Client({
-      region: Deno.env.get('WASABI_REGION'),
-      endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com`,
-      credentials: {
-        accessKeyId: Deno.env.get('WASABI_ACCESS_KEY_ID')!,
-        secretAccessKey: Deno.env.get('WASABI_SECRET_ACCESS_KEY')!,
-      },
-    });
+    const region = Deno.env.get('WASABI_REGION')!;
+    const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
+    const accessKeyId = Deno.env.get('WASABI_ACCESS_KEY_ID')!;
+    const secretAccessKey = Deno.env.get('WASABI_SECRET_ACCESS_KEY')!;
+    const endpoint = `https://s3.${region}.wasabisys.com`;
 
-    const command = new HeadBucketCommand({
-      Bucket: Deno.env.get('WASABI_BUCKET_NAME'),
-    });
+    const aws = new AwsClient({ accessKeyId, secretAccessKey, service: 's3', region });
 
-    await s3Client.send(command);
+    const url = `${endpoint}/${bucket}?list-type=2&max-keys=0`;
+    const res = await aws.fetch(url, { method: 'GET' });
+
+    const ok = res.ok;
 
     return new Response(JSON.stringify({
-      status: 'healthy',
-      bucket: Deno.env.get('WASABI_BUCKET_NAME'),
-      region: Deno.env.get('WASABI_REGION'),
+      status: ok ? 'healthy' : 'unhealthy',
+      bucket,
+      region,
       timestamp: new Date().toISOString(),
     }), {
+      status: ok ? 200 : 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
-
   } catch (error) {
     console.error('Health check error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';

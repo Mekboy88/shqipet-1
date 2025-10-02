@@ -1,6 +1,3 @@
-import { S3Client, GetObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.713.0";
-import { getSignedUrl } from "https://esm.sh/@aws-sdk/s3-request-presigner@3.713.0";
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -12,8 +9,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { key, expires = 900 } = await req.json();
-
+    const { key } = await req.json();
     if (!key) {
       return new Response(JSON.stringify({ error: 'No key provided' }), {
         status: 400,
@@ -21,26 +17,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    const s3Client = new S3Client({
-      region: Deno.env.get('WASABI_REGION'),
-      endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com`,
-      credentials: {
-        accessKeyId: Deno.env.get('WASABI_ACCESS_KEY_ID')!,
-        secretAccessKey: Deno.env.get('WASABI_SECRET_ACCESS_KEY')!,
-      },
-    });
+    const baseUrl = Deno.env.get('SUPABASE_URL');
+    const proxyUrl = `${baseUrl}/functions/v1/wasabi-proxy?key=${encodeURIComponent(key)}`;
 
-    const command = new GetObjectCommand({
-      Bucket: Deno.env.get('WASABI_BUCKET_NAME'),
-      Key: key,
-    });
-
-    const url = await getSignedUrl(s3Client, command, { expiresIn: expires });
-
-    return new Response(JSON.stringify({ url }), {
+    return new Response(JSON.stringify({ url: proxyUrl }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
-
   } catch (error) {
     console.error('Get URL error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
