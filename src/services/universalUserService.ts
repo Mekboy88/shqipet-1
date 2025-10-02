@@ -472,10 +472,11 @@ class UniversalUserService {
         .update({ 
           avatar_key: avatarKey,
           profile_image_url: finalUrl,
-          avatar_url: finalUrl,
+          // CRITICAL: persist the stable Wasabi key in avatar_url
+          avatar_url: avatarKey,
           updated_at: new Date().toISOString()
         })
-        .eq('auth_user_id', userId);
+        .eq('id', userId);
       console.log('✅ UniversalUser/updateAvatar persisted to profiles');
     } catch (error) {
       console.error('❌ UniversalUser/updateAvatar failed to persist to profiles:', error);
