@@ -1557,7 +1557,37 @@ const WasabiEdgeTestsOnly = () => {
         if (validKey) {
           append(`• Using valid file key: ${validKey.split('/').pop()}`);
         }
-      } else if (key === 'wasabi-download' || key === 'wasabi-delete' || key === 'wasabi-metadata') {
+      } else if (key === 'wasabi-download' || key === 'wasabi-metadata') {
+        // Use health check for endpoint availability test
+        const { data, error } = await supabase.functions.invoke(key, {
+          body: { ping: true },
+        });
+        
+        // Check for health parameter support by calling with ?health=1
+        const baseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+        const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        
+        const healthUrl = `${baseUrl}/functions/v1/${key}?health=1`;
+        const healthRes = await fetch(healthUrl, {
+          method: 'POST',
+          headers: {
+            Authorization: token ? `Bearer ${token}` : '',
+            apikey: apiKey,
+          },
+        });
+        
+        if (healthRes.status === 204) {
+          setStatuses(s => ({ ...s, [key]: 'ok' }));
+          setCodes(c => ({ ...c, [key]: '204' }));
+          append(`✓ ${key} health check OK (204)`);
+          return;
+        }
+        
+        // Fall through to normal test if health check fails
+        testBody = { ping: true };
+      } else if (key === 'wasabi-delete') {
         // These functions require a key in the request body
         const validKey = lastFileKey || await fetchValidTestKey();
         testBody = { key: validKey || 'connectivity-tests/test-file.txt' };

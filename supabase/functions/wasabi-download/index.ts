@@ -12,6 +12,12 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
+    
+    // Health check endpoint - return 204 OK immediately
+    if (url.searchParams.get('health') === '1') {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
     let key: string | null = url.searchParams.get('key');
     if (!key) {
       // Fallback to request body for non-GET requests

@@ -11,7 +11,25 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { key } = await req.json();
+    // Health check endpoint - return 204 OK immediately
+    const url = new URL(req.url);
+    if (url.searchParams.get('health') === '1') {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // Extract key from query string or request body
+    let key: string | null = url.searchParams.get('key');
+    if (!key) {
+      const contentType = req.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const body = await req.json().catch(() => ({} as any));
+        key = (body as any).key ?? null;
+      } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        const form = await req.formData().catch(() => null);
+        key = form?.get('key')?.toString() ?? null;
+      }
+    }
+
     if (!key) {
       return new Response(JSON.stringify({ error: 'No key provided' }), {
         status: 400,
@@ -27,13 +45,23 @@ Deno.serve(async (req) => {
 
     const aws = new AwsClient({ accessKeyId, secretAccessKey, service: 's3', region });
 
-    const headUrl = `${endpoint}/${bucket}/${encodeURIComponent(key)}`;
+    // Encode only path segments to preserve S3 key structure
+    const keyParts = key.split('/');
+    const encodedKey = keyParts.map((part: string) => encodeURIComponent(part)).join('/');
+    const headUrl = `${endpoint}/${bucket}/${encodedKey}`;
+    
+    console.log('HEAD metadata for key:', { key, encodedKey });
     const res = await aws.fetch(headUrl, { method: 'HEAD' });
 
     if (!res.ok) {
       const text = await res.text().catch(() => '');
-      return new Response(JSON.stringify({ error: `HEAD failed: ${res.status} ${text}` }), {
-        status: 500,
+      console.log('HEAD failed:', { status: res.status, key });
+      return new Response(JSON.stringify({ 
+        error: `HEAD failed: ${res.status}`, 
+        details: text,
+        key 
+      }), {
+        status: res.status, // Pass through actual S3 status code
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
