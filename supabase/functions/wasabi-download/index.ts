@@ -11,7 +11,19 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { key } = await req.json();
+    const url = new URL(req.url);
+    let key: string | null = url.searchParams.get('key');
+    if (!key) {
+      // Fallback to request body for non-GET requests
+      const contentType = req.headers.get('content-type') || '';
+      if (req.method !== 'GET' && contentType.includes('application/json')) {
+        const body = await req.json().catch(() => ({} as any));
+        key = (body as any).key ?? null;
+      } else if (req.method !== 'GET' && contentType.includes('application/x-www-form-urlencoded')) {
+        const form = await req.formData().catch(() => null);
+        key = form?.get('key')?.toString() ?? null;
+      }
+    }
     if (!key) {
       return new Response(JSON.stringify({ error: 'No key provided' }), {
         status: 400,
@@ -37,10 +49,13 @@ Deno.serve(async (req) => {
 
     if (!res.ok) {
       const text = await res.text().catch(() => '');
-      return new Response(JSON.stringify({ error: `GET failed: ${res.status} ${text}` }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({ error: `GET failed: ${res.status}`, details: text }),
+        {
+          status: res.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     const filename = key.split('/').pop() || 'download';
