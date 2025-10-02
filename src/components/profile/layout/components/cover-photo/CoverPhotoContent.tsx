@@ -355,9 +355,6 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
           <h1 className="font-bold text-white mb-1 text-3xl drop-shadow-lg">
             {profileDisplayName}
           </h1>
-          <p className="text-white/90 text-sm font-medium drop-shadow-md">
-            {formatRole(displayRole)}
-          </p>
         </div>
       )}
 
