@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { useUserPhotos } from '@/hooks/useUserPhotos';
+import { AvatarImage } from '@/components/ui/avatar';
 
 interface Photo {
   id: number;
@@ -96,7 +97,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         <div className="grid grid-cols-3 gap-1">
           {displayedPhotos.map(photo => (
             <div key={photo.id} className="aspect-square rounded-md overflow-hidden relative group">
-              <img 
+              <AvatarImage 
                 src={photo.url} 
                 alt={`Photo ${photo.id}`} 
                 className="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer" 

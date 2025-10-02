@@ -336,7 +336,7 @@ export const useGlobalCoverPhoto = () => {
           cover_gradient: newGradient,
           updated_at: new Date().toISOString()
         })
-        .eq('auth_user_id', user.id);
+        .eq('id', user.id);
 
       if (error) {
         console.error('Failed to save cover gradient:', error);
