@@ -438,7 +438,8 @@ class AvatarStore {
 
       // Save profile photo to user's photo collection
       try {
-        await userPhotosService.addPhoto(
+        console.log('💾 Saving profile photo to user_photos collection...');
+        const photoResult = await userPhotosService.addPhoto(
           userId,
           key,
           'profile',
@@ -450,9 +451,13 @@ class AvatarStore {
             isCurrent: true
           }
         );
-        console.log('✅ Profile photo saved to collection');
+        if (photoResult) {
+          console.log('✅ Profile photo saved to collection:', photoResult.id);
+        } else {
+          console.error('❌ Profile photo save returned null');
+        }
       } catch (e) {
-        console.warn('⚠️ Failed to save profile photo to collection:', e);
+        console.error('❌ Failed to save profile photo to collection:', e);
       }
 
       // FINAL STATE UPDATE - This is critical!

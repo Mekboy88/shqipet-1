@@ -26,7 +26,13 @@ Deno.serve(async (req) => {
     const endpoint = `https://s3.${region}.wasabisys.com`;
 
     const aws = new AwsClient({ accessKeyId, secretAccessKey, service: 's3', region });
-    const getUrl = `${endpoint}/${bucket}/${encodeURIComponent(key)}`;
+    
+    // Don't use encodeURIComponent on the whole key - only encode each path segment
+    const keyParts = key.split('/');
+    const encodedKey = keyParts.map((part: string) => encodeURIComponent(part)).join('/');
+    const getUrl = `${endpoint}/${bucket}/${encodedKey}`;
+    
+    console.log('Downloading from Wasabi:', { key, encodedKey, getUrl });
     const res = await aws.fetch(getUrl, { method: 'GET' });
 
     if (!res.ok) {

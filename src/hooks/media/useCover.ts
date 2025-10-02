@@ -10,6 +10,7 @@ import { mediaService } from '@/services/media/MediaService';
 import { uploadService } from '@/services/media/UploadService';
 import { toast } from '@/utils/toastToNotification';
 import { errorRecoveryService } from '@/utils/errorBoundary/ErrorRecoveryService';
+import { userPhotosService } from '@/services/photos/UserPhotosService';
 
 // Simplified persistence function that uses only the edge function
 const persistCoverToDatabase = async (userId: string, coverKey: string, position?: string): Promise<boolean> => {
@@ -570,8 +571,8 @@ export const useCover = (userId?: string) => {
 
       // Save cover photo to user's photo collection
       try {
-        const { userPhotosService } = await import('@/services/photos/UserPhotosService');
-        await userPhotosService.addPhoto(
+        console.log('💾 Saving cover photo to user_photos collection...');
+        const photoResult = await userPhotosService.addPhoto(
           user.id,
           key,
           'cover',
@@ -583,9 +584,13 @@ export const useCover = (userId?: string) => {
             isCurrent: true
           }
         );
-        console.log('✅ Cover photo saved to collection');
+        if (photoResult) {
+          console.log('✅ Cover photo saved to collection:', photoResult.id);
+        } else {
+          console.error('❌ Cover photo save returned null');
+        }
       } catch (e) {
-        console.warn('⚠️ Failed to save cover photo to collection:', e);
+        console.error('❌ Failed to save cover photo to collection:', e);
       }
 
       // Step 4: Update local state and refresh
