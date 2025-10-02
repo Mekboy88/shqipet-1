@@ -92,6 +92,7 @@ class UploadService {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('mediaType', mediaType);
+      formData.append('updateProfile', 'true'); // Allow profile updates for real uploads
       if (userId) {
         formData.append('userId', userId);
       }

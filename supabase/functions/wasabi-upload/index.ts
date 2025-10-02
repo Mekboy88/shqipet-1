@@ -16,6 +16,7 @@ Deno.serve(async (req) => {
     const file = formData.get('file') as File;
     const mediaType = (formData.get('mediaType') as string) || 'profile';
     const userId = formData.get('userId') as string;
+    const updateProfile = formData.get('updateProfile') as string; // 'true' to update profiles table
 
     if (!file) {
       return new Response(JSON.stringify({ error: 'No file provided' }), {
@@ -81,13 +82,17 @@ Deno.serve(async (req) => {
 
     console.log('✅ Upload successful:', key);
 
-    // Update profile table with the key
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    // Only update profiles table if explicitly requested and file is an image
+    const shouldUpdateProfile = updateProfile === 'true';
+    const isImageFile = file.type.startsWith('image/');
+    const isProfileMedia = /avatar|profile/i.test(mediaType) || /cover/i.test(mediaType);
 
-    if (/avatar|profile/i.test(mediaType) || /cover/i.test(mediaType)) {
+    if (shouldUpdateProfile && isImageFile && isProfileMedia) {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+
       const field = /cover/i.test(mediaType) ? 'cover_url' : 'avatar_url';
       const { error: updateError } = await supabase
         .from('profiles')
@@ -96,7 +101,11 @@ Deno.serve(async (req) => {
 
       if (updateError) {
         console.error('Error updating profile:', updateError);
+      } else {
+        console.log(`✅ Updated profiles.${field} for user ${userId}`);
       }
+    } else {
+      console.log('⏭️ Skipping profile update:', { shouldUpdateProfile, isImageFile, isProfileMedia });
     }
 
     return new Response(JSON.stringify({ 

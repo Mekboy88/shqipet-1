@@ -1518,7 +1518,8 @@ const WasabiEdgeTestsOnly = () => {
         const file = new File([blob], 'edge-probe.txt', { type: 'text/plain' });
         const form = new FormData();
         form.append('file', file);
-        form.append('mediaType', 'avatar');
+        form.append('mediaType', 'uploads'); // Generic folder, not profile/avatar/cover
+        form.append('updateProfile', 'false'); // Never modify profiles table during tests
         if (userData?.user?.id) form.append('userId', userData.user.id);
 
         const res = await fetch(`${baseUrl}/functions/v1/wasabi-upload`, {
