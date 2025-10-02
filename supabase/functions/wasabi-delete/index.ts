@@ -1,4 +1,4 @@
-import { S3Client, DeleteObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.713.0";
+import { AwsClient } from "https://esm.sh/aws4fetch@1.0.17";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
 
   try {
     const { key } = await req.json();
-
     if (!key) {
       return new Response(JSON.stringify({ error: 'No key provided' }), {
         status: 400,
@@ -20,21 +19,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    const s3Client = new S3Client({
-      region: Deno.env.get('WASABI_REGION'),
-      endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com`,
-      credentials: {
-        accessKeyId: Deno.env.get('WASABI_ACCESS_KEY_ID')!,
-        secretAccessKey: Deno.env.get('WASABI_SECRET_ACCESS_KEY')!,
-      },
-    });
+    const region = Deno.env.get('WASABI_REGION')!;
+    const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
+    const accessKeyId = Deno.env.get('WASABI_ACCESS_KEY_ID')!;
+    const secretAccessKey = Deno.env.get('WASABI_SECRET_ACCESS_KEY')!;
+    const endpoint = `https://s3.${region}.wasabisys.com`;
 
-    const command = new DeleteObjectCommand({
-      Bucket: Deno.env.get('WASABI_BUCKET_NAME'),
-      Key: key,
-    });
+    const aws = new AwsClient({ accessKeyId, secretAccessKey, service: 's3', region });
+    const delUrl = `${endpoint}/${bucket}/${encodeURIComponent(key)}`;
+    const res = await aws.fetch(delUrl, { method: 'DELETE' });
 
-    await s3Client.send(command);
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      return new Response(JSON.stringify({ error: `DELETE failed: ${res.status} ${text}` }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

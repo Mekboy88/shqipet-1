@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.713.0";
+import { AwsClient } from "https://esm.sh/aws4fetch@1.0.17";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
 
   try {
     const { key } = await req.json();
-
     if (!key) {
       return new Response(JSON.stringify({ error: 'No key provided' }), {
         status: 400,
@@ -20,33 +19,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    const s3Client = new S3Client({
-      region: Deno.env.get('WASABI_REGION'),
-      endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com`,
-      credentials: {
-        accessKeyId: Deno.env.get('WASABI_ACCESS_KEY_ID')!,
-        secretAccessKey: Deno.env.get('WASABI_SECRET_ACCESS_KEY')!,
-      },
-    });
+    const region = Deno.env.get('WASABI_REGION')!;
+    const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
+    const accessKeyId = Deno.env.get('WASABI_ACCESS_KEY_ID')!;
+    const secretAccessKey = Deno.env.get('WASABI_SECRET_ACCESS_KEY')!;
+    const endpoint = `https://s3.${region}.wasabisys.com`;
 
-    const command = new GetObjectCommand({
-      Bucket: Deno.env.get('WASABI_BUCKET_NAME'),
-      Key: key,
-    });
+    const aws = new AwsClient({ accessKeyId, secretAccessKey, service: 's3', region });
+    const getUrl = `${endpoint}/${bucket}/${encodeURIComponent(key)}`;
+    const res = await aws.fetch(getUrl, { method: 'GET' });
 
-    const response = await s3Client.send(command);
-    const blob = await response.Body?.transformToByteArray();
-
-    if (!blob) {
-      throw new Error('Failed to retrieve file');
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      return new Response(JSON.stringify({ error: `GET failed: ${res.status} ${text}` }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     const filename = key.split('/').pop() || 'download';
 
-    return new Response(blob.buffer as BodyInit, {
+    return new Response(res.body, {
       headers: {
         ...corsHeaders,
-        'Content-Type': response.ContentType || 'application/octet-stream',
+        'Content-Type': res.headers.get('content-type') || 'application/octet-stream',
         'Content-Disposition': `attachment; filename="${filename}"`,
       }
     });

@@ -1470,7 +1470,43 @@ const WasabiEdgeTestsOnly = () => {
       
       let testBody;
       if (key === 'wasabi-upload') {
-        testBody = { filename: 'edge-probe.txt', contentType: 'text/plain', fileSize: 18, metadata: { probe: true }, folder: 'edge-tests', isPublic: false, serverUpload: true, inlineContent: 'edge probe from UI' };
+        // Use multipart upload with a tiny inline file
+        const { data: sessionData } = await supabase.auth.getSession();
+        const { data: userData } = await supabase.auth.getUser();
+        const session = sessionData?.session;
+        if (!session) throw new Error('No session');
+        const baseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+        const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+        const blob = new Blob(["edge probe from UI"], { type: 'text/plain' });
+        const file = new File([blob], 'edge-probe.txt', { type: 'text/plain' });
+        const form = new FormData();
+        form.append('file', file);
+        form.append('mediaType', 'avatar');
+        if (userData?.user?.id) form.append('userId', userData.user.id);
+
+        const res = await fetch(`${baseUrl}/functions/v1/wasabi-upload`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: apiKey,
+          },
+          body: form,
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data) {
+          setStatuses(s => ({ ...s, [key]: 'down' }));
+          append(`✖ ${key} responded ${res.status}`);
+          return;
+        }
+        const fk = data?.key || data?.fileKey || data?.file_key;
+        if (fk) {
+          setLastFileKey(fk);
+          append(`• Saved file key: ${fk}`);
+        }
+        setStatuses(s => ({ ...s, [key]: 'ok' }));
+        append(`✓ ${key} responded ${res.status}`);
+        return;
       } else if (key === 'wasabi-get-url') {
         // Fetch a valid key first, or use last uploaded
         const validKey = lastFileKey || await fetchValidTestKey();
@@ -1494,41 +1530,13 @@ const WasabiEdgeTestsOnly = () => {
       });
 
       if (!error) {
-        if (key === 'wasabi-upload') {
-          const payload = typeof data === 'string' ? (() => { try { return JSON.parse(data as any); } catch { return null; } })() : (data as any);
-          const presignedUrl = payload?.presignedUrl || payload?.url;
-          const fk = payload?.fileKey || payload?.file_key || payload?.file?.key || payload?.key;
-
-          // Save the file key immediately so subsequent tests use the real object
-          if (fk) {
-            setLastFileKey(fk);
-            append(`• Saved file key: ${fk}`);
-          }
-
-          // If server-side upload already happened, skip client PUT
-          if (presignedUrl && fk && !(testBody as any)?.serverUpload) {
-            try {
-              append('• Uploading test object to Wasabi...');
-              const putRes = await fetch(presignedUrl, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'text/plain' },
-                body: new Blob([`edge probe ${new Date().toISOString()}`], { type: 'text/plain' })
-              });
-              if (putRes.ok) {
-                append('• PUT 200 – object created');
-              } else {
-                append(`• PUT failed: ${putRes.status}`);
-              }
-            } catch (e: any) {
-              append(`• PUT error: ${e?.message || e}`);
-            }
-          }
-        }
-        setStatuses(s => ({ ...s, [key]: "ok" }));
-        setCodes(c => ({ ...c, [key]: "200" }));
+        setStatuses(s => ({ ...s, [key]: 'ok' }));
         append(`✓ ${key} responded 200`);
-        return;
+      } else {
+        setStatuses(s => ({ ...s, [key]: 'down' }));
+        append(`✖ ${key} error: ${error.message || 'unknown'}`);
       }
+
 
       const statusRaw = (error as any)?.status ?? (error as any)?.code ?? (error as any)?.context?.status;
       let status = typeof statusRaw === 'number' ? statusRaw : Number(statusRaw);

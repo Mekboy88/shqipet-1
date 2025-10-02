@@ -1,4 +1,4 @@
-import { S3Client, ListObjectsV2Command } from "https://esm.sh/@aws-sdk/client-s3@3.713.0";
+import { AwsClient } from "https://esm.sh/aws4fetch@1.0.17";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,30 +11,38 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { prefix = '', maxKeys = 1000 } = await req.json();
+    const { prefix = '', maxKeys = 100 } = await req.json().catch(() => ({}));
 
-    const s3Client = new S3Client({
-      region: Deno.env.get('WASABI_REGION'),
-      endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com`,
-      credentials: {
-        accessKeyId: Deno.env.get('WASABI_ACCESS_KEY_ID')!,
-        secretAccessKey: Deno.env.get('WASABI_SECRET_ACCESS_KEY')!,
-      },
-    });
+    const region = Deno.env.get('WASABI_REGION')!;
+    const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
+    const accessKeyId = Deno.env.get('WASABI_ACCESS_KEY_ID')!;
+    const secretAccessKey = Deno.env.get('WASABI_SECRET_ACCESS_KEY')!;
+    const endpoint = `https://s3.${region}.wasabisys.com`;
 
-    const command = new ListObjectsV2Command({
-      Bucket: Deno.env.get('WASABI_BUCKET_NAME'),
-      Prefix: prefix,
-      MaxKeys: maxKeys,
-    });
+    const aws = new AwsClient({ accessKeyId, secretAccessKey, service: 's3', region });
 
-    const response = await s3Client.send(command);
+    const url = new URL(`${endpoint}/${bucket}`);
+    url.searchParams.set('list-type', '2');
+    url.searchParams.set('max-keys', String(maxKeys));
+    if (prefix) url.searchParams.set('prefix', prefix);
 
-    const files = response.Contents?.map(item => ({
-      key: item.Key,
-      size: item.Size,
-      lastModified: item.LastModified,
-    })) || [];
+    const res = await aws.fetch(url.toString(), { method: 'GET' });
+    const xml = await res.text();
+
+    if (!res.ok) {
+      return new Response(JSON.stringify({ error: `LIST failed: ${res.status}`, details: xml }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Very lightweight XML parsing to extract Key/Size
+    const files: Array<{ key: string; size: number }> = [];
+    const entryRegex = /<Contents>[\s\S]*?<Key>(.*?)<\/Key>[\s\S]*?<Size>(\d+)<\/Size>[\s\S]*?<\/Contents>/g;
+    let m;
+    while ((m = entryRegex.exec(xml)) !== null) {
+      files.push({ key: m[1], size: Number(m[2]) });
+    }
 
     return new Response(JSON.stringify({ files, count: files.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
