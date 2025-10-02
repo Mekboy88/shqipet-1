@@ -10,7 +10,8 @@ Deno.serve(async (req) => {
 
   try {
     const config = {
-      bucket: Deno.env.get('WASABI_BUCKET_NAME'),
+      bucket_name: Deno.env.get('WASABI_BUCKET_NAME'),
+      bucket: Deno.env.get('WASABI_BUCKET_NAME'), // alias for compatibility
       region: Deno.env.get('WASABI_REGION'),
       endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com`,
       hasAccessKey: !!Deno.env.get('WASABI_ACCESS_KEY_ID'),
