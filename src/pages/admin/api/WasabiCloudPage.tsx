@@ -787,7 +787,38 @@ const WasabiCloudPage: React.FC = () => {
   return (
 
     <div className="min-h-screen w-full bg-gray-50 text-gray-900 p-6 md:p-10">
-      <Toaster position="top-right" richColors closeButton />
+      <Toaster 
+        position="top-right" 
+        richColors 
+        closeButton 
+        offset="80px"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            animation: 'slide-in 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) forwards',
+          },
+        }}
+      />
+      <style>{`
+        @keyframes slide-in {
+          0% {
+            transform: translateX(120%);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        [data-sonner-toaster] {
+          top: 80px !important;
+        }
+        
+        [data-sonner-toast] {
+          transition: all 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) !important;
+        }
+      `}</style>
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <header className="flex items-center justify-between">
