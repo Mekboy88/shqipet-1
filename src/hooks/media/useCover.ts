@@ -321,7 +321,7 @@ export const useCover = (userId?: string) => {
       }
 
       // Set loading state
-      const currentKey = anyProfile?.cover_key || candidate;
+      const currentKey = anyProfile?.cover_url || candidate;
       const loadingState = { ...coverState, key: currentKey, position, loading: true };
       setCoverState(loadingState);
       notifyCoverChange(loadingState);

@@ -102,43 +102,28 @@ export const useGlobalCoverPhoto = () => {
       console.log('🖼️ Loading fresh cover photo from database');
 
       try {
-        const selectCols = 'id, auth_user_id, user_id, cover_key, cover_photo_url, cover_image_url, cover_photo_position, cover_position, cover_gradient, updated_at';
+        const selectCols = 'id, cover_url, cover_position, cover_gradient, updated_at';
         let profile: any = null;
 
-        // Try by auth_user_id/id/user_id in public schema
-        const tryFetch = async (schema: 'public' | 'api') => {
-          let p: any = null;
-          const c = supabase.schema(schema).from('profiles').select(selectCols);
-          const byAuth = await c.eq('auth_user_id', user.id).maybeSingle();
-          if (byAuth.data) p = byAuth.data;
-          if (!p) {
-            const byId = await supabase.schema(schema).from('profiles').select(selectCols).eq('id', user.id).maybeSingle();
-            if (byId.data) p = byId.data;
-          }
-          if (!p) {
-            const byUserId = await supabase.schema(schema).from('profiles').select(selectCols).eq('user_id', user.id).maybeSingle();
-            if (byUserId.data) p = byUserId.data;
-          }
-          return p;
-        };
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select(selectCols)
+            .eq('id', user.id)
+            .maybeSingle();
+          if (!error && data) profile = data;
+        } catch (e) {
+          console.warn('Profile fetch failed:', e);
+        }
 
-        profile = await tryFetch('public');
-        if (!profile) profile = await tryFetch('api');
-
-        console.log('🔎 Cover DB row:', { schemaTried: profile ? 'found' : 'none', hasKey: !!profile?.cover_key, hasUrl: !!profile?.cover_photo_url });
+        console.log('🔎 Cover DB row:', { found: !!profile });
 
         if (!profile) {
-          try { 
-            await supabase.schema('public').rpc('ensure_user_profile_exists', { user_uuid: user.id }); 
-            console.warn('⚠️ Profile did not exist; created one.');
-          } catch (e) { 
-            console.warn('ensure_user_profile_exists failed:', e); 
-          }
           return;
         }
 
-        const urlField = profile.cover_key || profile.cover_photo_url || profile.cover_image_url || null;
-        let position = profile.cover_photo_position || profile.cover_position || 'center center';
+        const urlField = profile.cover_url || null;
+        let position = profile.cover_position || 'center center';
         const gradient = profile.cover_gradient || globalCoverGradient;
 
         // Normalize to vertical-only 'center N%'
@@ -287,84 +272,16 @@ export const useGlobalCoverPhoto = () => {
 
       // No caching - save directly to database only
 
-      // Persist via Edge Function (service role) and verify in API schema
-      let persisted = false;
-      try {
-        const { data: fnData, error: fnErr } = await supabase.functions.invoke('set-profile-cover', {
-          body: { cover_key: newUrl, position: newPosition }
-        });
-        if (!fnErr && (fnData as any)?.success) {
-          try {
-            const selectCols = 'cover_key, cover_photo_url, cover_image_url';
-            const tryVerify = async (column: 'auth_user_id' | 'id' | 'user_id') => {
-              const { data } = await supabase
-                .schema('api')
-                .from('profiles')
-                .select(selectCols)
-                .eq(column, user.id)
-                .maybeSingle();
-              return data;
-            };
-            const verified = await tryVerify('auth_user_id') || await tryVerify('id') || await tryVerify('user_id');
-            const got = verified?.cover_key || verified?.cover_photo_url || verified?.cover_image_url;
-            if (got) persisted = true;
-          } catch {}
-        } else {
-          console.warn('Edge function persist failed:', fnErr, fnData);
-        }
-      } catch (e) {
-        console.warn('Edge function invocation threw:', e);
-      }
-
-      const mirrorPayload = {
-        cover_key: newUrl,
-        cover_photo_url: newUrl,
-        cover_image_url: newUrl,
-        updated_at: new Date().toISOString()
-      };
-
-      if (!persisted) {
-        // Fall back to direct update sequence against API schema
-        let saved = false;
-        const columns: Array<'auth_user_id' | 'id' | 'user_id'> = ['auth_user_id', 'id', 'user_id'];
-        for (const column of columns) {
-          try {
-            const { data, error } = await supabase
-              .schema('api')
-              .from('profiles')
-              .update(mirrorPayload)
-              .eq(column, user.id)
-              .select('id')
-              .maybeSingle();
-            if (!error && data) { saved = true; break; }
-          } catch {}
-        }
-        if (!saved) {
-          try {
-            const { error: insertErr } = await supabase
-              .schema('api')
-              .from('profiles')
-              .insert({
-                auth_user_id: user.id,
-                user_id: user.id,
-                ...mirrorPayload,
-                created_at: new Date().toISOString()
-              });
-            if (!insertErr) saved = true;
-          } catch {}
-        }
-        if (!saved) throw new Error('Failed to persist cover via fallback');
-        persisted = true;
-      }
-
-      // Mirror to api.profiles best-effort
-      try {
-        await supabase
-          .schema('api')
-          .from('profiles')
-          .update(mirrorPayload)
-          .eq('auth_user_id', user.id);
-      } catch {}
+      // Persist directly to public.profiles
+      const { error: updErr } = await supabase
+        .from('profiles')
+        .update({
+          cover_url: newUrl,
+          cover_position: newPosition,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+      if (updErr) throw updErr;
 
       // UI update
       notifyGlobalCoverPhotoChange(displayUrl, newPosition);
@@ -386,44 +303,15 @@ export const useGlobalCoverPhoto = () => {
       // Update UI immediately
       notifyGlobalCoverPhotoChange(coverPhotoUrl, newPosition);
 
-      // Save to database with robust fallbacks
-      const positionPayload = {
-        cover_photo_position: newPosition,
-        cover_position: newPosition,
-        updated_at: new Date().toISOString()
-      };
-      let posSaved = false;
-      const posColumns: Array<'auth_user_id' | 'id' | 'user_id'> = ['auth_user_id', 'id', 'user_id'];
-      for (const column of posColumns) {
-        try {
-          const { data, error } = await supabase
-            .schema('public')
-            .from('profiles')
-            .update(positionPayload)
-            .eq(column, user.id)
-            .select('id')
-            .maybeSingle();
-          if (!error && data) {
-            posSaved = true;
-            break;
-          }
-        } catch {}
-      }
-      if (!posSaved) {
-        // Try api schema as well
-        for (const column of posColumns) {
-          try {
-            const { data, error } = await supabase
-              .schema('api')
-              .from('profiles')
-              .update(positionPayload)
-              .eq(column, user.id)
-              .select('id')
-              .maybeSingle();
-            if (!error && data) { posSaved = true; break; }
-          } catch {}
-        }
-      }
+      // Save to database
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          cover_position: newPosition,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+      if (error) throw error;
     } catch (error) {
       console.error('Error updating cover position:', error);
       toast.error('Failed to update cover position');
