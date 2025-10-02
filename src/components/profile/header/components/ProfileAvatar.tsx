@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { avatarStore, AvatarV2State } from '@/services/avatar/AvatarStore';
 import { supabase } from '@/integrations/supabase/client';
+import { mediaService } from '@/services/media/MediaService';
 
 // Hook for avatar management
 export const useAvatar = (userId: string) => {
@@ -83,6 +84,28 @@ export const Avatar: React.FC<AvatarProps> = ({
   }, [userId]);
 
   const { url, uploading, uploadProgress, error, upload, cancelUpload } = useAvatar(currentUserId);
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const input = url;
+    if (!input) {
+      setResolvedUrl(null);
+      return;
+    }
+    if (/^(https?:|blob:|data:)/i.test(input)) {
+      setResolvedUrl(input);
+      return;
+    }
+    if (/^(uploads|avatars|covers)\//i.test(input)) {
+      mediaService.getUrl(input)
+        .then((u) => { if (!cancelled) setResolvedUrl(u); })
+        .catch(() => { if (!cancelled) setResolvedUrl(null); });
+      return () => { cancelled = true; };
+    }
+    setResolvedUrl(input);
+    return () => { cancelled = true; };
+  }, [url]);
 
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -161,20 +184,20 @@ export const Avatar: React.FC<AvatarProps> = ({
         className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gray-200 flex items-center justify-center cursor-pointer`}
         onClick={handleProfilePictureClick}
       >
-        {url ? (
-          <img
-            src={url}
-            alt="Avatar"
-            className="w-full h-full object-cover"
-            onError={() => console.warn('Avatar image failed to load:', url)}
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-            <span className="text-white font-semibold text-lg">
-              {currentUserId.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
+    {resolvedUrl ? (
+      <img
+        src={resolvedUrl}
+        alt="Avatar"
+        className="w-full h-full object-cover"
+        onError={() => console.warn('Avatar image failed to load:', resolvedUrl)}
+      />
+    ) : (
+      <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+        <span className="text-white font-semibold text-lg">
+          {currentUserId.charAt(0).toUpperCase()}
+        </span>
+      </div>
+    )}
         
         {/* Upload Progress */}
         {uploading && (
@@ -288,6 +311,28 @@ export const AvatarUploadZone: React.FC<AvatarUploadZoneProps> = ({
   }, [userId]);
 
   const { url, uploading, uploadProgress, error, upload } = useAvatar(currentUserId);
+  const [resolvedUrl2, setResolvedUrl2] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const input = url;
+    if (!input) {
+      setResolvedUrl2(null);
+      return;
+    }
+    if (/^(https?:|blob:|data:)/i.test(input)) {
+      setResolvedUrl2(input);
+      return;
+    }
+    if (/^(uploads|avatars|covers)\//i.test(input)) {
+      mediaService.getUrl(input)
+        .then((u) => { if (!cancelled) setResolvedUrl2(u); })
+        .catch(() => { if (!cancelled) setResolvedUrl2(null); });
+      return () => { cancelled = true; };
+    }
+    setResolvedUrl2(input);
+    return () => { cancelled = true; };
+  }, [url]);
 
   const handleFileSelect = async (file: File) => {
     if (!currentUserId) {
