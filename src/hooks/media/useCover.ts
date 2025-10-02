@@ -13,22 +13,21 @@ import { errorRecoveryService } from '@/utils/errorBoundary/ErrorRecoveryService
 
 // Simplified persistence function that uses only the edge function
 const persistCoverToDatabase = async (userId: string, coverKey: string, position?: string): Promise<boolean> => {
-  console.log('💾 Persisting cover via edge function:', { userId, coverKey, position });
-  
+  console.log('💾 Persisting cover directly to DB:', { userId, coverKey, position });
   try {
-    const { data: fnData, error: fnErr } = await supabase.functions.invoke('set-profile-cover', {
-      body: { cover_key: coverKey, position: position || null }
-    });
-    
-    if (!fnErr && (fnData as any)?.success) {
-      console.log('✅ Cover persisted successfully via edge function:', fnData);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ cover_url: coverKey, cover_position: position || null, updated_at: new Date().toISOString() })
+      .eq('id', userId);
+
+    if (!error) {
+      console.log('✅ Cover persisted successfully via DB update');
       return true;
-    } else {
-      console.warn('⚠️ Edge function failed:', fnErr, fnData);
-      return false;
     }
+    console.warn('⚠️ Cover DB update failed:', error);
+    return false;
   } catch (e) {
-    console.error('❌ Edge function invocation error:', e);
+    console.error('❌ Cover DB update error:', e);
     return false;
   }
 };
@@ -220,43 +219,31 @@ export const useCover = (userId?: string) => {
       let position = 'center';
       
       try {
-        const baseSelect = 'cover_key, cover_image_url, cover_photo_url, cover_position, cover_photo_position, auth_user_id, user_id, id, updated_at';
+        const baseSelect = 'cover_url, cover_position, id, updated_at';
 
-        const tryFetch = async (schema: 'public' | 'api') => {
-          console.log(`🔍 Trying to fetch from ${schema} schema...`);
-          const columns: Array<'auth_user_id' | 'id' | 'user_id'> = ['auth_user_id', 'id', 'user_id'];
-          
-          for (const column of columns) {
-            try {
-              const { data, error } = await supabase
-                .schema(schema)
-                .from('profiles')
-                .select(baseSelect)
-                .eq(column, targetUserId)
-                .maybeSingle();
-              
-              if (!error && data) {
-                console.log(`✅ Found profile via ${column} in ${schema}:`, { 
-                  hasKey: !!data.cover_key, 
-                  hasUrl: !!data.cover_photo_url,
-                  userId: data.auth_user_id || data.id,
-                  updatedAt: data.updated_at
-                });
-                return data;
-              }
-            } catch (e) {
-              console.warn(`⚠️ Failed to fetch via ${column} from ${schema}:`, e);
+        const tryFetch = async () => {
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select(baseSelect)
+              .eq('id', targetUserId)
+              .maybeSingle();
+
+            if (!error && data) {
+              console.log(`✅ Found profile in public schema:`, { 
+                hasCoverUrl: !!data.cover_url,
+                userId: data.id,
+                updatedAt: data.updated_at
+              });
+              return data;
             }
+          } catch (e) {
+            console.warn('⚠️ Failed to fetch profile from public schema:', e);
           }
           return null;
         };
 
-        // Try api schema first (primary), then public schema (fallback)
-        anyProfile = await tryFetch('api');
-        if (!anyProfile) {
-          console.log('🔄 API schema had no results, trying public schema...');
-          anyProfile = await tryFetch('public');
-        }
+        anyProfile = await tryFetch();
         
         if (!anyProfile) {
           console.log('❌ No profile found in any schema');
@@ -265,12 +252,12 @@ export const useCover = (userId?: string) => {
         console.error('❌ Critical error during profile fetch:', err);
       }
 
-      const candidate = anyProfile?.cover_key || anyProfile?.cover_photo_url || anyProfile?.cover_image_url;
+      const candidate = anyProfile?.cover_url || anyProfile?.cover_photo_url || anyProfile?.cover_image_url;
       position = normalizePosition(anyProfile?.cover_position || anyProfile?.cover_photo_position || 'center 50%');
       
       console.log('🔍 Cover loading debug:', { 
-        anyProfile: anyProfile ? `${anyProfile.auth_user_id || anyProfile.id}` : null,
-        cover_key: anyProfile?.cover_key, 
+        anyProfile: anyProfile ? `${anyProfile.id}` : null,
+        cover_url: anyProfile?.cover_url, 
         cover_photo_url: anyProfile?.cover_photo_url,
         cover_image_url: anyProfile?.cover_image_url,
         candidate,

@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(7);
     const extension = file.name.split('.').pop();
-    const folder = mediaType === 'cover' ? 'covers' : mediaType === 'profile' ? 'avatars' : 'gallery';
+    const folder = /cover/i.test(mediaType) ? 'covers' : (/avatar|profile/i.test(mediaType) ? 'avatars' : (/post-image/i.test(mediaType) ? 'posts/images' : (/post-video/i.test(mediaType) ? 'posts/videos' : 'uploads')));
     const key = `${folder}/${userId}/${timestamp}-${random}.${extension}`;
 
     // Upload to Wasabi
@@ -65,8 +65,8 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    if (mediaType === 'profile' || mediaType === 'cover') {
-      const field = mediaType === 'profile' ? 'avatar_url' : 'cover_url';
+    if (/avatar|profile/i.test(mediaType) || /cover/i.test(mediaType)) {
+      const field = /cover/i.test(mediaType) ? 'cover_url' : 'avatar_url';
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ [field]: key })
