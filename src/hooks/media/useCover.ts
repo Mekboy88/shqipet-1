@@ -536,7 +536,7 @@ export const useCover = (userId?: string) => {
       notifyCoverChange(optimisticState);
 
       console.log('🔄 Starting Wasabi upload...');
-      const { key } = await uploadService.upload(file, 'cover');
+      const { key } = await uploadService.upload(file, 'cover', targetUserId);
       console.log('✅ Wasabi upload complete:', key);
 
       // Resolve final URL now so we can persist both key and URL

@@ -71,7 +71,7 @@ class UploadService {
   /**
    * Upload file to Wasabi and return key
    */
-  async upload(file: File, mediaType: MediaType): Promise<UploadResult> {
+  async upload(file: File, mediaType: MediaType, userId?: string): Promise<UploadResult> {
     try {
       // Validate first
       await this.validate(file, mediaType);
@@ -88,62 +88,34 @@ class UploadService {
         throw new Error('Authentication required for upload');
       }
 
-      // Create the body for wasabi-upload
-      const body = {
-        filename: file.name,
-        contentType: file.type,
-        folder: this.getFolderForMediaType(mediaType),
-        fileSize: file.size
-      };
+      // Use FormData for file upload with metadata
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('mediaType', mediaType);
+      if (userId) {
+        formData.append('userId', userId);
+      }
 
-      // Get presigned upload URL from Supabase function
+      // Upload directly to wasabi-upload edge function
       const { data, error } = await supabase.functions.invoke('wasabi-upload', {
-        body
+        body: formData
       });
 
-      if (error) {
-        console.error('wasabi-upload error:', error);
-        throw new Error(`Failed to get upload URL: ${error.message}`);
+      if (error || !data?.success) {
+        console.error('wasabi-upload error:', error || data);
+        throw new Error(`Upload failed: ${error?.message || data?.error || 'Unknown error'}`);
       }
 
-      // Handle nested response structure from Supabase edge function
-      const responseData = data?.data || data;
-      
-      if (!responseData || responseData.error) {
-        console.error('wasabi-upload failed:', { data, responseData });
-        throw new Error(`Upload service failed: ${responseData?.error || 'No response'}`);
+      const returnedKey = data.key;
+      if (!returnedKey) {
+        console.error('Missing key in response:', data);
+        throw new Error('Invalid response from upload service: missing key');
       }
 
-      // Parse response - handle different possible response formats
-      const uploadUrl = responseData.uploadUrl || responseData.presignedUrl || responseData.putUrl || responseData.url;
-      const returnedKey = responseData.key || responseData.fileKey || responseData.file_key || responseData.fullKey || responseData.finalKey || responseData.generatedKey || responseData.wasabiKey || responseData.path;
-
-      if (!uploadUrl || !returnedKey) {
-        console.error('Missing upload URL or key in response:', { uploadUrl, returnedKey, data });
-        throw new Error(`Invalid response from upload service: missing uploadUrl or key`);
-      }
-      // Upload file to presigned URL
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
-      }
-
-      // Ensure we store a full path key (including folder prefix)
-      const folder = this.getFolderForMediaType(mediaType);
-      const keyFromFn = typeof returnedKey === 'string' ? returnedKey : String(returnedKey);
-      const fullKey = keyFromFn.startsWith(`${folder}/`) ? keyFromFn : `${folder}/${keyFromFn}`;
-
-      console.log('✅ Upload successful:', fullKey);
+      console.log('✅ Upload successful:', returnedKey);
 
       return {
-        key: fullKey,
+        key: returnedKey,
         success: true
       };
 

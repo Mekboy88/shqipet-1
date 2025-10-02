@@ -335,7 +335,7 @@ class AvatarStore {
 
       let key: string;
       try {
-        const result = await uploadService.upload(file, 'avatar');
+        const result = await uploadService.upload(file, 'avatar', userId);
         clearInterval(progressInterval);
         key = result.key;
         console.log('File uploaded successfully to Wasabi:', key);
@@ -369,10 +369,11 @@ class AvatarStore {
       
       setState(userId, { uploadProgress: 90 });
 
-      // Update database
+      // Database is already updated by wasabi-upload edge function
+      // Store the key (not URL) in profile for consistency
       let dbUpdateSuccess = false;
       const updateData = { 
-        avatar_url: finalUrl,
+        avatar_url: key, // Store key, not URL
         updated_at: new Date().toISOString() 
       };
 
@@ -380,7 +381,7 @@ class AvatarStore {
       try {
         const { data: rpcResult, error: rpcError } = await supabase.rpc('set_profile_media', {
           user_uuid: userId,
-          new_avatar_url: finalUrl,
+          new_avatar_url: key,
         });
 
         if (!rpcError && rpcResult === true) {
@@ -400,7 +401,6 @@ class AvatarStore {
         for (const col of columnMappings) {
           try {
             const { error: updateError, count } = await supabase
-              .schema('api')
               .from('profiles')
               .update(updateData)
               .eq(col, userId);
@@ -419,9 +419,9 @@ class AvatarStore {
         }
       }
 
+      // Edge function already updated the profile, so this is not critical
       if (!dbUpdateSuccess) {
-        console.error('All database update methods failed');
-        throw new Error('Failed to save avatar reference to database');
+        console.warn('Direct database update failed, but edge function may have succeeded');
       }
 
       setState(userId, { uploadProgress: 95 });
