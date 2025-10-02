@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
       throw new Error('Failed to retrieve file');
     }
 
-    return new Response(blob, {
+    return new Response(blob.buffer as BodyInit, {
       headers: {
         ...corsHeaders,
         'Content-Type': response.ContentType || 'application/octet-stream',
@@ -51,7 +51,8 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Proxy error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

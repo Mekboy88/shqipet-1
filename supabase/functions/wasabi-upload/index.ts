@@ -24,14 +24,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Initialize Wasabi S3 client
+    console.log('Upload request:', { fileName: file.name, mediaType, userId });
+
+    // Initialize Wasabi S3 client with forcePathStyle and explicit config
     const s3Client = new S3Client({
-      region: Deno.env.get('WASABI_REGION'),
+      region: Deno.env.get('WASABI_REGION')!,
       endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com`,
       credentials: {
         accessKeyId: Deno.env.get('WASABI_ACCESS_KEY_ID')!,
         secretAccessKey: Deno.env.get('WASABI_SECRET_ACCESS_KEY')!,
       },
+      forcePathStyle: false,
+      // Disable file system config loading for Deno
+      defaultsMode: 'standard',
     });
 
     // Generate unique key
@@ -82,8 +87,9 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Upload error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: message,
       success: false 
     }), {
       status: 500,

@@ -48,14 +48,14 @@ Deno.serve(async (req) => {
         success: true,
         details: { endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com` },
       });
-    } catch (error) {
-      tests.push({
-        name: 'S3 Client Init',
-        success: false,
-        error: error.message,
-      });
-      overallSuccess = false;
-    }
+      } catch (error) {
+        tests.push({
+          name: 'S3 Client Init',
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+        overallSuccess = false;
+      }
 
     // Test 3: Bucket access
     if (s3Client) {
@@ -69,14 +69,14 @@ Deno.serve(async (req) => {
           success: true,
           details: { bucket: Deno.env.get('WASABI_BUCKET_NAME') },
         });
-      } catch (error) {
-        tests.push({
-          name: 'Bucket Access',
-          success: false,
-          error: error.message,
-        });
-        overallSuccess = false;
-      }
+        } catch (error) {
+          tests.push({
+            name: 'Bucket Access',
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+          overallSuccess = false;
+        }
 
       // Test 4: List objects (optional)
       try {
@@ -90,14 +90,14 @@ Deno.serve(async (req) => {
           success: true,
           details: { objectCount: listResponse.KeyCount || 0 },
         });
-      } catch (error) {
-        tests.push({
-          name: 'List Objects',
-          success: false,
-          error: error.message,
-        });
-        overallSuccess = false;
-      }
+        } catch (error) {
+          tests.push({
+            name: 'List Objects',
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+          overallSuccess = false;
+        }
     }
 
     return new Response(JSON.stringify({
@@ -110,9 +110,10 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Connection test error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({
       success: false,
-      error: error.message,
+      error: message,
       tests,
       timestamp: new Date().toISOString(),
     }), {
