@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.713.0";
+import { AwsClient } from "https://esm.sh/aws4fetch@1.0.17";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 
 const corsHeaders = {
@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
-    const mediaType = formData.get('mediaType') as string || 'profile';
+    const mediaType = (formData.get('mediaType') as string) || 'profile';
     const userId = formData.get('userId') as string;
 
     if (!file) {
@@ -26,36 +26,58 @@ Deno.serve(async (req) => {
 
     console.log('Upload request:', { fileName: file.name, mediaType, userId });
 
-    // Initialize Wasabi S3 client with forcePathStyle and explicit config
-    const s3Client = new S3Client({
-      region: Deno.env.get('WASABI_REGION')!,
-      endpoint: `https://s3.${Deno.env.get('WASABI_REGION')}.wasabisys.com`,
-      credentials: {
-        accessKeyId: Deno.env.get('WASABI_ACCESS_KEY_ID')!,
-        secretAccessKey: Deno.env.get('WASABI_SECRET_ACCESS_KEY')!,
-      },
-      forcePathStyle: false,
-      // Disable file system config loading for Deno
-      defaultsMode: 'standard',
+    const region = Deno.env.get('WASABI_REGION')!;
+    const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
+    const accessKeyId = Deno.env.get('WASABI_ACCESS_KEY_ID')!;
+    const secretAccessKey = Deno.env.get('WASABI_SECRET_ACCESS_KEY')!;
+
+    // Initialize AwsClient (no Node fs dependencies)
+    const aws = new AwsClient({
+      accessKeyId,
+      secretAccessKey,
+      service: 's3',
+      region,
     });
 
     // Generate unique key
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(7);
     const extension = file.name.split('.').pop();
-    const folder = /cover/i.test(mediaType) ? 'covers' : (/avatar|profile/i.test(mediaType) ? 'avatars' : (/post-image/i.test(mediaType) ? 'posts/images' : (/post-video/i.test(mediaType) ? 'posts/videos' : 'uploads')));
+    const folder = /cover/i.test(mediaType)
+      ? 'covers'
+      : (/avatar|profile/i.test(mediaType)
+          ? 'avatars'
+          : (/post-image/i.test(mediaType)
+              ? 'posts/images'
+              : (/post-video/i.test(mediaType) ? 'posts/videos' : 'uploads')));
     const key = `${folder}/${userId}/${timestamp}-${random}.${extension}`;
 
-    // Upload to Wasabi
+    // Upload to Wasabi via signed PUT
     const arrayBuffer = await file.arrayBuffer();
-    const uploadCommand = new PutObjectCommand({
-      Bucket: Deno.env.get('WASABI_BUCKET_NAME'),
-      Key: key,
-      Body: new Uint8Array(arrayBuffer),
-      ContentType: file.type,
+    const s3Base = region === 'us-east-1'
+      ? 'https://s3.wasabisys.com'
+      : `https://s3.${region}.wasabisys.com`;
+    const putUrl = `${s3Base}/${bucket}/${key}`;
+
+    const putRes = await aws.fetch(putUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type || 'application/octet-stream',
+      },
+      body: new Uint8Array(arrayBuffer),
     });
 
-    await s3Client.send(uploadCommand);
+    if (!putRes.ok) {
+      const text = await putRes.text().catch(() => '');
+      console.error('Wasabi PUT failed:', putRes.status, text);
+      return new Response(JSON.stringify({ 
+        error: `Wasabi upload failed: ${putRes.status} ${text}`,
+        success: false
+      }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     console.log('✅ Upload successful:', key);
 
@@ -79,7 +101,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       key,
-      url: key,
+      url: key, // Consumers should resolve this via wasabi-get-url/wasabi-proxy
       success: true 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

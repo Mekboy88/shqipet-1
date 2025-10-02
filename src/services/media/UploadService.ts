@@ -96,14 +96,24 @@ class UploadService {
         formData.append('userId', userId);
       }
 
-      // Upload directly to wasabi-upload edge function
-      const { data, error } = await supabase.functions.invoke('wasabi-upload', {
-        body: formData
+      // Upload directly to wasabi-upload edge function using multipart/form-data
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const response = await fetch(`${baseUrl}/functions/v1/wasabi-upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: apiKey,
+          // DO NOT set Content-Type for FormData; browser will set proper boundary
+        },
+        body: formData,
       });
 
-      if (error || !data?.success) {
-        console.error('wasabi-upload error:', error || data);
-        throw new Error(`Upload failed: ${error?.message || data?.error || 'Unknown error'}`);
+      const data: any = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.success) {
+        console.error('wasabi-upload error:', data);
+        throw new Error(`Upload failed: ${data?.error || response.statusText || 'Unknown error'}`);
       }
 
       const returnedKey = data.key;

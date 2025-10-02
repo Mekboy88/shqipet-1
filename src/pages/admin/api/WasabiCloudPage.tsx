@@ -246,7 +246,7 @@ const WasabiCloudPage: React.FC = () => {
 
 
   // Function + metrics
-  const [functionUrl, setFunctionUrl] = useState(`https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-upload`);
+  const [functionUrl, setFunctionUrl] = useState(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wasabi-upload`);
   const [metricsUrl] = useState(""); // input removed; keep state for optional future use
   const analyticsRef = useRef<HTMLDivElement>(null);
   const [downloadFormat, setDownloadFormat] = useState<string>("csv");
@@ -1410,16 +1410,17 @@ const WasabiEdgeTestsOnly = () => {
   };
 
   // --- Config: your Edge Functions ----------------------------------------
+  const baseFunctionsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
   const EDGE_FUNCTIONS = [
-    { key: "wasabi-delete",   url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-delete" },
-    { key: "wasabi-download", url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-download" },
-    { key: "wasabi-list",     url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-list" },
-    { key: "wasabi-metadata", url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-metadata" },
-    { key: "wasabi-security", url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-security" },
-    { key: "wasabi-upload",   url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-upload" },
-    { key: "wasabi-health",   url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-health" },
-    { key: "wasabi-config",   url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-config" },
-    { key: "wasabi-get-url",  url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-get-url" },
+    { key: "wasabi-delete",   url: `${baseFunctionsUrl}/wasabi-delete` },
+    { key: "wasabi-download", url: `${baseFunctionsUrl}/wasabi-download` },
+    { key: "wasabi-list",     url: `${baseFunctionsUrl}/wasabi-list` },
+    { key: "wasabi-metadata", url: `${baseFunctionsUrl}/wasabi-metadata` },
+    { key: "wasabi-security", url: `${baseFunctionsUrl}/wasabi-security` },
+    { key: "wasabi-upload",   url: `${baseFunctionsUrl}/wasabi-upload` },
+    { key: "wasabi-health",   url: `${baseFunctionsUrl}/wasabi-health` },
+    { key: "wasabi-config",   url: `${baseFunctionsUrl}/wasabi-config` },
+    { key: "wasabi-get-url",  url: `${baseFunctionsUrl}/wasabi-get-url` },
     { key: "wasabi-proxy",    url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/wasabi-proxy" },
     { key: "test-s3-connection", url: "https://axctozdoysadqvmtdawm.supabase.co/functions/v1/test-s3-connection" },
   ] as const;
