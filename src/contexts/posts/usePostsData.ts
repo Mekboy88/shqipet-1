@@ -47,8 +47,8 @@ export const usePostsData = () => {
         setIsLoading(true);
       }
 
-      const { data, error } = await supabase
-        .schema('api')
+      // Use public schema; fall back gracefully if table doesn't exist
+      const { data, error } = await (supabase as any)
         .from('posts')
         .select('*')
         .order('created_at', { ascending: false });
