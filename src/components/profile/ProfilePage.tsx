@@ -139,8 +139,11 @@ const ProfilePage = React.memo(() => {
   const transformedPhotos = posts.flatMap(post => getAllMediaUrls(post).filter(isPhotoFile));
 
   // Also include photos saved in user_photos (profile, cover, gallery)
-  const dbPhotos = getPhotosForDisplay().map(p => p.url);
-  const combinedPhotos = Array.from(new Set([...transformedPhotos, ...dbPhotos]));
+  const dbPhotos = getPhotosForDisplay();
+  // Convert post photos to objects for consistency
+  const postPhotoObjects = transformedPhotos.map(url => ({ url, photoId: null, type: 'post' }));
+  // Combine with proper photo objects that have IDs
+  const combinedPhotos = [...postPhotoObjects, ...dbPhotos];
   
   const transformedVideos = posts.flatMap(post => {
     const type = (((post as any).post_type) || post.postType || '').toLowerCase();

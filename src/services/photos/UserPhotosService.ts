@@ -171,10 +171,39 @@ class UserPhotosService {
   }
 
   /**
-   * Delete a photo from the collection
+   * Delete a photo from the collection and Wasabi storage
    */
   async deletePhoto(photoId: string): Promise<boolean> {
     try {
+      // First, get the photo to retrieve the photo_key for Wasabi deletion
+      const { data: photo, error: fetchError } = await supabase
+        .schema('public')
+        .from('user_photos')
+        .select('photo_key')
+        .eq('id', photoId)
+        .single();
+
+      if (fetchError || !photo) {
+        console.error('Error fetching photo for deletion:', fetchError);
+        return false;
+      }
+
+      // Delete from Wasabi storage
+      try {
+        const { error: wasabiError } = await supabase.functions.invoke('wasabi-delete', {
+          body: { key: photo.photo_key }
+        });
+
+        if (wasabiError) {
+          console.warn('Warning: Failed to delete from Wasabi:', wasabiError);
+          // Continue with database deletion even if Wasabi deletion fails
+        }
+      } catch (wasabiErr) {
+        console.warn('Warning: Wasabi deletion error:', wasabiErr);
+        // Continue with database deletion
+      }
+
+      // Delete from database
       const { error } = await supabase
         .schema('public')
         .from('user_photos')
@@ -182,11 +211,11 @@ class UserPhotosService {
         .eq('id', photoId);
 
       if (error) {
-        console.error('Error deleting user photo:', error);
+        console.error('Error deleting user photo from database:', error);
         return false;
       }
 
-      console.log('✅ Deleted photo from collection:', photoId);
+      console.log('✅ Deleted photo from collection and storage:', photoId);
       return true;
     } catch (error) {
       console.error('Failed to delete user photo:', error);
