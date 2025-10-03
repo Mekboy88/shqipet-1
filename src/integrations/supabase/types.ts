@@ -193,12 +193,14 @@ export type Database = {
           created_at: string
           date_of_birth: string | null
           email: string | null
+          email_verified: boolean | null
           first_name: string | null
           gender: string | null
           id: string
           is_hidden: boolean | null
           last_name: string | null
           phone_number: string | null
+          phone_verified: boolean | null
           primary_role: string | null
           updated_at: string
           username: string | null
@@ -213,12 +215,14 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
+          email_verified?: boolean | null
           first_name?: string | null
           gender?: string | null
           id: string
           is_hidden?: boolean | null
           last_name?: string | null
           phone_number?: string | null
+          phone_verified?: boolean | null
           primary_role?: string | null
           updated_at?: string
           username?: string | null
@@ -233,15 +237,41 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
+          email_verified?: boolean | null
           first_name?: string | null
           gender?: string | null
           id?: string
           is_hidden?: boolean | null
           last_name?: string | null
           phone_number?: string | null
+          phone_verified?: boolean | null
           primary_role?: string | null
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      system_health_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          metric_value: Json | null
+          recorded_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          metric_value?: Json | null
+          recorded_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          metric_value?: Json | null
+          recorded_at?: string
         }
         Relationships: []
       }
@@ -443,6 +473,18 @@ export type Database = {
       is_platform_owner: {
         Args: { _user_id: string }
         Returns: boolean
+      }
+      sync_phone_verification_status: {
+        Args: {
+          is_verified: boolean
+          phone_number_param: string
+          user_uuid: string
+        }
+        Returns: undefined
+      }
+      sync_user_verification_status: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       validate_admin_access: {
         Args: { required_action?: string }
