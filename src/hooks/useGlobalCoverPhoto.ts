@@ -330,7 +330,6 @@ export const useGlobalCoverPhoto = () => {
 
       // Save to database
       const { error } = await supabase
-        .schema('public')
         .from('profiles')
         .update({ 
           cover_gradient: newGradient,

@@ -35,7 +35,6 @@ class UserPhotosService {
       // first mark all existing photos of this type as not current
       if (options.isCurrent && (photoType === 'profile' || photoType === 'cover')) {
         await supabase
-          .schema('public')
           .from('user_photos')
           .update({ is_current: false })
           .eq('user_id', userId)
@@ -43,7 +42,6 @@ class UserPhotosService {
       }
 
       const { data, error } = await supabase
-        .schema('public')
         .from('user_photos')
         .insert({
           user_id: userId,
@@ -80,7 +78,6 @@ class UserPhotosService {
   ): Promise<UserPhoto[]> {
     try {
       let query = supabase
-        .schema('public')
         .from('user_photos')
         .select('*')
         .eq('user_id', userId)
@@ -124,7 +121,6 @@ class UserPhotosService {
   async getCurrentProfilePhoto(userId: string): Promise<UserPhoto | null> {
     try {
       const { data, error } = await supabase
-        .schema('public')
         .from('user_photos')
         .select('*')
         .eq('user_id', userId)
@@ -150,7 +146,6 @@ class UserPhotosService {
   async getCurrentCoverPhoto(userId: string): Promise<UserPhoto | null> {
     try {
       const { data, error } = await supabase
-        .schema('public')
         .from('user_photos')
         .select('*')
         .eq('user_id', userId)
@@ -177,7 +172,6 @@ class UserPhotosService {
     try {
       // First, get the photo to retrieve the photo_key for Wasabi deletion
       const { data: photo, error: fetchError } = await supabase
-        .schema('public')
         .from('user_photos')
         .select('photo_key')
         .eq('id', photoId)
@@ -205,7 +199,6 @@ class UserPhotosService {
 
       // Delete from database
       const { error } = await supabase
-        .schema('public')
         .from('user_photos')
         .delete()
         .eq('id', photoId);
@@ -232,7 +225,6 @@ class UserPhotosService {
   ): Promise<boolean> {
     try {
       const { error } = await supabase
-        .schema('public')
         .from('user_photos')
         .update(updates)
         .eq('id', photoId);
