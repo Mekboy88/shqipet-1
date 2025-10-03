@@ -47,10 +47,17 @@ export const usePostsData = () => {
         setIsLoading(true);
       }
 
-      // Use public schema; fall back gracefully if table doesn't exist
-      const { data, error } = await (supabase as any)
+      // Fetch posts from database with profile info
+      const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select(`
+          *,
+          profile:profiles!posts_user_id_fkey (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -86,7 +93,7 @@ export const usePostsData = () => {
     }
   };
 
-  // Add new post to Supabase using safe function to bypass RLS issues
+  // Add new post to Supabase with upload tracking
   const addPost = async (newPost: Omit<Post, 'id' | 'user_id' | 'reactions' | 'comments' | 'shares'>) => {
     if (!user) {
       toast.error('You must be logged in to create posts');
@@ -94,37 +101,54 @@ export const usePostsData = () => {
     }
 
     try {
-      console.log('Creating post with safe function for user:', user.id);
+      console.log('Creating post for user:', user.id);
       console.log('Post data:', newPost);
 
-      // Use the safe function to create posts and bypass RLS permission issues
-      const { data, error } = await supabase.rpc('create_post_safe', {
-        p_user_id: user.id,
-        p_user_name: newPost.user.name,
-        p_user_image: newPost.user.image,
-        p_user_verified: newPost.user.verified || false,
-        p_content_text: newPost.content.text,
-        p_content_images: newPost.content.images,
-        p_visibility: newPost.visibility || 'public',
-        p_is_sponsored: newPost.isSponsored || false,
-        p_post_type: newPost.postType || 'regular'
+      // Build content JSONB object
+      const contentJson = {
+        text: newPost.content.text || null,
+        images: newPost.content.images || [],
+        poll: newPost.content.poll || null,
+        location: newPost.content.location || null
+      };
+
+      // Use the safe function to create posts
+      const { data: postId, error } = await supabase.rpc('create_post_safe', {
+        content_param: contentJson,
+        post_type_param: newPost.postType || 'regular',
+        visibility_param: newPost.visibility || 'public',
+        is_sponsored_param: newPost.isSponsored || false
       });
 
       if (error) {
-        console.error('Error creating post with safe function:', error);
+        console.error('Error creating post:', error);
         throw error;
       }
 
-      console.log('Post created successfully with safe function:', data);
+      console.log('Post created successfully with ID:', postId);
       
-      // Convert the returned post data and add to state
-      if (data) {
-        const newConvertedPost = convertSupabasePost(data);
-        setPosts(prevPosts => [newConvertedPost, ...prevPosts]);
-        toast.success('Post created successfully!');
+      // Track file uploads if any
+      if (newPost.content.images && newPost.content.images.length > 0) {
+        for (const imageUrl of newPost.content.images) {
+          try {
+            await supabase.from('upload_logs').insert({
+              user_id: user.id,
+              post_id: postId,
+              file_name: imageUrl.split('/').pop(),
+              upload_url: imageUrl,
+              upload_status: 'completed',
+              progress: 100,
+              completed_at: new Date().toISOString()
+            });
+          } catch (logError) {
+            console.warn('Failed to log upload:', logError);
+          }
+        }
       }
       
-      // Refresh all posts to ensure consistency
+      toast.success('Post created successfully!');
+      
+      // Refresh all posts to show the new one
       await fetchPosts();
       
     } catch (error) {

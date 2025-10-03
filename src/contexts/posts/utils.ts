@@ -2,25 +2,32 @@
 import { Post } from './types';
 
 export const convertSupabasePost = (supabasePost: any): Post => {
+  // Handle JSONB content structure
+  const content = typeof supabasePost.content === 'string' 
+    ? JSON.parse(supabasePost.content) 
+    : supabasePost.content || {};
+
   return {
     id: supabasePost.id,
     user_id: supabasePost.user_id,
     user: {
-      name: supabasePost.user_name,
-      image: supabasePost.user_image || '',
-      verified: supabasePost.user_verified || false,
+      name: supabasePost.user_name || supabasePost.profile?.username || 'User',
+      image: supabasePost.user_image || supabasePost.profile?.avatar_url || '',
+      verified: supabasePost.user_verified || supabasePost.profile?.verified || false,
     },
     time: formatTimeAgo(supabasePost.created_at),
-    visibility: supabasePost.visibility,
+    visibility: supabasePost.visibility || 'public',
     isSponsored: supabasePost.is_sponsored || false,
-    postType: supabasePost.post_type || 'regular', // Map post_type from database to postType
+    postType: supabasePost.post_type || 'regular',
     content: {
-      text: supabasePost.content_text,
-      images: supabasePost.content_images,
+      text: content.text || supabasePost.content_text,
+      images: content.images || supabasePost.content_images,
+      poll: content.poll,
+      location: content.location,
     },
     reactions: {
-      count: supabasePost.reactions_count || 0,
-      types: supabasePost.reactions_types || [],
+      count: supabasePost.likes_count || supabasePost.reactions_count || 0,
+      types: supabasePost.reactions_types || ['like'],
     },
     comments: supabasePost.comments_count || 0,
     shares: supabasePost.shares_count || 0,

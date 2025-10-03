@@ -241,6 +241,160 @@ export type Database = {
           },
         ]
       }
+      post_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          parent_comment_id: string | null
+          post_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          post_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          post_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          reaction_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_shares: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_shares_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          comments_count: number | null
+          content: Json
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_sponsored: boolean | null
+          likes_count: number | null
+          post_type: string
+          shares_count: number | null
+          updated_at: string | null
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          comments_count?: number | null
+          content?: Json
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          is_sponsored?: boolean | null
+          likes_count?: number | null
+          post_type?: string
+          shares_count?: number | null
+          updated_at?: string | null
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          comments_count?: number | null
+          content?: Json
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          is_sponsored?: boolean | null
+          likes_count?: number | null
+          post_type?: string
+          shares_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       profile_access_logs: {
         Row: {
           access_method: string
@@ -483,6 +637,62 @@ export type Database = {
         }
         Relationships: []
       }
+      upload_logs: {
+        Row: {
+          completed_at: string | null
+          error_message: string | null
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          metadata: Json | null
+          post_id: string | null
+          progress: number | null
+          started_at: string | null
+          upload_status: string
+          upload_url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          error_message?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          metadata?: Json | null
+          post_id?: string | null
+          progress?: number | null
+          started_at?: string | null
+          upload_status?: string
+          upload_url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          error_message?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          metadata?: Json | null
+          post_id?: string | null
+          progress?: number | null
+          started_at?: string | null
+          upload_status?: string
+          upload_url?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_logs_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_photos: {
         Row: {
           content_type: string | null
@@ -561,6 +771,15 @@ export type Database = {
       can_view_sensitive_profile_data: {
         Args: { profile_id: string }
         Returns: boolean
+      }
+      create_post_safe: {
+        Args: {
+          content_param: Json
+          is_sponsored_param?: boolean
+          post_type_param?: string
+          visibility_param?: string
+        }
+        Returns: string
       }
       current_user_is_admin: {
         Args: Record<PropertyKey, never>
@@ -654,6 +873,14 @@ export type Database = {
       is_platform_owner: {
         Args: { _user_id: string }
         Returns: boolean
+      }
+      restore_post: {
+        Args: { post_id_param: string }
+        Returns: undefined
+      }
+      soft_delete_post: {
+        Args: { post_id_param: string }
+        Returns: undefined
       }
       sync_phone_verification_status: {
         Args: {
