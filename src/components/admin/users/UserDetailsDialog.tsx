@@ -1,3 +1,4 @@
+// User Details Dialog - uses useUserQueries for logs/actions
 
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
