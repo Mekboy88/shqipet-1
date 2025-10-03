@@ -275,6 +275,60 @@ export type Database = {
         }
         Relationships: []
       }
+      upload_configuration: {
+        Row: {
+          configuration_data: Json
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          configuration_data?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          configuration_data?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      upload_configuration_status: {
+        Row: {
+          created_at: string
+          error_details: Json | null
+          id: string
+          metadata: Json | null
+          response_time_ms: number | null
+          service_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_details?: Json | null
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          service_name: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_details?: Json | null
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          service_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_photos: {
         Row: {
           content_type: string | null
@@ -449,6 +503,14 @@ export type Database = {
           username: string
         }[]
       }
+      get_upload_analytics: {
+        Args: { p_time_window?: string }
+        Returns: Json
+      }
+      get_upload_configuration: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_user_primary_role: {
         Args: { target_user_id: string }
         Returns: string
@@ -484,6 +546,20 @@ export type Database = {
       }
       sync_user_verification_status: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_upload_configuration: {
+        Args: { config_data: Json }
+        Returns: Json
+      }
+      update_upload_configuration_status: {
+        Args: {
+          p_error_details?: Json
+          p_metadata?: Json
+          p_response_time_ms?: number
+          p_service_name: string
+          p_status: string
+        }
         Returns: undefined
       }
       validate_admin_access: {
