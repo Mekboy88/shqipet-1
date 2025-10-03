@@ -92,6 +92,117 @@ export type Database = {
           },
         ]
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value?: Json | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json | null
+        }
+        Relationships: []
+      }
+      brute_force_alerts: {
+        Row: {
+          alert_type: string
+          attempt_count: number | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          attempt_count?: number | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          attempt_count?: number | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brute_force_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brute_force_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -251,6 +362,51 @@ export type Database = {
         }
         Relationships: []
       }
+      security_events: {
+        Row: {
+          created_at: string
+          event_description: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          risk_level: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_description?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          risk_level?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_description?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          risk_level?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_health_metrics: {
         Row: {
           created_at: string
@@ -272,6 +428,39 @@ export type Database = {
           metric_name?: string
           metric_value?: Json | null
           recorded_at?: string
+        }
+        Relationships: []
+      }
+      system_issues: {
+        Row: {
+          created_at: string
+          id: string
+          issue_description: string | null
+          issue_type: string
+          metadata: Json | null
+          resolved_at: string | null
+          severity: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          issue_description?: string | null
+          issue_type: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          issue_description?: string | null
+          issue_type?: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string | null
         }
         Relationships: []
       }
