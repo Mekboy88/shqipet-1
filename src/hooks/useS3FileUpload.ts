@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { uploadToWasabi } from '@/services/media/LegacyUploadService';
+import { s3EdgeUpload } from '@/services/s3EdgeUpload';
+import { useUploadTracking } from '@/hooks/useUploadTracking';
 
 export interface UploadResult {
   success: boolean;
@@ -48,7 +49,9 @@ export const useS3FileUpload = (): FileUploadHookReturn => {
   const [uploadProgress, setUploadProgress] = useState<EnhancedUploadProgress | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploadHistory, setUploadHistory] = useState<UploadResult[]>([]);
+const [uploadHistory, setUploadHistory] = useState<UploadResult[]>([]);
+
+  const { startUploadTracking, updateUploadProgress, completeUploadTracking, failUploadTracking } = useUploadTracking();
 
   const generateUploadId = () => `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -83,22 +86,45 @@ export const useS3FileUpload = (): FileUploadHookReturn => {
     
     setUploadProgress(initialProgress);
     setIsUploading(true);
-    setError(null);
+setError(null);
+
+    // DB tracking id for upload_logs
+    let logId: string | null = null;
 
     try {
       // Stage 1: Preparing
       updateProgress({ stage: 'preparing', progress: 10 });
       
-      // Stage 2: Uploading to S3
+// Stage 2: Uploading to S3 (tracked)
       updateProgress({ stage: 'uploading', progress: 20 });
-      
-      const result = await uploadToWasabi(file);
-      const finalUrl = result.url;
-      
+
+      // Start DB tracking
+      logId = await startUploadTracking({ fileName: file.name, fileSize: file.size, fileType: file.type });
+
+      const finalUrl = await s3EdgeUpload.uploadFile(file, {
+        folder: 'posts',
+        filename: file.name,
+        onProgress: (p) => {
+          updateProgress({
+            stage: 'uploading',
+            progress: 20 + Math.round((p.percentage || 0) * 0.6),
+            percentage: p.percentage,
+            uploadedBytes: p.loaded
+          });
+          if (logId) {
+            updateUploadProgress(logId, p.percentage);
+          }
+        }
+      });
+
       // Stage 3: Processing
       updateProgress({ stage: 'processing', progress: 85 });
       await new Promise(resolve => setTimeout(resolve, 300));
-      
+
+      if (logId) {
+        await completeUploadTracking(logId, finalUrl, true);
+      }
+
       // Stage 4: Completed
       updateProgress({ 
         stage: 'completed', 
@@ -108,10 +134,9 @@ export const useS3FileUpload = (): FileUploadHookReturn => {
         endTime: new Date()
       });
       
-      const uploadResult: UploadResult = {
+const uploadResult: UploadResult = {
         success: true,
         fileUrl: finalUrl,
-        filePath: result.key,
         fileName: file.name,
         fileSize: file.size,
         uploadId,
@@ -119,21 +144,25 @@ export const useS3FileUpload = (): FileUploadHookReturn => {
       
       setUploadHistory(prev => [...prev, uploadResult]);
       
-      toast.success('File uploaded successfully!', {
-        description: `${file.name} uploaded to Wasabi`,
+toast.success('File uploaded successfully!', {
+        description: `${file.name} uploaded to S3`,
         duration: 3000,
       });
       
-      console.log('✅ Wasabi upload completed:', finalUrl);
+      console.log('✅ S3 upload completed:', finalUrl);
       return finalUrl;
       
     } catch (error: any) {
-      console.error('❌ S3 upload failed:', error);
+console.error('❌ S3 upload failed:', error);
       updateProgress({ stage: 'failed', progress: 0 });
       setError(error.message || 'Upload failed');
       
+      if (logId) {
+        await failUploadTracking(logId, error.message || 'Upload failed');
+      }
+      
       toast.error('Upload failed', {
-        description: error.message || 'Failed to upload file to Wasabi',
+        description: error.message || 'Failed to upload file to S3',
         duration: 5000,
       });
       
@@ -145,19 +174,16 @@ export const useS3FileUpload = (): FileUploadHookReturn => {
   }, [updateProgress]);
 
   const testConnection = useCallback(async (showToast = false): Promise<boolean> => {
-    try {
-      // Test Wasabi connection by attempting to get a presigned URL
-      const testFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-      await uploadToWasabi(testFile);
-      
+try {
+      const ok = await s3EdgeUpload.testConnection();
       if (showToast) {
-        toast.success('Wasabi connection successful!');
+        toast[ok ? 'success' : 'error'](ok ? 'S3 connection successful!' : 'S3 connection failed!');
       }
-      return true;
+      return ok;
     } catch (error) {
-      console.error('Wasabi connection test failed:', error);
+      console.error('S3 connection test failed:', error);
       if (showToast) {
-        toast.error('Wasabi connection failed! Check your credentials.');
+        toast.error('S3 connection failed! Check your credentials.');
       }
       return false;
     }
