@@ -22,7 +22,6 @@ const CoverDebugHUD: React.FC = () => {
       const selectCols = 'id, cover_url, cover_position, updated_at';
       // Always read from public schema
       const { data } = await supabase
-        .schema('public')
         .from('profiles')
         .select(selectCols)
         .eq('id', user.id)

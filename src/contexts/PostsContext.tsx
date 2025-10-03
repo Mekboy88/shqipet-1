@@ -212,7 +212,6 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       // Build query with comprehensive selection and proper ordering
       let query = supabase
-        .schema('api')
         .from('posts')
         .select(`
           id,
@@ -243,7 +242,6 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Get the creation date of the last post for cursor pagination
         try {
           const { data: lastPost } = await supabase
-            .schema('api')
             .from('posts')
             .select('created_at')
             .eq('id', fromPostId)

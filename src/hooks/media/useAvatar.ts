@@ -460,7 +460,6 @@ export const useAvatar = (userId?: string) => {
 
       // Try secure RPC first to persist the key
       const { data: rpcOk, error: rpcError } = await supabase
-        .schema('public')
         .rpc('set_profile_media', {
           user_uuid: user?.id,
           new_avatar_key: key
@@ -477,7 +476,6 @@ export const useAvatar = (userId?: string) => {
 
         const tryUpdate = async (column: 'auth_user_id' | 'id' | 'user_id') => {
           const { data: upRow, error: upErr, count } = await supabase
-            .schema('api')
             .from('profiles')
             .update({ 
               avatar_key: key,
@@ -515,7 +513,6 @@ export const useAvatar = (userId?: string) => {
         };
         const tryLegacyUpdate = async (column: 'auth_user_id' | 'id' | 'user_id') => {
           const { error: legacyErr, count } = await supabase
-            .schema('api')
             .from('profiles')
             .update(legacyPayload, { count: 'exact' as const })
             .eq(column, user.id);

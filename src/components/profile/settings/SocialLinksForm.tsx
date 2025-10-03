@@ -100,7 +100,6 @@ const SocialLinksForm: React.FC<SocialLinksFormProps> = ({
 
     try {
       const { error } = await supabase
-        .schema('api')
         .from('profiles')
         .update({
           custom_social_links: allLinks,

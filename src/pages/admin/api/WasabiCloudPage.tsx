@@ -138,7 +138,6 @@ const WasabiCloudPage: React.FC = () => {
 
       // Get user profile and role
       const { data: profile } = await supabase
-        .schema('api')
         .from('profiles')
         .select('*')
         .eq('auth_user_id', user.id)
@@ -148,7 +147,6 @@ const WasabiCloudPage: React.FC = () => {
       
       // First, get existing config to preserve ID
       const { data: existingConfig } = await supabase
-        .schema('api')
         .from('wasabi_config')
         .select('id')
         .order('updated_at', { ascending: false })
@@ -178,7 +176,6 @@ const WasabiCloudPage: React.FC = () => {
         if (existingConfig?.id) {
           // Update existing config
           const { error } = await supabase
-            .schema('api')
             .from('wasabi_config')
             .update(configData)
             .eq('id', existingConfig.id);
@@ -186,7 +183,6 @@ const WasabiCloudPage: React.FC = () => {
         } else {
           // Insert new config
           const { error } = await supabase
-            .schema('api')
             .from('wasabi_config')
             .insert(configData);
           saveError = error;
@@ -212,7 +208,6 @@ const WasabiCloudPage: React.FC = () => {
       if (allowTypes && allowTypes.length > 0) changedFields.push('allowed_file_types');
       
       await supabase
-        .schema('api')
         .from('wasabi_file_operations')
         .insert({
           operation_type: 'config_update',
@@ -389,7 +384,6 @@ const WasabiCloudPage: React.FC = () => {
     try {
       // Get recent config changes from operations log
       const { data: operations, error } = await supabase
-        .schema('api')
         .from('wasabi_file_operations')
         .select(`
           id,
@@ -408,7 +402,6 @@ const WasabiCloudPage: React.FC = () => {
         // Get user details for each operation
         const userIds = operations.map(op => op.user_id).filter(Boolean);
         const { data: profiles } = await supabase
-          .schema('api')
           .from('profiles')
           .select('auth_user_id, email, first_name, last_name')
           .in('auth_user_id', userIds);
@@ -511,7 +504,6 @@ const WasabiCloudPage: React.FC = () => {
       // 2) Fallback to database snapshot (may be stale if files deleted outside app)
       const [filesResult] = await Promise.all([
         supabase
-          .schema('api')
           .from('wasabi_files')
           .select('file_size, content_type, created_at, original_filename')
       ]);

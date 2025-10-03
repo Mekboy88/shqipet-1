@@ -192,8 +192,7 @@ const AdminUserDashboard = () => {
         const currentId = auth?.user?.id;
         if (currentId) {
            const { data: ownProfile, error: ownErr } = await supabase
-             .schema('api')
-             .from('profiles')
+              .from('profiles')
               .select(`
                 id, first_name, last_name, email,
                 created_at, updated_at
@@ -491,11 +490,10 @@ const AdminUserDashboard = () => {
       const newStatus = user.account_status === 'active' ? 'suspended' : 'active';
       
       // Use profile_id for database operations (profiles table primary key)
-      const { error } = await supabase
-        .schema('api')
-        .from('profiles')
-        .update({ account_status: newStatus })
-        .eq('id', userId);
+       const { error } = await supabase
+         .from('profiles')
+         .update({ account_status: newStatus })
+         .eq('id', userId);
         
       if (error) throw error;
       
@@ -513,11 +511,10 @@ const AdminUserDashboard = () => {
       if (!user) return;
       
       // Use id to find the right profile record
-      const { error } = await supabase
-        .schema('api')
-        .from('profiles')
-        .update({ two_factor_enabled: !user.two_factor_enabled })
-        .eq('id', userId);
+       const { error } = await supabase
+         .from('profiles')
+         .update({ two_factor_enabled: !user.two_factor_enabled })
+         .eq('id', userId);
         
       if (error) throw error;
       
@@ -533,7 +530,6 @@ const AdminUserDashboard = () => {
     if (selectedUser) {
       try {
         const { error } = await supabase
-          .schema('api')
           .from('profiles')
           .delete()
           .eq('id', selectedUser.id);
@@ -553,7 +549,6 @@ const AdminUserDashboard = () => {
   const updateUser = async () => {
     try {
       const { error } = await supabase
-        .schema('api')
         .from('profiles')
         .update(editData)
         .eq('id', editData.id);
@@ -705,7 +700,6 @@ const AdminUserDashboard = () => {
     
     try {
       const { error } = await supabase
-        .schema('api')
         .from('profiles')
         .delete()
         .in('id', selectedUsers);
@@ -729,7 +723,6 @@ const AdminUserDashboard = () => {
     
     try {
       const { error } = await supabase
-        .schema('api')
         .from('profiles')
         .update({ account_status: newStatus })
         .in('id', selectedUsers);
@@ -754,7 +747,6 @@ const AdminUserDashboard = () => {
     try {
       // Delete existing roles
       await supabase
-        .schema('api')
         .from('user_roles')
         .delete()
         .in('user_id', selectedUsers);
@@ -762,7 +754,6 @@ const AdminUserDashboard = () => {
       // Insert new roles one by one
       for (const userId of selectedUsers) {
         await supabase
-          .schema('api')
           .from('user_roles')
           .insert({
             user_id: userId,

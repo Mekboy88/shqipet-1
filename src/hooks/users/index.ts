@@ -1,6 +1,6 @@
 
 // Export all user-related hooks from this index file
-export * from './use-users';
+export * from './useUsers';
 export * from './use-user-mutations';
 export * from './use-user-queries';
 export * from './use-user-stats';
