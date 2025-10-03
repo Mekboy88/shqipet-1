@@ -5,7 +5,7 @@ import { useFetchGuardian, FetchHealthStatus } from '@/hooks/useFetchGuardian';
 import { useS3FileUpload } from '@/hooks/useS3FileUpload';
 import { useIntegrationHealth } from '@/hooks/useIntegrationHealth';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 
 interface HealthSnapshot {
   website: {

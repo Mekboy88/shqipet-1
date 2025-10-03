@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { RefreshCw, Play, Upload, Undo, Eye, FileText, Download, Lock } from 'lucide-react';
 import { useI18nLanguages } from '@/hooks/useI18nLanguages';
 import { useTranslationJobs } from '@/hooks/useTranslationJobs';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 import { toast } from 'sonner';
 
 const AVAILABLE_PAGES = [

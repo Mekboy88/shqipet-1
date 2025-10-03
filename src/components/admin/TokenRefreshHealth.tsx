@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { toast } from 'sonner';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, BarChart, Bar } from 'recharts';
 import { RefreshCw, TrendingUp, AlertTriangle, CheckCircle, X, Maximize2, Filter, Download, Zap, Shield, Info } from 'lucide-react';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 
 // InfoTooltip component for consistent tooltips with consequences
 const InfoTooltip = ({ children, content, type = 'info' }: { 

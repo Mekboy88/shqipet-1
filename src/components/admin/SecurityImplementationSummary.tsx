@@ -42,7 +42,7 @@ import {
   MessageSquare,
   ExternalLink
 } from 'lucide-react';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 
 interface SecurityLayer {
   id: string;

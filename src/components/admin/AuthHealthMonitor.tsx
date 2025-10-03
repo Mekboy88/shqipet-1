@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 import { toast } from 'sonner';
 
 interface AuthHealthData {

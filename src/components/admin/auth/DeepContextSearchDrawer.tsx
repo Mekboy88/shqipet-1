@@ -46,7 +46,7 @@ import { useSwitchToast } from '@/hooks/use-switch-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PasswordVerificationDialog } from '@/components/admin/users-management/action-panel/permission-components/PasswordVerificationDialog';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 import { cn } from '@/lib/utils';
 
 interface DeepContextSearchDrawerProps {

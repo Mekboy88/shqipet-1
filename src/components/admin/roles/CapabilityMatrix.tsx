@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Shield, Database, Users, FileText, CreditCard, Cog } from 'lucide-react';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 import { Capability, CapabilityCategory } from '@/types/rbac';
 
 export function CapabilityMatrix() {

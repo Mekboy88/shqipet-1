@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { useRoleManagement } from '@/hooks/useRoleManagement';
 import { Role } from '@/types/rbac';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 
 interface RoleAssignmentDialogProps {
   role: Role;

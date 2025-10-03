@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 import { notificationManager } from '@/utils/notificationManager';
 import { Shield, Crown, Users, Headphones, Code } from 'lucide-react';
 import { useSecureRoles } from '@/hooks/users/use-secure-roles';

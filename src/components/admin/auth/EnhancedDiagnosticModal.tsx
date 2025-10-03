@@ -46,7 +46,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSwitchToast } from '@/hooks/use-switch-toast';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

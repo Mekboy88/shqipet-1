@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 import { 
   Shield, 
   AlertTriangle, 

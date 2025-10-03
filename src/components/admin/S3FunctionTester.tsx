@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, TestTube, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 import { useToast } from '@/hooks/use-toast';
 
 interface TestResult {

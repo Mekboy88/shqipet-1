@@ -29,7 +29,7 @@ import {
   Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 import { useUserRole } from '@/hooks/useUserRole';
 
 interface SystemIntegrationProps {

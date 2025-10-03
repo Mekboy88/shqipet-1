@@ -38,7 +38,7 @@ import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { useSwitchToast } from '@/hooks/use-switch-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { supabase } from '@/lib/database';
+import supabase from '@/lib/relaxedSupabase';
 
 interface ScanComparisonModalProps {
   open: boolean;
