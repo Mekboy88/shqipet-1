@@ -116,13 +116,14 @@ export const useCover = (userId?: string) => {
         if (cachedRaw) {
           const cached = JSON.parse(cachedRaw);
           const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
+          const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
           const cachedPos = normalizePosition(cached?.position || 'center');
           
-          if (cachedUrl) {
+          if (isValidUrl) {
             const initialState = {
               ...globalCoverState,
-              resolvedUrl: cachedUrl,
-              lastGoodUrl: cachedUrl,
+              resolvedUrl: cachedUrl as string,
+              lastGoodUrl: cachedUrl as string,
               position: cachedPos,
               loading: true
             };
@@ -212,9 +213,10 @@ export const useCover = (userId?: string) => {
           if (cachedRaw) {
             const cached = JSON.parse(cachedRaw);
             const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
+            const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
             const cachedPos = normalizePosition(cached?.position || coverState.position);
-            if (cachedUrl) {
-              const cachedState = { ...coverState, resolvedUrl: cachedUrl, lastGoodUrl: cachedUrl, position: cachedPos, loading: true };
+            if (isValidUrl) {
+              const cachedState = { ...coverState, resolvedUrl: cachedUrl as string, lastGoodUrl: cachedUrl as string, position: cachedPos, loading: true };
               setCoverState(cachedState);
               notifyCoverChange(cachedState);
             }
@@ -280,8 +282,8 @@ export const useCover = (userId?: string) => {
           if (cachedRaw) {
             const cached = JSON.parse(cachedRaw);
             const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
-            if (cachedUrl) {
-              const cachedState = { key: cached?.key ?? null, resolvedUrl: cachedUrl, position, loading: false, lastGoodUrl: cachedUrl, isPositionChanging: false, isPositionSaving: false };
+            if (cachedUrl && !/^blob:|^data:/.test(cachedUrl)) {
+              const cachedState = { key: cached?.key ?? null, resolvedUrl: cachedUrl as string, position, loading: false, lastGoodUrl: cachedUrl as string, isPositionChanging: false, isPositionSaving: false };
               setCoverState(cachedState);
               notifyCoverChange(cachedState);
               console.log('✅ Using cached cover from localStorage');
@@ -521,11 +523,8 @@ export const useCover = (userId?: string) => {
       // Emit upload start event for animation
       window.dispatchEvent(new CustomEvent('cover-upload-start'));
 
-      // Create local preview for instant feedback
-      const previewUrl = URL.createObjectURL(file);
-
-      // Set optimistic loading state with preview
-      const optimisticState = { ...coverState, loading: true, resolvedUrl: previewUrl, lastGoodUrl: previewUrl };
+      // Set uploading state without changing the currently displayed image (no local preview)
+      const optimisticState = { ...coverState, loading: true };
       setCoverState(optimisticState);
       notifyCoverChange(optimisticState);
 

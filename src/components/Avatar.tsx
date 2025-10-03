@@ -5,7 +5,6 @@ import { useUniversalUser } from '@/hooks/useUniversalUser';
 import { useGlobalAvatar } from '@/hooks/useGlobalAvatar';
 import { toast } from 'sonner';
 import { useRef, useState, useEffect } from 'react';
-import UploadAnimation from '@/components/ui/UploadAnimation';
 import { useAuth } from '@/contexts/AuthContext';
 import { mediaService } from '@/services/media/MediaService';
 
@@ -42,12 +41,10 @@ const Avatar: React.FC<AvatarProps> = ({
 }) => {
   const { firstName, lastName, initials: derivedInitials, username, email, avatarUrl: universalAvatarUrl } = useUniversalUser(userId);
   const { user: authUser } = useAuth();
-  const { avatarUrl: globalAvatarUrl, isLoading, uploadProgress, uploadAvatar } = useGlobalAvatar(userId);
+  const { avatarUrl: globalAvatarUrl, isLoading, uploadAvatar } = useGlobalAvatar(userId);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
   const [lastDisplayedSrc, setLastDisplayedSrc] = useState<string | null>(null);
-  // Track a temporary preview blob URL to show instant feedback during upload
-  const filePreviewUrlRef = useRef<string | null>(null);
   // Keep the underlying storage key (when rawSrc is a key) to allow refresh on image error
   const rawKeyRef = useRef<string | null>(null);
   // Prevent infinite error loops by limiting retries
@@ -136,14 +133,6 @@ const Avatar: React.FC<AvatarProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Create and show a temporary preview immediately
-    try {
-      const previewUrl = URL.createObjectURL(file);
-      filePreviewUrlRef.current = previewUrl;
-      setResolvedSrc(previewUrl);
-      setLastDisplayedSrc(previewUrl);
-    } catch {}
-
     try {
       await uploadAvatar(file);
       toast.success('Profile photo updated successfully!');
@@ -151,13 +140,7 @@ const Avatar: React.FC<AvatarProps> = ({
       console.error('Avatar upload error:', error);
       toast.error('Failed to update profile photo');
     } finally {
-      // Cleanup preview URL and reset input
-      try {
-        if (filePreviewUrlRef.current) {
-          URL.revokeObjectURL(filePreviewUrlRef.current);
-          filePreviewUrlRef.current = null;
-        }
-      } catch {}
+      // Reset input value to allow re-selecting the same file later
       event.target.value = '';
     }
   };
@@ -209,18 +192,7 @@ const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <div className="relative group cursor-pointer" onClick={handleClick}>
-      {/* Only show upload animation when actually uploading */}
-      {isLoading ? (
-        <UploadAnimation
-          isUploading={true}
-          progress={uploadProgress || 0}
-          type="avatar"
-        >
-          {content}
-        </UploadAnimation>
-      ) : (
-        content
-      )}
+      {content}
 
       {showCameraOverlay && !isLoading && (
         <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

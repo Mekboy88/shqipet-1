@@ -6,8 +6,6 @@
 import React from 'react';
 import { useCover } from '@/hooks/media/useCover';
 import { cn } from '@/lib/utils';
-import LoadingDots from './LoadingDots';
-import UploadAnimation from '@/components/ui/UploadAnimation';
 
 interface NewCoverPhotoProps {
   userId?: string;
@@ -43,8 +41,9 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = ({
     }
   }, []);
 
-  // Use resolved URL or fall back to last good URL
-  const displayUrl = resolvedUrl || lastGoodUrl;
+  // Use only real HTTP URLs (never blobs/data URIs)
+  const httpOnly = (u?: string | null) => (u && /^https?:/.test(u)) ? u : null;
+  const displayUrl = httpOnly(resolvedUrl) || httpOnly(lastGoodUrl);
 
   return (
     <div 
