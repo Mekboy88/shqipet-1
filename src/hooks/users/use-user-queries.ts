@@ -25,14 +25,15 @@ interface UseUserQueriesProps {
   filters: Filters;
 }
 
-export const useUserQueries = ({
-  setUsers,
-  setLoading,
-  setTotalCount,
-  page,
-  pageSize,
-  filters
-}: UseUserQueriesProps) => {
+export const useUserQueries = (props?: Partial<UseUserQueriesProps>) => {
+  const {
+    setUsers = () => {},
+    setLoading = () => {},
+    setTotalCount = () => {},
+    page = 1,
+    pageSize = 10,
+    filters = {} as Filters,
+  } = props || {};
 
   // Fetch user activity logs
   const fetchUserActivityLogs = async (userId: string): Promise<UserActivityLog[]> => {
