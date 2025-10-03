@@ -140,6 +140,7 @@ const validateImageFile = (file: File): void => {
 
 class AvatarStore {
   private uploadAbortController: AbortController | null = null;
+  private realtimeChannels = new Map<string, any>();
 
   subscribe(userId: string, listener: Listener) {
     const set = listenersByUser.get(userId) ?? new Set<Listener>();
@@ -148,12 +149,63 @@ class AvatarStore {
     
     listener(ensureState(userId));
     
+    // Set up realtime subscription for this user if not already set up
+    if (!this.realtimeChannels.has(userId)) {
+      this.setupRealtimeSubscription(userId);
+    }
+    
     return () => {
       const s = listenersByUser.get(userId);
       if (!s) return;
       s.delete(listener);
-      if (s.size === 0) listenersByUser.delete(userId);
+      if (s.size === 0) {
+        listenersByUser.delete(userId);
+        // Clean up realtime subscription when no more listeners
+        this.cleanupRealtimeSubscription(userId);
+      }
     };
+  }
+
+  private setupRealtimeSubscription(userId: string) {
+    console.log('🔔 Setting up realtime avatar subscription for user:', userId);
+    
+    const channel = supabase
+      .channel(`profile-avatar-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`
+        },
+        (payload) => {
+          try {
+            console.log('🔄 Avatar realtime update received:', payload);
+            const newData = (payload as any).new;
+            
+            if (newData?.avatar_url) {
+              // Reload avatar when it changes
+              console.log('🔄 Avatar changed remotely, reloading...');
+              this.load(userId, true);
+            }
+          } catch (e) {
+            console.warn('Realtime avatar handler error:', e);
+          }
+        }
+      )
+      .subscribe();
+    
+    this.realtimeChannels.set(userId, channel);
+  }
+
+  private cleanupRealtimeSubscription(userId: string) {
+    const channel = this.realtimeChannels.get(userId);
+    if (channel) {
+      console.log('🔕 Cleaning up realtime avatar subscription for user:', userId);
+      supabase.removeChannel(channel);
+      this.realtimeChannels.delete(userId);
+    }
   }
 
   async load(userId: string, forceRefresh = false) {
