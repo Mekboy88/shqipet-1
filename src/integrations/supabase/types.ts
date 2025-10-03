@@ -184,6 +184,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          auth_user_id: string | null
           avatar_url: string | null
           bio: string | null
           cover_gradient: string | null
@@ -203,6 +204,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           avatar_url?: string | null
           bio?: string | null
           cover_gradient?: string | null
@@ -222,6 +224,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           avatar_url?: string | null
           bio?: string | null
           cover_gradient?: string | null
@@ -288,18 +291,21 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_active: boolean
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
+          is_active?: boolean
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
+          is_active?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
