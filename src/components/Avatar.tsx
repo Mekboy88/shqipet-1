@@ -46,6 +46,12 @@ const Avatar: React.FC<AvatarProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
   const [lastDisplayedSrc, setLastDisplayedSrc] = useState<string | null>(null);
+  // Track a temporary preview blob URL to show instant feedback during upload
+  const filePreviewUrlRef = useRef<string | null>(null);
+  // Keep the underlying storage key (when rawSrc is a key) to allow refresh on image error
+  const rawKeyRef = useRef<string | null>(null);
+  // Prevent infinite error loops by limiting retries
+  const errorRetryRef = useRef<number>(0);
   
   // Prefer provided src, then global avatar, then auth metadata URL, then universal user avatar
   const authAvatarUrl = (typeof authUser?.user_metadata?.avatar_url === 'string') 
@@ -60,6 +66,11 @@ const Avatar: React.FC<AvatarProps> = ({
       return;
     }
 
+    // Reset error retries whenever the source changes
+    errorRetryRef.current = 0;
+    // Default: no key known
+    rawKeyRef.current = null;
+
     // If already a proper URL, use as-is
     if (/^(https?:|blob:|data:)/.test(rawSrc)) {
       setResolvedSrc(rawSrc);
@@ -67,8 +78,9 @@ const Avatar: React.FC<AvatarProps> = ({
       return;
     }
 
-    // If it looks like a Wasabi key, resolve it with retry logic
+    // If it looks like a storage key, remember it and resolve with retry logic
     if (/^(uploads|avatars|covers)\//i.test(rawSrc)) {
+      rawKeyRef.current = rawSrc;
       const resolveWithRetry = async (attempt = 1): Promise<void> => {
         try {
           const url = await mediaService.getUrl(rawSrc);
@@ -87,7 +99,6 @@ const Avatar: React.FC<AvatarProps> = ({
           }
         }
       };
-      
       resolveWithRetry();
       return;
     }
@@ -120,10 +131,18 @@ const Avatar: React.FC<AvatarProps> = ({
   // Get size classes
   const sizeClass = sizeClasses[size] || sizeClasses.md;
 
-  // Handle file upload with better progress tracking
+  // Handle file upload with instant local preview and progress
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Create and show a temporary preview immediately
+    try {
+      const previewUrl = URL.createObjectURL(file);
+      filePreviewUrlRef.current = previewUrl;
+      setResolvedSrc(previewUrl);
+      setLastDisplayedSrc(previewUrl);
+    } catch {}
 
     try {
       await uploadAvatar(file);
@@ -132,7 +151,13 @@ const Avatar: React.FC<AvatarProps> = ({
       console.error('Avatar upload error:', error);
       toast.error('Failed to update profile photo');
     } finally {
-      // Reset the input
+      // Cleanup preview URL and reset input
+      try {
+        if (filePreviewUrlRef.current) {
+          URL.revokeObjectURL(filePreviewUrlRef.current);
+          filePreviewUrlRef.current = null;
+        }
+      } catch {}
       event.target.value = '';
     }
   };
@@ -150,9 +175,24 @@ const Avatar: React.FC<AvatarProps> = ({
           src={finalSrc}
           alt="User avatar"
           className="object-cover"
-          onError={(e) => {
-            console.error('Avatar image failed to load:', finalSrc);
-            // Don't show error toast - fail silently to avoid UI disruption
+          onError={async () => {
+            console.warn('Avatar image failed to load, attempting refresh');
+            // Try to refresh if we have an underlying key and haven't retried too much
+            const key = rawKeyRef.current;
+            if (key && errorRetryRef.current < 2) {
+              try {
+                errorRetryRef.current += 1;
+                mediaService.clearCache(key);
+                const freshUrl = await mediaService.getUrl(key);
+                await mediaService.preloadImage(freshUrl).catch(() => {});
+                setResolvedSrc(freshUrl);
+                setLastDisplayedSrc(freshUrl);
+                return;
+              } catch (e) {
+                console.warn('Avatar refresh failed:', e);
+              }
+            }
+            // Fall back to last good src (keeps fallback visible)
           }}
         />
       )}

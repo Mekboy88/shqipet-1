@@ -28,7 +28,7 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = ({
   style,
   onMouseMove
 }) => {
-  const { resolvedUrl, position, loading, lastGoodUrl } = useCover(userId);
+  const { resolvedUrl, position, loading, lastGoodUrl, loadCover } = useCover(userId);
 
   // UI Debug toggle: enable via ?coverDebug=1 or localStorage.setItem('coverDebug','1')
   const [debugEnabled, setDebugEnabled] = React.useState(false);
@@ -65,7 +65,7 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = ({
           alt="Cover photo"
           className="absolute inset-0 w-full h-full object-cover"
           style={{ objectPosition: position }}
-          onError={() => { /* silently ignore */ }}
+          onError={() => { try { loadCover?.(); } catch {} }}
         />
       )}
       {/* Blue tint overlay - 10% */}
