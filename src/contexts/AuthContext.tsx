@@ -231,11 +231,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    // For now, all users are just 'user' role until we implement roles
-    console.log('🔍 fetchUserRole: Setting default user role');
-    setUserRole('user');
-    setUserLevel(1);
-    setAuthDataCached(true);
+    const started = performance.now();
+    try {
+      console.log('🔍 fetchUserRole: Fetching role for user:', userId);
+      
+      // Fetch the highest priority active role from user_roles table
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('⚠️ fetchUserRole: Database error:', error);
+        setUserRole('user');
+        setUserLevel(1);
+        setAuthDataCached(true);
+        return;
+      }
+
+      if (data?.role) {
+        const role = data.role;
+        const level = ROLE_LEVELS[role as keyof typeof ROLE_LEVELS] || 1;
+        console.log('✅ fetchUserRole: Role found:', role, 'level:', level, 'in', Math.round(performance.now() - started), 'ms');
+        setUserRole(role);
+        setUserLevel(level);
+      } else {
+        console.log('ℹ️ fetchUserRole: No role found, defaulting to user');
+        setUserRole('user');
+        setUserLevel(1);
+      }
+      setAuthDataCached(true);
+    } catch (error: any) {
+      console.error('❌ fetchUserRole: Exception:', error?.message || error);
+      setUserRole('user');
+      setUserLevel(1);
+      setAuthDataCached(true);
+    }
   };
   const signIn = async (email: string, password: string) => {
     try {
