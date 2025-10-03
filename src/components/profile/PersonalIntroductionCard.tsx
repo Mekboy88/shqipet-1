@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Eye, Users, Lock, X, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import supabase from '@/lib/relaxedSupabase';
 import { toast } from 'sonner';
 import { LanguageSelectionDialog } from './LanguageSelectionDialog';
 import HobbiesSelectionDialog from './HobbiesSelectionDialog';
