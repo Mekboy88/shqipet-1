@@ -48,6 +48,7 @@ import AIAnalyticsDashboard from './pages/admin/AIAnalyticsDashboard';
 import LiveConnectionTopology from './pages/admin/core-platform/LiveConnectionTopology';
 import AIAPIsConnection from './components/admin/AIAPIsConnection';
 import AdminUserDashboard from './components/admin/users/AdminUserDashboard';
+import AdminUploadMonitoring from './pages/AdminUploadMonitoring';
 // New pages
 import Albums from './pages/Albums';
 import Dating from './pages/Dating';
@@ -257,6 +258,10 @@ function App() {
                          {/* AI APIs Connection */}
                          <Route path="/admin/api/ai" element={<AdminDashboard />}>
                            <Route index element={<AIAPIsConnection />} />
+                         </Route>
+                         {/* Upload Monitoring */}
+                         <Route path="/admin/uploads" element={<AdminDashboard />}>
+                           <Route index element={<AdminUploadMonitoring />} />
                          </Route>
                         
                         {/* New application routes */}
