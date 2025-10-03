@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { UserProfile, UserActivityLog, AdminAction, formatBytes } from '@/types/user';
-import { useUsers } from '@/hooks/users';
+import { useUserQueries } from '@/hooks/users';
 
 import {
   Dialog,
@@ -60,7 +60,14 @@ export function UserDetailsDialog({
   const [activityLogs, setActivityLogs] = useState<UserActivityLog[]>([]);
   const [adminActions, setAdminActions] = useState<AdminAction[]>([]);
   const [activeTab, setActiveTab] = useState('personal');
-  const { fetchUserActivityLogs, fetchAdminActions } = useUsers();
+  const { fetchUserActivityLogs, fetchAdminActions } = useUserQueries({
+    setUsers: () => {},
+    setLoading: () => {},
+    setTotalCount: () => {},
+    page: 1,
+    pageSize: 10,
+    filters: {}
+  });
 
   useEffect(() => {
     if (isOpen && user) {
