@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { DuplicateDetectionService } from '@/services/duplicateDetectionService';
 import { validatePhoneNumber } from '@/utils/phoneValidation';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import supabase from '@/lib/relaxedSupabase';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PhoneNumberPopupProps {

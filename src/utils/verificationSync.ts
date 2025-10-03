@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import supabase from '@/lib/relaxedSupabase';
 
 export const syncPhoneVerificationStatus = async (userId: string, phoneNumber: string, isVerified: boolean = true) => {
   try {

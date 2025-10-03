@@ -5,7 +5,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import supabase from '@/lib/relaxedSupabase';
 import { toast } from 'sonner';
 import { ConnectionStatusBanner } from '@/components/ErrorBoundary/GlobalErrorBoundary';
 

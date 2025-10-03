@@ -233,11 +233,14 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
     if (!user) return;
 
     try {
-      const { data: profileData, error } = await supabase
-        .from('profile_settings')
-        .select('*')
+      // Force-relaxed typing to avoid deep generic instantiation issues
+      const res: any = await (supabase as any)
+        .from('profile_settings' as any)
+        .select('*' as any)
         .eq('user_id', user.id)
         .maybeSingle();
+      const profileData = res?.data as any;
+      const error = res?.error as any;
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading profile data:', error);
@@ -288,8 +291,8 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
     try {
       setSaving(true);
       
-      const { error } = await supabase
-        .from('profile_settings')
+      const upsertRes: any = await (supabase as any)
+        .from('profile_settings' as any)
         .upsert({
           user_id: user.id,
           ...data,
@@ -297,6 +300,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
         }, {
           onConflict: 'user_id'
         });
+      const error = upsertRes?.error as any;
 
       if (error) {
         console.error('Error saving profile:', error);
@@ -341,9 +345,9 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
       if (Object.keys(profileUpdate).length > 0) {
         profileUpdate.updated_at = new Date().toISOString();
         
-        await supabase
-          .from('profiles')
-          .update(profileUpdate)
+        await (supabase as any)
+          .from('profiles' as any)
+          .update(profileUpdate as any)
           .eq('id', user.id);
       }
 
