@@ -32,6 +32,7 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [showSavedChip, setShowSavedChip] = useState(false);
+  const [DebugHUD, setDebugHUD] = useState<React.ComponentType | null>(null);
 
   useEffect(() => {
     const handler = () => {
@@ -44,6 +45,17 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
       // @ts-ignore - custom event
       window.removeEventListener('cover-persisted', handler as any);
     };
+  }, []);
+
+  useEffect(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get('coverDebug') === '1') {
+        import('@/components/debug/CoverDebugHUD')
+          .then(m => setDebugHUD(() => m.default))
+          .catch(() => {});
+      }
+    } catch {}
   }, []);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,12 +124,7 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
         onMouseMove={handleMouseMove}
       >
         {/* Debug HUD */}
-        {(() => { try { const p = new URLSearchParams(window.location.search); return p.get('coverDebug') === '1'; } catch { return false; } })() && (
-          // Lightweight debug HUD, only when ?coverDebug=1 is present
-          /* eslint-disable @typescript-eslint/no-var-requires */
-          React.createElement(require('@/components/debug/CoverDebugHUD').default)
-          /* eslint-enable @typescript-eslint/no-var-requires */
-        )}
+        {DebugHUD && <DebugHUD />}
 
         {showSavedChip && (
           <div className="absolute top-4 left-4 z-20 rounded-md px-2 py-1 text-xs border bg-background/80 text-foreground shadow">
