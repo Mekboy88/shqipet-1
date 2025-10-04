@@ -43,6 +43,12 @@ const Avatar: React.FC<AvatarProps> = ({
   const { user: authUser } = useAuth();
   const { avatarUrl: globalAvatarUrl, isLoading, uploadAvatar } = useGlobalAvatar(userId);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Prefer provided src, then global avatar, then auth metadata URL, then universal user avatar
+  const authAvatarUrl = (typeof authUser?.user_metadata?.avatar_url === 'string') 
+    ? (authUser?.user_metadata?.avatar_url as string)
+    : null;
+  const rawSrc = src || globalAvatarUrl || authAvatarUrl || universalAvatarUrl || null;
+
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
   const [lastDisplayedSrc, setLastDisplayedSrc] = useState<string | null>(() => {
     const candidate = rawSrc;
@@ -63,12 +69,6 @@ const Avatar: React.FC<AvatarProps> = ({
   const rawKeyRef = useRef<string | null>(null);
   // Prevent infinite error loops by limiting retries
   const errorRetryRef = useRef<number>(0);
-  
-  // Prefer provided src, then global avatar, then auth metadata URL, then universal user avatar
-  const authAvatarUrl = (typeof authUser?.user_metadata?.avatar_url === 'string') 
-    ? (authUser?.user_metadata?.avatar_url as string)
-    : null;
-  const rawSrc = src || globalAvatarUrl || authAvatarUrl || universalAvatarUrl || null;
 
   // Resolve Wasabi keys to URLs with retry and fallback protection
   useEffect(() => {
