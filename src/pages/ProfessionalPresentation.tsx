@@ -367,6 +367,8 @@ export default function ProfessionalPresentation() {
           .maybeSingle();
 
         if (data && !error) {
+          console.log('📊 Loaded professional presentation data:', data);
+          
           setEditMode(data.edit_mode || false);
           setHireButton({
             enabled: data.hire_button_enabled ?? true,
@@ -374,13 +376,21 @@ export default function ProfessionalPresentation() {
             url: data.hire_button_url || "",
             email: data.hire_button_email || ""
           });
+          
           // Load professional presentation avatar
           if (data.avatar_url) {
+            console.log('🖼️ Setting professional avatar URL:', data.avatar_url);
             setProfile(prev => ({ ...prev, avatarUrl: data.avatar_url }));
+          } else {
+            console.log('⚠️ No avatar_url found in professional_presentations');
           }
+        } else if (error) {
+          console.error('❌ Error loading professional presentation data:', error);
+        } else {
+          console.log('ℹ️ No professional presentation data found for user');
         }
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('❌ Error loading data:', error);
       }
     };
 
@@ -777,6 +787,8 @@ function PhotoStrip({
 
     setIsUploading(true);
     try {
+      console.log('📤 Uploading professional photo...', { fileName: file.name, fileSize: file.size });
+      
       // Upload to Wasabi
       const formData = new FormData();
       formData.append('file', file);
@@ -796,11 +808,18 @@ function PhotoStrip({
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('❌ Upload response error:', errorData);
         throw new Error(errorData.error || 'Upload failed');
       }
 
       const result = await response.json();
+      console.log('✅ Upload successful:', result);
       
+      // Ensure we have a valid URL
+      if (!result.url) {
+        throw new Error('No URL returned from upload');
+      }
+
       // Update professional_presentations table with the new avatar_url
       const { error: updateError } = await supabase
         .from('professional_presentations')
@@ -812,8 +831,12 @@ function PhotoStrip({
           onConflict: 'user_id'
         });
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('❌ Database update error:', updateError);
+        throw updateError;
+      }
 
+      console.log('✅ Database updated with URL:', result.url);
       toast.success('Professional photo updated successfully');
       
       // Call the callback to update the parent state
@@ -839,7 +862,20 @@ function PhotoStrip({
     <div className="relative group">
       <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" style={{ height }}>
         {avatarUrl ? (
-          <img src={avatarUrl} alt="Professional Profile" className="h-full w-full object-cover" />
+          <img 
+            src={avatarUrl} 
+            alt="Professional Profile" 
+            className="h-full w-full object-cover" 
+            onError={(e) => {
+              console.error('❌ Image failed to load:', avatarUrl);
+              console.error('Image error event:', e);
+              // Hide the broken image
+              e.currentTarget.style.display = 'none';
+            }}
+            onLoad={() => {
+              console.log('✅ Image loaded successfully:', avatarUrl);
+            }}
+          />
         ) : (
           <div className="h-full w-full">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6_12px,#e5e7eb_12px,#e5e7eb_24px)]" />
