@@ -692,11 +692,6 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
               {photoCount} {photoCount === 1 ? 'foto' : 'foto'}
             </div>
             
-            <div className="border-b border-gray-200 mb-1"></div>
-            
-            <div className={`text-xs sm:text-sm ${genderTextColor} font-medium`}>
-              {gender.toLowerCase() === 'female' ? 'Femër' : 'Mashkull'}
-            </div>
           </Card>
 
           <Card className="p-3 sm:p-4 mb-4 bg-white">
