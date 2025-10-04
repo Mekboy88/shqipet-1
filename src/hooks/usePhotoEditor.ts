@@ -16,9 +16,9 @@ interface UsePhotoEditorProps {
 
 export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEditorProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [transform, setTransform] = useState<PhotoTransform>(
-    initialTransform || { scale: 1, translateX: 0, translateY: 0 }
-  );
+  const defaultTransform: PhotoTransform = initialTransform || { scale: 1.2, translateX: 0, translateY: 0 };
+  const [transform, setTransform] = useState<PhotoTransform>(defaultTransform);
+  const persistedRef = useRef<PhotoTransform>(defaultTransform);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -27,24 +27,29 @@ export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEdi
   const resizeStartRef = useRef<{ x: number; y: number; scale: number } | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  // Load saved transform from database
-  useEffect(() => {
-    if (!userId) return;
+// Load saved transform from database
+useEffect(() => {
+  if (!userId) return;
 
-    const loadTransform = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('photo_transform')
-        .eq('id', userId)
-        .single();
+  const loadTransform = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('photo_transform')
+      .eq('id', userId)
+      .maybeSingle();
 
-      if (!error && data?.photo_transform) {
-        setTransform(data.photo_transform as PhotoTransform);
-      }
-    };
+    if (!error && data?.photo_transform) {
+      setTransform(data.photo_transform as PhotoTransform);
+      persistedRef.current = data.photo_transform as PhotoTransform;
+    } else {
+      // Ensure default persists if nothing saved yet
+      setTransform(prev => prev || defaultTransform);
+      persistedRef.current = defaultTransform;
+    }
+  };
 
-    loadTransform();
-  }, [userId]);
+  loadTransform();
+}, [userId]);
 
   // Smooth update using RAF
   const updateTransform = useCallback((newTransform: Partial<PhotoTransform>) => {
@@ -74,8 +79,8 @@ export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEdi
       const translateX = e.clientX - dragStartRef.current.x;
       const translateY = e.clientY - dragStartRef.current.y;
 
-      // Constrain movement to reasonable bounds
-      const maxTranslate = 300;
+      // Constrain movement to wide bounds for free placement
+      const maxTranslate = 1200;
       const constrainedX = Math.max(-maxTranslate, Math.min(maxTranslate, translateX));
       const constrainedY = Math.max(-maxTranslate, Math.min(maxTranslate, translateY));
 
@@ -169,6 +174,7 @@ export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEdi
 
       if (error) throw error;
 
+      persistedRef.current = transform;
       toast.success('Photo position saved!');
       setIsEditMode(false);
       onSave?.(transform);
@@ -180,22 +186,19 @@ export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEdi
     }
   }, [userId, transform, onSave]);
 
-  // Reset to default
-  const resetTransform = useCallback(() => {
-    setTransform({ scale: 1, translateX: 0, translateY: 0 });
-    toast.info('Photo reset to default');
-  }, []);
+// Reset to default
+const resetTransform = useCallback(() => {
+  const base = { scale: 1.2, translateX: 0, translateY: 0 };
+  setTransform(base);
+  toast.info('Photo reset to default');
+}, []);
 
-  // Cancel editing
-  const cancelEdit = useCallback(() => {
-    // Reload from database or use initial
-    if (initialTransform) {
-      setTransform(initialTransform);
-    } else {
-      resetTransform();
-    }
-    setIsEditMode(false);
-  }, [initialTransform, resetTransform]);
+// Cancel editing
+const cancelEdit = useCallback(() => {
+  // Revert to last saved state
+  setTransform(persistedRef.current);
+  setIsEditMode(false);
+}, []);
 
   return {
     isEditMode,

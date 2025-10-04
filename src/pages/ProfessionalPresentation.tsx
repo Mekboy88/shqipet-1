@@ -19,6 +19,7 @@ import { Settings, FileText, Linkedin, Github, Facebook, Instagram, Globe, Mail,
 import { toast } from "sonner";
 import { usePhotoEditor } from "@/hooks/usePhotoEditor";
 import { PhotoEditor } from "@/components/profile/PhotoEditor";
+import { useGroupDrag } from "@/hooks/useGroupDrag";
 
 // Resolve Wasabi storage keys to proxy URLs
 const resolveMediaUrl = (value: string | null | undefined) => {
@@ -1074,12 +1075,10 @@ function PhotoStrip({
 
   return <div className="relative group">
       <div 
-        className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-white"
+        className={`relative w-full ${photoEditor.isEditMode ? 'overflow-visible z-[60]' : 'overflow-hidden'} rounded-xl border border-neutral-200 bg-white`}
         style={{
           height,
-          transform: photoEditor.isEditMode 
-            ? `scale(${photoEditor.transform.scale}) translate(${photoEditor.transform.translateX}px, ${photoEditor.transform.translateY}px)`
-            : `scale(1.2) translate(0, 0)`,
+          transform: `translate(${photoEditor.transform.translateX}px, ${photoEditor.transform.translateY}px) scale(${photoEditor.transform.scale})`,
           transition: photoEditor.isDragging || photoEditor.isResizing ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           cursor: photoEditor.isDragging ? 'grabbing' : photoEditor.isEditMode ? 'grab' : 'default',
         }}
