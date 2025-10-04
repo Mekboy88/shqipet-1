@@ -659,19 +659,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
           />
         </div>
 
-        {/* Company */}
-        <div className="p-4 rounded-lg">
-          <div className="mb-2">
-            <Label htmlFor="company">Company / Workplace</Label>
-          </div>
-          <Input
-            id="company"
-            value={data.company || ''}
-            onChange={e => setData(prev => ({ ...prev, company: e.target.value }))}
-            placeholder="Apple, Google, etc."
-            className={smokeFocusStyles}
-          />
-        </div>
 
         {/* Relationship */}
         <div className="p-4 rounded-lg">
