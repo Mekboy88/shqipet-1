@@ -596,9 +596,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
 
   return (
     <Card className="p-6">
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold">Personal Introduction</h3>
-      </div>
 
       <div className="space-y-6">
 
