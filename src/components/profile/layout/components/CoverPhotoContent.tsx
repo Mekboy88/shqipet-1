@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Avatar from '@/components/Avatar';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
 import { useCover } from '@/hooks/media/useCover';
+import { useGlobalCoverPhoto } from '@/hooks/useGlobalCoverPhoto';
 import CoverPhotoOverlay from './cover-photo/CoverPhotoOverlay';
 import CoverPhotoControls from './cover-photo/CoverPhotoControls';
 import { mediaService } from '@/services/media/MediaService';
@@ -37,43 +38,23 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   onMouseUp
 }) => {
   const { displayName } = useUniversalUser();
-  const { position: coverPosition, isPositionChanging } = useCover(); // Use unified cover position
+  const { position: coverPosition, isPositionChanging } = useCover();
+  const { coverPhotoUrl: globalCoverUrl } = useGlobalCoverPhoto();
   
-  const [displayUrl, setDisplayUrl] = useState<string | null>(null);
-
-  // Position is managed by useCover - no local state needed
-
-  useEffect(() => {
-    let cancelled = false;
-    const input = coverPhotoUrl;
-    if (!input) {
-      setDisplayUrl(null);
-      return;
-    }
-    const isDirect = /^(https?:|blob:|data:)/.test(input);
-    if (isDirect) {
-      setDisplayUrl(input);
-      return;
-    }
-    mediaService
-      .getUrl(input)
-      .then((url) => {
-        if (!cancelled) setDisplayUrl(url);
-      })
-      .catch(() => {
-        if (!cancelled) setDisplayUrl(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [coverPhotoUrl]);
+  // Use global cover photo URL directly - it's already preloaded and cached
+  const displayUrl = globalCoverUrl || coverPhotoUrl;
 
   return (
     <div 
       ref={coverRef}
-      className="h-[500px] relative rounded-b-2xl mx-auto max-w-[1200px] w-full bg-muted" 
+      className="h-[500px] relative rounded-b-2xl mx-auto max-w-[1200px] w-full" 
       style={{
-        ...(displayUrl ? { backgroundImage: `url(${displayUrl})` } : {}),
+        ...(displayUrl ? { 
+          backgroundImage: `url(${displayUrl})`,
+          backgroundColor: 'transparent'
+        } : { 
+          backgroundColor: 'hsl(var(--muted))' 
+        }),
         backgroundSize: 'cover',
         backgroundPosition: displayUrl ? coverPosition : 'center',
         cursor: isDragMode ? (isDragging ? 'grabbing' : 'grab') : 'default',
