@@ -1,0 +1,158 @@
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Save, X, RotateCcw, Move } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface PhotoEditorProps {
+  isEditMode: boolean;
+  isDragging: boolean;
+  isResizing: boolean;
+  isSaving: boolean;
+  scale: number;
+  onEditToggle: () => void;
+  onDragStart: (e: React.MouseEvent) => void;
+  onResizeStart: (e: React.MouseEvent) => void;
+  onSave: () => void;
+  onReset: () => void;
+  onCancel: () => void;
+}
+
+export const PhotoEditor: React.FC<PhotoEditorProps> = ({
+  isEditMode,
+  isDragging,
+  isResizing,
+  isSaving,
+  scale,
+  onEditToggle,
+  onDragStart,
+  onResizeStart,
+  onSave,
+  onReset,
+  onCancel,
+}) => {
+  if (!isEditMode) {
+    return (
+      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={onEditToggle}
+          className="bg-white/90 hover:bg-white shadow-lg"
+        >
+          <Move className="w-4 h-4 mr-1" />
+          Edit Position
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Edit Mode Overlay */}
+      <div className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none animate-pulse" />
+      
+      {/* Corner Resize Handles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Top-left */}
+        <div
+          className={cn(
+            "absolute top-0 left-0 w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize pointer-events-auto transform -translate-x-1/2 -translate-y-1/2 hover:scale-150 transition-transform",
+            isResizing && "scale-150 bg-blue-600"
+          )}
+          onMouseDown={onResizeStart}
+        />
+        
+        {/* Top-right */}
+        <div
+          className={cn(
+            "absolute top-0 right-0 w-4 h-4 bg-blue-500 rounded-full cursor-nesw-resize pointer-events-auto transform translate-x-1/2 -translate-y-1/2 hover:scale-150 transition-transform",
+            isResizing && "scale-150 bg-blue-600"
+          )}
+          onMouseDown={onResizeStart}
+        />
+        
+        {/* Bottom-left */}
+        <div
+          className={cn(
+            "absolute bottom-0 left-0 w-4 h-4 bg-blue-500 rounded-full cursor-nesw-resize pointer-events-auto transform -translate-x-1/2 translate-y-1/2 hover:scale-150 transition-transform",
+            isResizing && "scale-150 bg-blue-600"
+          )}
+          onMouseDown={onResizeStart}
+        />
+        
+        {/* Bottom-right */}
+        <div
+          className={cn(
+            "absolute bottom-0 right-0 w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize pointer-events-auto transform translate-x-1/2 translate-y-1/2 hover:scale-150 transition-transform",
+            isResizing && "scale-150 bg-blue-600"
+          )}
+          onMouseDown={onResizeStart}
+        />
+      </div>
+
+      {/* Drag Handle (Center) */}
+      <div
+        className={cn(
+          "absolute inset-0 cursor-move flex items-center justify-center",
+          isDragging ? "bg-blue-500/10" : "hover:bg-blue-500/5"
+        )}
+        onMouseDown={onDragStart}
+      >
+        {!isDragging && !isResizing && (
+          <div className="bg-blue-500/80 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg">
+            Drag to move
+          </div>
+        )}
+      </div>
+
+      {/* Control Panel */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2">
+        {/* Scale Indicator */}
+        <div className="px-3 py-1 text-xs font-medium text-neutral-700">
+          {Math.round(scale * 100)}%
+        </div>
+
+        {/* Reset Button */}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onReset}
+          disabled={isSaving}
+          className="h-8"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+        </Button>
+
+        {/* Cancel Button */}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSaving}
+          className="h-8"
+        >
+          <X className="w-3.5 h-3.5 mr-1" />
+          Cancel
+        </Button>
+
+        {/* Save Button */}
+        <Button
+          size="sm"
+          onClick={onSave}
+          disabled={isSaving}
+          className="h-8 bg-blue-500 hover:bg-blue-600"
+        >
+          <Save className="w-3.5 h-3.5 mr-1" />
+          {isSaving ? 'Saving...' : 'Save'}
+        </Button>
+      </div>
+
+      {/* Instructions */}
+      {!isDragging && !isResizing && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-500/90 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+          Drag corners to resize • Drag center to move
+        </div>
+      )}
+    </>
+  );
+};
