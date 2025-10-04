@@ -644,7 +644,7 @@ async (payload) => {
       >
         {/* LEFT: Photo strip + name/role/quick (borderless) */}
         <motion.section initial={{ opacity: 0, y: layout.enableAnimations ? 12 : 0 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="col-span-1">
-          <div className="-ml-64">
+          <div className="-ml-80 mt-8">
             <PhotoStrip 
               avatarUrl={profile.avatarUrl} 
               accent={accent} 
