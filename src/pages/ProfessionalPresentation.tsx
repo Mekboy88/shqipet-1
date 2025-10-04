@@ -1097,9 +1097,9 @@ useEffect(() => {
         )}
         <div className="pointer-events-none absolute inset-0 ring-1 ring-black/5" />
         
-        {/* Camera button - only visible in edit mode and on hover */}
+        {/* Camera button - always visible in edit mode */}
         {editMode && (
-          <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute bottom-4 right-4 transition-opacity duration-200">
             <Button
               size="sm"
               variant="secondary"
