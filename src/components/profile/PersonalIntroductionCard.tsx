@@ -13,7 +13,7 @@ import supabase from '@/lib/relaxedSupabase';
 import { toast } from 'sonner';
 import { LanguageSelectionDialog } from './LanguageSelectionDialog';
 import HobbiesSelectionDialog from './HobbiesSelectionDialog';
-import { getHobbyEmoji } from '@/data/hobbies';
+import { getHobbyEmoji, getHobbyByName } from '@/data/hobbies';
 
 
 // Helper function to get flag for language
@@ -201,6 +201,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
   const [newHobby, setNewHobby] = useState('');
   const [isLanguageDialogOpen, setIsLanguageDialogOpen] = useState(false);
   const [isHobbiesDialogOpen, setIsHobbiesDialogOpen] = useState(false);
+  const [showAllHobbies, setShowAllHobbies] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -502,20 +503,33 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
 
               {/* Hobbies */}
               {data.hobbies && data.hobbies.length > 0 && (
-                <div className="flex-none">
+                <div className="flex-none w-full">
                   <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                     WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
                   }}>
                     <Heart className="w-5 h-5" />
                     Hobbies & Interests
                   </h4>
-                  <div className="flex flex-wrap gap-1 ml-7">
-                    {data.hobbies.map(hobby => (
-                      <Badge key={hobby} variant="secondary" className="text-xs">
-                        <span className="text-sm mr-1">{getHobbyEmoji(hobby)}</span>
-                        {hobby}
-                      </Badge>
-                    ))}
+                  <div className="ml-7">
+                    <div className="flex flex-wrap gap-1">
+                      {(showAllHobbies ? data.hobbies : data.hobbies.slice(0, 5)).map(hobby => {
+                        const hobbyData = getHobbyByName(hobby);
+                        return (
+                          <Badge key={hobby} variant="secondary" className="text-xs">
+                            <span className="text-sm mr-1">{hobbyData?.emoji || '🎯'}</span>
+                            {hobby}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                    {data.hobbies.length > 5 && (
+                      <button
+                        onClick={() => setShowAllHobbies(!showAllHobbies)}
+                        className="text-sm text-primary hover:underline mt-2"
+                      >
+                        {showAllHobbies ? 'See less' : `See more (${data.hobbies.length - 5} more)`}
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
