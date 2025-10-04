@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import LoadingDots from "@/components/ui/LoadingDots";
+import UploadAnimation from "@/components/ui/UploadAnimation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -906,12 +906,14 @@ function PhotoStrip({
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
 
     setIsUploading(true);
+    setUploadProgress(0);
     try {
       // Show local preview instantly
       const localPreview = URL.createObjectURL(file);
@@ -919,6 +921,7 @@ function PhotoStrip({
         onPhotoUpdate(localPreview);
       }
 
+      setUploadProgress(15);
       console.log('📤 Uploading professional photo...', { fileName: file.name, fileSize: file.size });
       
       // Upload to Wasabi
@@ -927,9 +930,11 @@ function PhotoStrip({
       formData.append('mediaType', 'professional-presentation-avatar');
       formData.append('userId', userId);
 
+      setUploadProgress(30);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
+      setUploadProgress(40);
       const response = await fetch(`${supabase.supabaseUrl}/functions/v1/wasabi-upload`, {
         method: 'POST',
         headers: {
@@ -944,6 +949,7 @@ function PhotoStrip({
         throw new Error(errorData.error || 'Upload failed');
       }
 
+      setUploadProgress(60);
       const result = await response.json();
       console.log('✅ Upload successful:', result);
       
@@ -953,6 +959,7 @@ function PhotoStrip({
       }
       const resolvedUrl = resolveMediaUrl(key);
 
+      setUploadProgress(75);
       // Update professional_presentations table with the new avatar key
       const { data: upserted, error: updateError } = await supabase
         .from('professional_presentations')
@@ -971,6 +978,7 @@ function PhotoStrip({
         throw updateError;
       }
 
+      setUploadProgress(85);
       console.log('✅ Database updated with key:', key);
       toast.success('Professional photo updated successfully');
       
@@ -980,6 +988,7 @@ function PhotoStrip({
         const fresh = await mediaService.getUrl(key);
         const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
         await mediaService.preloadImage(versioned);
+        setUploadProgress(95);
         // Apply final resolved URL immediately
         if (onPhotoUpdate) onPhotoUpdate(versioned);
         try {
@@ -990,11 +999,13 @@ function PhotoStrip({
         console.warn('⚠️ Failed to resolve fresh avatar after upload', e);
       }
 
+      setUploadProgress(100);
     } catch (error) {
       console.error('❌ Professional photo upload failed:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update professional photo');
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -1005,7 +1016,7 @@ function PhotoStrip({
     fileInputRef.current?.click();
   };
 
-// Flicker-free image loading with version dedupe and overlay
+// Flicker-free image loading with version dedupe
 const [displayUrl, setDisplayUrl] = useState<string>(() => {
   try {
     const raw = localStorage.getItem('pp:avatar_meta');
@@ -1018,74 +1029,40 @@ const [displayUrl, setDisplayUrl] = useState<string>(() => {
   } catch {}
   return resolveMediaUrl(avatarUrl);
 });
-const [imgLoading, setImgLoading] = useState(false);
 const imgRequestIdRef = useRef(0);
 
 useEffect(() => {
   const next = resolveMediaUrl(avatarUrl);
-  if (!next) { setDisplayUrl(''); setImgLoading(false); return; }
-
-  // For local preview, show instantly without versioning
-  if (next.startsWith('blob:') || next.startsWith('data:')) {
-    if (displayUrl !== next) setDisplayUrl(next);
-    setImgLoading(false);
-    return;
-  }
-
-  // Respect existing versioning (rev) if provided; otherwise add a one-time rev
-  const versioned = next.includes('rev=') ? next : next + (next.includes('?') ? '&' : '?') + 'rev=' + Date.now();
-
-  // If we're already showing this exact version, do nothing (prevents brief re-loading on refresh)
-  if (displayUrl === versioned) { setImgLoading(false); return; }
+  if (!next || next === displayUrl) return;
 
   const requestId = ++imgRequestIdRef.current;
-  setImgLoading(true);
+
+  // Preload off-DOM, only swap src after fully loaded
   const img = new Image();
   img.onload = () => {
     if (imgRequestIdRef.current === requestId) {
-      setDisplayUrl(versioned);
+      setDisplayUrl(next);
     }
   };
   img.onerror = () => {
-    if (imgRequestIdRef.current === requestId) {
-      setImgLoading(false);
-      console.warn('⚠️ Preload failed, keeping last good image', { next, versioned });
-    }
+    console.warn('⚠️ Preload failed, keeping last good image', { next });
   };
-  img.src = versioned;
+  img.src = next;
 
-  // Fail-safe: clear loading if network stalls
-  const timeout = setTimeout(() => {
-    if (imgRequestIdRef.current === requestId) setImgLoading(false);
-  }, 6000);
-
-  return () => clearTimeout(timeout);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [avatarUrl, displayUrl]);
+}, [avatarUrl]);
 
   return (
     <div className="relative group">
       <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" style={{ height }}>
         {displayUrl ? (
-          <>
+          <UploadAnimation isUploading={isUploading} progress={uploadProgress} type="avatar">
             <img 
               src={displayUrl} 
               alt="Professional Profile" 
-              className={`h-full w-full object-cover transition-opacity duration-300 ${imgLoading ? 'opacity-0' : 'opacity-100'}`}
-              onLoad={() => {
-                setImgLoading(false);
-              }}
-              onError={() => {
-                setImgLoading(false);
-                console.error('❌ Image failed to load:', displayUrl);
-              }}
+              className="h-full w-full object-cover animate-fade-in"
             />
-            {(imgLoading || isUploading) && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <LoadingDots message={isUploading ? 'Uploading photo…' : 'Loading photo…'} variant="light" size="md" />
-              </div>
-            )}
-          </>
+          </UploadAnimation>
         ) : (
           <div className="h-full w-full">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6_12px,#e5e7eb_12px,#e5e7eb_24px)]" />
