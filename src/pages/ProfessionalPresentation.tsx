@@ -644,7 +644,7 @@ async (payload) => {
       >
         {/* LEFT: Photo strip + name/role/quick (borderless) */}
         <motion.section initial={{ opacity: 0, y: layout.enableAnimations ? 12 : 0 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="col-span-1">
-          <div className="-ml-32">
+          <div className="-ml-48">
             <PhotoStrip 
               avatarUrl={profile.avatarUrl} 
               accent={accent} 
@@ -655,7 +655,7 @@ async (payload) => {
             />
           </div>
 
-          <div className="mt-6 space-y-2">
+          <div className="mt-12 space-y-2">
             <EditableText
               id="name"
               value={profile.name}
