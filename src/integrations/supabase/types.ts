@@ -246,7 +246,7 @@ export type Database = {
           city: string | null
           created_at: string
           favorite_quote: string | null
-          hobbies: string | null
+          hobbies: string[] | null
           id: string
           languages: string[] | null
           profession: string | null
@@ -258,7 +258,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           favorite_quote?: string | null
-          hobbies?: string | null
+          hobbies?: string[] | null
           id?: string
           languages?: string[] | null
           profession?: string | null
@@ -270,7 +270,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           favorite_quote?: string | null
-          hobbies?: string | null
+          hobbies?: string[] | null
           id?: string
           languages?: string[] | null
           profession?: string | null
