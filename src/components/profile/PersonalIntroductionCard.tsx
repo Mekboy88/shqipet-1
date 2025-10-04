@@ -617,18 +617,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
             />
           </div>
 
-          <div className="p-4 rounded-lg">
-            <div className="mb-2">
-              <Label htmlFor="intro-location">Location</Label>
-            </div>
-            <Input
-              id="intro-location"
-              value={data.location || ''}
-              onChange={e => setData(prev => ({ ...prev, location: e.target.value }))}
-              placeholder="Enter a location"
-              className={smokeFocusStyles}
-            />
-          </div>
 
           <div className="p-4 rounded-lg">
             <div className="mb-2">
