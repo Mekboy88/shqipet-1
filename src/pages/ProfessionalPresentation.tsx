@@ -630,9 +630,7 @@ export default function ProfessionalPresentation() {
         </div>
       </div>
       
-      <Button variant="outline" size="sm" onClick={() => navigate('/profile')} className="gap-1.5 h-8">
-        ← Back to Profile
-      </Button>
+      {/* Removed duplicate back button from controls */}
       
       <div className="flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2 py-1">
         <span className="text-xs text-neutral-600">Edit mode</span>
@@ -654,6 +652,18 @@ export default function ProfessionalPresentation() {
   return <>
       {/* Minimal Navbar with Professional Controls (only visible to owner) */}
       <MinimalNavbar professionalControls={professionalControls} />
+      
+      {/* Back to Profile Button - Top Left Corner */}
+      <div className="fixed top-16 left-4 z-50">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => navigate('/profile')} 
+          className="gap-1.5 h-8 bg-white shadow-md hover:shadow-lg"
+        >
+          ← Back to Profile
+        </Button>
+      </div>
       
       <div className="min-h-screen w-full bg-white text-neutral-900 pt-14" style={accentStyle}>
         {/* Grid */}
