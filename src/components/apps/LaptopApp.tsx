@@ -78,7 +78,7 @@ const LaptopApp: React.FC = () => {
           <Route path="/profile" element={<><NavbarNoTooltip /><Profile /></>} />
           <Route path="/profile/settings" element={<><NavbarNoTooltip /><Profile /><ProfileSettingsProvider><ProfileSettings /></ProfileSettingsProvider></>} />
           <Route path="/profile/*" element={<><NavbarNoTooltip /><Profile /></>} />
-          <Route path="/professional-presentation" element={<><NavbarNoTooltip /><ProfessionalPresentation /></>} />
+          <Route path="/professional-presentation" element={<ProfessionalPresentation />} />
           <Route path="/photos" element={<Photos />} />
           <Route path="/history" element={<><NavbarNoTooltip /><HistoryPage /></>} />
           <Route path="/auth/login" element={<Login />} />

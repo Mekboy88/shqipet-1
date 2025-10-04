@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import MinimalNavbar from "@/components/navbar/MinimalNavbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -352,57 +353,61 @@ export default function ProfessionalPresentation() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white text-neutral-900" style={accentStyle}>
-      {/* Top bar with Edit Mode toggle */}
-      <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white/70 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "var(--accent-10)" }}>
-              <Wand2 className="h-5 w-5" style={{ color: "var(--accent)" }} />
+    <>
+      {/* Minimal Navbar - Only logo and avatar */}
+      <MinimalNavbar />
+      
+      <div className="min-h-screen w-full bg-white text-neutral-900 pt-14" style={accentStyle}>
+        {/* Top bar with Edit Mode toggle */}
+        <header className="sticky top-14 z-20 border-b border-neutral-200 bg-white/70 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "var(--accent-10)" }}>
+                <Wand2 className="h-5 w-5" style={{ color: "var(--accent)" }} />
+              </div>
+              <div className="text-sm">
+                <div className="font-semibold leading-none">Professional Presentation</div>
+                <div className="text-neutral-500">Desktop preview • Separate window</div>
+              </div>
             </div>
-            <div className="text-sm">
-              <div className="font-semibold leading-none">Professional Presentation</div>
-              <div className="text-neutral-500">Desktop preview • Separate window</div>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/profile')}
-              className="gap-2"
-            >
-              ← Back to Profile
-            </Button>
-            <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1">
-              <span className="text-xs text-neutral-600">Edit mode</span>
-              <Switch checked={editMode} onCheckedChange={setEditMode} />
-            </div>
-            <Button variant="outline" className="gap-2" onClick={saveAll}>
-              <Save className="h-4 w-4" /> Save all
-            </Button>
-            <a href={profile.cvUrl} target="_blank" rel="noreferrer">
-              <Button variant="outline" className="gap-2">
-                <FileText className="h-4 w-4" /> CV
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/profile')}
+                className="gap-2"
+              >
+                ← Back to Profile
               </Button>
-            </a>
-            <SettingsDialog
-              profile={profile}
-              setProfile={setProfile}
-              socials={socials}
-              setSocials={setSocials}
-              sections={sections}
-              setSections={setSections}
-              accent={accent}
-              setAccent={setAccent}
-              layout={layout}
-              setLayout={setLayout}
-              seo={seo}
-              setSeo={setSeo}
-            />
+              <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1">
+                <span className="text-xs text-neutral-600">Edit mode</span>
+                <Switch checked={editMode} onCheckedChange={setEditMode} />
+              </div>
+              <Button variant="outline" className="gap-2" onClick={saveAll}>
+                <Save className="h-4 w-4" /> Save all
+              </Button>
+              <a href={profile.cvUrl} target="_blank" rel="noreferrer">
+                <Button variant="outline" className="gap-2">
+                  <FileText className="h-4 w-4" /> CV
+                </Button>
+              </a>
+              <SettingsDialog
+                profile={profile}
+                setProfile={setProfile}
+                socials={socials}
+                setSocials={setSocials}
+                sections={sections}
+                setSections={setSections}
+                accent={accent}
+                setAccent={setAccent}
+                layout={layout}
+                setLayout={setLayout}
+                seo={seo}
+                setSeo={setSeo}
+              />
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       {/* Grid */}
       <main
@@ -620,6 +625,7 @@ export default function ProfessionalPresentation() {
         </motion.aside>
       </main>
     </div>
+    </>
   );
 }
 
