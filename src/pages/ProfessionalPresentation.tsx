@@ -295,8 +295,6 @@ export default function ProfessionalPresentation() {
   
   // Editable state
   const [profile, setProfile] = useState(() => {
-    let cachedAvatar = '';
-    try { cachedAvatar = localStorage.getItem('pp:last:avatar_url') || ''; } catch {}
     return {
       name: "Andi Mekrizvani",
       role: "Founder • Product & Security Enthusiast",
@@ -306,7 +304,7 @@ export default function ProfessionalPresentation() {
       phone: "+44 7123 456789",
       website: "https://shqipet.com",
       cvUrl: "#",
-      avatarUrl: cachedAvatar,
+      avatarUrl: '', // Start empty to avoid showing stale cached image on refresh
     };
   });
 
@@ -394,33 +392,34 @@ export default function ProfessionalPresentation() {
             email: data.hire_button_email || ""
           });
           
-          // Load professional presentation avatar (instant cached + async fresh)
+          // Load professional presentation avatar (strict no-flicker: resolve once, preload, then swap)
           if (data.avatar_url) {
             const keyOrUrl = String(data.avatar_url);
-            console.log('🖼️ Setting professional avatar URL:', keyOrUrl);
-            // 1) Instant: if full URL or cached media URL exists, show immediately
-            let instant = '';
+            const rev = data.updated_at || Date.now().toString();
+            console.log('🖼️ Loading professional avatar (no-flicker):', { keyOrUrl, rev });
+
+            // For full URLs or local previews, apply directly
             if (/^(https?:|blob:|data:)/.test(keyOrUrl)) {
-              instant = keyOrUrl;
+              setProfile(prev => ({ ...prev, avatarUrl: keyOrUrl }));
+              try { localStorage.setItem('pp:last:avatar_url', keyOrUrl); } catch {}
             } else {
-              try {
-                const raw = localStorage.getItem(`media:last:${keyOrUrl}`);
-                if (raw) { const j = JSON.parse(raw); if (typeof j?.url === 'string') instant = j.url as string; }
-              } catch {}
+              (async () => {
+                try {
+                  const fresh = await mediaService.getUrl(keyOrUrl);
+                  const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
+                  await mediaService.preloadImage(versioned);
+                  setProfile(prev => ({ ...prev, avatarUrl: versioned }));
+                  try { localStorage.setItem('pp:last:avatar_url', versioned); } catch {}
+                } catch (e) {
+                  console.warn('⚠️ Failed to resolve avatar on initial load, falling back to last good if any', e);
+                  // Fallback to cached last good (only if nothing is shown yet)
+                  try {
+                    const last = localStorage.getItem('pp:last:avatar_url');
+                    if (last) setProfile(prev => ({ ...prev, avatarUrl: last }));
+                  } catch {}
+                }
+              })();
             }
-            if (instant) {
-              setProfile(prev => ({ ...prev, avatarUrl: instant }));
-              try { localStorage.setItem('pp:last:avatar_url', instant); } catch {}
-            }
-            // 2) Fresh: resolve via mediaService and swap only after preload
-            (async () => {
-              try {
-                const fresh = await mediaService.getUrl(keyOrUrl);
-                await mediaService.preloadImage(fresh);
-                setProfile(prev => ({ ...prev, avatarUrl: fresh }));
-                try { localStorage.setItem('pp:last:avatar_url', fresh); } catch {}
-              } catch {}
-            })();
           } else {
             console.log('⚠️ No avatar_url found in professional_presentations');
           }
@@ -950,13 +949,14 @@ function PhotoStrip({
         throw updateError;
       }
 
-      console.log('✅ Database updated with key:', key, 'resolvedUrl:', resolvedUrl);
+      console.log('✅ Database updated with key:', key);
       toast.success('Professional photo updated successfully');
       
-      // Call the callback to update the parent state
-      if (onPhotoUpdate) {
-        onPhotoUpdate(resolvedUrl);
-      }
+      // Clear cached URLs for this key so all clients fetch fresh
+      try { mediaService.clearCache?.(key); } catch {}
+
+      // Do not override the local preview here; realtime will apply final URL after processing
+
     } catch (error) {
       console.error('❌ Professional photo upload failed:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update professional photo');
@@ -983,22 +983,23 @@ useEffect(() => {
 
   // For local preview, show instantly without versioning
   if (next.startsWith('blob:') || next.startsWith('data:')) {
-    setDisplayUrl(next);
+    if (displayUrl !== next) setDisplayUrl(next);
     setImgLoading(false);
     return;
   }
 
-  const requestId = ++imgRequestIdRef.current;
-
   // Respect existing versioning (rev) if provided; otherwise add a one-time rev
   const versioned = next.includes('rev=') ? next : next + (next.includes('?') ? '&' : '?') + 'rev=' + Date.now();
 
+  // If we're already showing this exact version, do nothing (prevents brief re-loading on refresh)
+  if (displayUrl === versioned) { setImgLoading(false); return; }
+
+  const requestId = ++imgRequestIdRef.current;
   setImgLoading(true);
   const img = new Image();
   img.onload = () => {
     if (imgRequestIdRef.current === requestId) {
       setDisplayUrl(versioned);
-      // Keep overlay until actual <img> onLoad fires to avoid flash
     }
   };
   img.onerror = () => {
@@ -1016,7 +1017,7 @@ useEffect(() => {
 
   return () => clearTimeout(timeout);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [avatarUrl]);
+}, [avatarUrl, displayUrl]);
 
   return (
     <div className="relative group">
