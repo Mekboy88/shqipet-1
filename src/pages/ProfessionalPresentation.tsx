@@ -17,6 +17,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Settings, FileText, Linkedin, Github, Facebook, Instagram, Globe, Mail, Phone, ArrowRight, Wand2, ExternalLink, User as UserIcon, Move, Save, Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Highlighter, X, Camera, Briefcase } from "lucide-react";
 import { toast } from "sonner";
+import { usePhotoEditor } from "@/hooks/usePhotoEditor";
+import { PhotoEditor } from "@/components/profile/PhotoEditor";
 
 // Resolve Wasabi storage keys to proxy URLs
 const resolveMediaUrl = (value: string | null | undefined) => {
@@ -1062,24 +1064,64 @@ function PhotoStrip({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [avatarUrl]);
+  // Photo editor hook
+  const photoEditor = usePhotoEditor({
+    userId,
+    onSave: (transform) => {
+      console.log('Photo transform saved:', transform);
+    }
+  });
+
   return <div className="relative group">
-      <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-white scale-[1.2]" style={{
-      height
-    }}>
+      <div 
+        className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-white"
+        style={{
+          height,
+          transform: photoEditor.isEditMode 
+            ? `scale(${photoEditor.transform.scale}) translate(${photoEditor.transform.translateX}px, ${photoEditor.transform.translateY}px)`
+            : `scale(1.2) translate(0, 0)`,
+          transition: photoEditor.isDragging || photoEditor.isResizing ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          cursor: photoEditor.isDragging ? 'grabbing' : photoEditor.isEditMode ? 'grab' : 'default',
+        }}
+      >
         {displayUrl ? <UploadAnimation isUploading={isUploading} progress={uploadProgress} type="avatar">
-            <img src={displayUrl} alt="Professional Profile" className="h-full w-full object-cover animate-fade-in" />
+            <img 
+              src={displayUrl} 
+              alt="Professional Profile" 
+              className="h-full w-full object-cover animate-fade-in select-none"
+              draggable={false}
+            />
           </UploadAnimation> : <div className="h-full w-full">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6_12px,#e5e7eb_12px,#e5e7eb_24px)]" />
           </div>}
         <div className="pointer-events-none absolute inset-0 ring-1 ring-black/5" />
         
-        {/* Camera button - always visible in edit mode */}
-        {editMode && <div className="absolute bottom-4 right-4 transition-opacity duration-200">
+        {/* Photo Editor Controls */}
+        {editMode && (
+          <PhotoEditor
+            isEditMode={photoEditor.isEditMode}
+            isDragging={photoEditor.isDragging}
+            isResizing={photoEditor.isResizing}
+            isSaving={photoEditor.isSaving}
+            scale={photoEditor.transform.scale}
+            onEditToggle={() => photoEditor.setIsEditMode(!photoEditor.isEditMode)}
+            onDragStart={photoEditor.handleDragStart}
+            onResizeStart={photoEditor.handleResizeStart}
+            onSave={photoEditor.saveTransform}
+            onReset={photoEditor.resetTransform}
+            onCancel={photoEditor.cancelEdit}
+          />
+        )}
+
+        {/* Camera button - only show when NOT in photo edit mode */}
+        {editMode && !photoEditor.isEditMode && (
+          <div className="absolute bottom-4 right-4 transition-opacity duration-200">
             <Button size="sm" variant="secondary" onClick={triggerUpload} disabled={isUploading} className="bg-white/90 text-black hover:bg-white shadow-lg">
               <Camera className="w-4 h-4 mr-1" />
-              {isUploading ? 'Uploading...' : 'Edit'}
+              {isUploading ? 'Uploading...' : 'Change Photo'}
             </Button>
-          </div>}
+          </div>
+        )}
       </div>
 
       {/* Hidden file input */}
