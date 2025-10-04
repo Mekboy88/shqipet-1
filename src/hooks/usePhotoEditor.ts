@@ -17,8 +17,25 @@ interface UsePhotoEditorProps {
 export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEditorProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const defaultTransform: PhotoTransform = initialTransform || { scale: 1.2, translateX: 0, translateY: 0 };
-  const [transform, setTransform] = useState<PhotoTransform>(defaultTransform);
-  const persistedRef = useRef<PhotoTransform>(defaultTransform);
+  
+  // Load cached transform from localStorage IMMEDIATELY to prevent flicker
+  const getCachedTransform = (): PhotoTransform => {
+    if (!userId) return defaultTransform;
+    try {
+      const cached = localStorage.getItem(`photo-transform-${userId}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to load cached transform', e);
+    }
+    return defaultTransform;
+  };
+
+  const [transform, setTransform] = useState<PhotoTransform>(getCachedTransform());
+  const [isLoading, setIsLoading] = useState(true);
+  const persistedRef = useRef<PhotoTransform>(getCachedTransform());
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -27,24 +44,37 @@ export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEdi
   const resizeStartRef = useRef<{ x: number; y: number; scale: number } | null>(null);
   const rafRef = useRef<number | null>(null);
 
-// Load saved transform from database
+// Load saved transform from database (but use cached version during load)
 useEffect(() => {
-  if (!userId) return;
+  if (!userId) {
+    setIsLoading(false);
+    return;
+  }
 
   const loadTransform = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('photo_transform')
-      .eq('id', userId)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('photo_transform')
+        .eq('id', userId)
+        .maybeSingle();
 
-    if (!error && data?.photo_transform) {
-      setTransform(data.photo_transform as PhotoTransform);
-      persistedRef.current = data.photo_transform as PhotoTransform;
-    } else {
-      // Ensure default persists if nothing saved yet
-      setTransform(prev => prev || defaultTransform);
-      persistedRef.current = defaultTransform;
+      if (!error && data?.photo_transform) {
+        const dbTransform = data.photo_transform as PhotoTransform;
+        setTransform(dbTransform);
+        persistedRef.current = dbTransform;
+        // Update cache
+        localStorage.setItem(`photo-transform-${userId}`, JSON.stringify(dbTransform));
+      } else {
+        // No saved transform, use default
+        const finalTransform = getCachedTransform();
+        setTransform(finalTransform);
+        persistedRef.current = finalTransform;
+      }
+    } catch (e) {
+      console.warn('Failed to load photo transform', e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -175,6 +205,10 @@ useEffect(() => {
       if (error) throw error;
 
       persistedRef.current = transform;
+      // Cache immediately for instant load next time
+      if (userId) {
+        localStorage.setItem(`photo-transform-${userId}`, JSON.stringify(transform));
+      }
       toast.success('Photo position saved!');
       setIsEditMode(false);
       onSave?.(transform);
@@ -204,6 +238,7 @@ const cancelEdit = useCallback(() => {
     isEditMode,
     setIsEditMode,
     transform,
+    isLoading,
     isDragging,
     isResizing,
     isSaving,
