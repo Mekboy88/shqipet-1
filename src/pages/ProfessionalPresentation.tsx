@@ -701,22 +701,22 @@ async (payload) => {
           <Tabs defaultValue="home" className="w-full">
             <TabsList className="mb-5 flex flex-wrap gap-3 bg-transparent p-0">
               {sections.home && (
-                <TabsTrigger value="home" className="rounded-xl px-4 py-2 text-sm data-[state=active]:flex-1 data-[state=active]:p-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200">
+                <TabsTrigger value="home" className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-[var(--accent-10)] data-[state=active]:ring-1 data-[state=active]:ring-[var(--accent)]/40">
                   <EditableText id="nav-home" value={navLabels.home} onChange={(v) => setNavLabels({ ...navLabels, home: v })} editMode={editMode} styleConfig={styles["nav-home"]} setStyleConfig={(s) => setStyle("nav-home", s)} />
                 </TabsTrigger>
               )}
               {sections.skills && (
-                <TabsTrigger value="skills" className="rounded-xl px-4 py-2 text-sm data-[state=active]:flex-1 data-[state=active]:p-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200">
+                <TabsTrigger value="skills" className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-[var(--accent-10)] data-[state=active]:ring-1 data-[state=active]:ring-[var(--accent)]/40">
                   <EditableText id="nav-skills" value={navLabels.skills} onChange={(v) => setNavLabels({ ...navLabels, skills: v })} editMode={editMode} styleConfig={styles["nav-skills"]} setStyleConfig={(s) => setStyle("nav-skills", s)} />
                 </TabsTrigger>
               )}
               {sections.portfolio && (
-                <TabsTrigger value="portfolio" className="rounded-xl px-4 py-2 text-sm data-[state=active]:flex-1 data-[state=active]:p-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200">
+                <TabsTrigger value="portfolio" className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-[var(--accent-10)] data-[state=active]:ring-1 data-[state=active]:ring-[var(--accent)]/40">
                   <EditableText id="nav-portfolio" value={navLabels.portfolio} onChange={(v) => setNavLabels({ ...navLabels, portfolio: v })} editMode={editMode} styleConfig={styles["nav-portfolio"]} setStyleConfig={(s) => setStyle("nav-portfolio", s)} />
                 </TabsTrigger>
               )}
               {sections.blogs && (
-                <TabsTrigger value="blogs" className="rounded-xl px-4 py-2 text-sm data-[state=active]:flex-1 data-[state=active]:p-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200">
+                <TabsTrigger value="blogs" className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-[var(--accent-10)] data-[state=active]:ring-1 data-[state=active]:ring-[var(--accent)]/40">
                   <EditableText id="nav-blogs" value={navLabels.blogs} onChange={(v) => setNavLabels({ ...navLabels, blogs: v })} editMode={editMode} styleConfig={styles["nav-blogs"]} setStyleConfig={(s) => setStyle("nav-blogs", s)} />
                 </TabsTrigger>
               )}
