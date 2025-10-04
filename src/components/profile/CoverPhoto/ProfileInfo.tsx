@@ -58,7 +58,13 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile }) => {
         
         <div className="mt-4 sm:mt-0 sm:ml-4 text-center sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold">{displayName || userProfile.name}</h1>
-          <p className="text-sm text-gray-500">{userProfile.stats.friends} friends</p>
+          <Button 
+            variant="outline" 
+            className="mt-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white backdrop-blur-sm"
+          >
+            Professional presentation
+          </Button>
+          <p className="text-sm text-gray-500 mt-2">{userProfile.stats.friends} friends</p>
         </div>
       </div>
       
