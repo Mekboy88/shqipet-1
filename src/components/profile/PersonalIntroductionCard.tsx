@@ -601,19 +601,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
       </div>
 
       <div className="space-y-6">
-        {/* Bio */}
-        <div className="p-4 rounded-lg">
-          <div className="mb-2">
-            <Label htmlFor="bio">Bio (About Me)</Label>
-          </div>
-          <Textarea
-            id="bio"
-            value={data.bio || ''}
-            onChange={e => setData(prev => ({ ...prev, bio: e.target.value }))}
-            placeholder="Write a short introduction about yourself..."
-            className={`min-h-[80px] ${smokeFocusStyles}`}
-          />
-        </div>
 
         {/* Education & Work Fields */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
