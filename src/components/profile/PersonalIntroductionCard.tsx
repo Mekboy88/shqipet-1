@@ -657,48 +657,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
           </div>
         </div>
 
-        {/* Public Contact Information Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="p-4 rounded-lg">
-            <div className="mb-2">
-              <Label htmlFor="public-phone">Public Phone</Label>
-            </div>
-            <Input
-              id="public-phone"
-              value={data.public_phone || ''}
-              onChange={e => setData(prev => ({ ...prev, public_phone: e.target.value }))}
-              placeholder="Enter public contact phone"
-              className={smokeFocusStyles}
-            />
-          </div>
-
-          <div className="p-4 rounded-lg">
-            <div className="mb-2">
-              <Label htmlFor="public-email">Public Email</Label>
-            </div>
-            <Input
-              id="public-email"
-              value={data.public_email || ''}
-              onChange={e => setData(prev => ({ ...prev, public_email: e.target.value }))}
-              placeholder="Enter public contact email"
-              className={smokeFocusStyles}
-              type="email"
-            />
-          </div>
-
-          <div className="p-4 rounded-lg">
-            <div className="mb-2">
-              <Label htmlFor="contact-website">Website/Social</Label>
-            </div>
-            <Input
-              id="contact-website"
-              value={data.contact_website || ''}
-              onChange={e => setData(prev => ({ ...prev, contact_website: e.target.value }))}
-              placeholder="Website or social media"
-              className={smokeFocusStyles}
-            />
-          </div>
-        </div>
 
         {/* Profession */}
         <div className="p-4 rounded-lg">
