@@ -31,6 +31,7 @@ import PhotoGallery from './pages/PhotoGallery';
 import Photos from './pages/Photos';
 import Watch from './pages/Watch';
 import LocationPreferences from './pages/LocationPreferences';
+import ProfessionalPresentation from './pages/ProfessionalPresentation';
 import AuthCallback from './pages/auth/AuthCallback';
 import TermsOfUse from './pages/TermsOfUse';
 import NotFound from './pages/NotFound';
