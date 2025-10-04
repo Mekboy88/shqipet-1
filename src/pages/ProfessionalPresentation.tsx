@@ -8,6 +8,7 @@ import { mediaService } from "@/services/media/MediaService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -360,6 +361,8 @@ export default function ProfessionalPresentation() {
     email: ""
   });
 
+  const lastAppliedKeyRef = useRef<string | null>(null);
+
   // ---- Self tests (lightweight) ----
   useEffect(() => {
     const keys = ["home", "skills", "portfolio", "blogs", "contact"] as const;
@@ -375,7 +378,7 @@ export default function ProfessionalPresentation() {
       try {
         const { data, error } = await supabase
           .from('professional_presentations')
-          .select('edit_mode, hire_button_enabled, hire_button_text, hire_button_url, hire_button_email, avatar_url')
+          .select('edit_mode, hire_button_enabled, hire_button_text, hire_button_url, hire_button_email, avatar_url, updated_at')
           .eq('user_id', user.id)
           .maybeSingle();
 
@@ -443,52 +446,42 @@ export default function ProfessionalPresentation() {
           table: 'professional_presentations',
           filter: `user_id=eq.${user?.id}`
         },
-        async (payload) => {
-          console.log('🔄 INSTANT Realtime update received:', payload);
+async (payload) => {
+          console.log('🔄 Realtime update received:', payload);
           
           if (payload.new && typeof payload.new === 'object') {
             const newData = payload.new as any;
             
-            // INSTANT UPDATE: Update avatar with ZERO delay
             if (newData.avatar_url) {
               const keyOrUrl = String(newData.avatar_url);
-              console.log('⚡ INSTANT avatar update:', keyOrUrl);
-              
-              // Step 1: Show IMMEDIATE placeholder from cache or direct URL
-              let instantUrl = '';
-              if (/^(https?:|blob:|data:)/.test(keyOrUrl)) {
-                instantUrl = keyOrUrl;
+
+              // Deduplicate by key
+              if (lastAppliedKeyRef.current === keyOrUrl) {
+                console.log('⏭️ Skipping duplicate avatar update for key', keyOrUrl);
               } else {
-                try {
-                  const raw = localStorage.getItem(`media:last:${keyOrUrl}`);
-                  if (raw) { 
-                    const j = JSON.parse(raw); 
-                    if (typeof j?.url === 'string') instantUrl = j.url as string; 
+                lastAppliedKeyRef.current = keyOrUrl;
+
+                // If this is a local preview (blob/data), apply immediately
+                if (/^(blob:|data:)/.test(keyOrUrl)) {
+                  setProfile(prev => ({ ...prev, avatarUrl: keyOrUrl }));
+                  try { localStorage.setItem('pp:last:avatar_url', keyOrUrl); } catch {}
+                } else {
+                  const rev = (payload as any).commit_timestamp || newData.updated_at || Date.now().toString();
+                  try {
+                    const fresh = await mediaService.getUrl(keyOrUrl);
+                    const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
+                    await mediaService.preloadImage(versioned);
+                    setProfile(prev => ({ ...prev, avatarUrl: versioned }));
+                    try { localStorage.setItem('pp:last:avatar_url', versioned); } catch {}
+                    console.log('✅ Applied versioned avatar URL:', versioned);
+                  } catch (err) {
+                    console.error('⚠️ Failed to resolve/preload avatar URL:', err);
                   }
-                } catch {}
+                }
               }
-              
-              // Apply instantly (zero delay)
-              if (instantUrl) {
-                setProfile(prev => ({ ...prev, avatarUrl: instantUrl }));
-                try { localStorage.setItem('pp:last:avatar_url', instantUrl); } catch {}
-                console.log('✅ Applied instant URL:', instantUrl);
-              }
-              
-              // Step 2: Resolve fresh URL in parallel (no await, don't block UI)
-              mediaService.getUrl(keyOrUrl).then(async fresh => {
-                // Preload before applying to prevent flicker
-                await mediaService.preloadImage(fresh);
-                setProfile(prev => ({ ...prev, avatarUrl: fresh }));
-                try { localStorage.setItem('pp:last:avatar_url', fresh); } catch {}
-                console.log('✅ Applied fresh URL:', fresh);
-              }).catch(err => {
-                console.error('⚠️ Fresh URL resolution failed:', err);
-              });
             }
             
-            // Update hire button INSTANTLY
-            console.log('⚡ INSTANT hire button update');
+            // Update hire button
             setHireButton({
               enabled: newData.hire_button_enabled ?? true,
               text: newData.hire_button_text || "Hire Me",
@@ -900,6 +893,12 @@ function PhotoStrip({
 
     setIsUploading(true);
     try {
+      // Show local preview instantly
+      const localPreview = URL.createObjectURL(file);
+      if (onPhotoUpdate) {
+        onPhotoUpdate(localPreview);
+      }
+
       console.log('📤 Uploading professional photo...', { fileName: file.name, fileSize: file.size });
       
       // Upload to Wasabi
@@ -972,20 +971,26 @@ function PhotoStrip({
     fileInputRef.current?.click();
   };
 
-// Smarter, flicker-free image loading with cache-busting per change
+// Flicker-free image loading with version dedupe and overlay
 const [displayUrl, setDisplayUrl] = useState<string>(() => resolveMediaUrl(avatarUrl));
+const [imgLoading, setImgLoading] = useState(false);
+
 useEffect(() => {
   const next = resolveMediaUrl(avatarUrl);
-  if (!next) { setDisplayUrl(''); return; }
-  // Cache-bust only when avatarUrl changes to force fresh fetch, prevent stale cache
-  const versioned = next + (next.includes('?') ? '&v=' : '?v=') + Date.now();
+  if (!next) { setDisplayUrl(''); setImgLoading(false); return; }
+
+  // Respect existing versioning (rev) if provided, otherwise add a stable rev once
+  const versioned = next.includes('rev=') ? next : next + (next.includes('?') ? '&' : '?') + 'rev=' + Date.now();
+
+  setImgLoading(true);
   const img = new Image();
   img.onload = () => {
     setDisplayUrl(versioned);
-    console.log('✅ Preloaded and swapped avatar:', versioned);
+    // Keep overlay until actual <img> onLoad fires to avoid flash
   };
-  img.onerror = (e) => {
-    console.warn('⚠️ Preload failed, keeping last good image', { next, versioned, e });
+  img.onerror = () => {
+    setImgLoading(false);
+    console.warn('⚠️ Preload failed, keeping last good image', { next, versioned });
   };
   img.src = versioned;
   // eslint-disable-next-line react-hooks/exhaustive-deps
