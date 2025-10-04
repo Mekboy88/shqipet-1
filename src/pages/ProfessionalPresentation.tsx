@@ -401,7 +401,10 @@ export default function ProfessionalPresentation() {
             // For full URLs or local previews, apply directly
             if (/^(https?:|blob:|data:)/.test(keyOrUrl)) {
               setProfile(prev => ({ ...prev, avatarUrl: keyOrUrl }));
-              try { localStorage.setItem('pp:last:avatar_url', keyOrUrl); } catch {}
+              try {
+                localStorage.setItem('pp:last:avatar_url', keyOrUrl);
+                localStorage.setItem('pp:avatar_meta', JSON.stringify({ url: keyOrUrl, rev, userId: user?.id }));
+              } catch {}
             } else {
               (async () => {
                 try {
@@ -409,7 +412,10 @@ export default function ProfessionalPresentation() {
                   const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
                   await mediaService.preloadImage(versioned);
                   setProfile(prev => ({ ...prev, avatarUrl: versioned }));
-                  try { localStorage.setItem('pp:last:avatar_url', versioned); } catch {}
+                  try {
+                    localStorage.setItem('pp:last:avatar_url', versioned);
+                    localStorage.setItem('pp:avatar_meta', JSON.stringify({ url: versioned, rev, userId: user?.id }));
+                  } catch {}
                 } catch (e) {
                   console.warn('⚠️ Failed to resolve avatar on initial load, falling back to last good if any', e);
                   // Fallback to cached last good (only if nothing is shown yet)
@@ -451,28 +457,42 @@ async (payload) => {
           
           if (payload.new && typeof payload.new === 'object') {
             const newData = payload.new as any;
+            const oldData = (payload as any).old as any;
+            
+            // Ignore when avatar hasn't changed
+            if (oldData?.avatar_url === newData.avatar_url) {
+              return;
+            }
             
             if (newData.avatar_url) {
               const keyOrUrl = String(newData.avatar_url);
+              const rev = (payload as any).commit_timestamp || newData.updated_at || Date.now().toString();
+              const dedupeKey = `${keyOrUrl}|${rev}`;
 
-              // Deduplicate by key
-              if (lastAppliedKeyRef.current === keyOrUrl) {
-                console.log('⏭️ Skipping duplicate avatar update for key', keyOrUrl);
+              if (lastAppliedKeyRef.current === dedupeKey) {
+                console.log('⏭️ Skipping duplicate avatar update for', dedupeKey);
               } else {
-                lastAppliedKeyRef.current = keyOrUrl;
+                lastAppliedKeyRef.current = dedupeKey;
 
                 // If this is a local preview (blob/data), apply immediately
                 if (/^(blob:|data:)/.test(keyOrUrl)) {
                   setProfile(prev => ({ ...prev, avatarUrl: keyOrUrl }));
-                  try { localStorage.setItem('pp:last:avatar_url', keyOrUrl); } catch {}
-                } else {
-                  const rev = (payload as any).commit_timestamp || newData.updated_at || Date.now().toString();
                   try {
+                    localStorage.setItem('pp:last:avatar_url', keyOrUrl);
+                    localStorage.setItem('pp:avatar_meta', JSON.stringify({ url: keyOrUrl, rev, userId: user?.id }));
+                  } catch {}
+                } else {
+                  try {
+                    // Clear caches to force fresh resolution
+                    try { mediaService.clearCache?.(keyOrUrl); } catch {}
                     const fresh = await mediaService.getUrl(keyOrUrl);
                     const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
                     await mediaService.preloadImage(versioned);
                     setProfile(prev => ({ ...prev, avatarUrl: versioned }));
-                    try { localStorage.setItem('pp:last:avatar_url', versioned); } catch {}
+                    try {
+                      localStorage.setItem('pp:last:avatar_url', versioned);
+                      localStorage.setItem('pp:avatar_meta', JSON.stringify({ url: versioned, rev, userId: user?.id }));
+                    } catch {}
                     console.log('✅ Applied versioned avatar URL:', versioned);
                   } catch (err) {
                     console.error('⚠️ Failed to resolve/preload avatar URL:', err);
@@ -934,7 +954,7 @@ function PhotoStrip({
       const resolvedUrl = resolveMediaUrl(key);
 
       // Update professional_presentations table with the new avatar key
-      const { error: updateError } = await supabase
+      const { data: upserted, error: updateError } = await supabase
         .from('professional_presentations')
         .upsert({
           user_id: userId,
@@ -942,7 +962,9 @@ function PhotoStrip({
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
-        });
+        })
+        .select('updated_at, avatar_url')
+        .single();
 
       if (updateError) {
         console.error('❌ Database update error:', updateError);
@@ -952,10 +974,21 @@ function PhotoStrip({
       console.log('✅ Database updated with key:', key);
       toast.success('Professional photo updated successfully');
       
-      // Clear cached URLs for this key so all clients fetch fresh
+      const rev = (upserted as any)?.updated_at || Date.now().toString();
       try { mediaService.clearCache?.(key); } catch {}
-
-      // Do not override the local preview here; realtime will apply final URL after processing
+      try {
+        const fresh = await mediaService.getUrl(key);
+        const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
+        await mediaService.preloadImage(versioned);
+        // Apply final resolved URL immediately
+        if (onPhotoUpdate) onPhotoUpdate(versioned);
+        try {
+          localStorage.setItem('pp:last:avatar_url', versioned);
+          localStorage.setItem('pp:avatar_meta', JSON.stringify({ url: versioned, rev, userId }));
+        } catch {}
+      } catch (e) {
+        console.warn('⚠️ Failed to resolve fresh avatar after upload', e);
+      }
 
     } catch (error) {
       console.error('❌ Professional photo upload failed:', error);
@@ -973,7 +1006,18 @@ function PhotoStrip({
   };
 
 // Flicker-free image loading with version dedupe and overlay
-const [displayUrl, setDisplayUrl] = useState<string>(() => resolveMediaUrl(avatarUrl));
+const [displayUrl, setDisplayUrl] = useState<string>(() => {
+  try {
+    const raw = localStorage.getItem('pp:avatar_meta');
+    if (raw) {
+      const meta = JSON.parse(raw);
+      if (meta?.url && (!userId || meta.userId === userId)) {
+        return String(meta.url);
+      }
+    }
+  } catch {}
+  return resolveMediaUrl(avatarUrl);
+});
 const [imgLoading, setImgLoading] = useState(false);
 const imgRequestIdRef = useRef(0);
 
