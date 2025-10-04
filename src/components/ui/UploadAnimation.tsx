@@ -15,7 +15,7 @@ const UploadAnimation: React.FC<UploadAnimationProps> = ({
   children
 }) => {
   return (
-    <div className="relative">
+    <div className="relative h-full w-full">
       {children}
       
       <AnimatePresence>
