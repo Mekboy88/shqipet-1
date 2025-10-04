@@ -247,12 +247,24 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
         return;
       }
 
+      const hobbiesArray = Array.isArray(introData?.hobbies)
+        ? introData.hobbies
+        : (typeof introData?.hobbies === 'string'
+            ? introData.hobbies.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : []);
+
+      const languagesArray = Array.isArray(introData?.languages)
+        ? introData.languages
+        : (typeof introData?.languages === 'string'
+            ? introData.languages.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : []);
+
       const loadedData: PersonalIntroData = {
         school: introData?.school || '',
         city_location: introData?.city || '',
         profession: introData?.profession || '',
-        languages: introData?.languages || [],
-        hobbies: introData?.hobbies ? [introData.hobbies] : [],
+        languages: languagesArray,
+        hobbies: hobbiesArray,
         favorite_quote: introData?.favorite_quote || '',
       };
 
@@ -278,7 +290,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
         city: data.city_location || null,
         profession: data.profession || null,
         languages: data.languages || [],
-        hobbies: data.hobbies?.join(', ') || null,
+        hobbies: data.hobbies || [],
         favorite_quote: data.favorite_quote || null,
         updated_at: new Date().toISOString()
       };
