@@ -32,7 +32,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
 }) => {
   if (!isEditMode) {
     return (
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div className="absolute top-4 right-4 transition-opacity duration-200">
         <Button
           size="sm"
           variant="secondary"
