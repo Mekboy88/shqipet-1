@@ -458,45 +458,49 @@ async (payload) => {
           if (payload.new && typeof payload.new === 'object') {
             const newData = payload.new as any;
             const oldData = (payload as any).old as any;
+            const commitTimestamp = (payload as any).commit_timestamp;
             
-            // Ignore when avatar hasn't changed
-            if (oldData?.avatar_url === newData.avatar_url) {
+            // Improved deduplication: check both avatar_url AND commit_timestamp
+            if (oldData?.avatar_url === newData.avatar_url && commitTimestamp === lastAppliedKeyRef.current) {
+              console.log('⏭️ Skipping unchanged update');
               return;
             }
             
             if (newData.avatar_url) {
               const keyOrUrl = String(newData.avatar_url);
-              const rev = (payload as any).commit_timestamp || newData.updated_at || Date.now().toString();
-              const dedupeKey = `${keyOrUrl}|${rev}`;
+              lastAppliedKeyRef.current = commitTimestamp;
 
-              if (lastAppliedKeyRef.current === dedupeKey) {
-                console.log('⏭️ Skipping duplicate avatar update for', dedupeKey);
+              // If this is a local preview (blob/data), apply immediately
+              if (/^(blob:|data:)/.test(keyOrUrl)) {
+                setProfile(prev => ({ ...prev, avatarUrl: keyOrUrl }));
+                try {
+                  localStorage.setItem('pp:last:avatar_url', keyOrUrl);
+                  localStorage.setItem('pp:avatar_meta', JSON.stringify({ url: keyOrUrl, rev: commitTimestamp, userId: user?.id }));
+                } catch {}
               } else {
-                lastAppliedKeyRef.current = dedupeKey;
-
-                // If this is a local preview (blob/data), apply immediately
-                if (/^(blob:|data:)/.test(keyOrUrl)) {
-                  setProfile(prev => ({ ...prev, avatarUrl: keyOrUrl }));
-                  try {
-                    localStorage.setItem('pp:last:avatar_url', keyOrUrl);
-                    localStorage.setItem('pp:avatar_meta', JSON.stringify({ url: keyOrUrl, rev, userId: user?.id }));
+                try {
+                  // CRITICAL: Clear ALL caches before fetching to ensure fresh data
+                  console.log('🧹 Clearing cache for:', keyOrUrl);
+                  try { 
+                    mediaService.clearCache?.(keyOrUrl);
+                    mediaService.clearAllCaches?.();
                   } catch {}
-                } else {
+                  
+                  // Force fresh fetch with proxy blob (bypasses all caches)
+                  const fresh = await mediaService.getProxyBlob(keyOrUrl);
+                  const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 't=' + Date.now();
+                  
+                  // Preload before applying to ensure smooth transition
+                  await mediaService.preloadImage(versioned);
+                  
+                  setProfile(prev => ({ ...prev, avatarUrl: versioned }));
                   try {
-                    // Clear caches to force fresh resolution
-                    try { mediaService.clearCache?.(keyOrUrl); } catch {}
-                    const fresh = await mediaService.getUrl(keyOrUrl);
-                    const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
-                    await mediaService.preloadImage(versioned);
-                    setProfile(prev => ({ ...prev, avatarUrl: versioned }));
-                    try {
-                      localStorage.setItem('pp:last:avatar_url', versioned);
-                      localStorage.setItem('pp:avatar_meta', JSON.stringify({ url: versioned, rev, userId: user?.id }));
-                    } catch {}
-                    console.log('✅ Applied versioned avatar URL:', versioned);
-                  } catch (err) {
-                    console.error('⚠️ Failed to resolve/preload avatar URL:', err);
-                  }
+                    localStorage.setItem('pp:last:avatar_url', versioned);
+                    localStorage.setItem('pp:avatar_meta', JSON.stringify({ url: versioned, rev: commitTimestamp, userId: user?.id }));
+                  } catch {}
+                  console.log('✅ Applied fresh avatar URL instantly:', versioned);
+                } catch (err) {
+                  console.error('⚠️ Failed to resolve/preload avatar URL:', err);
                 }
               }
             }
@@ -957,7 +961,6 @@ function PhotoStrip({
       if (!key) {
         throw new Error('Upload did not return a file key');
       }
-      const resolvedUrl = resolveMediaUrl(key);
 
       setUploadProgress(75);
       // Update professional_presentations table with the new avatar key
@@ -977,6 +980,30 @@ function PhotoStrip({
         console.error('❌ Database update error:', updateError);
         throw updateError;
       }
+
+      // CRITICAL: Clear cache and force fresh URL resolution for instant sync
+      try {
+        mediaService.clearCache?.(key);
+        mediaService.clearAllCaches?.();
+      } catch {}
+      
+      const freshUrl = await mediaService.getProxyBlob(key);
+      const timestamp = Date.now();
+      const versionedUrl = freshUrl + (freshUrl.includes('?') ? '&' : '?') + 't=' + timestamp;
+      
+      // Preload and apply immediately
+      await mediaService.preloadImage(versionedUrl);
+      onPhotoUpdate?.(versionedUrl);
+      
+      // Store in localStorage for instant display on refresh
+      try {
+        localStorage.setItem('pp:last:avatar_url', versionedUrl);
+        localStorage.setItem('pp:avatar_meta', JSON.stringify({ 
+          url: versionedUrl, 
+          rev: upserted?.updated_at || new Date().toISOString(), 
+          userId 
+        }));
+      } catch {}
 
       setUploadProgress(85);
       console.log('✅ Database updated with key:', key);
@@ -1054,13 +1081,13 @@ useEffect(() => {
 
   return (
     <div className="relative group">
-      <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" style={{ height }}>
+      <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-white" style={{ height }}>
         {displayUrl ? (
           <UploadAnimation isUploading={isUploading} progress={uploadProgress} type="avatar">
             <img 
               src={displayUrl} 
               alt="Professional Profile" 
-              className="h-full w-full object-cover animate-fade-in"
+              className="h-full w-full object-contain animate-fade-in"
             />
           </UploadAnimation>
         ) : (
