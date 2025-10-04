@@ -241,6 +241,45 @@ export type Database = {
           },
         ]
       }
+      personal_introduction: {
+        Row: {
+          city: string | null
+          created_at: string
+          favorite_quote: string | null
+          hobbies: string | null
+          id: string
+          languages: string[] | null
+          profession: string | null
+          school: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          favorite_quote?: string | null
+          hobbies?: string | null
+          id?: string
+          languages?: string[] | null
+          profession?: string | null
+          school?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          favorite_quote?: string | null
+          hobbies?: string | null
+          id?: string
+          languages?: string[] | null
+          profession?: string | null
+          school?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           content: string

@@ -207,11 +207,11 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
     
     // Subscribe to realtime changes for immediate updates
     const channel = supabase
-      .channel('profile-intro-realtime')
+      .channel('personal-intro-realtime')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'profile_settings',
+        table: 'personal_introduction',
         filter: `user_id=eq.${user?.id}`
       }, (payload) => {
         console.log('Real-time update received:', payload);
@@ -233,53 +233,33 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
     if (!user) return;
 
     try {
-      // Force-relaxed typing to avoid deep generic instantiation issues
+      // Fetch from personal_introduction table
       const res: any = await (supabase as any)
-        .from('profile_settings' as any)
+        .from('personal_introduction' as any)
         .select('*' as any)
         .eq('user_id', user.id)
         .maybeSingle();
-      const profileData = res?.data as any;
+      const introData = res?.data as any;
       const error = res?.error as any;
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error loading profile data:', error);
+        console.error('Error loading personal introduction:', error);
         return;
       }
 
       const loadedData: PersonalIntroData = {
-        bio: profileData?.bio || '',
-        bio_visibility: profileData?.bio_visibility || 'public',
-        profession: profileData?.profession || profileData?.working_at || '',
-        profession_visibility: profileData?.profession_visibility || 'public',
-        company: profileData?.company || profileData?.company_website || '',
-        company_visibility: profileData?.company_visibility || 'public',
-        relationship_status: profileData?.relationship_status || '',
-        relationship_visibility: profileData?.relationship_visibility || 'public',
-        relationship_user_id: profileData?.relationship_user_id || '',
-        languages: profileData?.languages || [],
-        languages_visibility: profileData?.languages_visibility || 'public',
-        hobbies: profileData?.hobbies || [],
-        hobbies_visibility: profileData?.hobbies_visibility || 'public',
-        favorite_quote: profileData?.favorite_quote || '',
-        favorite_quote_visibility: profileData?.favorite_quote_visibility || 'public',
-        school: profileData?.school || '',
-        school_visibility: profileData?.school_visibility || 'public',
-        location: profileData?.location || '',
-        location_visibility: profileData?.location_visibility || 'public',
-        city_location: profileData?.city_location || '',
-        public_phone: profileData?.public_phone || '',
-        public_phone_visibility: profileData?.public_phone_visibility || 'public',
-        public_email: profileData?.public_email || '',
-        public_email_visibility: profileData?.public_email_visibility || 'public',
-        contact_website: profileData?.contact_website || '',
-        contact_website_visibility: profileData?.contact_website_visibility || 'public',
+        school: introData?.school || '',
+        city_location: introData?.city || '',
+        profession: introData?.profession || '',
+        languages: introData?.languages || [],
+        hobbies: introData?.hobbies ? [introData.hobbies] : [],
+        favorite_quote: introData?.favorite_quote || '',
       };
 
       setData(loadedData);
       setOriginalData(loadedData);
     } catch (error) {
-      console.error('Error loading profile data:', error);
+      console.error('Error loading personal introduction:', error);
     } finally {
       setLoading(false);
     }
@@ -291,69 +271,36 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
     try {
       setSaving(true);
       
+      // Prepare data for personal_introduction table
+      const introData = {
+        user_id: user.id,
+        school: data.school || null,
+        city: data.city_location || null,
+        profession: data.profession || null,
+        languages: data.languages || [],
+        hobbies: data.hobbies?.join(', ') || null,
+        favorite_quote: data.favorite_quote || null,
+        updated_at: new Date().toISOString()
+      };
+
       const upsertRes: any = await (supabase as any)
-        .from('profile_settings' as any)
-        .upsert({
-          user_id: user.id,
-          ...data,
-          updated_at: new Date().toISOString()
-        }, {
+        .from('personal_introduction' as any)
+        .upsert(introData, {
           onConflict: 'user_id'
         });
       const error = upsertRes?.error as any;
 
       if (error) {
-        console.error('Error saving profile:', error);
+        console.error('Error saving personal introduction:', error);
+        toast.error('Failed to save changes');
         return;
       }
 
-      // Also update profiles table for key fields with proper mapping
-      const profileUpdate: any = {};
-      if (data.bio !== undefined) profileUpdate.bio = data.bio;
-      if (data.bio_visibility !== undefined) profileUpdate.bio_visibility = data.bio_visibility;
-      if (data.profession !== undefined) {
-        profileUpdate.profession = data.profession;
-        profileUpdate.working_at = data.profession; // Map to working_at field
-      }
-      if (data.profession_visibility !== undefined) profileUpdate.profession_visibility = data.profession_visibility;
-      if (data.company !== undefined) {
-        profileUpdate.company = data.company;
-        profileUpdate.company_website = data.company; // Map to company_website field
-      }
-      if (data.company_visibility !== undefined) profileUpdate.company_visibility = data.company_visibility;
-      if (data.relationship_status !== undefined) profileUpdate.relationship_status = data.relationship_status;
-      if (data.relationship_visibility !== undefined) profileUpdate.relationship_visibility = data.relationship_visibility;
-      if (data.relationship_user_id !== undefined) profileUpdate.relationship_user_id = data.relationship_user_id;
-      if (data.languages !== undefined) profileUpdate.languages = data.languages;
-      if (data.languages_visibility !== undefined) profileUpdate.languages_visibility = data.languages_visibility;
-      if (data.hobbies !== undefined) profileUpdate.hobbies = data.hobbies;
-      if (data.hobbies_visibility !== undefined) profileUpdate.hobbies_visibility = data.hobbies_visibility;
-      if (data.favorite_quote !== undefined) profileUpdate.favorite_quote = data.favorite_quote;
-      if (data.favorite_quote_visibility !== undefined) profileUpdate.favorite_quote_visibility = data.favorite_quote_visibility;
-      if (data.school !== undefined) profileUpdate.school = data.school;
-      if (data.school_visibility !== undefined) profileUpdate.school_visibility = data.school_visibility;
-      if (data.location !== undefined) profileUpdate.location = data.location;
-      if (data.location_visibility !== undefined) profileUpdate.location_visibility = data.location_visibility;
-      if (data.city_location !== undefined) profileUpdate.city_location = data.city_location;
-      if (data.public_phone !== undefined) profileUpdate.public_phone = data.public_phone;
-      if (data.public_phone_visibility !== undefined) profileUpdate.public_phone_visibility = data.public_phone_visibility;
-      if (data.public_email !== undefined) profileUpdate.public_email = data.public_email;
-      if (data.public_email_visibility !== undefined) profileUpdate.public_email_visibility = data.public_email_visibility;
-      if (data.contact_website !== undefined) profileUpdate.contact_website = data.contact_website;
-      if (data.contact_website_visibility !== undefined) profileUpdate.contact_website_visibility = data.contact_website_visibility;
-
-      if (Object.keys(profileUpdate).length > 0) {
-        profileUpdate.updated_at = new Date().toISOString();
-        
-        await (supabase as any)
-          .from('profiles' as any)
-          .update(profileUpdate as any)
-          .eq('id', user.id);
-      }
-
       setOriginalData({ ...data });
+      toast.success('Changes saved automatically');
     } catch (error) {
-      console.error('Error saving profile:', error);
+      console.error('Error saving personal introduction:', error);
+      toast.error('Failed to save changes');
     } finally {
       setSaving(false);
     }
@@ -463,10 +410,10 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
   // Display mode - show actual data or empty message
   if (isDisplayMode) {
     // Check if any data exists
-    const hasData = data.bio || data.profession || data.company || data.relationship_status || 
+    const hasData = data.profession || data.school || data.city_location || 
                    (data.languages && data.languages.length > 0) || 
                    (data.hobbies && data.hobbies.length > 0) || 
-                   data.favorite_quote || data.school || data.location;
+                   data.favorite_quote;
 
     return (
       <Card className="p-6">
@@ -483,50 +430,33 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
             <div className="flex-1">
               {/* First Row - Info Items aligned with title */}
               <div className="flex flex-wrap gap-0">
-                {/* Profession & Company - Show on own profile or if public/friends */}
-                {(data.profession || data.company) && (
+                {/* Profession/Job Title */}
+                {data.profession && (
                   <div className="flex-none mr-4">
                     <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
                       WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>Work</h4>
-                    <div className="text-gray-600 text-sm">
-                      {data.profession && (
-                        <p>{data.profession}</p>
-                      )}
-                      {data.company && (
-                        <p className="text-xs text-gray-500">at {data.company}</p>
-                      )}
-                    </div>
+                    }}>Profession / Job Title</h4>
+                    <p className="text-gray-600 text-sm">{data.profession}</p>
                   </div>
                 )}
 
-                {/* Relationship Status - Show on own profile or if public/friends */}
-                {data.relationship_status && (
-                  <div className="flex-none mr-4">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
-                      WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>Relationship</h4>
-                    <p className="text-gray-600 text-sm">{data.relationship_status}</p>
-                  </div>
-                )}
-
-                {/* Education/School - Show on own profile or if public/friends */}
+                {/* Education/School */}
                 {data.school && (
                   <div className="flex-none mr-4">
                     <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
                       WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>Education</h4>
+                    }}>School</h4>
                     <p className="text-gray-600 text-sm">{data.school}</p>
                   </div>
                 )}
 
-                {/* Location - Show on own profile or if public/friends */}
-                {data.location && (
+                {/* City */}
+                {data.city_location && (
                   <div className="flex-none">
                     <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
                       WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>Location</h4>
-                    <p className="text-gray-600 text-sm">{data.location}</p>
+                    }}>City you live</h4>
+                    <p className="text-gray-600 text-sm">{data.city_location}</p>
                   </div>
                 )}
               </div>
@@ -577,16 +507,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                   <p className="text-gray-600 italic text-sm">"{data.favorite_quote}"</p>
                 </div>
               )}
-
-              {/* Bio/Personal Introduction - Full Width at Bottom */}
-              {data.bio && (
-                <div className="w-full mt-4">
-                  <h4 className="text-lg font-black mb-2 text-black/20 animate-fade-in" style={{
-                    WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                  }}>About Me</h4>
-                  <p className="text-gray-600 leading-relaxed">{data.bio}</p>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -599,38 +519,35 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
 
       <div className="space-y-6">
 
-        {/* Education & Work Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="p-4 rounded-lg">
-            <div className="mb-2">
-              <Label htmlFor="intro-school">School</Label>
-            </div>
-            <Input
-              id="intro-school"
-              value={data.school || ''}
-              onChange={e => setData(prev => ({ ...prev, school: e.target.value }))}
-              placeholder="Enter your school name"
-              className={smokeFocusStyles}
-            />
+        {/* School */}
+        <div className="p-4 rounded-lg">
+          <div className="mb-2">
+            <Label htmlFor="intro-school">School</Label>
           </div>
-
-
-          <div className="p-4 rounded-lg">
-            <div className="mb-2">
-              <Label htmlFor="intro-cityLocation">City you live</Label>
-            </div>
-            <Input
-              id="intro-cityLocation"
-              value={data.city_location || ''}
-              onChange={e => setData(prev => ({ ...prev, city_location: e.target.value }))}
-              placeholder="Enter the city where you live"
-              className={smokeFocusStyles}
-            />
-          </div>
+          <Input
+            id="intro-school"
+            value={data.school || ''}
+            onChange={e => setData(prev => ({ ...prev, school: e.target.value }))}
+            placeholder="Enter your school name"
+            className={smokeFocusStyles}
+          />
         </div>
 
+        {/* City you live */}
+        <div className="p-4 rounded-lg">
+          <div className="mb-2">
+            <Label htmlFor="intro-cityLocation">City you live</Label>
+          </div>
+          <Input
+            id="intro-cityLocation"
+            value={data.city_location || ''}
+            onChange={e => setData(prev => ({ ...prev, city_location: e.target.value }))}
+            placeholder="Enter the city where you live"
+            className={smokeFocusStyles}
+          />
+        </div>
 
-        {/* Profession */}
+        {/* Profession / Job Title */}
         <div className="p-4 rounded-lg">
           <div className="mb-2">
             <Label htmlFor="profession">Profession / Job Title</Label>
@@ -642,27 +559,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
             placeholder="Software Engineer, Teacher, etc."
             className={smokeFocusStyles}
           />
-        </div>
-
-
-        {/* Relationship */}
-        <div className="p-4 rounded-lg">
-          <div className="mb-2">
-            <Label>Relationship Status</Label>
-          </div>
-          <Select 
-            value={data.relationship_status || ''} 
-            onValueChange={value => setData(prev => ({ ...prev, relationship_status: value }))}
-          >
-            <SelectTrigger className="focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus-visible:outline-none">
-              <SelectValue placeholder="Select relationship status" />
-            </SelectTrigger>
-            <SelectContent>
-              {relationshipOptions.map(option => (
-                <SelectItem key={option} value={option}>{option}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Languages */}
