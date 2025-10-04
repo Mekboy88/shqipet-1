@@ -412,6 +412,10 @@ export type Database = {
           edit_mode: boolean
           email: string | null
           entry: string | null
+          hire_button_email: string | null
+          hire_button_enabled: boolean | null
+          hire_button_text: string | null
+          hire_button_url: string | null
           id: string
           layout: Json | null
           name: string | null
@@ -435,6 +439,10 @@ export type Database = {
           edit_mode?: boolean
           email?: string | null
           entry?: string | null
+          hire_button_email?: string | null
+          hire_button_enabled?: boolean | null
+          hire_button_text?: string | null
+          hire_button_url?: string | null
           id?: string
           layout?: Json | null
           name?: string | null
@@ -458,6 +466,10 @@ export type Database = {
           edit_mode?: boolean
           email?: string | null
           entry?: string | null
+          hire_button_email?: string | null
+          hire_button_enabled?: boolean | null
+          hire_button_text?: string | null
+          hire_button_url?: string | null
           id?: string
           layout?: Json | null
           name?: string | null

@@ -44,7 +44,11 @@ import {
   AlignRight,
   Highlighter,
   X,
+  Camera,
+  Briefcase,
 } from "lucide-react";
+import { useGlobalAvatar } from "@/hooks/useGlobalAvatar";
+import { toast } from "sonner";
 
 // ===== Reusable: Editable & Draggable (fixed caret + sticky toolbar) =====
 const FONT_OPTIONS = [
@@ -336,6 +340,14 @@ export default function ProfessionalPresentation() {
   const [accent, setAccent] = useState("#2AA1FF");
   const accentStyle = useMemo(() => ({ ["--accent"]: accent, ["--accent-10"]: accent + "19", ["--accent-20"]: accent + "33" }) as React.CSSProperties, [accent]);
 
+  // Hire button settings
+  const [hireButton, setHireButton] = useState({
+    enabled: true,
+    text: "Hire Me",
+    url: "",
+    email: ""
+  });
+
   // ---- Self tests (lightweight) ----
   useEffect(() => {
     const keys = ["home", "skills", "portfolio", "blogs", "contact"] as const;
@@ -343,32 +355,38 @@ export default function ProfessionalPresentation() {
     console.assert(typeof seo.pageTitle === "string" && seo.pageTitle.length > 0, "[SelfTest] pageTitle should be non-empty string");
   }, []);
 
-  // Load edit mode from database
+  // Load edit mode and hire button from database
   useEffect(() => {
-    const loadEditMode = async () => {
+    const loadData = async () => {
       if (!user) return;
 
       try {
         const { data, error } = await supabase
           .from('professional_presentations')
-          .select('edit_mode')
+          .select('edit_mode, hire_button_enabled, hire_button_text, hire_button_url, hire_button_email')
           .eq('user_id', user.id)
           .maybeSingle();
 
         if (data && !error) {
           setEditMode(data.edit_mode || false);
+          setHireButton({
+            enabled: data.hire_button_enabled ?? true,
+            text: data.hire_button_text || "Hire Me",
+            url: data.hire_button_url || "",
+            email: data.hire_button_email || ""
+          });
         }
       } catch (error) {
-        console.error('Error loading edit mode:', error);
+        console.error('Error loading data:', error);
       }
     };
 
-    loadEditMode();
+    loadData();
   }, [user]);
 
-  // Save edit mode to database when it changes
+  // Save edit mode and hire button to database when they change
   useEffect(() => {
-    const saveEditMode = async () => {
+    const saveData = async () => {
       if (!user || !isOwner) return;
 
       try {
@@ -377,20 +395,24 @@ export default function ProfessionalPresentation() {
           .upsert({
             user_id: user.id,
             edit_mode: editMode,
+            hire_button_enabled: hireButton.enabled,
+            hire_button_text: hireButton.text,
+            hire_button_url: hireButton.url,
+            hire_button_email: hireButton.email,
             updated_at: new Date().toISOString()
           }, {
             onConflict: 'user_id'
           });
       } catch (error) {
-        console.error('Error saving edit mode:', error);
+        console.error('Error saving data:', error);
       }
     };
 
-    // Only save if user is owner (don't save on initial load)
+    // Only save if user is owner
     if (isOwner) {
-      saveEditMode();
+      saveData();
     }
-  }, [editMode, user, isOwner]);
+  }, [editMode, hireButton, user, isOwner]);
 
   // Persist to localStorage so Save keeps edits
   useEffect(() => {
@@ -460,6 +482,8 @@ export default function ProfessionalPresentation() {
         setLayout={setLayout}
         seo={seo}
         setSeo={setSeo}
+        hireButton={hireButton}
+        setHireButton={setHireButton}
       />
     </>
   ) : null;
@@ -478,7 +502,13 @@ export default function ProfessionalPresentation() {
         {/* LEFT: Photo strip + name/role/quick (borderless) */}
         <motion.section initial={{ opacity: 0, y: layout.enableAnimations ? 12 : 0 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="col-span-1">
           <div className="-ml-32">
-            <PhotoStrip avatarUrl={profile.avatarUrl} accent={accent} height={layout.photoHeight || 420} />
+            <PhotoStrip 
+              avatarUrl={profile.avatarUrl} 
+              accent={accent} 
+              height={layout.photoHeight || 420}
+              userId={user?.id}
+              editMode={editMode && isOwner}
+            />
           </div>
 
           <div className="mt-6 space-y-2">
@@ -685,15 +715,82 @@ export default function ProfessionalPresentation() {
           </div>
         </motion.aside>
       </main>
+
+      {/* Floating Hire Button - Bottom Right */}
+      {hireButton.enabled && !editMode && (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="fixed bottom-8 right-8 z-50"
+        >
+          <Button
+            size="lg"
+            onClick={() => {
+              if (hireButton.url) {
+                window.open(hireButton.url, '_blank');
+              } else if (hireButton.email) {
+                window.location.href = `mailto:${hireButton.email}`;
+              }
+            }}
+            className="gap-2 shadow-xl bg-gradient-to-r from-[#2AA1FF] to-[#1E88E5] hover:from-[#1E88E5] hover:to-[#1565C0] text-white"
+            style={{
+              background: `linear-gradient(135deg, ${accent}, ${accent}dd)`,
+            }}
+          >
+            <Briefcase className="h-5 w-5" />
+            {hireButton.text}
+          </Button>
+        </motion.div>
+      )}
     </div>
     </>
   );
 }
 
 // ===== Photo strip (left, subtle) =====
-function PhotoStrip({ avatarUrl, accent, height = 420 }: { avatarUrl: string; accent: string; height?: number }) {
+function PhotoStrip({ 
+  avatarUrl, 
+  accent, 
+  height = 420,
+  userId,
+  editMode = false
+}: { 
+  avatarUrl: string; 
+  accent: string; 
+  height?: number;
+  userId?: string;
+  editMode?: boolean;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadAvatar } = useGlobalAvatar(userId);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      await uploadAvatar(file);
+      toast.success('Avatar updated successfully');
+    } catch (error) {
+      console.error('❌ Avatar upload failed:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update avatar');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const triggerUpload = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
-    <div className="relative">
+    <div className="relative group">
       <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" style={{ height }}>
         {avatarUrl ? (
           <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
@@ -703,13 +800,38 @@ function PhotoStrip({ avatarUrl, accent, height = 420 }: { avatarUrl: string; ac
           </div>
         )}
         <div className="pointer-events-none absolute inset-0 ring-1 ring-black/5" />
+        
+        {/* Camera button - only visible in edit mode and on hover */}
+        {editMode && (
+          <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={triggerUpload}
+              disabled={isUploading}
+              className="bg-white/90 text-black hover:bg-white shadow-lg"
+            >
+              <Camera className="w-4 h-4 mr-1" />
+              {isUploading ? 'Uploading...' : 'Edit'}
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
     </div>
   );
 }
 
 // ===== Minor helpers =====
-function SettingsDialog({ profile, setProfile, socials, setSocials, sections, setSections, accent, setAccent, layout, setLayout, seo, setSeo }: any) {
+function SettingsDialog({ profile, setProfile, socials, setSocials, sections, setSections, accent, setAccent, layout, setLayout, seo, setSeo, hireButton, setHireButton }: any) {
   function updateSocial(i: number, key: "label" | "url" | "icon", value: string) {
     const copy = socials.slice();
     (copy[i] as any)[key] = value;
@@ -726,10 +848,11 @@ function SettingsDialog({ profile, setProfile, socials, setSocials, sections, se
       <DialogContent className="max-w-4xl">
         <DialogHeader><DialogTitle>Page settings</DialogTitle></DialogHeader>
         <Tabs defaultValue="profile">
-          <TabsList className="mb-4 grid grid-cols-6">
+          <TabsList className="mb-4 grid grid-cols-7">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="sections">Sections</TabsTrigger>
             <TabsTrigger value="links">Social links</TabsTrigger>
+            <TabsTrigger value="hire">Hire Button</TabsTrigger>
             <TabsTrigger value="theme">Theme</TabsTrigger>
             <TabsTrigger value="layout">Layout</TabsTrigger>
             <TabsTrigger value="seo">SEO & Meta</TabsTrigger>
@@ -790,6 +913,54 @@ function SettingsDialog({ profile, setProfile, socials, setSocials, sections, se
               ))}
               <Button variant="outline" onClick={addSocial}>+ Add new link</Button>
               <p className="mt-2 text-xs text-neutral-500">Supported icons: linkedin, github, facebook, instagram, website.</p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="hire" className="space-y-4">
+            <div className="rounded-xl bg-neutral-50 p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="text-sm font-medium">Enable Hire Button</div>
+                <Switch 
+                  checked={hireButton.enabled} 
+                  onCheckedChange={(v) => setHireButton({ ...hireButton, enabled: v })} 
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label>Button Text</Label>
+                  <Input 
+                    value={hireButton.text} 
+                    onChange={(e) => setHireButton({ ...hireButton, text: e.target.value })} 
+                    placeholder="Hire Me"
+                  />
+                </div>
+                
+                <div>
+                  <Label>Button URL (optional)</Label>
+                  <Input 
+                    value={hireButton.url} 
+                    onChange={(e) => setHireButton({ ...hireButton, url: e.target.value })} 
+                    placeholder="https://your-booking-page.com"
+                  />
+                  <p className="mt-1 text-xs text-neutral-500">If set, clicking the button opens this URL</p>
+                </div>
+                
+                <div>
+                  <Label>Email Address (optional)</Label>
+                  <Input 
+                    value={hireButton.email} 
+                    onChange={(e) => setHireButton({ ...hireButton, email: e.target.value })} 
+                    placeholder="your.email@example.com"
+                  />
+                  <p className="mt-1 text-xs text-neutral-500">If URL is not set, clicking opens email client</p>
+                </div>
+
+                <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm">
+                  <strong>Note:</strong> The hire button will appear at the bottom right of the page. 
+                  It's hidden when in edit mode.
+                </div>
+              </div>
             </div>
           </TabsContent>
 
