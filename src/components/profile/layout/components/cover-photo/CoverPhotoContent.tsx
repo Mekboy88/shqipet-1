@@ -355,6 +355,9 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
           <h1 className="font-bold text-white mb-1 text-3xl drop-shadow-lg">
             {profileDisplayName}
           </h1>
+          <button className="mt-2 px-4 py-1.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white backdrop-blur-sm rounded-md transition-all duration-200 text-sm font-medium">
+            Professional presentation
+          </button>
         </div>
       )}
 
