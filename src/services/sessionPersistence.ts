@@ -16,8 +16,8 @@ class SessionPersistenceService {
     sessionCheckInterval: 5 * 60 * 1000, // 5 minutes (much less aggressive)
   };
 
-  private heartbeatTimer: NodeJS.Timeout | null = null;
-  private sessionCheckTimer: NodeJS.Timeout | null = null;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private sessionCheckTimer: ReturnType<typeof setInterval> | null = null;
   private currentSession: Session | null = null;
   private refreshInProgress = false;
   private lastActivity = Date.now();

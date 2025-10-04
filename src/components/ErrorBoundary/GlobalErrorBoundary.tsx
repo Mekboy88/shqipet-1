@@ -30,7 +30,7 @@ interface ErrorBoundaryProps {
 }
 
 class GlobalErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  private retryTimeoutId: NodeJS.Timeout | null = null;
+  private retryTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private maxRetries = 3;
   private retryDelays = [1000, 3000, 8000]; // Exponential backoff
 

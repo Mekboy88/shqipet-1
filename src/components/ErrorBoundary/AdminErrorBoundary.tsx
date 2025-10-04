@@ -21,7 +21,7 @@ interface State {
  * Shows compact banner and auto-recovers with safe defaults
  */
 export class AdminErrorBoundary extends Component<Props, State> {
-  private recoveryTimeout?: NodeJS.Timeout;
+  private recoveryTimeout?: ReturnType<typeof setTimeout>;
 
   constructor(props: Props) {
     super(props);

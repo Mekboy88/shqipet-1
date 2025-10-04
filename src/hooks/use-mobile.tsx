@@ -170,7 +170,7 @@ export function useBreakpoint() {
     };
 
     // Only update window size, never change device type based on resize
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     const debouncedHandleResize = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(handleResize, 100);

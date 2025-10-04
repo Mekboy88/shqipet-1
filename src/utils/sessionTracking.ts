@@ -263,7 +263,7 @@ export const cleanupExpiredSessions = async (userId: string): Promise<boolean> =
  * Session tracking hook for React components
  */
 export class SessionTracker {
-  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private userId: string;
   private sessionId: string | null = null;
   

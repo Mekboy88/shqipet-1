@@ -19,7 +19,7 @@ export const AccessibleTooltip: React.FC<AccessibleTooltipProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const tooltipId = useRef(`tooltip-${Math.random().toString(36).substr(2, 9)}`);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>();
 
   const showTooltip = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

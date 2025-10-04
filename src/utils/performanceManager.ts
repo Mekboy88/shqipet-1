@@ -2,11 +2,11 @@
 // Coordinates all intervals across the application to prevent performance degradation
 
 class PerformanceManager {
-  private activeIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private activeIntervals: Map<string, ReturnType<typeof setInterval>> = new Map();
   private isLowPerformanceMode: boolean = false;
   
   // Register an interval with performance management
-  registerInterval(key: string, callback: () => void, interval: number): NodeJS.Timeout {
+  registerInterval(key: string, callback: () => void, interval: number): ReturnType<typeof setInterval> {
     // Clear existing interval if exists
     if (this.activeIntervals.has(key)) {
       clearInterval(this.activeIntervals.get(key)!);
@@ -80,7 +80,7 @@ class PerformanceManager {
 export const performanceManager = new PerformanceManager();
 
 // Auto-detect performance issues and enable low performance mode
-let performanceCheckInterval: NodeJS.Timeout;
+let performanceCheckInterval: ReturnType<typeof setInterval>;
 
 export const initializePerformanceMonitoring = () => {
   // Monitor page performance and automatically adjust
