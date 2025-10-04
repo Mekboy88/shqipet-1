@@ -475,7 +475,13 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                   <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                     WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
                   }}>
-                    <School className="w-5 h-5" />
+                    <svg fill="#52525b" version="1.1" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" enableBackground="new 0 0 300 300">
+                      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+                      <g id="SVGRepo_iconCarrier">
+                        <path d="M89.398,38.617c0-16.908,13.714-30.601,30.606-30.601c16.9,0,30.609,13.696,30.609,30.601 c0,16.891-13.709,30.631-30.609,30.631C103.113,69.248,89.398,55.509,89.398,38.617z M246,91.896V292H30V140h12v76h73v12H42v52 h104.064L146,207H82c-22,0-31.928-16.618-30.148-32.766l8.86-78.583c1.78-16.147,16.319-27.791,32.461-26.015 c9.309,1.026,16.898,6.18,21.91,13.28c3.049,4.319,12.956,16.95,12.956,16.95l34.363-18.481l-1.41-2.639 c-0.937-1.754-0.276-3.936,1.479-4.874c1.754-0.935,3.936-0.276,4.874,1.479l1.408,2.634c6.385-3.275,14.24-0.859,17.654,5.487 c3.424,6.366,1.084,14.285-5.213,17.788l4.99,9.336l79.605-43.052l5.711,10.561L246,91.896z M234,280V162h-69v-26.298 l-22.037,11.918l-5.711-10.561l42.595-23.036l-4.993-9.342l-44.037,23.683c-1.978,1.066-4.124,1.578-6.248,1.578 c-2.943,0-5.844-0.984-8.199-2.846L110.743,177h45.507c10.908,0,19.75,8.842,19.75,19.75V280H234z"></path>
+                      </g>
+                    </svg>
                     School
                   </h4>
                   <p className="text-gray-600 text-sm ml-7">{data.school}</p>
