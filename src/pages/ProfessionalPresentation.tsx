@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import LoadingDots from "@/components/ui/LoadingDots";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -974,25 +975,46 @@ function PhotoStrip({
 // Flicker-free image loading with version dedupe and overlay
 const [displayUrl, setDisplayUrl] = useState<string>(() => resolveMediaUrl(avatarUrl));
 const [imgLoading, setImgLoading] = useState(false);
+const imgRequestIdRef = useRef(0);
 
 useEffect(() => {
   const next = resolveMediaUrl(avatarUrl);
   if (!next) { setDisplayUrl(''); setImgLoading(false); return; }
 
-  // Respect existing versioning (rev) if provided, otherwise add a stable rev once
+  // For local preview, show instantly without versioning
+  if (next.startsWith('blob:') || next.startsWith('data:')) {
+    setDisplayUrl(next);
+    setImgLoading(false);
+    return;
+  }
+
+  const requestId = ++imgRequestIdRef.current;
+
+  // Respect existing versioning (rev) if provided; otherwise add a one-time rev
   const versioned = next.includes('rev=') ? next : next + (next.includes('?') ? '&' : '?') + 'rev=' + Date.now();
 
   setImgLoading(true);
   const img = new Image();
   img.onload = () => {
-    setDisplayUrl(versioned);
-    // Keep overlay until actual <img> onLoad fires to avoid flash
+    if (imgRequestIdRef.current === requestId) {
+      setDisplayUrl(versioned);
+      // Keep overlay until actual <img> onLoad fires to avoid flash
+    }
   };
   img.onerror = () => {
-    setImgLoading(false);
-    console.warn('⚠️ Preload failed, keeping last good image', { next, versioned });
+    if (imgRequestIdRef.current === requestId) {
+      setImgLoading(false);
+      console.warn('⚠️ Preload failed, keeping last good image', { next, versioned });
+    }
   };
   img.src = versioned;
+
+  // Fail-safe: clear loading if network stalls
+  const timeout = setTimeout(() => {
+    if (imgRequestIdRef.current === requestId) setImgLoading(false);
+  }, 6000);
+
+  return () => clearTimeout(timeout);
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [avatarUrl]);
 
@@ -1015,8 +1037,7 @@ useEffect(() => {
             />
             {(imgLoading || isUploading) && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <Skeleton variant="shimmer" className="absolute inset-0" />
-                <div className="relative z-10 rounded-full px-3 py-1 text-xs bg-black/50 text-white">Loading photo…</div>
+                <LoadingDots message={isUploading ? 'Uploading photo…' : 'Loading photo…'} variant="light" size="md" />
               </div>
             )}
           </>
