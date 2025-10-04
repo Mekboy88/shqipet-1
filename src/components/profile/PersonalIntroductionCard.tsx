@@ -429,117 +429,112 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
 
     return (
       <Card className="p-6">
-        <div className="flex items-start gap-6 mb-4">
-          <h3 className="text-xl font-black text-black/20 animate-fade-in flex-shrink-0" style={{
-            WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-          }}>Prezantim Personal</h3>
-          
-          {!hasData ? (
-            <div className="text-gray-500 flex-1">
-              No introduction added yet
-            </div>
-          ) : (
-            <div className="flex-1">
-              {/* First Row - Info Items aligned with title */}
-              <div className="flex flex-wrap gap-0">
-                {/* Profession/Job Title */}
-                {data.profession && (
-                  <div className="flex-none mr-4">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
-                      WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>
-                      <Briefcase className="w-5 h-5" />
-                      Profession / Job Title
-                    </h4>
-                    <p className="text-gray-600 text-sm ml-7">{data.profession}</p>
-                  </div>
-                )}
-
-                {/* Education/School */}
-                {data.school && (
-                  <div className="flex-none mr-4">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
-                      WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>
-                      <School className="w-5 h-5" />
-                      School
-                    </h4>
-                    <p className="text-gray-600 text-sm ml-7">{data.school}</p>
-                  </div>
-                )}
-
-                {/* City */}
-                {data.city_location && (
-                  <div className="flex-none">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
-                      WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>
-                      <MapPin className="w-5 h-5" />
-                      City you live
-                    </h4>
-                    <p className="text-gray-600 text-sm ml-7">{data.city_location}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Second Row - Languages and Hobbies */}
-              <div className="flex flex-wrap gap-0 mt-4">
-                {/* Languages - Show on own profile or if public/friends */}
-                {data.languages && data.languages.length > 0 && (
-                  <div className="flex-1 min-w-[200px] mr-4">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
-                      WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>
-                      <Languages className="w-5 h-5" />
-                      Languages
-                    </h4>
-                    <div className="flex flex-wrap gap-1 ml-7">
-                      {data.languages.map(language => (
-                        <Badge key={language} variant="secondary" className="text-xs">
-                          <span className="text-sm mr-1">{getLanguageFlag(language)}</span>
-                          {language}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Hobbies - Show on own profile or if public/friends */}
-                {data.hobbies && data.hobbies.length > 0 && (
-                  <div className="flex-1 min-w-[200px]">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
-                      WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>
-                      <Heart className="w-5 h-5" />
-                      Hobbies & Interests
-                    </h4>
-                    <div className="flex flex-wrap gap-1 ml-7">
-                      {data.hobbies.map(hobby => (
-                        <Badge key={hobby} variant="secondary" className="text-xs">
-                          <span className="text-sm mr-1">{getHobbyEmoji(hobby)}</span>
-                          {hobby}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Third Row - Favorite Quote */}
-              {data.favorite_quote && (
-                <div className="w-full mt-4">
+        <h3 className="text-xl font-black text-black/20 animate-fade-in mb-4" style={{
+          WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
+        }}>Prezantim Personal</h3>
+        
+        {!hasData ? (
+          <div className="text-gray-500">
+            No introduction added yet
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* All Items in a flowing layout */}
+            <div className="flex flex-wrap gap-4">
+              {/* Profession/Job Title */}
+              {data.profession && (
+                <div className="flex-none">
                   <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                     WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
                   }}>
-                    <Quote className="w-5 h-5" />
-                    Favorite Quote
+                    <Briefcase className="w-5 h-5" />
+                    Profession / Job Title
                   </h4>
-                  <p className="text-gray-600 italic text-sm ml-7">"{data.favorite_quote}"</p>
+                  <p className="text-gray-600 text-sm ml-7">{data.profession}</p>
+                </div>
+              )}
+
+              {/* Education/School */}
+              {data.school && (
+                <div className="flex-none">
+                  <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
+                    WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
+                  }}>
+                    <School className="w-5 h-5" />
+                    School
+                  </h4>
+                  <p className="text-gray-600 text-sm ml-7">{data.school}</p>
+                </div>
+              )}
+
+              {/* City */}
+              {data.city_location && (
+                <div className="flex-none">
+                  <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
+                    WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
+                  }}>
+                    <MapPin className="w-5 h-5" />
+                    City you live
+                  </h4>
+                  <p className="text-gray-600 text-sm ml-7">{data.city_location}</p>
+                </div>
+              )}
+
+              {/* Languages */}
+              {data.languages && data.languages.length > 0 && (
+                <div className="flex-none">
+                  <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
+                    WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
+                  }}>
+                    <Languages className="w-5 h-5" />
+                    Languages
+                  </h4>
+                  <div className="flex flex-wrap gap-1 ml-7">
+                    {data.languages.map(language => (
+                      <Badge key={language} variant="secondary" className="text-xs">
+                        <span className="text-sm mr-1">{getLanguageFlag(language)}</span>
+                        {language}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hobbies */}
+              {data.hobbies && data.hobbies.length > 0 && (
+                <div className="flex-none">
+                  <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
+                    WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
+                  }}>
+                    <Heart className="w-5 h-5" />
+                    Hobbies & Interests
+                  </h4>
+                  <div className="flex flex-wrap gap-1 ml-7">
+                    {data.hobbies.map(hobby => (
+                      <Badge key={hobby} variant="secondary" className="text-xs">
+                        <span className="text-sm mr-1">{getHobbyEmoji(hobby)}</span>
+                        {hobby}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
-          )}
-        </div>
+
+            {/* Favorite Quote - Full width */}
+            {data.favorite_quote && (
+              <div className="w-full">
+                <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
+                  WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
+                }}>
+                  <Quote className="w-5 h-5" />
+                  Favorite Quote
+                </h4>
+                <p className="text-gray-600 italic text-sm ml-7">"{data.favorite_quote}"</p>
+              </div>
+            )}
+          </div>
+        )}
       </Card>
     );
   }
