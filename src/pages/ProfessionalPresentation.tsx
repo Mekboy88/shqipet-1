@@ -323,7 +323,7 @@ export default function ProfessionalPresentation() {
     noiseOpacity: 0.06,
     enableAnimations: true,
     fullBleedPhoto: false,
-    photoHeight: 220,
+    photoHeight: 320,
   });
 
   const [seo, setSeo] = useState({
@@ -428,8 +428,8 @@ export default function ProfessionalPresentation() {
       >
         {/* LEFT: Photo strip + name/role/quick (borderless) */}
         <motion.section initial={{ opacity: 0, y: layout.enableAnimations ? 12 : 0 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="col-span-1">
-          <div className="-ml-6">
-            <PhotoStrip avatarUrl={profile.avatarUrl} accent={accent} height={layout.photoHeight} />
+          <div className="-ml-16">
+            <PhotoStrip avatarUrl={profile.avatarUrl} accent={accent} height={layout.photoHeight || 320} />
           </div>
 
           <div className="mt-6 space-y-2">
@@ -642,7 +642,7 @@ export default function ProfessionalPresentation() {
 }
 
 // ===== Photo strip (left, subtle) =====
-function PhotoStrip({ avatarUrl, accent, height = 220 }: { avatarUrl: string; accent: string; height?: number }) {
+function PhotoStrip({ avatarUrl, accent, height = 320 }: { avatarUrl: string; accent: string; height?: number }) {
   return (
     <div className="relative">
       <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" style={{ height }}>
