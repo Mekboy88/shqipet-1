@@ -49,6 +49,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+// Resolve Wasabi storage keys to proxy URLs
+const resolveMediaUrl = (value: string | null | undefined) => {
+  if (!value) return '';
+  const v = String(value);
+  if (v.startsWith('http') || v.startsWith('blob:') || v.startsWith('data:')) return v;
+  return `${supabase.supabaseUrl}/functions/v1/wasabi-proxy?key=${encodeURIComponent(v)}`;
+};
+
 // ===== Reusable: Editable & Draggable (fixed caret + sticky toolbar) =====
 const FONT_OPTIONS = [
   "system-ui",
@@ -380,7 +388,8 @@ export default function ProfessionalPresentation() {
           // Load professional presentation avatar
           if (data.avatar_url) {
             console.log('🖼️ Setting professional avatar URL:', data.avatar_url);
-            setProfile(prev => ({ ...prev, avatarUrl: data.avatar_url }));
+            const resolved = resolveMediaUrl(data.avatar_url);
+            setProfile(prev => ({ ...prev, avatarUrl: resolved }));
           } else {
             console.log('⚠️ No avatar_url found in professional_presentations');
           }
@@ -815,17 +824,18 @@ function PhotoStrip({
       const result = await response.json();
       console.log('✅ Upload successful:', result);
       
-      // Ensure we have a valid URL
-      if (!result.url) {
-        throw new Error('No URL returned from upload');
+      const key = result.key || result.url;
+      if (!key) {
+        throw new Error('Upload did not return a file key');
       }
+      const resolvedUrl = resolveMediaUrl(key);
 
-      // Update professional_presentations table with the new avatar_url
+      // Update professional_presentations table with the new avatar key
       const { error: updateError } = await supabase
         .from('professional_presentations')
         .upsert({
           user_id: userId,
-          avatar_url: result.url,
+          avatar_url: key,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
@@ -836,12 +846,12 @@ function PhotoStrip({
         throw updateError;
       }
 
-      console.log('✅ Database updated with URL:', result.url);
+      console.log('✅ Database updated with key:', key, 'resolvedUrl:', resolvedUrl);
       toast.success('Professional photo updated successfully');
       
       // Call the callback to update the parent state
       if (onPhotoUpdate) {
-        onPhotoUpdate(result.url);
+        onPhotoUpdate(resolvedUrl);
       }
     } catch (error) {
       console.error('❌ Professional photo upload failed:', error);
@@ -858,22 +868,24 @@ function PhotoStrip({
     fileInputRef.current?.click();
   };
 
+  const effectiveUrl = resolveMediaUrl(avatarUrl);
+
   return (
     <div className="relative group">
       <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" style={{ height }}>
-        {avatarUrl ? (
+        {effectiveUrl ? (
           <img 
-            src={avatarUrl} 
+            src={effectiveUrl} 
             alt="Professional Profile" 
             className="h-full w-full object-cover" 
             onError={(e) => {
-              console.error('❌ Image failed to load:', avatarUrl);
+              console.error('❌ Image failed to load:', effectiveUrl);
               console.error('Image error event:', e);
               // Hide the broken image
               e.currentTarget.style.display = 'none';
             }}
             onLoad={() => {
-              console.log('✅ Image loaded successfully:', avatarUrl);
+              console.log('✅ Image loaded successfully:', effectiveUrl);
             }}
           />
         ) : (
