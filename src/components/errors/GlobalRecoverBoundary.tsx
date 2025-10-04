@@ -36,7 +36,7 @@ interface Props {
 const RECOVERY_DELAYS = [2000, 4000, 8000, 16000]; // 2s, 4s, 8s, 16s
 
 export class GlobalRecoverBoundary extends Component<Props, RecoveryState> {
-  private recoveryTimeout?: NodeJS.Timeout;
+  private recoveryTimeout?: ReturnType<typeof setTimeout>;
   private softRefreshKey = 0;
 
   constructor(props: Props) {

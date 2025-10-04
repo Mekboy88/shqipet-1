@@ -28,7 +28,7 @@ export const useDynamicTokenSecurity = () => {
     loading: true
   });
 
-  const [refreshTimer, setRefreshTimer] = useState<NodeJS.Timeout | null>(null);
+  const [refreshTimer, setRefreshTimer] = useState<ReturnType<typeof setInterval> | null>(null);
 
   /**
    * Initialize dynamic token security when user logs in

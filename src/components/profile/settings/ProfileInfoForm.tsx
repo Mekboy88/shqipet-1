@@ -100,7 +100,7 @@ const ProfileInfoForm: React.FC = () => {
   // Debounced auto-save function for real-time updates
   const debouncedSave = useCallback(
     (() => {
-      let timeoutId: NodeJS.Timeout;
+      let timeoutId: ReturnType<typeof setTimeout>;
       return (field: string, value: any) => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(async () => {

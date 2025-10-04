@@ -32,7 +32,7 @@ export const useS3Health = () => {
   
   // Use ref to prevent multiple simultaneous calls
   const fetchingRef = useRef(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchNow = useCallback(async () => {
     // Prevent multiple simultaneous calls

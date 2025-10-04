@@ -32,7 +32,7 @@ export const useFormIntelligence = (options: FormIntelligenceOptions = {}) => {
   const [cachedValues, setCachedValues] = useState<Record<string, string>>({});
 
   const fieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement>>({});
-  const blurTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
+  const blurTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // Load cached values on mount
   useEffect(() => {

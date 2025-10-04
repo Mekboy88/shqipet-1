@@ -124,3 +124,6 @@ export function withAdminErrorBoundary<T extends object>(
   WrappedComponent.displayName = `withAdminErrorBoundary(${Component.displayName || Component.name})`;
   return WrappedComponent;
 }
+
+// Also provide a default export for compatibility with default imports
+export default AdminErrorBoundary;

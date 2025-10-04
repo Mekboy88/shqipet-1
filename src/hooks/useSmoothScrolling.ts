@@ -19,7 +19,7 @@ export const useSmoothScrolling = ({
   const [isVisible, setIsVisible] = useState(false);
   const [canScroll, setCanScroll] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateScrollProgress = useCallback(() => {
     const container = containerRef.current;

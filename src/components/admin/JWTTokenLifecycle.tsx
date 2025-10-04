@@ -150,7 +150,7 @@ const JWTTokenLifecycle: React.FC = () => {
 
   // Auto-refresh functionality
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (autoRefresh) {
       interval = setInterval(() => {
         setLastChecked(new Date());

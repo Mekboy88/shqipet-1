@@ -157,7 +157,7 @@ const CorePlatformAuthentication: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [updatingFields, setUpdatingFields] = useState<Set<string>>(new Set());
   const [flashingFields, setFlashingFields] = useState<Set<string>>(new Set());
-  const [realTimeInterval, setRealTimeInterval] = useState<NodeJS.Timeout | null>(null);
+  const [realTimeInterval, setRealTimeInterval] = useState<ReturnType<typeof setInterval> | null>(null);
   
   // Action loading states
   const [actionLoadingStates, setActionLoadingStates] = useState<Record<string, boolean>>({});
@@ -215,7 +215,7 @@ const CorePlatformAuthentication: React.FC = () => {
   const [killingSessionIds, setKillingSessionIds] = useState<Set<string>>(new Set());
   const [showKillConfirmation, setShowKillConfirmation] = useState(false);
   const [killConfirmText, setKillConfirmText] = useState('');
-  const [ghostRefreshInterval, setGhostRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  const [ghostRefreshInterval, setGhostRefreshInterval] = useState<ReturnType<typeof setInterval> | null>(null);
   
   // Elite Intelligence States
   const [isEliteCollapsed, setIsEliteCollapsed] = useState(false);

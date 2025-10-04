@@ -1177,7 +1177,7 @@ export default function LiveConnectionTopology() {
   const [selectedCard, setSelectedCard] = useState<any>(null);
   const [showDetailedView, setShowDetailedView] = useState(false);
   const [clickCounts, setClickCounts] = useState<{[key: string]: number}>({});
-  const [clickTimers, setClickTimers] = useState<{[key: string]: NodeJS.Timeout}>({});
+  const [clickTimers, setClickTimers] = useState<{[key: string]: ReturnType<typeof setTimeout>}>({});
 
   // Handle triple-click functionality
   const handleCardClick = useCallback((cardData: any) => {

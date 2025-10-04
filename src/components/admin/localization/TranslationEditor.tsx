@@ -72,7 +72,7 @@ export default function TranslationEditor({ selectedLocale, onLocaleChange }: Tr
   // Real-time progress animation
   useEffect(() => {
     console.log('🔄 Progress Effect - isTranslating:', isTranslating, 'globalProgress:', globalProgress);
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     
     if (isTranslating) {
       console.log('🚀 Starting progress animation...');

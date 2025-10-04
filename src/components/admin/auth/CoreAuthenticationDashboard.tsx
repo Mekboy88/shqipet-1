@@ -282,8 +282,8 @@ export const CoreAuthenticationDashboard: React.FC = () => {
 
   // Auto-refresh debug logs and simulate live authentication events
   useEffect(() => {
-    let logInterval: NodeJS.Timeout;
-    let requestInterval: NodeJS.Timeout;
+    let logInterval: ReturnType<typeof setInterval>;
+    let requestInterval: ReturnType<typeof setInterval>;
     
     if (debugAutoRefresh) {
       // Generate live auth logs every 3-8 seconds

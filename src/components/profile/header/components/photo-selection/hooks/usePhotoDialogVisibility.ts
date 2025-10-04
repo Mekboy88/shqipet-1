@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 export const usePhotoDialogVisibility = () => {
   const [isVisible, setIsVisible] = useState(true); // Start visible by default
   const [isHovered, setIsHovered] = useState(false);
-  const visibilityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const visibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = () => {
     setIsHovered(true);

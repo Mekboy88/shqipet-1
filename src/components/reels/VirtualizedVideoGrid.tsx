@@ -22,7 +22,7 @@ interface VideoCardProps {
 const VideoCard: React.FC<VideoCardProps> = React.memo(({ video, index, onOpen, formatViews, isVisible }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [mounted, setMounted] = useState(false);
   const [realTimeViews, setRealTimeViews] = useState(video.viewsCount);
   const [nearVisible, setNearVisible] = useState(false);

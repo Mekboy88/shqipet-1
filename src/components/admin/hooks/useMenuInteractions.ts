@@ -18,7 +18,7 @@ interface UseMenuInteractionsProps {
   startHoldProgress: (itemId: string) => void;
   stopHoldProgress: () => void;
   clearHoldTimeout: () => void;
-  holdTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  holdTimeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   handleDrop: () => void;
 }
 

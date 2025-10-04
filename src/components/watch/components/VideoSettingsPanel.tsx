@@ -16,7 +16,7 @@ export default function VideoSettingsPanel({
   const [showSettings, setShowSettings] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Use global video settings
   const { settings, updateQuality, updateSpeed, toggleLoop, toggleAutoplay } = useVideoSettings();

@@ -4,8 +4,8 @@ import { useState, useRef, useCallback } from 'react';
 export const useHoldProgress = () => {
   const [isHolding, setIsHolding] = useState<string | null>(null);
   const [holdProgress, setHoldProgress] = useState<number>(0);
-  const holdTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startHoldProgress = useCallback((itemId: string) => {
     let progress = 0;

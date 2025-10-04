@@ -208,7 +208,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
     window.addEventListener('offline', handleOffline);
 
     // Track user activity to determine if they're actively using the page
-    let activityTimer: NodeJS.Timeout;
+    let activityTimer: ReturnType<typeof setTimeout>;
     const resetActivityTimer = () => {
       clearTimeout(activityTimer);
       if (navigator.onLine) {

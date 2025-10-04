@@ -340,7 +340,7 @@ export const useRealComponentScanning = () => {
     };
 
     // Debounced scan function to prevent rapid updates
-    let scanTimeout: NodeJS.Timeout | null = null;
+    let scanTimeout: ReturnType<typeof setTimeout> | null = null;
     const debouncedScan = () => {
       if (scanTimeout) clearTimeout(scanTimeout);
       scanTimeout = setTimeout(() => {

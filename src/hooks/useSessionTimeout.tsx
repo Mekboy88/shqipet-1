@@ -32,7 +32,7 @@ export const useSessionTimeout = (options: SessionTimeoutOptions = {}) => {
     lastRefresh: null
   });
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionExpiryRef = useRef<Date | null>(null);
 
   // Calculate time until session expires

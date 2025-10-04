@@ -46,7 +46,7 @@ export default function ShqipetTopAIButton({
 
   // Audio visualization animation
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (voiceState === 'listening') {
       interval = setInterval(() => {
         setAudioLevels(prev => prev.map(() => 0.2 + Math.random() * 0.8));
