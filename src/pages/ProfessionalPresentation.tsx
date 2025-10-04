@@ -1129,8 +1129,10 @@ function PhotoStrip({
         style={{
           height,
           transform: `translate(${photoEditor.transform.translateX}px, ${photoEditor.transform.translateY}px) scale(${photoEditor.transform.scale})`,
-          transition: photoEditor.isDragging || photoEditor.isResizing ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: (photoEditor.isLoading || photoEditor.isDragging || photoEditor.isResizing) ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           cursor: photoEditor.isDragging ? 'grabbing' : photoEditor.isEditMode ? 'grab' : 'default',
+          opacity: photoEditor.isLoading && !photoEditor.hadCache ? 0 : 1,
+          willChange: 'transform',
         }}
       >
         {displayUrl ? <UploadAnimation isUploading={isUploading} progress={uploadProgress} type="avatar">

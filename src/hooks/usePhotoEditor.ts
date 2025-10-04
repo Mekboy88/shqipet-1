@@ -18,24 +18,35 @@ export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEdi
   const [isEditMode, setIsEditMode] = useState(false);
   const defaultTransform: PhotoTransform = initialTransform || { scale: 1.2, translateX: 0, translateY: 0 };
   
+  // Cache awareness
+  const hadCacheRef = useRef(false);
+
   // Load cached transform from localStorage IMMEDIATELY to prevent flicker
   const getCachedTransform = (): PhotoTransform => {
-    if (!userId) return defaultTransform;
     try {
-      const cached = localStorage.getItem(`photo-transform-${userId}`);
+      let cached: string | null = null;
+      if (userId) {
+        cached = localStorage.getItem(`photo-transform-${userId}`);
+      }
+      // Fallback to last-used cache if userId not ready yet
+      if (!cached) {
+        cached = localStorage.getItem('photo-transform-last');
+      }
       if (cached) {
         const parsed = JSON.parse(cached);
-        return parsed;
+        hadCacheRef.current = true;
+        return parsed as PhotoTransform;
       }
     } catch (e) {
       console.warn('Failed to load cached transform', e);
     }
+    hadCacheRef.current = false;
     return defaultTransform;
   };
 
   const [transform, setTransform] = useState<PhotoTransform>(getCachedTransform());
   const [isLoading, setIsLoading] = useState(true);
-  const persistedRef = useRef<PhotoTransform>(getCachedTransform());
+  const persistedRef = useRef<PhotoTransform>(transform);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -209,6 +220,7 @@ useEffect(() => {
       if (userId) {
         localStorage.setItem(`photo-transform-${userId}`, JSON.stringify(transform));
       }
+      localStorage.setItem('photo-transform-last', JSON.stringify(transform));
       toast.success('Photo position saved!');
       setIsEditMode(false);
       onSave?.(transform);
@@ -239,6 +251,7 @@ const cancelEdit = useCallback(() => {
     setIsEditMode,
     transform,
     isLoading,
+    hadCache: hadCacheRef.current,
     isDragging,
     isResizing,
     isSaving,
