@@ -1087,7 +1087,7 @@ useEffect(() => {
             <img 
               src={displayUrl} 
               alt="Professional Profile" 
-              className="h-full w-full object-contain animate-fade-in"
+              className="h-full w-full object-cover animate-fade-in"
             />
           </UploadAnimation>
         ) : (
