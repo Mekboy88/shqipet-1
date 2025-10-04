@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Eye, Users, Lock, X, Plus } from 'lucide-react';
+import { Eye, Users, Lock, X, Plus, School, MapPin, Briefcase, Languages, Heart, Quote } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import supabase from '@/lib/relaxedSupabase';
 import { toast } from 'sonner';
@@ -433,30 +433,39 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                 {/* Profession/Job Title */}
                 {data.profession && (
                   <div className="flex-none mr-4">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
+                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                       WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>Profession / Job Title</h4>
-                    <p className="text-gray-600 text-sm">{data.profession}</p>
+                    }}>
+                      <Briefcase className="w-5 h-5" />
+                      Profession / Job Title
+                    </h4>
+                    <p className="text-gray-600 text-sm ml-7">{data.profession}</p>
                   </div>
                 )}
 
                 {/* Education/School */}
                 {data.school && (
                   <div className="flex-none mr-4">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
+                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                       WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>School</h4>
-                    <p className="text-gray-600 text-sm">{data.school}</p>
+                    }}>
+                      <School className="w-5 h-5" />
+                      School
+                    </h4>
+                    <p className="text-gray-600 text-sm ml-7">{data.school}</p>
                   </div>
                 )}
 
                 {/* City */}
                 {data.city_location && (
                   <div className="flex-none">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
+                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                       WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>City you live</h4>
-                    <p className="text-gray-600 text-sm">{data.city_location}</p>
+                    }}>
+                      <MapPin className="w-5 h-5" />
+                      City you live
+                    </h4>
+                    <p className="text-gray-600 text-sm ml-7">{data.city_location}</p>
                   </div>
                 )}
               </div>
@@ -466,10 +475,13 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                 {/* Languages - Show on own profile or if public/friends */}
                 {data.languages && data.languages.length > 0 && (
                   <div className="flex-1 min-w-[200px] mr-4">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
+                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                       WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>Languages</h4>
-                    <div className="flex flex-wrap gap-1">
+                    }}>
+                      <Languages className="w-5 h-5" />
+                      Languages
+                    </h4>
+                    <div className="flex flex-wrap gap-1 ml-7">
                       {data.languages.map(language => (
                         <Badge key={language} variant="secondary" className="text-xs">
                           <span className="text-sm mr-1">{getLanguageFlag(language)}</span>
@@ -483,10 +495,13 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                 {/* Hobbies - Show on own profile or if public/friends */}
                 {data.hobbies && data.hobbies.length > 0 && (
                   <div className="flex-1 min-w-[200px]">
-                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
+                    <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                       WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                    }}>Hobbies & Interests</h4>
-                    <div className="flex flex-wrap gap-1">
+                    }}>
+                      <Heart className="w-5 h-5" />
+                      Hobbies & Interests
+                    </h4>
+                    <div className="flex flex-wrap gap-1 ml-7">
                       {data.hobbies.map(hobby => (
                         <Badge key={hobby} variant="secondary" className="text-xs">
                           <span className="text-sm mr-1">{getHobbyEmoji(hobby)}</span>
@@ -501,10 +516,13 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
               {/* Third Row - Favorite Quote */}
               {data.favorite_quote && (
                 <div className="w-full mt-4">
-                  <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in" style={{
+                  <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                     WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                  }}>Favorite Quote</h4>
-                  <p className="text-gray-600 italic text-sm">"{data.favorite_quote}"</p>
+                  }}>
+                    <Quote className="w-5 h-5" />
+                    Favorite Quote
+                  </h4>
+                  <p className="text-gray-600 italic text-sm ml-7">"{data.favorite_quote}"</p>
                 </div>
               )}
             </div>
