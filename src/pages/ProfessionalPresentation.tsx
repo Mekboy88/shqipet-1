@@ -432,7 +432,7 @@ export default function ProfessionalPresentation() {
 
     loadData();
 
-    // Set up realtime subscription for instant updates
+    // Set up realtime subscription for INSTANT updates (zero delay)
     const channel = supabase
       .channel('professional-presentation-changes')
       .on(
@@ -443,39 +443,52 @@ export default function ProfessionalPresentation() {
           table: 'professional_presentations',
           filter: `user_id=eq.${user?.id}`
         },
-        (payload) => {
-          console.log('🔄 Realtime update received:', payload);
+        async (payload) => {
+          console.log('🔄 INSTANT Realtime update received:', payload);
           
           if (payload.new && typeof payload.new === 'object') {
             const newData = payload.new as any;
             
-            // Update avatar in realtime (instant cached + async fresh)
+            // INSTANT UPDATE: Update avatar with ZERO delay
             if (newData.avatar_url) {
               const keyOrUrl = String(newData.avatar_url);
-              let instant = '';
+              console.log('⚡ INSTANT avatar update:', keyOrUrl);
+              
+              // Step 1: Show IMMEDIATE placeholder from cache or direct URL
+              let instantUrl = '';
               if (/^(https?:|blob:|data:)/.test(keyOrUrl)) {
-                instant = keyOrUrl;
+                instantUrl = keyOrUrl;
               } else {
                 try {
                   const raw = localStorage.getItem(`media:last:${keyOrUrl}`);
-                  if (raw) { const j = JSON.parse(raw); if (typeof j?.url === 'string') instant = j.url as string; }
+                  if (raw) { 
+                    const j = JSON.parse(raw); 
+                    if (typeof j?.url === 'string') instantUrl = j.url as string; 
+                  }
                 } catch {}
               }
-              if (instant) {
-                setProfile(prev => ({ ...prev, avatarUrl: instant }));
-                try { localStorage.setItem('pp:last:avatar_url', instant); } catch {}
+              
+              // Apply instantly (zero delay)
+              if (instantUrl) {
+                setProfile(prev => ({ ...prev, avatarUrl: instantUrl }));
+                try { localStorage.setItem('pp:last:avatar_url', instantUrl); } catch {}
+                console.log('✅ Applied instant URL:', instantUrl);
               }
-              (async () => {
-                try {
-                  const fresh = await mediaService.getUrl(keyOrUrl);
-                  await mediaService.preloadImage(fresh);
-                  setProfile(prev => ({ ...prev, avatarUrl: fresh }));
-                  try { localStorage.setItem('pp:last:avatar_url', fresh); } catch {}
-                } catch {}
-              })();
+              
+              // Step 2: Resolve fresh URL in parallel (no await, don't block UI)
+              mediaService.getUrl(keyOrUrl).then(async fresh => {
+                // Preload before applying to prevent flicker
+                await mediaService.preloadImage(fresh);
+                setProfile(prev => ({ ...prev, avatarUrl: fresh }));
+                try { localStorage.setItem('pp:last:avatar_url', fresh); } catch {}
+                console.log('✅ Applied fresh URL:', fresh);
+              }).catch(err => {
+                console.error('⚠️ Fresh URL resolution failed:', err);
+              });
             }
             
-            // Update hire button in realtime
+            // Update hire button INSTANTLY
+            console.log('⚡ INSTANT hire button update');
             setHireButton({
               enabled: newData.hire_button_enabled ?? true,
               text: newData.hire_button_text || "Hire Me",
@@ -485,7 +498,12 @@ export default function ProfessionalPresentation() {
           }
         }
       )
-      .subscribe();
+      .subscribe(status => {
+        console.log('📡 Realtime subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Real-time sync ACTIVE - photos will update instantly!');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
