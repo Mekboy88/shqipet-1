@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import MinimalNavbar from "@/components/navbar/MinimalNavbar";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -268,6 +270,39 @@ const SocialIcon = ({ href, label, icon }: { href: string; label: string; icon?:
 // ===== Main component =====
 export default function ProfessionalPresentation() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isOwner, setIsOwner] = useState(false);
+  const [presentationUserId, setPresentationUserId] = useState<string | null>(null);
+  
+  // Check if current user is the owner of this presentation
+  useEffect(() => {
+    const checkOwnership = async () => {
+      if (!user) {
+        setIsOwner(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('professional_presentations')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (data && !error) {
+          setIsOwner(true);
+          setPresentationUserId(data.user_id);
+        } else {
+          setIsOwner(false);
+        }
+      } catch (error) {
+        console.error('Error checking presentation ownership:', error);
+        setIsOwner(false);
+      }
+    };
+
+    checkOwnership();
+  }, [user]);
   
   // Editable state
   const [profile, setProfile] = useState({
@@ -352,65 +387,68 @@ export default function ProfessionalPresentation() {
     localStorage.setItem("ppd-state", JSON.stringify(data));
   };
 
+  // Professional Presentation Controls (only visible to owner)
+  const professionalControls = isOwner ? (
+    <>
+      <div className="flex items-center gap-2">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ background: "var(--accent-10)" }}>
+          <Wand2 className="h-4 w-4" style={{ color: "var(--accent)" }} />
+        </div>
+        <div className="text-xs">
+          <div className="font-semibold leading-none">Professional Presentation</div>
+          <div className="text-neutral-400 text-[10px]">Desktop preview</div>
+        </div>
+      </div>
+      
+      <Button 
+        variant="outline" 
+        size="sm"
+        onClick={() => navigate('/profile')}
+        className="gap-1.5 h-8"
+      >
+        ← Back to Profile
+      </Button>
+      
+      <div className="flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2 py-1">
+        <span className="text-xs text-neutral-600">Edit mode</span>
+        <Switch checked={editMode} onCheckedChange={setEditMode} />
+      </div>
+      
+      <Button variant="outline" size="sm" className="gap-1.5 h-8" onClick={saveAll}>
+        <Save className="h-3.5 w-3.5" /> Save all
+      </Button>
+      
+      <a href={profile.cvUrl} target="_blank" rel="noreferrer">
+        <Button variant="outline" size="sm" className="gap-1.5 h-8">
+          <FileText className="h-3.5 w-3.5" /> CV
+        </Button>
+      </a>
+      
+      <SettingsDialog
+        profile={profile}
+        setProfile={setProfile}
+        socials={socials}
+        setSocials={setSocials}
+        sections={sections}
+        setSections={setSections}
+        accent={accent}
+        setAccent={setAccent}
+        layout={layout}
+        setLayout={setLayout}
+        seo={seo}
+        setSeo={setSeo}
+      />
+    </>
+  ) : null;
+
   return (
     <>
-      {/* Minimal Navbar - Only logo and avatar */}
-      <MinimalNavbar />
+      {/* Minimal Navbar with Professional Controls (only visible to owner) */}
+      <MinimalNavbar professionalControls={professionalControls} />
       
       <div className="min-h-screen w-full bg-white text-neutral-900 pt-14" style={accentStyle}>
-        {/* Top bar with Edit Mode toggle */}
-        <header className="sticky top-14 z-20 border-b border-neutral-200 bg-white/70 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "var(--accent-10)" }}>
-                <Wand2 className="h-5 w-5" style={{ color: "var(--accent)" }} />
-              </div>
-              <div className="text-sm">
-                <div className="font-semibold leading-none">Professional Presentation</div>
-                <div className="text-neutral-500">Desktop preview • Separate window</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/profile')}
-                className="gap-2"
-              >
-                ← Back to Profile
-              </Button>
-              <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1">
-                <span className="text-xs text-neutral-600">Edit mode</span>
-                <Switch checked={editMode} onCheckedChange={setEditMode} />
-              </div>
-              <Button variant="outline" className="gap-2" onClick={saveAll}>
-                <Save className="h-4 w-4" /> Save all
-              </Button>
-              <a href={profile.cvUrl} target="_blank" rel="noreferrer">
-                <Button variant="outline" className="gap-2">
-                  <FileText className="h-4 w-4" /> CV
-                </Button>
-              </a>
-              <SettingsDialog
-                profile={profile}
-                setProfile={setProfile}
-                socials={socials}
-                setSocials={setSocials}
-                sections={sections}
-                setSections={setSections}
-                accent={accent}
-                setAccent={setAccent}
-                layout={layout}
-                setLayout={setLayout}
-                seo={seo}
-                setSeo={setSeo}
-              />
-            </div>
-          </div>
-        </header>
-
-      {/* Grid */}
-      <main
+        {/* Grid */}
+        <main
         className="mx-auto grid max-w-7xl gap-10 px-6 py-10"
         style={{ gridTemplateColumns: `${layout.leftColFraction} ${layout.middleColFraction} ${layout.showRightSidebar ? layout.rightColFraction : "0fr"}` }}
       >
