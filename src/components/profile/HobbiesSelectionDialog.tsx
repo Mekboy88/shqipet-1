@@ -80,7 +80,8 @@ const HobbiesSelectionDialog: React.FC<HobbiesSelectionDialogProps> = ({
                       className="bg-primary/10 text-primary border border-primary/30 cursor-pointer"
                       onClick={() => handleHobbySelect(hobbyData!)}
                     >
-                      {hobbyData?.emoji} {hobby}
+                      <span className="text-sm mr-1">{hobbyData?.emoji || '🎯'}</span>
+                      {hobby}
                       <X className="w-3 h-3 ml-1" />
                     </Badge>
                   );

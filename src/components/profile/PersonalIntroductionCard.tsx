@@ -648,16 +648,19 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {data.hobbies?.map(hobby => (
-                <Badge key={hobby} variant="secondary" className="flex items-center gap-1">
-                  <span className="text-sm">{getHobbyEmoji(hobby)}</span>
-                  {hobby}
-                  <X 
-                    className="w-3 h-3 cursor-pointer hover:text-red-500" 
-                    onClick={() => removeHobby(hobby)}
-                  />
-                </Badge>
-              ))}
+              {data.hobbies?.map(hobby => {
+                const hobbyData = getHobbyByName(hobby);
+                return (
+                  <Badge key={hobby} variant="secondary" className="flex items-center gap-1">
+                    <span className="text-sm">{hobbyData?.emoji || '🎯'}</span>
+                    {hobby}
+                    <X 
+                      className="w-3 h-3 cursor-pointer hover:text-red-500" 
+                      onClick={() => removeHobby(hobby)}
+                    />
+                  </Badge>
+                );
+              })}
             </div>
           </div>
         </div>
