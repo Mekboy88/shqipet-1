@@ -1081,7 +1081,7 @@ useEffect(() => {
 
   return (
     <div className="relative group">
-      <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-white" style={{ height }}>
+      <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-white scale-[1.2]" style={{ height }}>
         {displayUrl ? (
           <UploadAnimation isUploading={isUploading} progress={uploadProgress} type="avatar">
             <img 
