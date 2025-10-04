@@ -169,8 +169,12 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   })();
   const baseCandidate = resolvedUrl || lastGoodUrl || cachedLast || globalCoverUrl || coverPhotoUrl || null;
   
-  // Use resolved URL directly from useCover hook
-  const [displayUrl, setDisplayUrl] = useState<string | null>(null);
+  // Initialize with any direct URL immediately to prevent initial flicker
+  const [displayUrl, setDisplayUrl] = useState<string | null>(() => {
+    const input = baseCandidate;
+    if (!input) return null;
+    return /^(https?:|blob:|data:)/.test(input) ? input : null;
+  });
 
   useEffect(() => {
     let cancelled = false;

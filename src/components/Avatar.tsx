@@ -44,7 +44,21 @@ const Avatar: React.FC<AvatarProps> = ({
   const { avatarUrl: globalAvatarUrl, isLoading, uploadAvatar } = useGlobalAvatar(userId);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
-  const [lastDisplayedSrc, setLastDisplayedSrc] = useState<string | null>(null);
+  const [lastDisplayedSrc, setLastDisplayedSrc] = useState<string | null>(() => {
+    const candidate = rawSrc;
+    if (!candidate) return null;
+    if (/^(https?:|blob:|data:)/.test(candidate)) return candidate;
+    if (/^(uploads|avatars|covers)\//i.test(candidate)) {
+      try {
+        const raw = localStorage.getItem(`media:last:${candidate}`);
+        if (raw) {
+          const j = JSON.parse(raw);
+          if (typeof j?.url === 'string') return j.url as string;
+        }
+      } catch {}
+    }
+    return null;
+  });
   // Keep the underlying storage key (when rawSrc is a key) to allow refresh on image error
   const rawKeyRef = useRef<string | null>(null);
   // Prevent infinite error loops by limiting retries

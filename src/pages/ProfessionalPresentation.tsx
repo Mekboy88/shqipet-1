@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import MinimalNavbar from "@/components/navbar/MinimalNavbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { mediaService } from "@/services/media/MediaService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -291,16 +292,20 @@ export default function ProfessionalPresentation() {
   }, [user]);
   
   // Editable state
-  const [profile, setProfile] = useState({
-    name: "Andi Mekrizvani",
-    role: "Founder • Product & Security Enthusiast",
-    entry: "Building Shqipet — a clean, focused social platform. I care about craft, security, and helpful tech.",
-    quick: "Based in London. Cybersecurity learner. I design systems that are fast, clear, and human-friendly.",
-    email: "hello@example.com",
-    phone: "+44 7123 456789",
-    website: "https://shqipet.com",
-    cvUrl: "#",
-    avatarUrl: "",
+  const [profile, setProfile] = useState(() => {
+    let cachedAvatar = '';
+    try { cachedAvatar = localStorage.getItem('pp:last:avatar_url') || ''; } catch {}
+    return {
+      name: "Andi Mekrizvani",
+      role: "Founder • Product & Security Enthusiast",
+      entry: "Building Shqipet — a clean, focused social platform. I care about craft, security, and helpful tech.",
+      quick: "Based in London. Cybersecurity learner. I design systems that are fast, clear, and human-friendly.",
+      email: "hello@example.com",
+      phone: "+44 7123 456789",
+      website: "https://shqipet.com",
+      cvUrl: "#",
+      avatarUrl: cachedAvatar,
+    };
   });
 
   const [navLabels, setNavLabels] = useState({
@@ -385,11 +390,33 @@ export default function ProfessionalPresentation() {
             email: data.hire_button_email || ""
           });
           
-          // Load professional presentation avatar
+          // Load professional presentation avatar (instant cached + async fresh)
           if (data.avatar_url) {
-            console.log('🖼️ Setting professional avatar URL:', data.avatar_url);
-            const resolved = resolveMediaUrl(data.avatar_url);
-            setProfile(prev => ({ ...prev, avatarUrl: resolved }));
+            const keyOrUrl = String(data.avatar_url);
+            console.log('🖼️ Setting professional avatar URL:', keyOrUrl);
+            // 1) Instant: if full URL or cached media URL exists, show immediately
+            let instant = '';
+            if (/^(https?:|blob:|data:)/.test(keyOrUrl)) {
+              instant = keyOrUrl;
+            } else {
+              try {
+                const raw = localStorage.getItem(`media:last:${keyOrUrl}`);
+                if (raw) { const j = JSON.parse(raw); if (typeof j?.url === 'string') instant = j.url as string; }
+              } catch {}
+            }
+            if (instant) {
+              setProfile(prev => ({ ...prev, avatarUrl: instant }));
+              try { localStorage.setItem('pp:last:avatar_url', instant); } catch {}
+            }
+            // 2) Fresh: resolve via mediaService and swap only after preload
+            (async () => {
+              try {
+                const fresh = await mediaService.getUrl(keyOrUrl);
+                await mediaService.preloadImage(fresh);
+                setProfile(prev => ({ ...prev, avatarUrl: fresh }));
+                try { localStorage.setItem('pp:last:avatar_url', fresh); } catch {}
+              } catch {}
+            })();
           } else {
             console.log('⚠️ No avatar_url found in professional_presentations');
           }
@@ -422,10 +449,30 @@ export default function ProfessionalPresentation() {
           if (payload.new && typeof payload.new === 'object') {
             const newData = payload.new as any;
             
-            // Update avatar in realtime
+            // Update avatar in realtime (instant cached + async fresh)
             if (newData.avatar_url) {
-              const resolved = resolveMediaUrl(newData.avatar_url);
-              setProfile(prev => ({ ...prev, avatarUrl: resolved }));
+              const keyOrUrl = String(newData.avatar_url);
+              let instant = '';
+              if (/^(https?:|blob:|data:)/.test(keyOrUrl)) {
+                instant = keyOrUrl;
+              } else {
+                try {
+                  const raw = localStorage.getItem(`media:last:${keyOrUrl}`);
+                  if (raw) { const j = JSON.parse(raw); if (typeof j?.url === 'string') instant = j.url as string; }
+                } catch {}
+              }
+              if (instant) {
+                setProfile(prev => ({ ...prev, avatarUrl: instant }));
+                try { localStorage.setItem('pp:last:avatar_url', instant); } catch {}
+              }
+              (async () => {
+                try {
+                  const fresh = await mediaService.getUrl(keyOrUrl);
+                  await mediaService.preloadImage(fresh);
+                  setProfile(prev => ({ ...prev, avatarUrl: fresh }));
+                  try { localStorage.setItem('pp:last:avatar_url', fresh); } catch {}
+                } catch {}
+              })();
             }
             
             // Update hire button in realtime
