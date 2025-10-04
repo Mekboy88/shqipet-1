@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import MinimalNavbar from "@/components/navbar/MinimalNavbar";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -313,7 +314,7 @@ export default function ProfessionalPresentation() {
   ]);
 
   const [sections, setSections] = useState({ home: true, skills: true, portfolio: true, blogs: true, contact: true });
-  const [editMode, setEditMode] = useState(true);
+  const [editMode, setEditMode] = useState(false); // Default OFF
 
   const [layout, setLayout] = useState({
     showRightSidebar: true,
@@ -341,6 +342,55 @@ export default function ProfessionalPresentation() {
     keys.forEach((k) => console.assert(typeof (navLabels as any)[k] === "string", `[SelfTest] nav label ${k} should be string`));
     console.assert(typeof seo.pageTitle === "string" && seo.pageTitle.length > 0, "[SelfTest] pageTitle should be non-empty string");
   }, []);
+
+  // Load edit mode from database
+  useEffect(() => {
+    const loadEditMode = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('professional_presentations')
+          .select('edit_mode')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (data && !error) {
+          setEditMode(data.edit_mode || false);
+        }
+      } catch (error) {
+        console.error('Error loading edit mode:', error);
+      }
+    };
+
+    loadEditMode();
+  }, [user]);
+
+  // Save edit mode to database when it changes
+  useEffect(() => {
+    const saveEditMode = async () => {
+      if (!user || !isOwner) return;
+
+      try {
+        await supabase
+          .from('professional_presentations')
+          .upsert({
+            user_id: user.id,
+            edit_mode: editMode,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+      } catch (error) {
+        console.error('Error saving edit mode:', error);
+      }
+    };
+
+    // Only save if user is owner (don't save on initial load)
+    if (isOwner) {
+      saveEditMode();
+    }
+  }, [editMode, user, isOwner]);
 
   // Persist to localStorage so Save keeps edits
   useEffect(() => {
