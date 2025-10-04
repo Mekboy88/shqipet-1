@@ -700,11 +700,6 @@ function PhotoStrip({ avatarUrl, accent, height = 420 }: { avatarUrl: string; ac
         ) : (
           <div className="h-full w-full">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6_12px,#e5e7eb_12px,#e5e7eb_24px)]" />
-            <div className="absolute inset-y-0 left-4 flex items-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/80 ring-1 ring-neutral-200">
-                <UserIcon className="h-7 w-7 text-neutral-500" />
-              </div>
-            </div>
           </div>
         )}
         <div className="pointer-events-none absolute inset-0 ring-1 ring-black/5" />
