@@ -403,6 +403,83 @@ export type Database = {
           },
         ]
       }
+      professional_presentations: {
+        Row: {
+          accent_color: string | null
+          avatar_url: string | null
+          created_at: string | null
+          cv_url: string | null
+          email: string | null
+          entry: string | null
+          id: string
+          layout: Json | null
+          name: string | null
+          nav_labels: Json | null
+          phone: string | null
+          quick: string | null
+          role: string | null
+          sections: Json | null
+          seo: Json | null
+          socials: Json | null
+          styles: Json | null
+          updated_at: string | null
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          cv_url?: string | null
+          email?: string | null
+          entry?: string | null
+          id?: string
+          layout?: Json | null
+          name?: string | null
+          nav_labels?: Json | null
+          phone?: string | null
+          quick?: string | null
+          role?: string | null
+          sections?: Json | null
+          seo?: Json | null
+          socials?: Json | null
+          styles?: Json | null
+          updated_at?: string | null
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          cv_url?: string | null
+          email?: string | null
+          entry?: string | null
+          id?: string
+          layout?: Json | null
+          name?: string | null
+          nav_labels?: Json | null
+          phone?: string | null
+          quick?: string | null
+          role?: string | null
+          sections?: Json | null
+          seo?: Json | null
+          socials?: Json | null
+          styles?: Json | null
+          updated_at?: string | null
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_presentations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_access_logs: {
         Row: {
           access_method: string

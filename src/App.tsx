@@ -225,9 +225,10 @@ function App() {
     </ProfileSettingsProvider>
   }
 />
-                      <Route path="/profile/settings/location" element={<LocationPreferences />} />
-                       <Route path="/photos" element={<Photos />} />
-                       <Route path="/photos/gallery" element={<PhotoGallery />} />
+                       <Route path="/profile/settings/location" element={<LocationPreferences />} />
+                       <Route path="/professional-presentation" element={<ProfessionalPresentation />} />
+                        <Route path="/photos" element={<Photos />} />
+                        <Route path="/photos/gallery" element={<PhotoGallery />} />
                        {/* Admin routes */}
                        <Route path="/admin/login" element={<AdminLogin />} />
                         <Route path="/admin/dashboard" element={<AdminDashboard />}>
