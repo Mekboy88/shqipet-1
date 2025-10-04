@@ -972,24 +972,35 @@ function PhotoStrip({
     fileInputRef.current?.click();
   };
 
-  const effectiveUrl = resolveMediaUrl(avatarUrl);
+// Smarter, flicker-free image loading with cache-busting per change
+const [displayUrl, setDisplayUrl] = useState<string>(() => resolveMediaUrl(avatarUrl));
+useEffect(() => {
+  const next = resolveMediaUrl(avatarUrl);
+  if (!next) { setDisplayUrl(''); return; }
+  // Cache-bust only when avatarUrl changes to force fresh fetch, prevent stale cache
+  const versioned = next + (next.includes('?') ? '&v=' : '?v=') + Date.now();
+  const img = new Image();
+  img.onload = () => {
+    setDisplayUrl(versioned);
+    console.log('✅ Preloaded and swapped avatar:', versioned);
+  };
+  img.onerror = (e) => {
+    console.warn('⚠️ Preload failed, keeping last good image', { next, versioned, e });
+  };
+  img.src = versioned;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [avatarUrl]);
 
   return (
     <div className="relative group">
       <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" style={{ height }}>
-        {effectiveUrl ? (
+        {displayUrl ? (
           <img 
-            src={effectiveUrl} 
+            src={displayUrl} 
             alt="Professional Profile" 
             className="h-full w-full object-cover" 
             onError={(e) => {
-              console.error('❌ Image failed to load:', effectiveUrl);
-              console.error('Image error event:', e);
-              // Hide the broken image
-              e.currentTarget.style.display = 'none';
-            }}
-            onLoad={() => {
-              console.log('✅ Image loaded successfully:', effectiveUrl);
+              console.error('❌ Image failed to load:', displayUrl);
             }}
           />
         ) : (
