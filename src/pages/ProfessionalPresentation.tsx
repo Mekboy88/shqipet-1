@@ -671,7 +671,7 @@ export default function ProfessionalPresentation() {
             })} />
           </div>
 
-          <div className="mt-12 space-y-2 mx-0 px-0 rounded-lg my-[50px] -ml-56 scale-[1.2] origin-left">
+          <div className="mt-12 space-y-2 mx-0 px-0 rounded-lg -ml-56 scale-[1.2] origin-left my-[60px]">
             <EditableText id="name" value={profile.name} onChange={v => setProfile({
               ...profile,
               name: v
