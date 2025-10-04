@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Settings, FileText, Linkedin, Github, Facebook, Instagram, Globe, Mail, Phone, ArrowRight, Wand2, ExternalLink, User as UserIcon, Move, Save, Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Highlighter, X, Camera, Briefcase } from "lucide-react";
+import { Settings, FileText, Linkedin, Github, Facebook, Instagram, Globe, Mail, Phone, ArrowRight, Wand2, ExternalLink, User as UserIcon, Move, Save, Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Highlighter, X, Camera, Briefcase, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { usePhotoEditor } from "@/hooks/usePhotoEditor";
 import { PhotoEditor } from "@/components/profile/PhotoEditor";
@@ -284,6 +284,9 @@ export default function ProfessionalPresentation() {
   useEffect(() => {
     setIsOwner(!!user);
   }, [user]);
+
+  // Text group drag hook
+  const textDrag = useGroupDrag({ userId: user?.id });
 
   // Editable state
   const [profile, setProfile] = useState(() => {
@@ -674,7 +677,54 @@ export default function ProfessionalPresentation() {
             })} />
           </div>
 
-          <div className="mt-12 space-y-2 mx-0 px-0 rounded-lg -ml-56 scale-[1.2] origin-left my-[60px]">
+          {/* Text Section - Draggable as a group */}
+          <div 
+            className="mt-12 space-y-2 mx-0 px-0 rounded-lg -ml-56 scale-[1.2] origin-left my-[60px] relative"
+            style={{
+              transform: `translate(${textDrag.transform.translateX}px, ${textDrag.transform.translateY}px)`,
+              transition: textDrag.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              cursor: textDrag.isDragging ? 'grabbing' : textDrag.isEditMode ? 'grab' : 'default',
+              zIndex: textDrag.isEditMode ? 50 : 'auto',
+            }}
+          >
+            {/* Text Edit Mode Controls */}
+            {editMode && !textDrag.isEditMode && (
+              <div className="absolute -top-12 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => textDrag.setIsEditMode(true)}
+                  className="bg-white/90 hover:bg-white shadow-lg"
+                >
+                  <Move className="w-4 h-4 mr-1" />
+                  Move Text
+                </Button>
+              </div>
+            )}
+
+            {textDrag.isEditMode && editMode && (
+              <>
+                <div className="absolute inset-0 border-2 border-green-500 rounded-xl pointer-events-none animate-pulse" />
+                <div
+                  className="absolute inset-0 cursor-move"
+                  onMouseDown={textDrag.handleDragStart}
+                />
+                <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2 z-[100]">
+                  <Button size="sm" variant="outline" onClick={textDrag.reset} disabled={textDrag.isSaving}>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={textDrag.cancel} disabled={textDrag.isSaving}>
+                    <X className="w-3.5 h-3.5 mr-1" />
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={textDrag.save} disabled={textDrag.isSaving} className="bg-green-500 hover:bg-green-600">
+                    <Save className="w-3.5 h-3.5 mr-1" />
+                    {textDrag.isSaving ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              </>
+            )}
+            
             <EditableText id="name" value={profile.name} onChange={v => setProfile({
               ...profile,
               name: v

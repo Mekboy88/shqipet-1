@@ -577,6 +577,7 @@ export type Database = {
           last_name: string | null
           phone_number: string | null
           phone_verified: boolean | null
+          photo_text_transform: Json | null
           photo_transform: Json | null
           primary_role: string | null
           updated_at: string
@@ -600,6 +601,7 @@ export type Database = {
           last_name?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
+          photo_text_transform?: Json | null
           photo_transform?: Json | null
           primary_role?: string | null
           updated_at?: string
@@ -623,6 +625,7 @@ export type Database = {
           last_name?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
+          photo_text_transform?: Json | null
           photo_transform?: Json | null
           primary_role?: string | null
           updated_at?: string
