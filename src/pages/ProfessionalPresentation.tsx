@@ -420,7 +420,6 @@ export default function ProfessionalPresentation() {
         </div>
         <div className="text-xs">
           <div className="font-semibold leading-none">Professional Presentation</div>
-          <div className="text-neutral-400 text-[10px]">Desktop preview</div>
         </div>
       </div>
       
