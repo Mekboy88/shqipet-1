@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import MinimalNavbar from "@/components/navbar/MinimalNavbar";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -276,32 +275,7 @@ export default function ProfessionalPresentation() {
   
   // Check if current user is the owner of this presentation
   useEffect(() => {
-    const checkOwnership = async () => {
-      if (!user) {
-        setIsOwner(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('professional_presentations')
-          .select('user_id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (data && !error) {
-          setIsOwner(true);
-          setPresentationUserId(data.user_id);
-        } else {
-          setIsOwner(false);
-        }
-      } catch (error) {
-        console.error('Error checking presentation ownership:', error);
-        setIsOwner(false);
-      }
-    };
-
-    checkOwnership();
+    setIsOwner(!!user);
   }, [user]);
   
   // Editable state
