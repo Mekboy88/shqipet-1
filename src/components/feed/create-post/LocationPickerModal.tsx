@@ -3,8 +3,8 @@ import { X, MapPin, Search, Navigation, Globe, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 export interface LocationData {
   id: string;
@@ -26,26 +26,22 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   onSelectLocation
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
+  const map = useRef<maplibregl.Map | null>(null);
+  const marker = useRef<maplibregl.Marker | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<LocationData[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<[number, number] | null>(null);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(true);
 
   useEffect(() => {
-    if (!isOpen || !mapContainer.current || !mapboxToken.trim()) return;
+    if (!isOpen || !mapContainer.current) return;
 
-    // Initialize map only if token is provided
-    mapboxgl.accessToken = mapboxToken;
-    
+    // Initialize map with OpenStreetMap style
     try {
-      map.current = new mapboxgl.Map({
+      map.current = new maplibregl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
+        style: 'https://demotiles.maplibre.org/style.json',
         center: [-74.006, 40.7128], // Default to NYC
         zoom: 12
       });
@@ -56,17 +52,16 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
     // Add navigation controls
     map.current.addControl(
-      new mapboxgl.NavigationControl(),
+      new maplibregl.NavigationControl(),
       'top-right'
     );
 
     // Add geolocate control
-    const geolocate = new mapboxgl.GeolocateControl({
+    const geolocate = new maplibregl.GeolocateControl({
       positionOptions: {
         enableHighAccuracy: true
       },
-      trackUserLocation: true,
-      showUserHeading: true
+      trackUserLocation: true
     });
     
     map.current.addControl(geolocate, 'top-right');
@@ -94,7 +89,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     return () => {
       map.current?.remove();
     };
-  }, [isOpen, mapboxToken]);
+  }, [isOpen]);
 
   const handleMapClick = async (coordinates: [number, number]) => {
     setIsLoading(true);
@@ -105,28 +100,27 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     }
 
     // Add new marker
-    marker.current = new mapboxgl.Marker({
+    marker.current = new maplibregl.Marker({
       color: '#8B5CF6'
     })
       .setLngLat(coordinates)
       .addTo(map.current!);
 
     try {
-      // Reverse geocoding to get place details (only if token is available)
+      // Use Nominatim for reverse geocoding (OpenStreetMap)
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxToken}&types=poi,address,place`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coordinates[1]}&lon=${coordinates[0]}&zoom=18&addressdetails=1`
       );
       
       const data = await response.json();
       
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0];
+      if (data && data.display_name) {
         const location: LocationData = {
-          id: feature.id,
-          name: feature.text || feature.place_name,
-          address: feature.place_name,
+          id: data.place_id?.toString() || `${coordinates[0]}-${coordinates[1]}`,
+          name: data.name || data.address?.road || 'Selected Location',
+          address: data.display_name,
           coordinates: coordinates,
-          placeType: feature.place_type?.[0] || 'place'
+          placeType: data.type || 'place'
         };
         
         setSelectedLocation(location);
@@ -144,6 +138,15 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       }
     } catch (error) {
       console.error('Error reverse geocoding:', error);
+      // Fallback on error
+      const location: LocationData = {
+        id: `${coordinates[0]}-${coordinates[1]}`,
+        name: 'Selected Location',
+        address: `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`,
+        coordinates: coordinates,
+        placeType: 'coordinates'
+      };
+      setSelectedLocation(location);
     } finally {
       setIsLoading(false);
     }
@@ -158,19 +161,20 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     setIsLoading(true);
     
     try {
+      // Use Nominatim for place search (OpenStreetMap)
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&types=poi,address,place&limit=10`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&addressdetails=1`
       );
       
       const data = await response.json();
       
-      if (data.features) {
-        const results: LocationData[] = data.features.map((feature: any) => ({
-          id: feature.id,
-          name: feature.text || feature.place_name,
-          address: feature.place_name,
-          coordinates: feature.center,
-          placeType: feature.place_type?.[0] || 'place'
+      if (data && data.length > 0) {
+        const results: LocationData[] = data.map((item: any) => ({
+          id: item.place_id?.toString() || item.osm_id?.toString(),
+          name: item.name || item.display_name.split(',')[0],
+          address: item.display_name,
+          coordinates: [parseFloat(item.lon), parseFloat(item.lat)],
+          placeType: item.type || 'place'
         }));
         
         setSearchResults(results);
@@ -198,7 +202,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       marker.current.remove();
     }
     
-    marker.current = new mapboxgl.Marker({
+    marker.current = new maplibregl.Marker({
       color: '#8B5CF6'
     })
       .setLngLat(location.coordinates)
@@ -260,35 +264,6 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             </Button>
           </div>
 
-          {/* Mapbox Token Input */}
-          {showTokenInput && (
-            <div className="p-4 bg-amber-50 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <Label className="text-sm font-medium text-foreground mb-2 block">
-                    Mapbox Public Token (Required for map functionality)
-                  </Label>
-                  <Input
-                    placeholder="pk.eyJ1IjoieW91ci11c2VybmFtZSIsImEiOiJjbGl4eHh4eHh4eHh4In0.xxxxx"
-                    value={mapboxToken}
-                    onChange={(e) => setMapboxToken(e.target.value)}
-                    className="font-mono text-xs"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Get your free token at <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">mapbox.com</a>
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowTokenInput(false)}
-                  className="mt-6"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
 
           {/* Content */}
           <div className="flex h-[500px]">
@@ -382,33 +357,14 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             
             {/* Right Side - Map */}
             <div className="flex-1 relative">
-              {mapboxToken.trim() ? (
-                <>
-                  <div ref={mapContainer} className="absolute inset-0" />
-                  
-                  {/* Map Instructions Overlay */}
-                  {!selectedLocation && (
-                    <div className="absolute top-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-sm">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        Click on the map or search to select a location
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="absolute inset-0 bg-muted/30 flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <p className="text-muted-foreground mb-2">Map requires Mapbox token</p>
-                    <p className="text-sm text-muted-foreground mb-4">You can still search for locations above</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowTokenInput(true)}
-                    >
-                      Add Token
-                    </Button>
+              <div ref={mapContainer} className="absolute inset-0" />
+              
+              {/* Map Instructions Overlay */}
+              {!selectedLocation && (
+                <div className="absolute top-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-sm z-10">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    Click on the map or search to select a location
                   </div>
                 </div>
               )}
