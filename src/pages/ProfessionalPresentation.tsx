@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -265,6 +266,8 @@ const SocialIcon = ({ href, label, icon }: { href: string; label: string; icon?:
 
 // ===== Main component =====
 export default function ProfessionalPresentation() {
+  const navigate = useNavigate();
+  
   // Editable state
   const [profile, setProfile] = useState({
     name: "Andi Mekrizvani",
@@ -364,6 +367,13 @@ export default function ProfessionalPresentation() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/profile')}
+              className="gap-2"
+            >
+              ← Back to Profile
+            </Button>
             <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1">
               <span className="text-xs text-neutral-600">Edit mode</span>
               <Switch checked={editMode} onCheckedChange={setEditMode} />

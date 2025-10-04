@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
 import { useGlobalCoverPhoto } from '@/hooks/useGlobalCoverPhoto';
@@ -49,6 +50,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   showProfileInfo = true,
   containerClassName
 }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { displayName, role: userRole } = useUniversalUser(); // Get role from universal user
   const { userRole: contextRole } = useUserRole(); // Backup from context
@@ -356,7 +358,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
             {profileDisplayName}
           </h1>
           <button 
-            onClick={() => window.location.href = '/professional-presentation'}
+            onClick={() => navigate('/professional-presentation')}
             className="mt-2 px-4 py-1.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white backdrop-blur-sm rounded-md transition-all duration-200 text-sm font-medium flex items-center gap-2"
           >
             Professional presentation
