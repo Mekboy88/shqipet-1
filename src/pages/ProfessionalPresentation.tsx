@@ -47,7 +47,6 @@ import {
   Camera,
   Briefcase,
 } from "lucide-react";
-import { useGlobalAvatar } from "@/hooks/useGlobalAvatar";
 import { toast } from "sonner";
 
 // ===== Reusable: Editable & Draggable (fixed caret + sticky toolbar) =====
@@ -355,7 +354,7 @@ export default function ProfessionalPresentation() {
     console.assert(typeof seo.pageTitle === "string" && seo.pageTitle.length > 0, "[SelfTest] pageTitle should be non-empty string");
   }, []);
 
-  // Load edit mode and hire button from database
+  // Load edit mode, hire button, and avatar from database
   useEffect(() => {
     const loadData = async () => {
       if (!user) return;
@@ -363,7 +362,7 @@ export default function ProfessionalPresentation() {
       try {
         const { data, error } = await supabase
           .from('professional_presentations')
-          .select('edit_mode, hire_button_enabled, hire_button_text, hire_button_url, hire_button_email')
+          .select('edit_mode, hire_button_enabled, hire_button_text, hire_button_url, hire_button_email, avatar_url')
           .eq('user_id', user.id)
           .maybeSingle();
 
@@ -375,6 +374,10 @@ export default function ProfessionalPresentation() {
             url: data.hire_button_url || "",
             email: data.hire_button_email || ""
           });
+          // Load professional presentation avatar
+          if (data.avatar_url) {
+            setProfile(prev => ({ ...prev, avatarUrl: data.avatar_url }));
+          }
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -508,6 +511,7 @@ export default function ProfessionalPresentation() {
               height={layout.photoHeight || 420}
               userId={user?.id}
               editMode={editMode && isOwner}
+              onPhotoUpdate={(url) => setProfile({ ...profile, avatarUrl: url })}
             />
           </div>
 
@@ -754,29 +758,71 @@ function PhotoStrip({
   accent, 
   height = 420,
   userId,
-  editMode = false
+  editMode = false,
+  onPhotoUpdate
 }: { 
   avatarUrl: string; 
   accent: string; 
   height?: number;
   userId?: string;
   editMode?: boolean;
+  onPhotoUpdate?: (url: string) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadAvatar } = useGlobalAvatar(userId);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !userId) return;
 
     setIsUploading(true);
     try {
-      await uploadAvatar(file);
-      toast.success('Avatar updated successfully');
+      // Upload to Wasabi
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('mediaType', 'professional-presentation-avatar');
+      formData.append('userId', userId);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/wasabi-upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+
+      const result = await response.json();
+      
+      // Update professional_presentations table with the new avatar_url
+      const { error: updateError } = await supabase
+        .from('professional_presentations')
+        .upsert({
+          user_id: userId,
+          avatar_url: result.url,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (updateError) throw updateError;
+
+      toast.success('Professional photo updated successfully');
+      
+      // Call the callback to update the parent state
+      if (onPhotoUpdate) {
+        onPhotoUpdate(result.url);
+      }
     } catch (error) {
-      console.error('❌ Avatar upload failed:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update avatar');
+      console.error('❌ Professional photo upload failed:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update professional photo');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -793,7 +839,7 @@ function PhotoStrip({
     <div className="relative group">
       <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" style={{ height }}>
         {avatarUrl ? (
-          <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+          <img src={avatarUrl} alt="Professional Profile" className="h-full w-full object-cover" />
         ) : (
           <div className="h-full w-full">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6_12px,#e5e7eb_12px,#e5e7eb_24px)]" />
