@@ -404,6 +404,45 @@ export default function ProfessionalPresentation() {
     };
 
     loadData();
+
+    // Set up realtime subscription for instant updates
+    const channel = supabase
+      .channel('professional-presentation-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'professional_presentations',
+          filter: `user_id=eq.${user?.id}`
+        },
+        (payload) => {
+          console.log('🔄 Realtime update received:', payload);
+          
+          if (payload.new && typeof payload.new === 'object') {
+            const newData = payload.new as any;
+            
+            // Update avatar in realtime
+            if (newData.avatar_url) {
+              const resolved = resolveMediaUrl(newData.avatar_url);
+              setProfile(prev => ({ ...prev, avatarUrl: resolved }));
+            }
+            
+            // Update hire button in realtime
+            setHireButton({
+              enabled: newData.hire_button_enabled ?? true,
+              text: newData.hire_button_text || "Hire Me",
+              url: newData.hire_button_url || "",
+              email: newData.hire_button_email || ""
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   // Save edit mode and hire button to database when they change
