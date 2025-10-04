@@ -1000,14 +1000,26 @@ useEffect(() => {
     <div className="relative group">
       <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" style={{ height }}>
         {displayUrl ? (
-          <img 
-            src={displayUrl} 
-            alt="Professional Profile" 
-            className="h-full w-full object-cover" 
-            onError={(e) => {
-              console.error('❌ Image failed to load:', displayUrl);
-            }}
-          />
+          <>
+            <img 
+              src={displayUrl} 
+              alt="Professional Profile" 
+              className={`h-full w-full object-cover transition-opacity duration-300 ${imgLoading ? 'opacity-0' : 'opacity-100'}`}
+              onLoad={() => {
+                setImgLoading(false);
+              }}
+              onError={() => {
+                setImgLoading(false);
+                console.error('❌ Image failed to load:', displayUrl);
+              }}
+            />
+            {(imgLoading || isUploading) && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Skeleton variant="shimmer" className="absolute inset-0" />
+                <div className="relative z-10 rounded-full px-3 py-1 text-xs bg-black/50 text-white">Loading photo…</div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="h-full w-full">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6_12px,#e5e7eb_12px,#e5e7eb_24px)]" />
