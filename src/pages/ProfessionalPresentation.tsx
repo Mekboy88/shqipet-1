@@ -12,10 +12,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import UploadAnimation from "@/components/ui/UploadAnimation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Settings, FileText, Linkedin, Github, Facebook, Instagram, Globe, Mail, Phone, ArrowRight, Wand2, ExternalLink, User as UserIcon, Move, Save, Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Highlighter, X, Camera, Briefcase, RotateCcw } from "lucide-react";
+import { Settings, FileText, Linkedin, Github, Facebook, Instagram, Globe, Mail, Phone, ArrowRight, Wand2, ExternalLink, User as UserIcon, Move, Save, Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Highlighter, X, Camera, Briefcase, RotateCcw, Eye, Download, Edit, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { usePhotoEditor } from "@/hooks/usePhotoEditor";
 import { PhotoEditor } from "@/components/profile/PhotoEditor";
@@ -710,11 +711,49 @@ export default function ProfessionalPresentation() {
           {navLabels.contact}
         </button>
       )}
-      <a href={profile.cvUrl} target="_blank" rel="noreferrer">
-        <Button variant="outline" size="sm" className="gap-1.5 h-8">
-          <FileText className="h-3.5 w-3.5" /> Open CV
-        </Button>
-      </a>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-1.5 h-8 transition-all hover:shadow-md">
+            <FileText className="h-3.5 w-3.5" /> 
+            CV
+            <ChevronDown className="h-3.5 w-3.5 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          align="end" 
+          className="w-48 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200"
+        >
+          <DropdownMenuItem 
+            onClick={() => window.open(profile.cvUrl, '_blank')}
+            className="gap-2 cursor-pointer hover:bg-gradient-to-r hover:from-red-500/5 hover:to-gray-800/5 transition-all"
+          >
+            <Eye className="h-4 w-4" />
+            <span>Look my CV</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => {
+              const link = document.createElement('a');
+              link.href = profile.cvUrl;
+              link.download = `${profile.name}_CV.pdf`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              toast.success('CV download started');
+            }}
+            className="gap-2 cursor-pointer hover:bg-gradient-to-r hover:from-red-500/5 hover:to-gray-800/5 transition-all"
+          >
+            <Download className="h-4 w-4" />
+            <span>Download my CV</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => toast.info('CV editor coming soon!')}
+            className="gap-2 cursor-pointer hover:bg-gradient-to-r hover:from-red-500/5 hover:to-gray-800/5 transition-all"
+          >
+            <Edit className="h-4 w-4" />
+            <span>Edit my CV</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   ) : null;
   return <>
