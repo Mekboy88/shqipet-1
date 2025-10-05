@@ -119,7 +119,10 @@ const UserProfileDropdown: React.FC = () => {
                           <span className="text-sm font-medium">Wallet: $0.00</span>
                       </div>
                       <div className={menuItemClasses}>
-                          <Disc className="h-5 w-5 text-gray-500 group-hover:text-red-900 transition-colors" />
+                          <svg viewBox="0 0 1024 1024" className="h-5 w-5 text-gray-500 group-hover:text-red-900 transition-colors" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M512 512m-448 0a448 448 0 1 0 896 0 448 448 0 1 0-896 0Z" fill="#F44336"/>
+                            <path d="M512 234.666667l83.2 168.533333 185.6 27.733333-134.4 130.133334 32 185.6-166.4-87.466667-166.4 87.466667 32-185.6-134.4-130.133334 185.6-27.733333z" fill="#FFCA28"/>
+                          </svg>
                           <span className="text-sm font-medium">Points: 0</span>
                       </div>
 
