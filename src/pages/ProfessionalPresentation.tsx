@@ -380,6 +380,7 @@ export default function ProfessionalPresentation() {
   });
   const lastAppliedKeyRef = useRef<string | null>(null);
   const isSavingHireButtonRef = useRef(false);
+  const lastLocalWriteAtRef = useRef<number>(0);
 
   // ---- Self tests (lightweight) ----
   useEffect(() => {
@@ -545,7 +546,14 @@ export default function ProfessionalPresentation() {
           }
         }
 
-        // Update hire button - but only if we're not currently saving
+        // Update hire button - apply only if newer than our last local write and not in saving window
+        const remoteTs = Date.parse(newData.updated_at || commitTimestamp || '');
+        if (Number.isFinite(remoteTs)) {
+          if (remoteTs <= lastLocalWriteAtRef.current) {
+            console.log('⏭️ Skipping stale hire button update (older than local write)');
+            return;
+          }
+        }
         if (!isSavingHireButtonRef.current) {
           console.log('📥 Applying hire button update from realtime:', {
             enabled: newData.hire_button_enabled,
@@ -577,8 +585,9 @@ export default function ProfessionalPresentation() {
     const saveData = async () => {
       if (!user || !isOwner) return;
       
-      // Set flag to prevent realtime updates during save
+      // Set flag and timestamp to prevent realtime overwriting this change
       isSavingHireButtonRef.current = true;
+      lastLocalWriteAtRef.current = Date.now();
       console.log('💾 Saving hire button state:', hireButton);
       
       try {
