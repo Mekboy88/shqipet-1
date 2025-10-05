@@ -23,6 +23,7 @@ interface CoverPhotoContentProps {
   isDragging: boolean;
   isSaving?: boolean;
   coverRef: React.RefObject<HTMLDivElement>;
+  buttonColor: string;
   onDragModeToggle: () => void;
   onSaveChanges: () => void;
   onCancelChanges: () => void;
@@ -30,6 +31,7 @@ interface CoverPhotoContentProps {
   onMouseDown: (e: React.MouseEvent) => void;
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseUp: () => void;
+  onButtonColorChange: (color: string) => void;
   showProfileInfo?: boolean;
   containerClassName?: string;
 }
@@ -40,6 +42,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   isDragging,
   isSaving,
   coverRef,
+  buttonColor,
   onDragModeToggle,
   onSaveChanges,
   onCancelChanges,
@@ -47,6 +50,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   onMouseDown,
   onMouseMove,
   onMouseUp,
+  onButtonColorChange,
   showProfileInfo = true,
   containerClassName
 }) => {
@@ -283,11 +287,13 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
       <CoverPhotoControls
         isDragMode={isDragMode}
         isSaving={isSaving ?? false}
+        buttonColor={buttonColor}
         onDragModeToggle={onDragModeToggle}
         onSaveChanges={onSaveChanges}
         onCancelChanges={onCancelChanges}
         onEditCoverClick={onEditCoverClick}
         onMouseDown={onMouseDown}
+        onButtonColorChange={onButtonColorChange}
       />
 
       {/* Profile Picture - positioned at bottom left with upload animation */}
@@ -363,7 +369,8 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
           </h1>
           <button 
             onClick={() => navigate('/professional-presentation')}
-            className="mt-2 px-4 py-1.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white backdrop-blur-sm rounded-md transition-all duration-200 text-sm font-medium flex items-center gap-2"
+            className="mt-2 px-4 py-1.5 border border-white/30 text-white backdrop-blur-sm rounded-md transition-all duration-200 text-sm font-medium flex items-center gap-2 hover:bg-white/20"
+            style={{ backgroundColor: buttonColor }}
           >
             Prezantimi profesional
             <svg fill="currentColor" height="16" width="16" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" transform="rotate(-45)" className="flex-shrink-0">

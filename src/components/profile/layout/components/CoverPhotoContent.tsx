@@ -14,6 +14,7 @@ interface CoverPhotoContentProps {
   isDragging: boolean;
   isSaving?: boolean;
   coverRef: React.RefObject<HTMLDivElement>;
+  buttonColor: string;
   onDragModeToggle: () => void;
   onSaveChanges: () => void;
   onCancelChanges: () => void;
@@ -21,6 +22,7 @@ interface CoverPhotoContentProps {
   onMouseDown: (e: React.MouseEvent) => void;
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseUp: () => void;
+  onButtonColorChange: (color: string) => void;
 }
 
 const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
@@ -29,13 +31,15 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   isDragging,
   isSaving,
   coverRef,
+  buttonColor,
   onDragModeToggle,
   onSaveChanges,
   onCancelChanges,
   onEditCoverClick,
   onMouseDown,
   onMouseMove,
-  onMouseUp
+  onMouseUp,
+  onButtonColorChange
 }) => {
   const { displayName } = useUniversalUser();
   const { position: coverPosition, isPositionChanging } = useCover();
@@ -70,11 +74,13 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
       <CoverPhotoControls
         isDragMode={isDragMode}
         isSaving={isSaving ?? false}
+        buttonColor={buttonColor}
         onDragModeToggle={onDragModeToggle}
         onSaveChanges={onSaveChanges}
         onCancelChanges={onCancelChanges}
         onEditCoverClick={onEditCoverClick}
         onMouseDown={onMouseDown}
+        onButtonColorChange={onButtonColorChange}
       />
 
       {/* Profile Picture - positioned at bottom left with hover icons enabled */}

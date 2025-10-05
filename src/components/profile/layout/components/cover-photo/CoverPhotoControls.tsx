@@ -6,22 +6,34 @@ import { Save, X } from 'lucide-react';
 interface CoverPhotoControlsProps {
   isDragMode: boolean;
   isSaving?: boolean;
+  buttonColor: string;
   onDragModeToggle: () => void;
   onSaveChanges: () => void;
   onCancelChanges: () => void;
   onEditCoverClick: () => void;
   onMouseDown: (e: React.MouseEvent) => void;
+  onButtonColorChange: (color: string) => void;
 }
 
 const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
   isDragMode,
   isSaving = false,
+  buttonColor,
   onDragModeToggle,
   onSaveChanges,
   onCancelChanges,
   onEditCoverClick,
-  onMouseDown
+  onMouseDown,
+  onButtonColorChange
 }) => {
+  const colorOptions = [
+    { name: 'White (transparent)', value: 'rgba(255, 255, 255, 0.1)' },
+    { name: 'Dark', value: 'rgba(0, 0, 0, 0.5)' },
+    { name: 'Blue', value: 'rgba(59, 130, 246, 0.7)' },
+    { name: 'Green', value: 'rgba(34, 197, 94, 0.7)' },
+    { name: 'Red', value: 'rgba(239, 68, 68, 0.7)' },
+    { name: 'Purple', value: 'rgba(168, 85, 247, 0.7)' },
+  ];
   const handleDragModeToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -72,6 +84,25 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
         </div>
       ) : (
         <div className="flex items-center gap-2">
+          {/* Color Picker for Button */}
+          <div className="bg-black bg-opacity-50 rounded-lg p-2 flex items-center gap-2">
+            <span className="text-white text-xs font-medium">Ngjyra e butonit:</span>
+            <div className="flex gap-1">
+              {colorOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => onButtonColorChange(option.value)}
+                  className={`w-8 h-8 rounded border-2 transition-all ${
+                    buttonColor === option.value ? 'border-white scale-110' : 'border-white/30 hover:border-white/60'
+                  }`}
+                  style={{ backgroundColor: option.value }}
+                  title={option.name}
+                />
+              ))}
+            </div>
+          </div>
+
           {/* Active Drag Icon */}
           <div 
             className="bg-blue-600 bg-opacity-80 rounded-lg p-3 cursor-grab hover:bg-opacity-90 transition-all duration-200 flex items-center gap-2"

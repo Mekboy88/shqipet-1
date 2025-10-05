@@ -12,6 +12,8 @@ export const useCoverPhotoDrag = () => {
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [initialY, setInitialY] = useState(50);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [buttonColor, setButtonColor] = useState('rgba(255, 255, 255, 0.1)');
+  const [originalButtonColor, setOriginalButtonColor] = useState('rgba(255, 255, 255, 0.1)');
   const coverRef = useRef<HTMLDivElement>(null);
   const rafId = useRef<number | null>(null);
   const lastMouseYRef = useRef(0);
@@ -55,6 +57,7 @@ export const useCoverPhotoDrag = () => {
     if (!isPositionChanging) {
       setIsDragMode(true);
       setHasUnsavedChanges(false);
+      setOriginalButtonColor(buttonColor);
       toast.info("Drag mode activated!");
     }
   };
@@ -64,9 +67,15 @@ export const useCoverPhotoDrag = () => {
     setIsDragging(false);
     setDragStart(null);
     setHasUnsavedChanges(false);
+    setButtonColor(originalButtonColor);
     
     // Reset to original position (current position from useCover)
     toast.info("Changes cancelled");
+  };
+
+  const handleButtonColorChange = (color: string) => {
+    setButtonColor(color);
+    setHasUnsavedChanges(true);
   };
 
   const handleSaveChanges = async () => {
@@ -194,11 +203,13 @@ export const useCoverPhotoDrag = () => {
     isSaving: isPositionSaving,
     hasUnsavedChanges,
     coverRef,
+    buttonColor,
     handleDragModeToggle,
     handleSaveChanges,
     handleCancelChanges,
     handleMouseDown,
     handleMouseMove,
-    handleMouseUp
+    handleMouseUp,
+    handleButtonColorChange
   };
 };

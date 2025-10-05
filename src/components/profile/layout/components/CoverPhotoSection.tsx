@@ -22,12 +22,14 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
     isDragMode,
     isSaving,
     coverRef,
+    buttonColor,
     handleDragModeToggle,
     handleSaveChanges,
     handleCancelChanges,
     handleMouseDown,
     handleMouseMove,
-    handleMouseUp
+    handleMouseUp,
+    handleButtonColorChange
   } = useCoverPhotoDrag();
 
   return (
@@ -40,6 +42,7 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
           isDragging={isDragging}
           isSaving={isSaving}
           coverRef={coverRef}
+          buttonColor={buttonColor}
           onDragModeToggle={handleDragModeToggle}
           onSaveChanges={handleSaveChanges}
           onCancelChanges={handleCancelChanges}
@@ -47,6 +50,7 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onButtonColorChange={handleButtonColorChange}
         />
 
         {/* Profile Info Section - MATCHES COVER WIDTH */}

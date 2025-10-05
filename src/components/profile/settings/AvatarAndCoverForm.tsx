@@ -95,12 +95,14 @@ const { resolvedUrl: coverResolvedUrl, updateCover: updateCoverV2, refresh: refr
     isDragMode,
     isSaving,
     coverRef,
+    buttonColor,
     handleDragModeToggle,
     handleSaveChanges,
     handleCancelChanges,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
+    handleButtonColorChange
   } = useCoverPhotoDrag();
 
   const avatarFileInputRef = useRef<HTMLInputElement>(null);
@@ -232,6 +234,7 @@ useEffect(() => {
           isDragging={isDragging}
           isSaving={isSaving}
           coverRef={coverRef}
+          buttonColor={buttonColor}
           onDragModeToggle={handleDragModeToggle}
           onSaveChanges={handleSaveChanges}
           onCancelChanges={handleCancelChanges}
@@ -239,6 +242,7 @@ useEffect(() => {
           onMouseDown={handleCoverMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onButtonColorChange={handleButtonColorChange}
           showProfileInfo={false}
           containerClassName="!h-auto aspect-[12/5] w-full max-w-[1200px]"
         />
