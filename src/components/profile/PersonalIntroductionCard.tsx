@@ -577,7 +577,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                 <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
                   WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
                 }}>
-                  <Quote className="w-5 h-5" />
+                  <Quote className="w-5 h-5 text-gray-600" />
                   Favorite Quote
                 </h4>
                 <p className="text-gray-600 italic text-sm ml-7">"{data.favorite_quote}"</p>
