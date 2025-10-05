@@ -685,49 +685,38 @@ export default function ProfessionalPresentation() {
           </div>
 
           {/* Text Section - Draggable as a group */}
-          <div 
-            className={`mt-12 space-y-2 mx-0 px-0 rounded-lg -ml-56 scale-[1.2] origin-left my-[60px] relative ${editMode && !textDrag.isEditMode ? 'border-2 border-dashed border-blue-300 p-4 cursor-move hover:border-blue-500' : ''} ${textDrag.isEditMode ? 'border-2 border-green-500 p-4' : ''}`}
-            style={{
-              transform: `translate(${textDrag.transform.translateX}px, ${textDrag.transform.translateY}px)`,
-              transition: textDrag.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              cursor: textDrag.isDragging ? 'grabbing' : textDrag.isEditMode ? 'grab' : editMode ? 'grab' : 'default',
-              zIndex: textDrag.isEditMode ? 50 : 'auto',
+          <motion.div
+            drag={editMode}
+            dragMomentum={false}
+            className={`mt-12 space-y-2 mx-0 px-0 rounded-lg -ml-56 scale-[1.2] origin-left my-[60px] relative ${editMode ? 'border-2 border-dashed border-blue-300 p-4 cursor-move hover:border-blue-500' : ''}`}
+            onDragEnd={(e, info) => {
+              if (editMode && user?.id) {
+                const newTransform = {
+                  translateX: textDrag.transform.translateX + info.offset.x,
+                  translateY: textDrag.transform.translateY + info.offset.y,
+                };
+                // Auto-save on drag end
+                supabase
+                  .from('profiles')
+                  .update({ photo_text_transform: newTransform })
+                  .eq('id', user.id)
+                  .then(() => {
+                    localStorage.setItem(`photo-text-transform-${user.id}`, JSON.stringify(newTransform));
+                    toast.success('Position saved!');
+                  })
+                  .catch(() => toast.error('Failed to save position'));
+              }
             }}
-            onMouseDown={editMode && !textDrag.isEditMode ? (e) => {
-              e.preventDefault();
-              textDrag.setIsEditMode(true);
-              // Small delay to ensure edit mode is set before drag starts
-              setTimeout(() => textDrag.handleDragStart(e as any), 0);
-            } : undefined}
+            style={{
+              x: textDrag.transform.translateX,
+              y: textDrag.transform.translateY,
+            }}
           >
-            {/* Drag indicator when not in active edit mode */}
-            {editMode && !textDrag.isEditMode && (
+            {/* Drag indicator */}
+            {editMode && (
               <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
                 Drag to move
               </div>
-            )}
-
-            {textDrag.isEditMode && editMode && (
-              <>
-                <div className="absolute inset-0 border-2 border-green-500 rounded-xl pointer-events-none animate-pulse" />
-                <div
-                  className="absolute inset-0 cursor-move"
-                  onMouseDown={textDrag.handleDragStart}
-                />
-                <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2 z-[100]">
-                  <Button size="sm" variant="outline" onClick={textDrag.reset} disabled={textDrag.isSaving}>
-                    <RotateCcw className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={textDrag.cancel} disabled={textDrag.isSaving}>
-                    <X className="w-3.5 h-3.5 mr-1" />
-                    Cancel
-                  </Button>
-                  <Button size="sm" onClick={textDrag.save} disabled={textDrag.isSaving} className="bg-green-500 hover:bg-green-600">
-                    <Save className="w-3.5 h-3.5 mr-1" />
-                    {textDrag.isSaving ? 'Saving...' : 'Save'}
-                  </Button>
-                </div>
-              </>
             )}
             
             <EditableText id="name" value={profile.name} onChange={v => setProfile({
@@ -747,7 +736,7 @@ export default function ProfessionalPresentation() {
             <div className="mt-4 flex flex-wrap gap-3">
               {socials.map((s, i) => <SocialIcon key={i} href={s.url} label={s.label} icon={s.icon} />)}
             </div>
-          </div>
+          </motion.div>
         </motion.section>
 
         {/* MIDDLE: Top buttons remain; labels editable on hover; content below is editable and draggable */}
