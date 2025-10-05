@@ -139,9 +139,8 @@ export const WasabiImageDisplay: React.FC<WasabiImageDisplayProps> = ({
   }
 
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
     if (onClick) {
+      e.preventDefault();
       onClick();
     }
   };

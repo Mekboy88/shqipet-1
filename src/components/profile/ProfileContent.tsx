@@ -484,18 +484,14 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                         {!loadedPhotoIndices.has(index) && (
                           <div className="facebook-skeleton absolute inset-0" />
                         )}
-                        <div 
-                          className="cursor-pointer hover-scale w-full h-full"
+                        <WasabiImageDisplay
+                          url={photoUrl}
+                          alt={`Photo ${index + 1}`}
+                          className="relative z-10 w-full h-full object-cover rounded-md transition-opacity duration-300"
+                          aspectRatio="w-full h-full"
                           onClick={() => setSelectedPhotoIndex(index)}
-                        >
-                          <WasabiImageDisplay
-                            url={photoUrl}
-                            alt={`Photo ${index + 1}`}
-                            className="relative z-10 w-full h-full object-cover rounded-md transition-opacity duration-300"
-                            aspectRatio="w-full h-full"
-                            onLoaded={() => setLoadedPhotoIndices(prev => new Set([...prev, index]))}
-                          />
-                        </div>
+                          onLoaded={() => setLoadedPhotoIndices(prev => new Set([...prev, index]))}
+                        />
                         {photoId && (
                           <button
                             onClick={(e) => {
