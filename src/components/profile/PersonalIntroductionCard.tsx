@@ -551,7 +551,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                       {(showAllHobbies ? data.hobbies : data.hobbies.slice(0, 5)).map(hobby => {
                         const hobbyData = getHobbyByName(hobby);
                         return (
-                          <Badge key={hobby} variant="secondary" className="text-xs">
+                          <Badge key={hobby} variant="secondary" className="text-xs text-gray-600">
                             <span className="text-sm mr-1">{hobbyData?.emoji || '🎯'}</span>
                             {hobby}
                           </Badge>
