@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Linkedin, Github, Facebook, Instagram, Globe } from 'lucide-react';
 
 interface MobilePreviewModalProps {
   isOpen: boolean;
@@ -25,6 +25,14 @@ interface MobilePreviewModalProps {
     contact: boolean;
   };
 }
+
+const IconMap: Record<string, any> = {
+  linkedin: Linkedin,
+  github: Github,
+  facebook: Facebook,
+  instagram: Instagram,
+  website: Globe
+};
 
 const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
   isOpen,
@@ -85,17 +93,22 @@ const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
             {/* Social Links */}
             {socials.length > 0 && (
               <div className="flex gap-6">
-                {socials.map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-900 hover:text-gray-600 transition-colors"
-                  >
-                    {social.icon && <span className="text-2xl">{social.icon}</span>}
-                  </a>
-                ))}
+                {socials.map((social, index) => {
+                  const Icon = social.icon && IconMap[social.icon.toLowerCase()] 
+                    ? IconMap[social.icon.toLowerCase()] 
+                    : Globe;
+                  return (
+                    <a
+                      key={index}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-900 hover:text-gray-600 transition-colors"
+                    >
+                      <Icon size={24} />
+                    </a>
+                  );
+                })}
               </div>
             )}
 
