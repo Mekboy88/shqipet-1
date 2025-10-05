@@ -31,6 +31,18 @@ interface NavbarRightContentProps {
     url: string;
     icon?: string;
   }>>>;
+  professionalHireButton?: {
+    enabled: boolean;
+    text: string;
+    url: string;
+    email: string;
+  };
+  setProfessionalHireButton?: React.Dispatch<React.SetStateAction<{
+    enabled: boolean;
+    text: string;
+    url: string;
+    email: string;
+  }>>;
 }
 
 const NavbarRightContent: React.FC<NavbarRightContentProps> = ({ 
@@ -39,7 +51,9 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
   professionalSections,
   setProfessionalSections,
   professionalSocials,
-  setProfessionalSocials
+  setProfessionalSocials,
+  professionalHireButton,
+  setProfessionalHireButton
 }) => {
   const location = useLocation();
   const isProfessionalPresentation = location.pathname === '/professional-presentation';
@@ -242,7 +256,7 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
       {/* Action Buttons and User Profile */}
       <div className="flex items-center">
         <NavbarActionButtons />
-        {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && professionalSections && setProfessionalSections && professionalSocials && setProfessionalSocials && (
+        {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && professionalSections && setProfessionalSections && professionalSocials && setProfessionalSocials && professionalHireButton && setProfessionalHireButton && (
           <ProfessionalPresentationSettingsDropdown 
             editMode={professionalEditMode} 
             setEditMode={setProfessionalEditMode}
@@ -250,6 +264,8 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
             setSections={setProfessionalSections}
             socials={professionalSocials}
             setSocials={setProfessionalSocials}
+            hireButton={professionalHireButton}
+            setHireButton={setProfessionalHireButton}
           />
         )}
         <UserProfileDropdown />

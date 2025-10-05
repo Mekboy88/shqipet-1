@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { ChevronRight, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface ProfessionalPresentationSettingsDropdownProps {
   editMode: boolean;
@@ -33,6 +34,18 @@ interface ProfessionalPresentationSettingsDropdownProps {
     url: string;
     icon?: string;
   }>>>;
+  hireButton: {
+    enabled: boolean;
+    text: string;
+    url: string;
+    email: string;
+  };
+  setHireButton: React.Dispatch<React.SetStateAction<{
+    enabled: boolean;
+    text: string;
+    url: string;
+    email: string;
+  }>>;
 }
 
 const ProfessionalPresentationSettingsIcon: React.FC<{ className?: string; size?: number }> = ({ 
@@ -120,12 +133,15 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
   sections,
   setSections,
   socials,
-  setSocials
+  setSocials,
+  hireButton,
+  setHireButton
 }) => {
   const [open, setOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [sectionsExpanded, setSectionsExpanded] = useState(false);
   const [socialsExpanded, setSocialsExpanded] = useState(false);
+  const [hireButtonExpanded, setHireButtonExpanded] = useState(false);
 
   const updateSocial = (i: number, key: "label" | "url" | "icon", value: string) => {
     const copy = socials.slice();
@@ -277,6 +293,90 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
                         >
                           + Add new link
                         </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hire Button Section */}
+                  <div className="border-t pt-2">
+                    <button
+                      onClick={() => setHireButtonExpanded(!hireButtonExpanded)}
+                      className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <span className="text-sm font-medium text-neutral-700">Hire Button</span>
+                      {hireButtonExpanded ? (
+                        <ChevronDown className="h-4 w-4 text-neutral-500" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-neutral-500" />
+                      )}
+                    </button>
+
+                    {/* Hire Button Settings - Expanded View */}
+                    {hireButtonExpanded && (
+                      <div className="mt-2 space-y-3 pl-2">
+                        <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                          <span className="text-sm text-neutral-700">Enable</span>
+                          <Switch
+                            checked={hireButton.enabled}
+                            onCheckedChange={(v) =>
+                              setHireButton({
+                                ...hireButton,
+                                enabled: v
+                              })
+                            }
+                          />
+                        </div>
+
+                        <div className="space-y-2 p-2 rounded-lg bg-gray-50">
+                          <Label className="text-xs">Button Text</Label>
+                          <Input
+                            value={hireButton.text}
+                            onChange={(e) =>
+                              setHireButton({
+                                ...hireButton,
+                                text: e.target.value
+                              })
+                            }
+                            placeholder="Hire Me"
+                            className="text-xs h-8"
+                          />
+                        </div>
+
+                        <div className="space-y-2 p-2 rounded-lg bg-gray-50">
+                          <Label className="text-xs">Button URL (optional)</Label>
+                          <Input
+                            value={hireButton.url}
+                            onChange={(e) =>
+                              setHireButton({
+                                ...hireButton,
+                                url: e.target.value
+                              })
+                            }
+                            placeholder="https://your-booking-page.com"
+                            className="text-xs h-8"
+                          />
+                          <p className="text-xs text-neutral-500">Opens this URL when clicked</p>
+                        </div>
+
+                        <div className="space-y-2 p-2 rounded-lg bg-gray-50">
+                          <Label className="text-xs">Email (optional)</Label>
+                          <Input
+                            value={hireButton.email}
+                            onChange={(e) =>
+                              setHireButton({
+                                ...hireButton,
+                                email: e.target.value
+                              })
+                            }
+                            placeholder="your.email@example.com"
+                            className="text-xs h-8"
+                          />
+                          <p className="text-xs text-neutral-500">If no URL, opens email client</p>
+                        </div>
+
+                        <div className="rounded-lg bg-blue-50 p-2 text-xs">
+                          <strong>Note:</strong> Button appears at bottom right. Hidden in edit mode.
+                        </div>
                       </div>
                     )}
                   </div>

@@ -30,6 +30,18 @@ interface MinimalNavbarProps {
     url: string;
     icon?: string;
   }>>>;
+  professionalHireButton?: {
+    enabled: boolean;
+    text: string;
+    url: string;
+    email: string;
+  };
+  setProfessionalHireButton?: React.Dispatch<React.SetStateAction<{
+    enabled: boolean;
+    text: string;
+    url: string;
+    email: string;
+  }>>;
 }
 
 const MinimalNavbar: React.FC<MinimalNavbarProps> = ({ 
@@ -39,7 +51,9 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({
   professionalSections,
   setProfessionalSections,
   professionalSocials,
-  setProfessionalSocials
+  setProfessionalSocials,
+  professionalHireButton,
+  setProfessionalHireButton
 }) => {
   return (
     <header 
@@ -71,6 +85,8 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({
             setProfessionalSections={setProfessionalSections}
             professionalSocials={professionalSocials}
             setProfessionalSocials={setProfessionalSocials}
+            professionalHireButton={professionalHireButton}
+            setProfessionalHireButton={setProfessionalHireButton}
           />
         </div>
       </nav>

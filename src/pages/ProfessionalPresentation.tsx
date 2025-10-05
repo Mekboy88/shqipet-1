@@ -636,6 +636,8 @@ export default function ProfessionalPresentation() {
         setProfessionalSections={setSections}
         professionalSocials={socials}
         setProfessionalSocials={setSocials}
+        professionalHireButton={hireButton}
+        setProfessionalHireButton={setHireButton}
       />
       
       {/* Back to Profile Button - Top Left Corner */}
@@ -1317,47 +1319,8 @@ function SettingsDialog({
           </TabsContent>
 
           <TabsContent value="hire" className="space-y-4">
-            <div className="rounded-xl bg-neutral-50 p-4">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="text-sm font-medium">Enable Hire Button</div>
-                <Switch checked={hireButton.enabled} onCheckedChange={v => setHireButton({
-                ...hireButton,
-                enabled: v
-              })} />
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <Label>Button Text</Label>
-                  <Input value={hireButton.text} onChange={e => setHireButton({
-                  ...hireButton,
-                  text: e.target.value
-                })} placeholder="Hire Me" />
-                </div>
-                
-                <div>
-                  <Label>Button URL (optional)</Label>
-                  <Input value={hireButton.url} onChange={e => setHireButton({
-                  ...hireButton,
-                  url: e.target.value
-                })} placeholder="https://your-booking-page.com" />
-                  <p className="mt-1 text-xs text-neutral-500">If set, clicking the button opens this URL</p>
-                </div>
-                
-                <div>
-                  <Label>Email Address (optional)</Label>
-                  <Input value={hireButton.email} onChange={e => setHireButton({
-                  ...hireButton,
-                  email: e.target.value
-                })} placeholder="your.email@example.com" />
-                  <p className="mt-1 text-xs text-neutral-500">If URL is not set, clicking opens email client</p>
-                </div>
-
-                <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm">
-                  <strong>Note:</strong> The hire button will appear at the bottom right of the page. 
-                  It's hidden when in edit mode.
-                </div>
-              </div>
+            <div className="rounded-xl bg-blue-50 p-4 text-sm text-neutral-700">
+              <strong>Note:</strong> Hire button settings have been moved to the settings dropdown next to your profile avatar in the top right corner.
             </div>
           </TabsContent>
 
