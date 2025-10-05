@@ -580,7 +580,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                   <Quote className="w-5 h-5 text-gray-600" />
                   Favorite Quote
                 </h4>
-                <p className="text-gray-600 italic text-sm ml-7">"{data.favorite_quote}"</p>
+                <p className="text-gray-600 italic text-sm ml-7 font-medium">"{data.favorite_quote}"</p>
               </div>
             )}
           </div>
