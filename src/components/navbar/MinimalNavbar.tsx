@@ -6,12 +6,28 @@ interface MinimalNavbarProps {
   professionalControls?: React.ReactNode;
   professionalEditMode?: boolean;
   setProfessionalEditMode?: (value: boolean) => void;
+  professionalSections?: {
+    home: boolean;
+    skills: boolean;
+    portfolio: boolean;
+    blogs: boolean;
+    contact: boolean;
+  };
+  setProfessionalSections?: React.Dispatch<React.SetStateAction<{
+    home: boolean;
+    skills: boolean;
+    portfolio: boolean;
+    blogs: boolean;
+    contact: boolean;
+  }>>;
 }
 
 const MinimalNavbar: React.FC<MinimalNavbarProps> = ({ 
   professionalControls, 
   professionalEditMode, 
-  setProfessionalEditMode 
+  setProfessionalEditMode,
+  professionalSections,
+  setProfessionalSections
 }) => {
   return (
     <header 
@@ -39,6 +55,8 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({
           <NavbarRightContent 
             professionalEditMode={professionalEditMode}
             setProfessionalEditMode={setProfessionalEditMode}
+            professionalSections={professionalSections}
+            setProfessionalSections={setProfessionalSections}
           />
         </div>
       </nav>

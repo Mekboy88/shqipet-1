@@ -7,11 +7,27 @@ import { useLocation } from 'react-router-dom';
 interface NavbarRightContentProps {
   professionalEditMode?: boolean;
   setProfessionalEditMode?: (value: boolean) => void;
+  professionalSections?: {
+    home: boolean;
+    skills: boolean;
+    portfolio: boolean;
+    blogs: boolean;
+    contact: boolean;
+  };
+  setProfessionalSections?: React.Dispatch<React.SetStateAction<{
+    home: boolean;
+    skills: boolean;
+    portfolio: boolean;
+    blogs: boolean;
+    contact: boolean;
+  }>>;
 }
 
 const NavbarRightContent: React.FC<NavbarRightContentProps> = ({ 
   professionalEditMode, 
-  setProfessionalEditMode 
+  setProfessionalEditMode,
+  professionalSections,
+  setProfessionalSections
 }) => {
   const location = useLocation();
   const isProfessionalPresentation = location.pathname === '/professional-presentation';
@@ -214,10 +230,12 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
       {/* Action Buttons and User Profile */}
       <div className="flex items-center">
         <NavbarActionButtons />
-        {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && (
+        {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && professionalSections && setProfessionalSections && (
           <ProfessionalPresentationSettingsDropdown 
             editMode={professionalEditMode} 
-            setEditMode={setProfessionalEditMode} 
+            setEditMode={setProfessionalEditMode}
+            sections={professionalSections}
+            setSections={setProfessionalSections}
           />
         )}
         <UserProfileDropdown />

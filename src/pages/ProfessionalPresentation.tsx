@@ -632,6 +632,8 @@ export default function ProfessionalPresentation() {
         professionalControls={professionalControls} 
         professionalEditMode={editMode}
         setProfessionalEditMode={setEditMode}
+        professionalSections={sections}
+        setProfessionalSections={setSections}
       />
       
       {/* Back to Profile Button - Top Left Corner */}
@@ -1301,13 +1303,9 @@ function SettingsDialog({
           </TabsContent>
 
           <TabsContent value="sections" className="space-y-3">
-            {[["Home", "home"], ["Skills", "skills"], ["Portfolio", "portfolio"], ["Blogs", "blogs"], ["Contact", "contact"]].map(([label, key]: any) => <div key={key} className="flex items-center justify-between rounded-xl bg-neutral-50 p-3">
-                <div className="text-sm font-medium">{label}</div>
-                <Switch checked={(sections as any)[key]} onCheckedChange={v => setSections({
-              ...sections,
-              [key]: v
-            })} />
-              </div>)}
+            <div className="rounded-xl bg-blue-50 p-4 text-sm text-neutral-700">
+              <strong>Note:</strong> Section toggles have been moved to the settings dropdown next to your profile avatar in the top right corner.
+            </div>
           </TabsContent>
 
           <TabsContent value="links" className="space-y-3">

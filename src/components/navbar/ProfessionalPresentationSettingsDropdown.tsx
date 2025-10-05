@@ -2,10 +2,25 @@ import React, { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { ChevronRight, ChevronDown } from "lucide-react";
 
 interface ProfessionalPresentationSettingsDropdownProps {
   editMode: boolean;
   setEditMode: (value: boolean) => void;
+  sections: {
+    home: boolean;
+    skills: boolean;
+    portfolio: boolean;
+    blogs: boolean;
+    contact: boolean;
+  };
+  setSections: React.Dispatch<React.SetStateAction<{
+    home: boolean;
+    skills: boolean;
+    portfolio: boolean;
+    blogs: boolean;
+    contact: boolean;
+  }>>;
 }
 
 const ProfessionalPresentationSettingsIcon: React.FC<{ className?: string; size?: number }> = ({ 
@@ -89,10 +104,13 @@ const ProfessionalPresentationSettingsIcon: React.FC<{ className?: string; size?
 
 const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentationSettingsDropdownProps> = ({ 
   editMode, 
-  setEditMode 
+  setEditMode,
+  sections,
+  setSections
 }) => {
   const [open, setOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [sectionsExpanded, setSectionsExpanded] = useState(false);
 
   return (
     <div className="relative my-0 py-0 mx-0 mt-1 mr-2">
@@ -117,10 +135,55 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
               sideOffset={12}
             >
               <div className="bg-white rounded-xl overflow-hidden text-gray-800">
-                <div className="p-4">
+                <div className="p-4 space-y-2">
+                  {/* Edit Mode Toggle */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-neutral-700">Edit Mode</span>
                     <Switch checked={editMode} onCheckedChange={setEditMode} />
+                  </div>
+
+                  {/* Sections Button with Arrow */}
+                  <div className="border-t pt-2">
+                    <button
+                      onClick={() => setSectionsExpanded(!sectionsExpanded)}
+                      className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <span className="text-sm font-medium text-neutral-700">Sections</span>
+                      {sectionsExpanded ? (
+                        <ChevronDown className="h-4 w-4 text-neutral-500" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-neutral-500" />
+                      )}
+                    </button>
+
+                    {/* Section Toggles - Expanded View */}
+                    {sectionsExpanded && (
+                      <div className="mt-2 space-y-2 pl-2">
+                        {[
+                          ["Home", "home"],
+                          ["Skills", "skills"],
+                          ["Portfolio", "portfolio"],
+                          ["Blogs", "blogs"],
+                          ["Contact", "contact"]
+                        ].map(([label, key]) => (
+                          <div
+                            key={key}
+                            className="flex items-center justify-between p-2 rounded-lg bg-gray-50"
+                          >
+                            <span className="text-sm text-neutral-700">{label}</span>
+                            <Switch
+                              checked={(sections as any)[key]}
+                              onCheckedChange={(v) =>
+                                setSections({
+                                  ...sections,
+                                  [key]: v
+                                })
+                              }
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
