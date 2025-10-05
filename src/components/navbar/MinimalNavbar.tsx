@@ -42,6 +42,14 @@ interface MinimalNavbarProps {
     url: string;
     email: string;
   }>>;
+  professionalProfile?: {
+    firstName: string;
+    lastName: string;
+    presentation: string;
+    photoUrl: string;
+    aboutMe: string;
+    highlights: string[];
+  };
 }
 
 const MinimalNavbar: React.FC<MinimalNavbarProps> = ({ 
@@ -53,7 +61,8 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({
   professionalSocials,
   setProfessionalSocials,
   professionalHireButton,
-  setProfessionalHireButton
+  setProfessionalHireButton,
+  professionalProfile
 }) => {
   return (
     <header 
@@ -87,6 +96,7 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({
             setProfessionalSocials={setProfessionalSocials}
             professionalHireButton={professionalHireButton}
             setProfessionalHireButton={setProfessionalHireButton}
+            professionalProfile={professionalProfile}
           />
         </div>
       </nav>

@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import NavbarActionButtons from './NavbarActionButtons';
 import UserProfileDropdown from '@/components/UserProfileDropdown';
 import ProfessionalPresentationSettingsDropdown from './ProfessionalPresentationSettingsDropdown';
+import MobilePreviewModal from './MobilePreviewModal';
 import { mediaService } from '@/services/media/MediaService';
 import { useLocation } from 'react-router-dom';
+import { Smartphone } from 'lucide-react';
 interface NavbarRightContentProps {
   professionalEditMode?: boolean;
   setProfessionalEditMode?: (value: boolean) => void;
@@ -43,6 +45,14 @@ interface NavbarRightContentProps {
     url: string;
     email: string;
   }>>;
+  professionalProfile?: {
+    firstName: string;
+    lastName: string;
+    presentation: string;
+    photoUrl: string;
+    aboutMe: string;
+    highlights: string[];
+  };
 }
 
 const NavbarRightContent: React.FC<NavbarRightContentProps> = ({ 
@@ -53,10 +63,12 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
   professionalSocials,
   setProfessionalSocials,
   professionalHireButton,
-  setProfessionalHireButton
+  setProfessionalHireButton,
+  professionalProfile
 }) => {
   const location = useLocation();
   const isProfessionalPresentation = location.pathname === '/professional-presentation';
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
   console.log('🔍 NavbarRightContent rendering with enhanced console controls');
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -252,24 +264,50 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
       }
     };
   }, []);
-  return <div className="flex items-center justify-end w-full">
-      {/* Action Buttons and User Profile */}
-      <div className="flex items-center">
-        <NavbarActionButtons />
-        {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && professionalSections && setProfessionalSections && professionalSocials && setProfessionalSocials && professionalHireButton && setProfessionalHireButton && (
-          <ProfessionalPresentationSettingsDropdown 
-            editMode={professionalEditMode} 
-            setEditMode={setProfessionalEditMode}
-            sections={professionalSections}
-            setSections={setProfessionalSections}
-            socials={professionalSocials}
-            setSocials={setProfessionalSocials}
-            hireButton={professionalHireButton}
-            setHireButton={setProfessionalHireButton}
-          />
-        )}
-        <UserProfileDropdown />
+  return (
+    <>
+      <div className="flex items-center justify-end w-full">
+        {/* Action Buttons and User Profile */}
+        <div className="flex items-center gap-2">
+          <NavbarActionButtons />
+          {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && professionalSections && setProfessionalSections && professionalSocials && setProfessionalSocials && professionalHireButton && setProfessionalHireButton && (
+            <>
+              {/* Mobile Preview Button */}
+              <button
+                onClick={() => setShowMobilePreview(true)}
+                className="h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors duration-100 flex items-center justify-center"
+                aria-label="Mobile Preview"
+              >
+                <Smartphone size={18} className="text-gray-700" />
+              </button>
+              
+              <ProfessionalPresentationSettingsDropdown 
+                editMode={professionalEditMode} 
+                setEditMode={setProfessionalEditMode}
+                sections={professionalSections}
+                setSections={setProfessionalSections}
+                socials={professionalSocials}
+                setSocials={setProfessionalSocials}
+                hireButton={professionalHireButton}
+                setHireButton={setProfessionalHireButton}
+              />
+            </>
+          )}
+          <UserProfileDropdown />
+        </div>
       </div>
-    </div>;
+
+      {/* Mobile Preview Modal */}
+      {isProfessionalPresentation && professionalProfile && professionalSections && professionalSocials && (
+        <MobilePreviewModal
+          isOpen={showMobilePreview}
+          onClose={() => setShowMobilePreview(false)}
+          profile={professionalProfile}
+          socials={professionalSocials}
+          sections={professionalSections}
+        />
+      )}
+    </>
+  );
 };
 export default NavbarRightContent;

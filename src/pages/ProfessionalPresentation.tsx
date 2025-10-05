@@ -786,6 +786,14 @@ export default function ProfessionalPresentation() {
         setProfessionalSocials={setSocials}
         professionalHireButton={hireButton}
         setProfessionalHireButton={setHireButton}
+        professionalProfile={{
+          firstName: profile.name.split(' ')[0] || '',
+          lastName: profile.name.split(' ').slice(1).join(' ') || '',
+          presentation: profile.role,
+          photoUrl: profile.avatarUrl,
+          aboutMe: profile.entry,
+          highlights: profile.quick ? [profile.quick] : []
+        }}
       />
       
       <div className="min-h-screen w-full bg-white text-neutral-900 pt-14" style={accentStyle}>
