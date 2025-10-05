@@ -622,10 +622,6 @@ export default function ProfessionalPresentation() {
         <Switch checked={editMode} onCheckedChange={setEditMode} />
       </div>
       
-      <Button variant="outline" size="sm" className="gap-1.5 h-8" onClick={saveAll}>
-        <Save className="h-3.5 w-3.5" /> Save all
-      </Button>
-      
       <a href={profile.cvUrl} target="_blank" rel="noreferrer">
         <Button variant="outline" size="sm" className="gap-1.5 h-8">
           <FileText className="h-3.5 w-3.5" /> CV
