@@ -651,6 +651,14 @@ export default function ProfessionalPresentation() {
   // Professional Presentation Controls - Navigation buttons in center of navbar
   const professionalControls = isOwner || !isOwner ? (
     <div className="flex items-center gap-2">
+      {/* Back to Profile Arrow Button */}
+      <button 
+        onClick={() => navigate('/profile')}
+        className="rounded-xl p-2 text-sm transition-all hover:bg-gray-100"
+        aria-label="Back to Profile"
+      >
+        ←
+      </button>
       {sections.home && (
         <button 
           onClick={() => setActiveTab("home")}
@@ -779,18 +787,6 @@ export default function ProfessionalPresentation() {
         professionalHireButton={hireButton}
         setProfessionalHireButton={setHireButton}
       />
-      
-      {/* Back to Profile Button - Top Left Corner */}
-      <div className="fixed top-16 left-4 z-50">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => navigate('/profile')} 
-          className="gap-1.5 h-8 bg-white shadow-md hover:shadow-lg"
-        >
-          ← Back to Profile
-        </Button>
-      </div>
       
       <div className="min-h-screen w-full bg-white text-neutral-900 pt-14" style={accentStyle}>
         {/* Grid */}
