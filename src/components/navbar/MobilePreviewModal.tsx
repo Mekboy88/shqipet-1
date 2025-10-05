@@ -74,9 +74,9 @@ const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
           </div>
 
           {/* Content Area */}
-          <div className="p-6 space-y-6">
+          <div className="py-6 space-y-6">
             {/* Name and Presentation */}
-            <div className="space-y-3">
+            <div className="space-y-3 px-6">
               <h1 className="text-3xl font-bold text-gray-900">
                 {profile.firstName} {profile.lastName}
               </h1>
@@ -92,7 +92,7 @@ const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
 
             {/* Social Links */}
             {socials.length > 0 && (
-              <div className="flex gap-6">
+              <div className="flex gap-6 px-6">
                 {socials.map((social, index) => {
                   const Icon = social.icon && IconMap[social.icon.toLowerCase()] 
                     ? IconMap[social.icon.toLowerCase()] 
@@ -113,7 +113,7 @@ const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="flex gap-2 overflow-x-auto px-6">
               {sections.home && (
                 <button className="px-3 py-1.5 bg-red-50 text-red-600 rounded-full text-xs font-medium whitespace-nowrap">
                   Home
@@ -142,7 +142,7 @@ const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
             </div>
 
             {/* About Me Section */}
-            <div className="space-y-3 pt-4">
+            <div className="space-y-3 pt-4 px-6">
               <h2 className="text-2xl font-bold text-gray-900">About me</h2>
               {profile.aboutMe && (
                 <p className="text-base text-gray-700 leading-relaxed">{profile.aboutMe}</p>
@@ -151,7 +151,7 @@ const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
 
             {/* Highlights Section */}
             {profile.highlights && profile.highlights.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-3 px-6">
                 <h2 className="text-2xl font-bold text-gray-900">Highlights</h2>
                 <ul className="space-y-3">
                   {profile.highlights.map((highlight, index) => (
