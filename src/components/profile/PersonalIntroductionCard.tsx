@@ -528,7 +528,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                   </h4>
                   <div className="flex flex-wrap gap-1 ml-7">
                     {data.languages.map(language => (
-                      <Badge key={language} variant="secondary" className="text-xs">
+                      <Badge key={language} variant="secondary" className="text-xs text-gray-600">
                         <span className="text-sm mr-1">{getLanguageFlag(language)}</span>
                         {language}
                       </Badge>
