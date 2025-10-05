@@ -802,7 +802,12 @@ export default function ProfessionalPresentation() {
 
             {/* HOME */}
             {sections.home && <TabsContent value="home" className="space-y-8">
-                <motion.div drag={editMode} dragMomentum={false} className="relative">
+                <motion.div drag={editMode} dragMomentum={false} className={`relative ${editMode ? 'border-2 border-dashed border-blue-300 rounded-lg p-4 cursor-move hover:border-blue-500' : ''}`}>
+                  {editMode && (
+                    <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
+                      Drag to move
+                    </div>
+                  )}
                   <EditableText id="about-title" value="About me" onChange={() => {}} className="text-lg font-semibold tracking-tight" styleConfig={styles["about-title"]} setStyleConfig={s => setStyle("about-title", s)} editMode={editMode} />
                   <EditableText id="about-body" value={profile.entry} onChange={v => setProfile({
                   ...profile,
@@ -810,7 +815,12 @@ export default function ProfessionalPresentation() {
                 })} className="mt-2 text-[15px] leading-relaxed" styleConfig={styles["about-body"]} setStyleConfig={s => setStyle("about-body", s)} editMode={editMode} />
                 </motion.div>
 
-                <motion.div drag={editMode} dragMomentum={false} className="relative">
+                <motion.div drag={editMode} dragMomentum={false} className={`relative ${editMode ? 'border-2 border-dashed border-blue-300 rounded-lg p-4 cursor-move hover:border-blue-500' : ''}`}>
+                  {editMode && (
+                    <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
+                      Drag to move
+                    </div>
+                  )}
                   <EditableText id="highlights-title" value="Highlights" onChange={() => {}} className="text-lg font-semibold tracking-tight" styleConfig={styles["highlights-title"]} setStyleConfig={s => setStyle("highlights-title", s)} editMode={editMode} />
                   <ul className="mt-2 list-inside list-disc space-y-1">
                     {["Founder mindset with hands-on product execution", "Supabase, Wasabi (S3), React/Next.js, Tailwind, shadcn/ui", "Auth flows, MFA, admin dashboards, and real-time tooling"].map((item, idx) => <li key={idx}>
@@ -822,14 +832,24 @@ export default function ProfessionalPresentation() {
 
             {/* SKILLS */}
             {sections.skills && <TabsContent value="skills" className="space-y-8">
-                <motion.div drag={editMode} dragMomentum={false} className="relative">
+                <motion.div drag={editMode} dragMomentum={false} className={`relative ${editMode ? 'border-2 border-dashed border-blue-300 rounded-lg p-4 cursor-move hover:border-blue-500' : ''}`}>
+                  {editMode && (
+                    <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
+                      Drag to move
+                    </div>
+                  )}
                   <EditableText id="skills-title" value="Core skills" onChange={() => {}} className="text-lg font-semibold tracking-tight" styleConfig={styles["skills-title"]} setStyleConfig={s => setStyle("skills-title", s)} editMode={editMode} />
                   <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                     {["Product Thinking", "React / Next.js / Vite", "Tailwind / shadcn/ui", "Supabase & RLS", "Wasabi S3 + CORS", "Edge Functions", "Authentication & MFA", "Admin Dashboards"].map((s, i) => <EditableText key={i} id={`skill-${i}`} value={s} onChange={() => {}} className="rounded-xl bg-[var(--accent-10)] px-3 py-2 text-[13px]" styleConfig={styles[`skill-${i}`]} setStyleConfig={st => setStyle(`skill-${i}`, st)} editMode={editMode} draggable />)}
                   </div>
                 </motion.div>
 
-                <motion.div drag={editMode} dragMomentum={false} className="relative">
+                <motion.div drag={editMode} dragMomentum={false} className={`relative ${editMode ? 'border-2 border-dashed border-blue-300 rounded-lg p-4 cursor-move hover:border-blue-500' : ''}`}>
+                  {editMode && (
+                    <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
+                      Drag to move
+                    </div>
+                  )}
                   <EditableText id="learning-title" value="Currently learning" onChange={() => {}} className="text-lg font-semibold tracking-tight" styleConfig={styles["learning-title"]} setStyleConfig={s => setStyle("learning-title", s)} editMode={editMode} />
                   <div className="mt-3 flex flex-wrap gap-2 text-sm">
                     {["Threat Modeling", "Pen Testing Basics", "Secure SDLC"].map((s, i) => <EditableText key={i} id={`learning-${i}`} value={s} onChange={() => {}} className="rounded-xl bg-neutral-50 px-3 py-2 text-[13px]" styleConfig={styles[`learning-${i}`]} setStyleConfig={st => setStyle(`learning-${i}`, st)} editMode={editMode} draggable />)}
@@ -839,7 +859,12 @@ export default function ProfessionalPresentation() {
 
             {/* PORTFOLIO */}
             {sections.portfolio && <TabsContent value="portfolio" className="space-y-8" id="portfolio">
-                <motion.div drag={editMode} dragMomentum={false} className="relative">
+                <motion.div drag={editMode} dragMomentum={false} className={`relative ${editMode ? 'border-2 border-dashed border-blue-300 rounded-lg p-4 cursor-move hover:border-blue-500' : ''}`}>
+                  {editMode && (
+                    <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
+                      Drag to move
+                    </div>
+                  )}
                   <EditableText id="portfolio-title" value="Featured work" onChange={() => {}} className="text-lg font-semibold tracking-tight" styleConfig={styles["portfolio-title"]} setStyleConfig={s => setStyle("portfolio-title", s)} editMode={editMode} />
                   <div className="mt-3 grid grid-cols-2 gap-4">
                     {["Shqipet Admin Settings", "Notification System", "Marketplace Cards", "Luna AI Assistant"].map((t, i) => <motion.div key={i} drag={editMode} dragMomentum={false} className="group relative overflow-hidden rounded-2xl bg-white p-3">
@@ -852,7 +877,12 @@ export default function ProfessionalPresentation() {
 
             {/* BLOGS */}
             {sections.blogs && <TabsContent value="blogs" className="space-y-8">
-                <motion.div drag={editMode} dragMomentum={false} className="relative">
+                <motion.div drag={editMode} dragMomentum={false} className={`relative ${editMode ? 'border-2 border-dashed border-blue-300 rounded-lg p-4 cursor-move hover:border-blue-500' : ''}`}>
+                  {editMode && (
+                    <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
+                      Drag to move
+                    </div>
+                  )}
                   <EditableText id="blogs-title" value="Latest posts" onChange={() => {}} className="text-lg font-semibold tracking-tight" styleConfig={styles["blogs-title"]} setStyleConfig={s => setStyle("blogs-title", s)} editMode={editMode} />
                   <div className="mt-3 space-y-3 text-[15px]">
                     {["Designing calm interfaces", "Auth flows that feel humane", "My Supabase & Wasabi tips"].map((t, i) => <motion.div key={i} drag={editMode} dragMomentum={false} className="flex items-center justify-between rounded-xl bg-white p-3">
@@ -867,7 +897,12 @@ export default function ProfessionalPresentation() {
 
             {/* CONTACT */}
             {sections.contact && <TabsContent value="contact" className="space-y-8" id="contact">
-                <motion.div drag={editMode} dragMomentum={false} className="relative">
+                <motion.div drag={editMode} dragMomentum={false} className={`relative ${editMode ? 'border-2 border-dashed border-blue-300 rounded-lg p-4 cursor-move hover:border-blue-500' : ''}`}>
+                  {editMode && (
+                    <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
+                      Drag to move
+                    </div>
+                  )}
                   <EditableText id="contact-title" value="Get in touch" onChange={() => {}} className="text-lg font-semibold tracking-tight" styleConfig={styles["contact-title"]} setStyleConfig={s => setStyle("contact-title", s)} editMode={editMode} />
                   <div className="mt-3 grid grid-cols-2 gap-4">
                     <div className="space-y-2">
