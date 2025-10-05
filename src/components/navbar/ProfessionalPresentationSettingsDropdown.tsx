@@ -173,7 +173,7 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
                   {/* Social Links Button with Arrow */}
                   <div className="border-t pt-2">
                     <button onClick={() => setSocialsExpanded(!socialsExpanded)} className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                      <span className="text-sm font-medium text-neutral-700">Social Links</span>
+                      
                       {socialsExpanded ? <ChevronDown className="h-4 w-4 text-neutral-500" /> : <ChevronRight className="h-4 w-4 text-neutral-500" />}
                     </button>
 
