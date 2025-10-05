@@ -507,7 +507,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                     </svg>
                     City you live
                   </h4>
-                  <p className="text-gray-600 text-sm ml-7">{data.city_location}</p>
+                  <p className="text-gray-600 text-sm ml-7 font-medium">{data.city_location}</p>
                 </div>
               )}
 
