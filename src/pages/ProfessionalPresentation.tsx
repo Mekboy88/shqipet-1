@@ -699,7 +699,7 @@ export default function ProfessionalPresentation() {
           >
             {/* Text Edit Mode Controls */}
             {editMode && !textDrag.isEditMode && (
-              <div className="absolute -top-12 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute -top-12 right-0 transition-opacity">
                 <Button
                   size="sm"
                   variant="secondary"
