@@ -66,79 +66,84 @@ const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
           </div>
 
           {/* Content Area */}
-          <div className="p-4 space-y-4">
+          <div className="p-6 space-y-6">
             {/* Name and Presentation */}
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold text-gray-900">
+            <div className="space-y-3">
+              <h1 className="text-3xl font-bold text-gray-900">
                 {profile.firstName} {profile.lastName}
               </h1>
               {profile.presentation && (
-                <p className="text-sm text-gray-600">{profile.presentation}</p>
+                <p className="text-base text-gray-600">
+                  Founder • {profile.presentation}
+                </p>
               )}
+              <p className="text-base text-gray-700 leading-relaxed">
+                Based in London. Cybersecurity learner. I design systems that are fast, clear, and human-friendly.
+              </p>
             </div>
 
             {/* Social Links */}
             {socials.length > 0 && (
-              <div className="flex justify-center gap-3 flex-wrap">
+              <div className="flex gap-6">
                 {socials.map((social, index) => (
                   <a
                     key={index}
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
+                    className="text-gray-900 hover:text-gray-600 transition-colors"
                   >
-                    {social.label}
+                    <span className="text-2xl">{social.label}</span>
                   </a>
                 ))}
               </div>
             )}
 
             {/* Navigation Buttons */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6">
               {sections.home && (
-                <button className="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium">
+                <button className="px-6 py-2.5 bg-red-50 text-red-600 rounded-full text-base font-medium whitespace-nowrap">
                   Home
                 </button>
               )}
               {sections.skills && (
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-base font-medium whitespace-nowrap border border-gray-200">
                   Skills
                 </button>
               )}
               {sections.portfolio && (
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-base font-medium whitespace-nowrap border border-gray-200">
                   Portfolio
                 </button>
               )}
               {sections.blogs && (
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-base font-medium whitespace-nowrap border border-gray-200">
                   Blogs
                 </button>
               )}
               {sections.contact && (
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-base font-medium whitespace-nowrap border border-gray-200">
                   Contact
                 </button>
               )}
             </div>
 
             {/* About Me Section */}
-            {profile.aboutMe && (
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-gray-900">About Me</h2>
-                <p className="text-sm text-gray-600 leading-relaxed">{profile.aboutMe}</p>
-              </div>
-            )}
+            <div className="space-y-3 pt-4">
+              <h2 className="text-2xl font-bold text-gray-900">About me</h2>
+              {profile.aboutMe && (
+                <p className="text-base text-gray-700 leading-relaxed">{profile.aboutMe}</p>
+              )}
+            </div>
 
             {/* Highlights Section */}
             {profile.highlights && profile.highlights.length > 0 && (
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-gray-900">Highlights</h2>
-                <ul className="space-y-2">
+              <div className="space-y-3">
+                <h2 className="text-2xl font-bold text-gray-900">Highlights</h2>
+                <ul className="space-y-3">
                   {profile.highlights.map((highlight, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                      <span className="text-red-500 mt-1">•</span>
+                    <li key={index} className="text-base text-gray-700 flex items-start gap-2">
+                      <span className="text-gray-900">•</span>
                       <span>{highlight}</span>
                     </li>
                   ))}
