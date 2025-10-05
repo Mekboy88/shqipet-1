@@ -320,10 +320,10 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
                             checked={hireButton.enabled}
                             onCheckedChange={(v) => {
                               console.log('🔄 Hire button switch toggled to:', v);
-                              setHireButton({
-                                ...hireButton,
+                              setHireButton(prev => ({
+                                ...prev,
                                 enabled: v
-                              });
+                              }));
                             }}
                           />
                         </div>
