@@ -567,8 +567,9 @@ export default function ProfessionalPresentation() {
   useEffect(() => {
     const saveData = async () => {
       if (!user || !isOwner) return;
+      console.log('💾 Saving hire button state:', hireButton);
       try {
-        await supabase.from('professional_presentations').upsert({
+        const { error } = await supabase.from('professional_presentations').upsert({
           user_id: user.id,
           edit_mode: editMode,
           hire_button_enabled: hireButton.enabled,
@@ -579,8 +580,13 @@ export default function ProfessionalPresentation() {
         }, {
           onConflict: 'user_id'
         });
+        if (error) {
+          console.error('❌ Error saving hire button data:', error);
+        } else {
+          console.log('✅ Hire button data saved successfully');
+        }
       } catch (error) {
-        console.error('Error saving data:', error);
+        console.error('❌ Exception saving data:', error);
       }
     };
 

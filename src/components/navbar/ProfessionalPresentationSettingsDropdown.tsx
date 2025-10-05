@@ -318,13 +318,20 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
                           <span className="text-sm text-neutral-700">Enable</span>
                           <Switch
                             checked={hireButton.enabled}
-                            onCheckedChange={(v) =>
+                            onCheckedChange={(v) => {
+                              console.log('🔄 Hire button switch toggled to:', v);
                               setHireButton({
                                 ...hireButton,
                                 enabled: v
-                              })
-                            }
+                              });
+                            }}
                           />
+                        </div>
+
+                        <div className="p-2 rounded-lg bg-blue-50 text-xs">
+                          <strong>Status:</strong> Hire button is currently <strong>{hireButton.enabled ? 'ON' : 'OFF'}</strong>
+                          {!hireButton.enabled && <div className="mt-1">Button will not appear on the page</div>}
+                          {hireButton.enabled && <div className="mt-1">Button will appear at bottom right (hidden in edit mode)</div>}
                         </div>
 
                         <div className="space-y-2 p-2 rounded-lg bg-gray-50">
