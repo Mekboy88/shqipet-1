@@ -695,6 +695,8 @@ export default function ProfessionalPresentation() {
                   translateX: textDrag.transform.translateX + info.offset.x,
                   translateY: textDrag.transform.translateY + info.offset.y,
                 };
+                // update local state immediately to avoid snap-back
+                textDrag.setPosition(newTransform);
                 // Auto-save on drag end
                 supabase
                   .from('profiles')
@@ -702,6 +704,7 @@ export default function ProfessionalPresentation() {
                   .eq('id', user.id)
                   .then(() => {
                     localStorage.setItem(`photo-text-transform-${user.id}`, JSON.stringify(newTransform));
+                    localStorage.setItem('photo-text-transform-last', JSON.stringify(newTransform));
                     toast.success('Position saved!');
                   })
                   .catch(() => toast.error('Failed to save position'));
@@ -710,6 +713,7 @@ export default function ProfessionalPresentation() {
             style={{
               x: textDrag.transform.translateX,
               y: textDrag.transform.translateY,
+              opacity: textDrag.isLoading && !textDrag.hadCache ? 0 : 1,
             }}
           >
             {/* Drag indicator */}
