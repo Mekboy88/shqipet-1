@@ -51,7 +51,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   return (
     <>
       {/* Edit Mode Overlay */}
-      <div className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none animate-pulse" />
+      <div className="absolute inset-0 border-2 border-gray-300 rounded-xl pointer-events-none" />
       
       {/* Resize Handles */}
       <div className="absolute inset-0 pointer-events-none">
@@ -122,12 +122,12 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       <div
         className={cn(
           "absolute inset-0 cursor-move flex items-center justify-center",
-          isDragging ? "bg-blue-500/10" : "hover:bg-blue-500/5"
+          isDragging ? "bg-gray-100/20" : "hover:bg-gray-100/10"
         )}
         onMouseDown={onDragStart}
       >
         {!isDragging && !isResizing && (
-          <div className="bg-blue-500/80 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg">
+          <div className="bg-gray-700/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg">
             Drag to move
           </div>
         )}
@@ -168,7 +168,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
           size="sm"
           onClick={onSave}
           disabled={isSaving}
-          className="h-8 bg-blue-500 hover:bg-blue-600"
+          className="h-8"
         >
           <Save className="w-3.5 h-3.5 mr-1" />
           {isSaving ? 'Saving...' : 'Save'}
@@ -177,7 +177,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
 
       {/* Instructions */}
       {!isDragging && !isResizing && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-500/90 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-700/90 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
           Blue corners: proportional • Green edges: horizontal • Purple edges: vertical
         </div>
       )}
