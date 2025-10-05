@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronRight, ChevronDown, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface ProfessionalPresentationSettingsDropdownProps {
   editMode: boolean;
@@ -21,6 +23,16 @@ interface ProfessionalPresentationSettingsDropdownProps {
     blogs: boolean;
     contact: boolean;
   }>>;
+  socials: Array<{
+    label: string;
+    url: string;
+    icon?: string;
+  }>;
+  setSocials: React.Dispatch<React.SetStateAction<Array<{
+    label: string;
+    url: string;
+    icon?: string;
+  }>>>;
 }
 
 const ProfessionalPresentationSettingsIcon: React.FC<{ className?: string; size?: number }> = ({ 
@@ -106,11 +118,32 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
   editMode, 
   setEditMode,
   sections,
-  setSections
+  setSections,
+  socials,
+  setSocials
 }) => {
   const [open, setOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [sectionsExpanded, setSectionsExpanded] = useState(false);
+  const [socialsExpanded, setSocialsExpanded] = useState(false);
+
+  const updateSocial = (i: number, key: "label" | "url" | "icon", value: string) => {
+    const copy = socials.slice();
+    (copy[i] as any)[key] = value;
+    setSocials(copy);
+  };
+
+  const addSocial = () => {
+    setSocials([...socials, {
+      label: "New link",
+      url: "https://",
+      icon: "website"
+    }]);
+  };
+
+  const removeSocial = (i: number) => {
+    setSocials(socials.filter((_, idx) => idx !== i));
+  };
 
   return (
     <div className="relative my-0 py-0 mx-0 mt-1 mr-2">
@@ -130,7 +163,7 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
             </TooltipTrigger>
             
             <PopoverContent 
-              className="w-80 p-0 rounded-xl shadow-lg border-none z-[1000]" 
+              className="w-96 p-0 rounded-xl shadow-lg border-none z-[1000] max-h-[600px] overflow-y-auto" 
               align="end" 
               sideOffset={12}
             >
@@ -182,6 +215,71 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
                             />
                           </div>
                         ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Social Links Button with Arrow */}
+                  <div className="border-t pt-2">
+                    <button
+                      onClick={() => setSocialsExpanded(!socialsExpanded)}
+                      className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <span className="text-sm font-medium text-neutral-700">Social Links</span>
+                      {socialsExpanded ? (
+                        <ChevronDown className="h-4 w-4 text-neutral-500" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-neutral-500" />
+                      )}
+                    </button>
+
+                    {/* Social Links - Expanded View */}
+                    {socialsExpanded && (
+                      <div className="mt-2 space-y-3 pl-2">
+                        {socials.map((s, i) => (
+                          <div key={i} className="space-y-2 p-2 rounded-lg bg-gray-50">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-medium text-neutral-600">Link {i + 1}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeSocial(i)}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <Input
+                              value={s.label}
+                              onChange={(e) => updateSocial(i, "label", e.target.value)}
+                              placeholder="Label (e.g. LinkedIn)"
+                              className="text-xs h-8"
+                            />
+                            <Input
+                              value={s.url}
+                              onChange={(e) => updateSocial(i, "url", e.target.value)}
+                              placeholder="https://..."
+                              className="text-xs h-8"
+                            />
+                            <Input
+                              value={s.icon || "website"}
+                              onChange={(e) => updateSocial(i, "icon", e.target.value)}
+                              placeholder="icon (linkedin/github/...)"
+                              className="text-xs h-8"
+                            />
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={addSocial}
+                          className="w-full text-xs h-8"
+                        >
+                          + Add new link
+                        </Button>
+                        <p className="text-xs text-neutral-500 px-2">
+                          Supported icons: linkedin, github, facebook, instagram, website
+                        </p>
                       </div>
                     )}
                   </div>

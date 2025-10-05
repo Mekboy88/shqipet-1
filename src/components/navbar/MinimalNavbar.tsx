@@ -20,6 +20,16 @@ interface MinimalNavbarProps {
     blogs: boolean;
     contact: boolean;
   }>>;
+  professionalSocials?: Array<{
+    label: string;
+    url: string;
+    icon?: string;
+  }>;
+  setProfessionalSocials?: React.Dispatch<React.SetStateAction<Array<{
+    label: string;
+    url: string;
+    icon?: string;
+  }>>>;
 }
 
 const MinimalNavbar: React.FC<MinimalNavbarProps> = ({ 
@@ -27,7 +37,9 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({
   professionalEditMode, 
   setProfessionalEditMode,
   professionalSections,
-  setProfessionalSections
+  setProfessionalSections,
+  professionalSocials,
+  setProfessionalSocials
 }) => {
   return (
     <header 
@@ -57,6 +69,8 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({
             setProfessionalEditMode={setProfessionalEditMode}
             professionalSections={professionalSections}
             setProfessionalSections={setProfessionalSections}
+            professionalSocials={professionalSocials}
+            setProfessionalSocials={setProfessionalSocials}
           />
         </div>
       </nav>

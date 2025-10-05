@@ -21,13 +21,25 @@ interface NavbarRightContentProps {
     blogs: boolean;
     contact: boolean;
   }>>;
+  professionalSocials?: Array<{
+    label: string;
+    url: string;
+    icon?: string;
+  }>;
+  setProfessionalSocials?: React.Dispatch<React.SetStateAction<Array<{
+    label: string;
+    url: string;
+    icon?: string;
+  }>>>;
 }
 
 const NavbarRightContent: React.FC<NavbarRightContentProps> = ({ 
   professionalEditMode, 
   setProfessionalEditMode,
   professionalSections,
-  setProfessionalSections
+  setProfessionalSections,
+  professionalSocials,
+  setProfessionalSocials
 }) => {
   const location = useLocation();
   const isProfessionalPresentation = location.pathname === '/professional-presentation';
@@ -230,12 +242,14 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
       {/* Action Buttons and User Profile */}
       <div className="flex items-center">
         <NavbarActionButtons />
-        {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && professionalSections && setProfessionalSections && (
+        {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && professionalSections && setProfessionalSections && professionalSocials && setProfessionalSocials && (
           <ProfessionalPresentationSettingsDropdown 
             editMode={professionalEditMode} 
             setEditMode={setProfessionalEditMode}
             sections={professionalSections}
             setSections={setProfessionalSections}
+            socials={professionalSocials}
+            setSocials={setProfessionalSocials}
           />
         )}
         <UserProfileDropdown />

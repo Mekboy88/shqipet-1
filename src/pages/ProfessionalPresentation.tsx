@@ -634,6 +634,8 @@ export default function ProfessionalPresentation() {
         setProfessionalEditMode={setEditMode}
         professionalSections={sections}
         setProfessionalSections={setSections}
+        professionalSocials={socials}
+        setProfessionalSocials={setSocials}
       />
       
       {/* Back to Profile Button - Top Left Corner */}
@@ -1309,16 +1311,8 @@ function SettingsDialog({
           </TabsContent>
 
           <TabsContent value="links" className="space-y-3">
-            <div className="rounded-xl bg-neutral-50 p-3">
-              <div className="mb-2 text-sm font-medium">Add any social/profile link</div>
-              {socials.map((s: any, i: number) => <div key={i} className="mb-3 grid grid-cols-[140px_1fr_140px_auto] items-center gap-2">
-                  <Input value={s.label} onChange={e => updateSocial(i, "label", e.target.value)} placeholder="Label (e.g. LinkedIn)" />
-                  <Input value={s.url} onChange={e => updateSocial(i, "url", e.target.value)} placeholder="https://…" />
-                  <Input value={s.icon || "website"} onChange={e => updateSocial(i, "icon", e.target.value)} placeholder="icon (linkedin/github/…)" />
-                  <Button variant="ghost" onClick={() => removeSocial(i)}>Remove</Button>
-                </div>)}
-              <Button variant="outline" onClick={addSocial}>+ Add new link</Button>
-              <p className="mt-2 text-xs text-neutral-500">Supported icons: linkedin, github, facebook, instagram, website.</p>
+            <div className="rounded-xl bg-blue-50 p-4 text-sm text-neutral-700">
+              <strong>Note:</strong> Social links have been moved to the settings dropdown next to your profile avatar in the top right corner.
             </div>
           </TabsContent>
 
