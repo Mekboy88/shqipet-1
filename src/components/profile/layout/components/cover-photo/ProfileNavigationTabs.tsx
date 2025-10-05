@@ -175,7 +175,7 @@ const ProfileNavigationTabs: React.FC<ProfileNavigationTabsProps> = ({
                 <path style={{fill: '#35363E'}} d="M456,385.68l-5.52-5.52c-1.988-1.988-5.212-1.988-7.2,0s-1.988,5.212,0,7.2l0,0l4.16,4.16 c4.011,4.041,6.952,9.018,8.56,14.48v-20.32H456z"/>
                 <path style={{fill: '#6F707E'}} d="M342,371.12c-1.4-1.372-3.641-1.372-5.04,0l-8.96,8.88v7.12c1.326,0.515,2.831,0.201,3.84-0.8 L342,376c1.372-1.4,1.372-3.641,0-5.04l0,0V371.12z"/>
               </svg>
-              <span className="text-sm">Pëlqimet</span>
+              <span className="text-sm">Faqet e mia</span>
             </button>
 
             <button className="w-[120px] py-4 px-3 font-medium text-gray-800 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 hover:bg-gray-50 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex flex-col items-center">
