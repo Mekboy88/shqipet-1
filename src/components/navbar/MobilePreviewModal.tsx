@@ -100,29 +100,29 @@ const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6">
+            <div className="flex gap-2 flex-wrap justify-center">
               {sections.home && (
-                <button className="px-6 py-2.5 bg-red-50 text-red-600 rounded-full text-base font-medium whitespace-nowrap">
+                <button className="px-4 py-2 bg-red-50 text-red-600 rounded-full text-sm font-medium">
                   Home
                 </button>
               )}
               {sections.skills && (
-                <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-base font-medium whitespace-nowrap border border-gray-200">
+                <button className="px-4 py-2 bg-white text-gray-900 rounded-full text-sm font-medium border border-gray-200">
                   Skills
                 </button>
               )}
               {sections.portfolio && (
-                <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-base font-medium whitespace-nowrap border border-gray-200">
+                <button className="px-4 py-2 bg-white text-gray-900 rounded-full text-sm font-medium border border-gray-200">
                   Portfolio
                 </button>
               )}
               {sections.blogs && (
-                <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-base font-medium whitespace-nowrap border border-gray-200">
+                <button className="px-4 py-2 bg-white text-gray-900 rounded-full text-sm font-medium border border-gray-200">
                   Blogs
                 </button>
               )}
               {sections.contact && (
-                <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-base font-medium whitespace-nowrap border border-gray-200">
+                <button className="px-4 py-2 bg-white text-gray-900 rounded-full text-sm font-medium border border-gray-200">
                   Contact
                 </button>
               )}
