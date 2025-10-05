@@ -379,6 +379,7 @@ export default function ProfessionalPresentation() {
     email: ""
   });
   const lastAppliedKeyRef = useRef<string | null>(null);
+  const isSavingHireButtonRef = useRef(false);
 
   // ---- Self tests (lightweight) ----
   useEffect(() => {
@@ -544,13 +545,21 @@ export default function ProfessionalPresentation() {
           }
         }
 
-        // Update hire button
-        setHireButton({
-          enabled: newData.hire_button_enabled ?? true,
-          text: newData.hire_button_text || "Hire Me",
-          url: newData.hire_button_url || "",
-          email: newData.hire_button_email || ""
-        });
+        // Update hire button - but only if we're not currently saving
+        if (!isSavingHireButtonRef.current) {
+          console.log('📥 Applying hire button update from realtime:', {
+            enabled: newData.hire_button_enabled,
+            text: newData.hire_button_text
+          });
+          setHireButton({
+            enabled: newData.hire_button_enabled ?? true,
+            text: newData.hire_button_text || "Hire Me",
+            url: newData.hire_button_url || "",
+            email: newData.hire_button_email || ""
+          });
+        } else {
+          console.log('⏭️ Skipping hire button realtime update (currently saving)');
+        }
       }
     }).subscribe(status => {
       console.log('📡 Realtime subscription status:', status);
@@ -567,7 +576,11 @@ export default function ProfessionalPresentation() {
   useEffect(() => {
     const saveData = async () => {
       if (!user || !isOwner) return;
+      
+      // Set flag to prevent realtime updates during save
+      isSavingHireButtonRef.current = true;
       console.log('💾 Saving hire button state:', hireButton);
+      
       try {
         const { error } = await supabase.from('professional_presentations').upsert({
           user_id: user.id,
@@ -587,6 +600,12 @@ export default function ProfessionalPresentation() {
         }
       } catch (error) {
         console.error('❌ Exception saving data:', error);
+      } finally {
+        // Clear flag after a short delay to allow realtime to process
+        setTimeout(() => {
+          isSavingHireButtonRef.current = false;
+          console.log('🔓 Hire button save complete, realtime updates re-enabled');
+        }, 500);
       }
     };
 
