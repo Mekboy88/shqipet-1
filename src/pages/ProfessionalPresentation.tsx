@@ -614,18 +614,6 @@ export default function ProfessionalPresentation() {
 
   // Professional Presentation Controls (only visible to owner)
   const professionalControls = isOwner ? <>
-      <div className="flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg" style={{
-        background: "var(--accent-10)"
-      }}>
-          <Wand2 className="h-4 w-4" style={{
-          color: "var(--accent)"
-        }} />
-        </div>
-        <div className="text-xs">
-          <div className="font-semibold leading-none">Professional Presentation</div>
-        </div>
-      </div>
       
       {/* Removed duplicate back button from controls */}
       
