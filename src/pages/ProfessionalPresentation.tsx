@@ -646,20 +646,8 @@ export default function ProfessionalPresentation() {
     localStorage.setItem("ppd-state", JSON.stringify(data));
   };
 
-  // Professional Presentation Controls (only visible to owner)
-  const professionalControls = isOwner ? <>
-      
-      {/* Removed duplicate back button from controls */}
-      {/* Edit mode moved to settings dropdown next to avatar */}
-      
-      <a href={profile.cvUrl} target="_blank" rel="noreferrer">
-        <Button variant="outline" size="sm" className="gap-1.5 h-8">
-          <FileText className="h-3.5 w-3.5" /> CV
-        </Button>
-      </a>
-      
-      <SettingsDialog profile={profile} setProfile={setProfile} socials={socials} setSocials={setSocials} sections={sections} setSections={setSections} accent={accent} setAccent={setAccent} layout={layout} setLayout={setLayout} seo={seo} setSeo={setSeo} hireButton={hireButton} setHireButton={setHireButton} />
-    </> : null;
+  // Professional Presentation Controls (removed - all controls moved to dropdown)
+  const professionalControls = null;
   return <>
       {/* Minimal Navbar with Professional Controls (only visible to owner) */}
       <MinimalNavbar 
