@@ -616,11 +616,7 @@ export default function ProfessionalPresentation() {
   const professionalControls = isOwner ? <>
       
       {/* Removed duplicate back button from controls */}
-      
-      <div className="flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2 py-1">
-        <span className="text-xs text-neutral-600">Edit mode</span>
-        <Switch checked={editMode} onCheckedChange={setEditMode} />
-      </div>
+      {/* Edit mode moved to settings dropdown next to avatar */}
       
       <a href={profile.cvUrl} target="_blank" rel="noreferrer">
         <Button variant="outline" size="sm" className="gap-1.5 h-8">
@@ -632,7 +628,11 @@ export default function ProfessionalPresentation() {
     </> : null;
   return <>
       {/* Minimal Navbar with Professional Controls (only visible to owner) */}
-      <MinimalNavbar professionalControls={professionalControls} />
+      <MinimalNavbar 
+        professionalControls={professionalControls} 
+        professionalEditMode={editMode}
+        setProfessionalEditMode={setEditMode}
+      />
       
       {/* Back to Profile Button - Top Left Corner */}
       <div className="fixed top-16 left-4 z-50">

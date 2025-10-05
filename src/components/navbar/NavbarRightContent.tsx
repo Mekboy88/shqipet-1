@@ -1,8 +1,20 @@
 import React, { useEffect } from 'react';
 import NavbarActionButtons from './NavbarActionButtons';
 import UserProfileDropdown from '@/components/UserProfileDropdown';
+import ProfessionalPresentationSettingsDropdown from './ProfessionalPresentationSettingsDropdown';
 import { mediaService } from '@/services/media/MediaService';
-const NavbarRightContent = () => {
+import { useLocation } from 'react-router-dom';
+interface NavbarRightContentProps {
+  professionalEditMode?: boolean;
+  setProfessionalEditMode?: (value: boolean) => void;
+}
+
+const NavbarRightContent: React.FC<NavbarRightContentProps> = ({ 
+  professionalEditMode, 
+  setProfessionalEditMode 
+}) => {
+  const location = useLocation();
+  const isProfessionalPresentation = location.pathname === '/professional-presentation';
   console.log('🔍 NavbarRightContent rendering with enhanced console controls');
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -202,6 +214,12 @@ const NavbarRightContent = () => {
       {/* Action Buttons and User Profile */}
       <div className="flex items-center">
         <NavbarActionButtons />
+        {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && (
+          <ProfessionalPresentationSettingsDropdown 
+            editMode={professionalEditMode} 
+            setEditMode={setProfessionalEditMode} 
+          />
+        )}
         <UserProfileDropdown />
       </div>
     </div>;

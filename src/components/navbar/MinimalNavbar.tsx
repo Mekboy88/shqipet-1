@@ -4,9 +4,15 @@ import NavbarRightContent from "./NavbarRightContent";
 
 interface MinimalNavbarProps {
   professionalControls?: React.ReactNode;
+  professionalEditMode?: boolean;
+  setProfessionalEditMode?: (value: boolean) => void;
 }
 
-const MinimalNavbar: React.FC<MinimalNavbarProps> = ({ professionalControls }) => {
+const MinimalNavbar: React.FC<MinimalNavbarProps> = ({ 
+  professionalControls, 
+  professionalEditMode, 
+  setProfessionalEditMode 
+}) => {
   return (
     <header 
       className="bg-white shadow-sm fixed top-0 w-full border-b border-gray-200"
@@ -30,7 +36,10 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({ professionalControls }) =
         
         {/* Right Section - Avatar Dropdown */}
         <div className="flex items-center justify-end flex-shrink-0">
-          <NavbarRightContent />
+          <NavbarRightContent 
+            professionalEditMode={professionalEditMode}
+            setProfessionalEditMode={setProfessionalEditMode}
+          />
         </div>
       </nav>
     </header>
