@@ -348,6 +348,7 @@ export default function ProfessionalPresentation() {
     contact: true
   });
   const [editMode, setEditMode] = useState(false); // Default OFF
+  const [activeTab, setActiveTab] = useState("home"); // Track active tab for navigation
 
   const [layout, setLayout] = useState({
     showRightSidebar: true,
@@ -650,79 +651,64 @@ export default function ProfessionalPresentation() {
   const professionalControls = isOwner || !isOwner ? (
     <div className="flex items-center gap-2">
       {sections.home && (
-        <TabsTrigger 
-          value="home" 
-          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        <button 
+          onClick={() => setActiveTab("home")}
+          className={`rounded-xl px-4 py-2 text-sm transition-all ${
+            activeTab === "home" 
+              ? "bg-gradient-to-r from-red-500/10 to-gray-800/10 border border-red-200" 
+              : "hover:bg-gray-100"
+          }`}
         >
-          <EditableText 
-            id="nav-home" 
-            value={navLabels.home} 
-            onChange={v => setNavLabels({...navLabels, home: v})} 
-            editMode={editMode} 
-            styleConfig={styles["nav-home"]} 
-            setStyleConfig={s => setStyle("nav-home", s)} 
-          />
-        </TabsTrigger>
+          {navLabels.home}
+        </button>
       )}
       {sections.skills && (
-        <TabsTrigger 
-          value="skills" 
-          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        <button 
+          onClick={() => setActiveTab("skills")}
+          className={`rounded-xl px-4 py-2 text-sm transition-all ${
+            activeTab === "skills" 
+              ? "bg-gradient-to-r from-red-500/10 to-gray-800/10 border border-red-200" 
+              : "hover:bg-gray-100"
+          }`}
         >
-          <EditableText 
-            id="nav-skills" 
-            value={navLabels.skills} 
-            onChange={v => setNavLabels({...navLabels, skills: v})} 
-            editMode={editMode} 
-            styleConfig={styles["nav-skills"]} 
-            setStyleConfig={s => setStyle("nav-skills", s)} 
-          />
-        </TabsTrigger>
+          {navLabels.skills}
+        </button>
       )}
       {sections.portfolio && (
-        <TabsTrigger 
-          value="portfolio" 
-          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        <button 
+          onClick={() => setActiveTab("portfolio")}
+          className={`rounded-xl px-4 py-2 text-sm transition-all ${
+            activeTab === "portfolio" 
+              ? "bg-gradient-to-r from-red-500/10 to-gray-800/10 border border-red-200" 
+              : "hover:bg-gray-100"
+          }`}
         >
-          <EditableText 
-            id="nav-portfolio" 
-            value={navLabels.portfolio} 
-            onChange={v => setNavLabels({...navLabels, portfolio: v})} 
-            editMode={editMode} 
-            styleConfig={styles["nav-portfolio"]} 
-            setStyleConfig={s => setStyle("nav-portfolio", s)} 
-          />
-        </TabsTrigger>
+          {navLabels.portfolio}
+        </button>
       )}
       {sections.blogs && (
-        <TabsTrigger 
-          value="blogs" 
-          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        <button 
+          onClick={() => setActiveTab("blogs")}
+          className={`rounded-xl px-4 py-2 text-sm transition-all ${
+            activeTab === "blogs" 
+              ? "bg-gradient-to-r from-red-500/10 to-gray-800/10 border border-red-200" 
+              : "hover:bg-gray-100"
+          }`}
         >
-          <EditableText 
-            id="nav-blogs" 
-            value={navLabels.blogs} 
-            onChange={v => setNavLabels({...navLabels, blogs: v})} 
-            editMode={editMode} 
-            styleConfig={styles["nav-blogs"]} 
-            setStyleConfig={s => setStyle("nav-blogs", s)} 
-          />
-        </TabsTrigger>
+          {navLabels.blogs}
+        </button>
       )}
       {sections.contact && (
-        <TabsTrigger 
-          value="contact" 
-          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        <button 
+          onClick={() => setActiveTab("contact")}
+          className={`rounded-xl px-4 py-2 text-sm transition-all ${
+            activeTab === "contact" 
+              ? "bg-gradient-to-r from-red-500/10 to-gray-800/10 border border-red-200" 
+              : "hover:bg-gray-100"
+          }`}
         >
-          <EditableText 
-            id="nav-contact" 
-            value={navLabels.contact} 
-            onChange={v => setNavLabels({...navLabels, contact: v})} 
-            editMode={editMode} 
-            styleConfig={styles["nav-contact"]} 
-            setStyleConfig={s => setStyle("nav-contact", s)} 
-          />
-        </TabsTrigger>
+          {navLabels.contact}
+        </button>
       )}
       <a href={profile.cvUrl} target="_blank" rel="noreferrer">
         <Button variant="outline" size="sm" className="gap-1.5 h-8">
@@ -849,7 +835,7 @@ export default function ProfessionalPresentation() {
           duration: 0.6,
           delay: 0.05
         }} className="col-span-1">
-          <Tabs defaultValue="home" className="w-full mx-[80px] px-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mx-[80px] px-0">
             {/* Navigation buttons moved to top navbar center */}
 
             {/* HOME */}
