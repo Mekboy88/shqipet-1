@@ -277,9 +277,6 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
                         >
                           + Add new link
                         </Button>
-                        <p className="text-xs text-neutral-500 px-2">
-                          Supported icons: linkedin, github, facebook, instagram, website
-                        </p>
                       </div>
                     )}
                   </div>
