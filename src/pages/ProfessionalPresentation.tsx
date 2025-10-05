@@ -16,7 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Settings, FileText, Linkedin, Github, Facebook, Instagram, Globe, Mail, Phone, ArrowRight, Wand2, ExternalLink, User as UserIcon, Move, Save, Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Highlighter, X, Camera, Briefcase, RotateCcw, Eye, Download, Edit, ChevronDown } from "lucide-react";
+import { Settings, FileText, Linkedin, Github, Facebook, Instagram, Globe, Mail, Phone, ArrowRight, Wand2, ExternalLink, User as UserIcon, Move, Save, Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Highlighter, X, Camera, Briefcase, RotateCcw, Eye, Download, Edit, ChevronDown, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { usePhotoEditor } from "@/hooks/usePhotoEditor";
 import { PhotoEditor } from "@/components/profile/PhotoEditor";
@@ -744,6 +744,16 @@ export default function ProfessionalPresentation() {
           >
             <Download className="h-4 w-4" />
             <span>Download my CV</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success('CV link copied to clipboard!');
+            }}
+            className="gap-2 cursor-pointer hover:bg-gradient-to-r hover:from-red-500/5 hover:to-gray-800/5 transition-all"
+          >
+            <Share2 className="h-4 w-4" />
+            <span>Share my CV</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => toast.info('CV editor coming soon!')}
