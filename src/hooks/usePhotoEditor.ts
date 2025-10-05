@@ -3,10 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface PhotoTransform {
-  scale: number;
+  scaleX: number;
+  scaleY: number;
   translateX: number;
   translateY: number;
 }
+
+type ResizeDirection = 'corner' | 'horizontal' | 'vertical';
 
 interface UsePhotoEditorProps {
   userId: string | undefined;
@@ -16,7 +19,7 @@ interface UsePhotoEditorProps {
 
 export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEditorProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
-  const defaultTransform: PhotoTransform = initialTransform || { scale: 1.2, translateX: 0, translateY: 0 };
+  const defaultTransform: PhotoTransform = initialTransform || { scaleX: 1.2, scaleY: 1.2, translateX: 0, translateY: 0 };
   
   // Cache awareness
   const hadCacheRef = useRef(false);
@@ -35,6 +38,17 @@ export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEdi
       if (cached) {
         const parsed = JSON.parse(cached);
         hadCacheRef.current = true;
+        
+        // Backward compatibility: migrate old scale property to scaleX/scaleY
+        if ('scale' in parsed && !('scaleX' in parsed)) {
+          return {
+            scaleX: parsed.scale,
+            scaleY: parsed.scale,
+            translateX: parsed.translateX || 0,
+            translateY: parsed.translateY || 0,
+          };
+        }
+        
         return parsed as PhotoTransform;
       }
     } catch (e) {
@@ -52,7 +66,7 @@ export const usePhotoEditor = ({ userId, initialTransform, onSave }: UsePhotoEdi
   const [isSaving, setIsSaving] = useState(false);
 
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
-  const resizeStartRef = useRef<{ x: number; y: number; scale: number } | null>(null);
+  const resizeStartRef = useRef<{ x: number; y: number; scaleX: number; scaleY: number; direction: ResizeDirection } | null>(null);
   const rafRef = useRef<number | null>(null);
 
 // Load saved transform from database (but use cached version during load)
@@ -71,11 +85,25 @@ useEffect(() => {
         .maybeSingle();
 
       if (!error && data?.photo_transform) {
-        const dbTransform = data.photo_transform as PhotoTransform;
-        setTransform(dbTransform);
-        persistedRef.current = dbTransform;
+        const dbTransform = data.photo_transform as any;
+        
+        // Backward compatibility: migrate old scale property to scaleX/scaleY
+        let finalTransform: PhotoTransform;
+        if ('scale' in dbTransform && !('scaleX' in dbTransform)) {
+          finalTransform = {
+            scaleX: dbTransform.scale,
+            scaleY: dbTransform.scale,
+            translateX: dbTransform.translateX || 0,
+            translateY: dbTransform.translateY || 0,
+          };
+        } else {
+          finalTransform = dbTransform as PhotoTransform;
+        }
+        
+        setTransform(finalTransform);
+        persistedRef.current = finalTransform;
         // Update cache
-        localStorage.setItem(`photo-transform-${userId}`, JSON.stringify(dbTransform));
+        localStorage.setItem(`photo-transform-${userId}`, JSON.stringify(finalTransform));
       } else {
         // No saved transform, use default
         const finalTransform = getCachedTransform();
@@ -137,36 +165,57 @@ useEffect(() => {
 
   // Handle resizing
   const handleResizeStart = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent, direction: ResizeDirection = 'corner') => {
       e.preventDefault();
       e.stopPropagation();
       setIsResizing(true);
       resizeStartRef.current = {
         x: e.clientX,
         y: e.clientY,
-        scale: transform.scale,
+        scaleX: transform.scaleX,
+        scaleY: transform.scaleY,
+        direction,
       };
     },
-    [transform.scale]
+    [transform.scaleX, transform.scaleY]
   );
 
   const handleResizeMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing || !resizeStartRef.current) return;
 
-      // Calculate distance moved (diagonal for proportional scaling)
       const deltaX = e.clientX - resizeStartRef.current.x;
       const deltaY = e.clientY - resizeStartRef.current.y;
-      const delta = (deltaX + deltaY) / 2;
 
       // Scale factor: 1px movement = 0.002 scale change
-      const scaleDelta = delta * 0.002;
-      const newScale = resizeStartRef.current.scale + scaleDelta;
+      const { direction } = resizeStartRef.current;
 
-      // Constrain scale between 0.5x and 2.5x
-      const constrainedScale = Math.max(0.5, Math.min(2.5, newScale));
-
-      updateTransform({ scale: constrainedScale });
+      if (direction === 'corner') {
+        // Proportional scaling for corners
+        const delta = (deltaX + deltaY) / 2;
+        const scaleDelta = delta * 0.002;
+        const newScaleX = resizeStartRef.current.scaleX + scaleDelta;
+        const newScaleY = resizeStartRef.current.scaleY + scaleDelta;
+        
+        const constrainedScaleX = Math.max(0.5, Math.min(2.5, newScaleX));
+        const constrainedScaleY = Math.max(0.5, Math.min(2.5, newScaleY));
+        
+        updateTransform({ scaleX: constrainedScaleX, scaleY: constrainedScaleY });
+      } else if (direction === 'horizontal') {
+        // Horizontal scaling only
+        const scaleDelta = deltaX * 0.002;
+        const newScaleX = resizeStartRef.current.scaleX + scaleDelta;
+        const constrainedScaleX = Math.max(0.5, Math.min(2.5, newScaleX));
+        
+        updateTransform({ scaleX: constrainedScaleX });
+      } else if (direction === 'vertical') {
+        // Vertical scaling only
+        const scaleDelta = deltaY * 0.002;
+        const newScaleY = resizeStartRef.current.scaleY + scaleDelta;
+        const constrainedScaleY = Math.max(0.5, Math.min(2.5, newScaleY));
+        
+        updateTransform({ scaleY: constrainedScaleY });
+      }
     },
     [isResizing, updateTransform]
   );
@@ -234,7 +283,7 @@ useEffect(() => {
 
 // Reset to default
 const resetTransform = useCallback(() => {
-  const base = { scale: 1.2, translateX: 0, translateY: 0 };
+  const base = { scaleX: 1.2, scaleY: 1.2, translateX: 0, translateY: 0 };
   setTransform(base);
   toast.info('Photo reset to default');
 }, []);

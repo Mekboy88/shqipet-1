@@ -1138,7 +1138,7 @@ function PhotoStrip({
         className={`relative w-full ${photoEditor.isEditMode ? 'overflow-visible z-[60]' : 'overflow-hidden'} rounded-xl border border-neutral-200 bg-white`}
         style={{
           height,
-          transform: `translate(${photoEditor.transform.translateX}px, ${photoEditor.transform.translateY}px) scale(${photoEditor.transform.scale})`,
+          transform: `translate(${photoEditor.transform.translateX}px, ${photoEditor.transform.translateY}px) scale(${photoEditor.transform.scaleX}, ${photoEditor.transform.scaleY})`,
           transition: (photoEditor.isLoading || photoEditor.isDragging || photoEditor.isResizing) ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           cursor: photoEditor.isDragging ? 'grabbing' : photoEditor.isEditMode ? 'grab' : 'default',
           opacity: photoEditor.isLoading && !photoEditor.hadCache ? 0 : 1,
@@ -1164,7 +1164,8 @@ function PhotoStrip({
             isDragging={photoEditor.isDragging}
             isResizing={photoEditor.isResizing}
             isSaving={photoEditor.isSaving}
-            scale={photoEditor.transform.scale}
+            scaleX={photoEditor.transform.scaleX}
+            scaleY={photoEditor.transform.scaleY}
             onEditToggle={() => photoEditor.setIsEditMode(!photoEditor.isEditMode)}
             onDragStart={photoEditor.handleDragStart}
             onResizeStart={photoEditor.handleResizeStart}
