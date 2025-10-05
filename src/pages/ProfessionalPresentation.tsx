@@ -646,8 +646,91 @@ export default function ProfessionalPresentation() {
     localStorage.setItem("ppd-state", JSON.stringify(data));
   };
 
-  // Professional Presentation Controls (removed - all controls moved to dropdown)
-  const professionalControls = null;
+  // Professional Presentation Controls - Navigation buttons in center of navbar
+  const professionalControls = isOwner || !isOwner ? (
+    <div className="flex items-center gap-2">
+      {sections.home && (
+        <TabsTrigger 
+          value="home" 
+          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        >
+          <EditableText 
+            id="nav-home" 
+            value={navLabels.home} 
+            onChange={v => setNavLabels({...navLabels, home: v})} 
+            editMode={editMode} 
+            styleConfig={styles["nav-home"]} 
+            setStyleConfig={s => setStyle("nav-home", s)} 
+          />
+        </TabsTrigger>
+      )}
+      {sections.skills && (
+        <TabsTrigger 
+          value="skills" 
+          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        >
+          <EditableText 
+            id="nav-skills" 
+            value={navLabels.skills} 
+            onChange={v => setNavLabels({...navLabels, skills: v})} 
+            editMode={editMode} 
+            styleConfig={styles["nav-skills"]} 
+            setStyleConfig={s => setStyle("nav-skills", s)} 
+          />
+        </TabsTrigger>
+      )}
+      {sections.portfolio && (
+        <TabsTrigger 
+          value="portfolio" 
+          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        >
+          <EditableText 
+            id="nav-portfolio" 
+            value={navLabels.portfolio} 
+            onChange={v => setNavLabels({...navLabels, portfolio: v})} 
+            editMode={editMode} 
+            styleConfig={styles["nav-portfolio"]} 
+            setStyleConfig={s => setStyle("nav-portfolio", s)} 
+          />
+        </TabsTrigger>
+      )}
+      {sections.blogs && (
+        <TabsTrigger 
+          value="blogs" 
+          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        >
+          <EditableText 
+            id="nav-blogs" 
+            value={navLabels.blogs} 
+            onChange={v => setNavLabels({...navLabels, blogs: v})} 
+            editMode={editMode} 
+            styleConfig={styles["nav-blogs"]} 
+            setStyleConfig={s => setStyle("nav-blogs", s)} 
+          />
+        </TabsTrigger>
+      )}
+      {sections.contact && (
+        <TabsTrigger 
+          value="contact" 
+          className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200"
+        >
+          <EditableText 
+            id="nav-contact" 
+            value={navLabels.contact} 
+            onChange={v => setNavLabels({...navLabels, contact: v})} 
+            editMode={editMode} 
+            styleConfig={styles["nav-contact"]} 
+            setStyleConfig={s => setStyle("nav-contact", s)} 
+          />
+        </TabsTrigger>
+      )}
+      <a href={profile.cvUrl} target="_blank" rel="noreferrer">
+        <Button variant="outline" size="sm" className="gap-1.5 h-8">
+          <FileText className="h-3.5 w-3.5" /> Open CV
+        </Button>
+      </a>
+    </div>
+  ) : null;
   return <>
       {/* Minimal Navbar with Professional Controls (only visible to owner) */}
       <MinimalNavbar 
@@ -767,38 +850,7 @@ export default function ProfessionalPresentation() {
           delay: 0.05
         }} className="col-span-1">
           <Tabs defaultValue="home" className="w-full mx-[80px] px-0">
-            <TabsList className="mb-5 flex flex-wrap gap-3 bg-transparent p-0">
-              {sections.home && <TabsTrigger value="home" className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200">
-                  <EditableText id="nav-home" value={navLabels.home} onChange={v => setNavLabels({
-                  ...navLabels,
-                  home: v
-                })} editMode={editMode} styleConfig={styles["nav-home"]} setStyleConfig={s => setStyle("nav-home", s)} />
-                </TabsTrigger>}
-              {sections.skills && <TabsTrigger value="skills" className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200">
-                  <EditableText id="nav-skills" value={navLabels.skills} onChange={v => setNavLabels({
-                  ...navLabels,
-                  skills: v
-                })} editMode={editMode} styleConfig={styles["nav-skills"]} setStyleConfig={s => setStyle("nav-skills", s)} />
-                </TabsTrigger>}
-              {sections.portfolio && <TabsTrigger value="portfolio" className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200">
-                  <EditableText id="nav-portfolio" value={navLabels.portfolio} onChange={v => setNavLabels({
-                  ...navLabels,
-                  portfolio: v
-                })} editMode={editMode} styleConfig={styles["nav-portfolio"]} setStyleConfig={s => setStyle("nav-portfolio", s)} />
-                </TabsTrigger>}
-              {sections.blogs && <TabsTrigger value="blogs" className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200">
-                  <EditableText id="nav-blogs" value={navLabels.blogs} onChange={v => setNavLabels({
-                  ...navLabels,
-                  blogs: v
-                })} editMode={editMode} styleConfig={styles["nav-blogs"]} setStyleConfig={s => setStyle("nav-blogs", s)} />
-                </TabsTrigger>}
-              {sections.contact && <TabsTrigger value="contact" className="rounded-xl px-4 py-2 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500/10 data-[state=active]:to-gray-800/10 data-[state=active]:border data-[state=active]:border-red-200">
-                  <EditableText id="nav-contact" value={navLabels.contact} onChange={v => setNavLabels({
-                  ...navLabels,
-                  contact: v
-                })} editMode={editMode} styleConfig={styles["nav-contact"]} setStyleConfig={s => setStyle("nav-contact", s)} />
-                </TabsTrigger>}
-            </TabsList>
+            {/* Navigation buttons moved to top navbar center */}
 
             {/* HOME */}
             {sections.home && <TabsContent value="home" className="space-y-8">
@@ -941,9 +993,7 @@ export default function ProfessionalPresentation() {
           display: layout.showRightSidebar ? undefined : "none"
         }}>
           <div className="sticky top-24 space-y-3">
-            <a href={profile.cvUrl} target="_blank" rel="noreferrer" className="block">
-              <Button className="w-full gap-2"><FileText className="h-4 w-4" /> Open CV</Button>
-            </a>
+            {/* Open CV button moved to top navbar center */}
           </div>
         </motion.aside>
       </main>
