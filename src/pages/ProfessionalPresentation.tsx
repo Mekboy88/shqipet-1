@@ -689,26 +689,24 @@ export default function ProfessionalPresentation() {
 
           {/* Text Section - Draggable as a group */}
           <div 
-            className="mt-12 space-y-2 mx-0 px-0 rounded-lg -ml-56 scale-[1.2] origin-left my-[60px] relative"
+            className={`mt-12 space-y-2 mx-0 px-0 rounded-lg -ml-56 scale-[1.2] origin-left my-[60px] relative ${editMode && !textDrag.isEditMode ? 'border-2 border-dashed border-blue-300 p-4 cursor-move hover:border-blue-500' : ''} ${textDrag.isEditMode ? 'border-2 border-green-500 p-4' : ''}`}
             style={{
               transform: `translate(${textDrag.transform.translateX}px, ${textDrag.transform.translateY}px)`,
               transition: textDrag.isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              cursor: textDrag.isDragging ? 'grabbing' : textDrag.isEditMode ? 'grab' : 'default',
+              cursor: textDrag.isDragging ? 'grabbing' : textDrag.isEditMode ? 'grab' : editMode ? 'grab' : 'default',
               zIndex: textDrag.isEditMode ? 50 : 'auto',
             }}
+            onMouseDown={editMode && !textDrag.isEditMode ? (e) => {
+              e.preventDefault();
+              textDrag.setIsEditMode(true);
+              // Small delay to ensure edit mode is set before drag starts
+              setTimeout(() => textDrag.handleDragStart(e as any), 0);
+            } : undefined}
           >
-            {/* Text Edit Mode Controls */}
+            {/* Drag indicator when not in active edit mode */}
             {editMode && !textDrag.isEditMode && (
-              <div className="absolute -top-12 right-0 transition-opacity">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => textDrag.setIsEditMode(true)}
-                  className="bg-white/90 hover:bg-white shadow-lg"
-                >
-                  <Move className="w-4 h-4 mr-1" />
-                  Move Text
-                </Button>
+              <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
+                Drag to move
               </div>
             )}
 
