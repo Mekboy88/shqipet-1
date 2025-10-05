@@ -23,6 +23,7 @@ import { useUserPhotos } from '@/hooks/useUserPhotos';
 import { useAuth } from '@/contexts/AuthContext';
 import PhotoDeleteDialog from './dialogs/PhotoDeleteDialog';
 import { toast } from 'sonner';
+import MediaViewerModal from './content/media-viewer/MediaViewerModal';
 
 // Component for handling video URLs that might need presigning
 const WasabiVideoPlayer: React.FC<{ url: string; className: string; controls?: boolean; autoPlay?: boolean; onLoaded?: () => void }> = ({ url, className, controls = false, autoPlay = false, onLoaded }) => {
@@ -123,7 +124,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
   const { user } = useAuth();
   const { deletePhoto } = useUserPhotos(user?.id);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [photoToDelete, setPhotoToDelete] = useState<{ id: string; index: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -422,90 +423,17 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
           </div>
         )}
 
-        {/* Photo Viewer Modal - Fixed positioning to show full page */}
-        {selectedPhoto && (
-          <div className="fixed top-14 left-0 right-0 bottom-0 bg-white z-50 flex">
-            {/* Photo Viewer - Left Half */}
-            <div className="w-1/2 h-full flex items-center justify-center p-6 bg-black">
-              <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setSelectedPhoto(null)}
-                  className="absolute top-4 right-4 z-10 bg-black bg-opacity-50 text-white p-2 rounded-lg shadow-lg shadow-black/30 hover:bg-opacity-75 hover:shadow-xl hover:shadow-black/40 transition-all"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-                <WasabiImageDisplay
-                  url={selectedPhoto}
-                  alt="Selected photo"
-                  className="w-full h-full object-contain"
-                  aspectRatio="w-full h-full"
-                />
-              </div>
-            </div>
-            
-            {/* Photo Grid - Right Half */}
-            <div className="w-1/2 h-full overflow-y-auto p-6 bg-gray-50">
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">All Photos</h2>
-                {photoItems.length > 0 ? (
-                  <div className="space-y-6">
-                    {Array.from({ length: Math.ceil(photoItems.length / 33) }).map((_, groupIndex) => {
-                      const startIndex = groupIndex * 33;
-                      const groupPhotos = photoItems.slice(startIndex, startIndex + 33);
-                      
-                      return (
-                        <div key={groupIndex} className="space-y-4">
-                          {/* 32 photos in 4x8 grid */}
-                          {groupPhotos.slice(0, 32).length > 0 && (
-                            <div className="grid grid-cols-4 gap-2">
-                              {groupPhotos.slice(0, 32).map((photo, index) => (
-                                <div 
-                                  key={`${groupIndex}-small-${index}`} 
-                                  className={`aspect-square overflow-hidden rounded-lg bg-gray-100 hover:scale-105 transition-transform duration-200 cursor-pointer ${
-                                    selectedPhoto === photo ? 'ring-4 ring-blue-500' : ''
-                                  }`}
-                                  onClick={() => setSelectedPhoto(photo)}
-                                >
-                                  <WasabiImageDisplay
-                                    url={photo} 
-                                    alt={`Photo ${startIndex + index + 1}`}
-                                    className="w-full h-full object-cover"
-                                    aspectRatio="aspect-square"
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {/* Big photo (33rd photo) - size equivalent to 8 small cards */}
-                          {groupPhotos[32] && (
-                            <div 
-                              className={`w-full overflow-hidden rounded-lg hover-scale cursor-pointer ${
-                                selectedPhoto === groupPhotos[32] ? 'ring-4 ring-blue-500' : ''
-                              }`} 
-                              style={{ aspectRatio: '2/1' }}
-                              onClick={() => setSelectedPhoto(groupPhotos[32])}
-                            >
-                              <WasabiImageDisplay
-                                url={groupPhotos[32]} 
-                                alt={`Photo ${startIndex + 33}`}
-                                className="w-full h-full object-cover"
-                                aspectRatio="2/1"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="text-gray-400 text-lg">No photos yet</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+        {/* Photo Viewer Modal - Using MediaViewerModal for full experience */}
+        {selectedPhotoIndex !== null && (
+          <MediaViewerModal
+            media={photoItems.map(item => ({
+              url: typeof item === 'string' ? item : item.url,
+              isVideo: false
+            }))}
+            initialIndex={selectedPhotoIndex}
+            isOpen={selectedPhotoIndex !== null}
+            onClose={() => setSelectedPhotoIndex(null)}
+          />
         )}
 
         {/* Main Content */}
@@ -558,7 +486,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                         )}
                         <div 
                           className="cursor-pointer hover-scale w-full h-full"
-                          onClick={() => setSelectedPhoto(photoUrl)}
+                          onClick={() => setSelectedPhotoIndex(index)}
                         >
                           <WasabiImageDisplay
                             url={photoUrl}

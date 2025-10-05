@@ -138,10 +138,18 @@ export const WasabiImageDisplay: React.FC<WasabiImageDisplayProps> = ({
     );
   }
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onClick) {
+      onClick();
+    }
+  };
+
   return (
     <div 
       className={`w-full h-full relative overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
-      onClick={onClick}
+      onClick={handleClick}
     >
       <img
         src={cleanUrl}
