@@ -225,9 +225,6 @@ function EditableText({
   return <motion.div drag={draggable && !isEditing} dragMomentum={false} className="relative cursor-text" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
       {(hover || isEditing) && toolbar}
       {inner}
-      {draggable && !isEditing && <div className="pointer-events-none absolute -left-6 top-1 flex items-center gap-1 text-xs text-neutral-400">
-          <Move className="h-3.5 w-3.5" /> drag
-        </div>}
     </motion.div>;
 }
 
