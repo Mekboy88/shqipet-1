@@ -329,7 +329,7 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
                         </div>
 
                         <div className="p-2 rounded-lg bg-blue-50 text-xs">
-                          <strong>Status:</strong> Hire button is currently <strong>{hireButton.enabled ? 'ON' : 'OFF'}</strong>
+                          <strong>Status:</strong> <strong>{hireButton.enabled ? 'ON' : 'OFF'}</strong>
                           {!hireButton.enabled && <div className="mt-1">Button will not appear on the page</div>}
                           {hireButton.enabled && <div className="mt-1">Button will appear at bottom right (hidden in edit mode)</div>}
                         </div>
