@@ -916,7 +916,6 @@ export default function ProfessionalPresentation() {
             <a href={profile.cvUrl} target="_blank" rel="noreferrer" className="block">
               <Button className="w-full gap-2"><FileText className="h-4 w-4" /> Open CV</Button>
             </a>
-            <p className="text-xs text-neutral-500">Opens in a new tab/window.</p>
           </div>
         </motion.aside>
       </main>
