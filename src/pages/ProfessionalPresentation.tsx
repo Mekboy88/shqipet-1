@@ -280,7 +280,20 @@ export default function ProfessionalPresentation() {
 
   // Check if current user is the owner of this presentation
   useEffect(() => {
-    setIsOwner(!!user);
+    // Get uid parameter from URL (if viewing someone else's presentation)
+    const searchParams = new URLSearchParams(window.location.search);
+    const uidParam = searchParams.get('uid');
+    
+    // If there's a uid parameter, check if it matches the logged-in user
+    // If no uid parameter, assume viewing own profile
+    if (uidParam) {
+      setIsOwner(!!user && user.id === uidParam);
+      setPresentationUserId(uidParam);
+    } else {
+      // No uid parameter means viewing own profile
+      setIsOwner(!!user);
+      setPresentationUserId(user?.id || null);
+    }
   }, [user]);
 
   // Text group drag hook
@@ -794,6 +807,7 @@ export default function ProfessionalPresentation() {
           aboutMe: profile.entry,
           highlights: profile.quick ? [profile.quick] : []
         }}
+        isOwner={isOwner}
       />
       
       <div className="min-h-screen w-full bg-white text-neutral-900 pt-14" style={accentStyle}>

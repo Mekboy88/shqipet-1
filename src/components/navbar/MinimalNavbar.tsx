@@ -50,6 +50,7 @@ interface MinimalNavbarProps {
     aboutMe: string;
     highlights: string[];
   };
+  isOwner?: boolean;
 }
 
 const MinimalNavbar: React.FC<MinimalNavbarProps> = ({ 
@@ -62,7 +63,8 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({
   setProfessionalSocials,
   professionalHireButton,
   setProfessionalHireButton,
-  professionalProfile
+  professionalProfile,
+  isOwner
 }) => {
   return (
     <header 
@@ -97,6 +99,7 @@ const MinimalNavbar: React.FC<MinimalNavbarProps> = ({
             professionalHireButton={professionalHireButton}
             setProfessionalHireButton={setProfessionalHireButton}
             professionalProfile={professionalProfile}
+            isOwner={isOwner}
           />
         </div>
       </nav>

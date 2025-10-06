@@ -53,6 +53,7 @@ interface NavbarRightContentProps {
     aboutMe: string;
     highlights: string[];
   };
+  isOwner?: boolean;
 }
 
 const NavbarRightContent: React.FC<NavbarRightContentProps> = ({ 
@@ -64,7 +65,8 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
   setProfessionalSocials,
   professionalHireButton,
   setProfessionalHireButton,
-  professionalProfile
+  professionalProfile,
+  isOwner = false
 }) => {
   const location = useLocation();
   const isProfessionalPresentation = location.pathname === '/professional-presentation';
@@ -270,7 +272,7 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
         {/* Action Buttons and User Profile */}
         <div className="flex items-center gap-2">
           <NavbarActionButtons />
-          {isProfessionalPresentation && professionalEditMode !== undefined && setProfessionalEditMode && professionalSections && setProfessionalSections && professionalSocials && setProfessionalSocials && professionalHireButton && setProfessionalHireButton && (
+          {isProfessionalPresentation && isOwner && professionalEditMode !== undefined && setProfessionalEditMode && professionalSections && setProfessionalSections && professionalSocials && setProfessionalSocials && professionalHireButton && setProfessionalHireButton && (
             <>
               {/* Mobile Preview Button */}
               <button
