@@ -23,6 +23,7 @@ interface MobilePreviewModalProps {
     portfolio: boolean;
     blogs: boolean;
     contact: boolean;
+    cv: boolean;
   };
 }
 
@@ -137,6 +138,11 @@ const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
               {sections.contact && (
                 <button className="px-3 py-1.5 bg-white text-gray-900 rounded-full text-xs font-medium whitespace-nowrap border border-gray-200">
                   Contact
+                </button>
+              )}
+              {sections.cv && (
+                <button className="px-3 py-1.5 bg-white text-gray-900 rounded-full text-xs font-medium whitespace-nowrap border border-gray-200">
+                  CV
                 </button>
               )}
             </div>

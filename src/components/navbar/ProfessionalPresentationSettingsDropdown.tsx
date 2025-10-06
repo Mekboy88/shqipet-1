@@ -15,6 +15,7 @@ interface ProfessionalPresentationSettingsDropdownProps {
     portfolio: boolean;
     blogs: boolean;
     contact: boolean;
+    cv: boolean;
   };
   setSections: React.Dispatch<React.SetStateAction<{
     home: boolean;
@@ -22,6 +23,7 @@ interface ProfessionalPresentationSettingsDropdownProps {
     portfolio: boolean;
     blogs: boolean;
     contact: boolean;
+    cv: boolean;
   }>>;
   socials: Array<{
     label: string;
@@ -160,7 +162,7 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
 
                     {/* Section Toggles - Expanded View */}
                     {sectionsExpanded && <div className="mt-2 space-y-2 pl-2">
-                        {[["Home", "home"], ["Skills", "skills"], ["Portfolio", "portfolio"], ["Blogs", "blogs"], ["Contact", "contact"]].map(([label, key]) => <div key={key} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                        {[["Home", "home"], ["Skills", "skills"], ["Portfolio", "portfolio"], ["Blogs", "blogs"], ["Contact", "contact"], ["CV", "cv"]].map(([label, key]) => <div key={key} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
                             <span className="text-sm text-neutral-700">{label}</span>
                             <Switch checked={(sections as any)[key]} onCheckedChange={v => setSections({
                         ...sections,

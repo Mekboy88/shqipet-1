@@ -15,6 +15,7 @@ interface NavbarRightContentProps {
     portfolio: boolean;
     blogs: boolean;
     contact: boolean;
+    cv: boolean;
   };
   setProfessionalSections?: React.Dispatch<React.SetStateAction<{
     home: boolean;
@@ -22,6 +23,7 @@ interface NavbarRightContentProps {
     portfolio: boolean;
     blogs: boolean;
     contact: boolean;
+    cv: boolean;
   }>>;
   professionalSocials?: Array<{
     label: string;

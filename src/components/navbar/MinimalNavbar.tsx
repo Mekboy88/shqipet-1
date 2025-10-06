@@ -12,6 +12,7 @@ interface MinimalNavbarProps {
     portfolio: boolean;
     blogs: boolean;
     contact: boolean;
+    cv: boolean;
   };
   setProfessionalSections?: React.Dispatch<React.SetStateAction<{
     home: boolean;
@@ -19,6 +20,7 @@ interface MinimalNavbarProps {
     portfolio: boolean;
     blogs: boolean;
     contact: boolean;
+    cv: boolean;
   }>>;
   professionalSocials?: Array<{
     label: string;
