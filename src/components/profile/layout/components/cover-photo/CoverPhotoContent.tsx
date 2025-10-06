@@ -34,6 +34,7 @@ interface CoverPhotoContentProps {
   onButtonColorChange: (color: string) => void;
   showProfileInfo?: boolean;
   containerClassName?: string;
+  isOwnProfile?: boolean; // Pass down to controls
 }
 
 const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
@@ -52,7 +53,8 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   onMouseUp,
   onButtonColorChange,
   showProfileInfo = true,
-  containerClassName
+  containerClassName,
+  isOwnProfile = true
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -294,6 +296,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
         onEditCoverClick={onEditCoverClick}
         onMouseDown={onMouseDown}
         onButtonColorChange={onButtonColorChange}
+        isOwnProfile={isOwnProfile}
       />
 
       {/* Profile Picture - positioned at bottom left with upload animation */}

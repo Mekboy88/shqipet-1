@@ -23,6 +23,7 @@ interface CoverPhotoContentProps {
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseUp: () => void;
   onButtonColorChange: (color: string) => void;
+  isOwnProfile?: boolean;
 }
 
 const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
@@ -39,7 +40,8 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   onMouseDown,
   onMouseMove,
   onMouseUp,
-  onButtonColorChange
+  onButtonColorChange,
+  isOwnProfile = true
 }) => {
   const { displayName } = useUniversalUser();
   const { position: coverPosition, isPositionChanging } = useCover();
@@ -81,6 +83,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
         onEditCoverClick={onEditCoverClick}
         onMouseDown={onMouseDown}
         onButtonColorChange={onButtonColorChange}
+        isOwnProfile={isOwnProfile}
       />
 
       {/* Profile Picture - positioned at bottom left with hover icons enabled */}

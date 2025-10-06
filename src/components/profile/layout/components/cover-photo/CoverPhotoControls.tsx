@@ -14,6 +14,7 @@ interface CoverPhotoControlsProps {
   onEditCoverClick: () => void;
   onMouseDown: (e: React.MouseEvent) => void;
   onButtonColorChange: (color: string) => void;
+  isOwnProfile?: boolean; // Only show controls if viewing own profile
 }
 
 const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
@@ -25,8 +26,13 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
   onCancelChanges,
   onEditCoverClick,
   onMouseDown,
-  onButtonColorChange
+  onButtonColorChange,
+  isOwnProfile = true // Default to true for backwards compatibility
 }) => {
+  // Don't render controls if not viewing own profile
+  if (!isOwnProfile) {
+    return null;
+  }
   const navigate = useNavigate();
   
   const colorOptions = [

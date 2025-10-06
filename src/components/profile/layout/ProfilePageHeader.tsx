@@ -10,6 +10,7 @@ interface ProfilePageHeaderProps {
   onEditCoverClick: () => void;
   activeTab?: string;
   setActiveTab?: (tab: string) => void;
+  isOwnProfile?: boolean;
 }
 
 const ProfilePageHeader: React.FC<ProfilePageHeaderProps> = ({
@@ -18,7 +19,8 @@ const ProfilePageHeader: React.FC<ProfilePageHeaderProps> = ({
   coverPhotoUrl,
   onEditCoverClick,
   activeTab,
-  setActiveTab
+  setActiveTab,
+  isOwnProfile = true
 }) => {
   return (
     <div ref={headerRef} className="relative bg-white shadow-sm mx-0">
@@ -27,6 +29,7 @@ const ProfilePageHeader: React.FC<ProfilePageHeaderProps> = ({
         onEditCoverClick={onEditCoverClick}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        isOwnProfile={isOwnProfile}
       />
     </div>
   );

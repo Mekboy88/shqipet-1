@@ -9,13 +9,15 @@ interface CoverPhotoSectionProps {
   onEditCoverClick: () => void;
   activeTab?: string;
   setActiveTab?: (tab: string) => void;
+  isOwnProfile?: boolean;
 }
 
 const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
   coverPhotoUrl,
   onEditCoverClick,
   activeTab,
-  setActiveTab
+  setActiveTab,
+  isOwnProfile = true
 }) => {
   const {
     isDragging,
@@ -51,6 +53,7 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onButtonColorChange={handleButtonColorChange}
+          isOwnProfile={isOwnProfile}
         />
 
         {/* Profile Info Section - MATCHES COVER WIDTH */}

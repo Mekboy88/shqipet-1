@@ -245,6 +245,7 @@ useEffect(() => {
           onButtonColorChange={handleButtonColorChange}
           showProfileInfo={false}
           containerClassName="!h-auto aspect-[12/5] w-full max-w-[1200px]"
+          isOwnProfile={true}
         />
 
       <div className="mt-4 text-sm text-muted-foreground">

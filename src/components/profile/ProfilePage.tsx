@@ -28,6 +28,16 @@ const ProfilePage = React.memo(() => {
   const { userInfo: profileSettings } = useProfileSettings();
   const { getPhotosForDisplay } = useUserPhotos(user?.id);
   
+  // Check if viewing own profile or someone else's
+  const uidParam = (() => { 
+    try { 
+      return new URLSearchParams(location.search).get('uid'); 
+    } catch { 
+      return null; 
+    } 
+  })();
+  const isOwnProfile = !uidParam || uidParam === user?.id;
+  
   // Load posts when component mounts - no loading state for profile
   useEffect(() => {
     fetchPosts(false); // Don't show loading spinner for smooth UX
@@ -188,6 +198,7 @@ const ProfilePage = React.memo(() => {
           onEditCoverClick={() => profileState.setIsEditingCover(true)}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          isOwnProfile={isOwnProfile}
         />
 
         <ProfileContent
