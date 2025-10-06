@@ -734,17 +734,6 @@ export default function ProfessionalPresentation() {
         </button>
       )}
       {sections.cv && (
-        <button 
-          onClick={() => setActiveTab("cv")}
-          className={`rounded-xl px-4 py-2 text-sm transition-all ${
-            activeTab === "cv" 
-              ? "bg-gradient-to-r from-red-500/10 to-gray-800/10 border border-red-200" 
-              : "hover:bg-gray-100"
-          }`}
-        >
-          CV
-        </button>
-      )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-1.5 h-8 transition-all hover:shadow-md">
@@ -798,6 +787,7 @@ export default function ProfessionalPresentation() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      )}
     </div>
   ) : null;
   return <>
@@ -1038,53 +1028,6 @@ export default function ProfessionalPresentation() {
                       <a className="inline-flex items-center gap-1 underline" href={profile.website} target="_blank" rel="noreferrer">
                         Visit website <ExternalLink className="h-3.5 w-3.5" />
                       </a>
-                    </div>
-                  </div>
-                </motion.div>
-              </TabsContent>}
-
-            {/* CV */}
-            {sections.cv && <TabsContent value="cv" className="space-y-8" id="cv">
-                <motion.div drag={editMode} dragMomentum={false} className={`relative ${editMode ? 'border-2 border-dashed border-blue-300 rounded-lg p-4 cursor-move hover:border-blue-500' : ''}`}>
-                  {editMode && (
-                    <div className="absolute -top-3 left-2 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
-                      Drag to move
-                    </div>
-                  )}
-                  <EditableText id="cv-title" value="Curriculum Vitae" onChange={() => {}} className="text-lg font-semibold tracking-tight" styleConfig={styles["cv-title"]} setStyleConfig={s => setStyle("cv-title", s)} editMode={editMode} />
-                  
-                  <div className="mt-4 space-y-6">
-                    {/* Experience Section */}
-                    <div>
-                      <EditableText id="cv-experience-title" value="Experience" onChange={() => {}} className="text-base font-semibold text-neutral-700" styleConfig={styles["cv-experience-title"]} setStyleConfig={s => setStyle("cv-experience-title", s)} editMode={editMode} />
-                      <div className="mt-3 space-y-4">
-                        <div className="border-l-2 border-neutral-200 pl-4">
-                          <EditableText id="cv-exp-1-title" value="Senior Developer" onChange={() => {}} className="font-medium" styleConfig={styles["cv-exp-1-title"]} setStyleConfig={s => setStyle("cv-exp-1-title", s)} editMode={editMode} />
-                          <EditableText id="cv-exp-1-company" value="Tech Company Inc." onChange={() => {}} className="text-sm text-neutral-600" styleConfig={styles["cv-exp-1-company"]} setStyleConfig={s => setStyle("cv-exp-1-company", s)} editMode={editMode} />
-                          <EditableText id="cv-exp-1-period" value="2020 - Present" onChange={() => {}} className="text-xs text-neutral-500" styleConfig={styles["cv-exp-1-period"]} setStyleConfig={s => setStyle("cv-exp-1-period", s)} editMode={editMode} />
-                          <EditableText id="cv-exp-1-desc" value="Led development of full-stack applications using React, Node.js, and Supabase." onChange={() => {}} className="mt-2 text-sm text-neutral-600" styleConfig={styles["cv-exp-1-desc"]} setStyleConfig={s => setStyle("cv-exp-1-desc", s)} editMode={editMode} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Education Section */}
-                    <div>
-                      <EditableText id="cv-education-title" value="Education" onChange={() => {}} className="text-base font-semibold text-neutral-700" styleConfig={styles["cv-education-title"]} setStyleConfig={s => setStyle("cv-education-title", s)} editMode={editMode} />
-                      <div className="mt-3 space-y-4">
-                        <div className="border-l-2 border-neutral-200 pl-4">
-                          <EditableText id="cv-edu-1-degree" value="Bachelor of Computer Science" onChange={() => {}} className="font-medium" styleConfig={styles["cv-edu-1-degree"]} setStyleConfig={s => setStyle("cv-edu-1-degree", s)} editMode={editMode} />
-                          <EditableText id="cv-edu-1-school" value="University Name" onChange={() => {}} className="text-sm text-neutral-600" styleConfig={styles["cv-edu-1-school"]} setStyleConfig={s => setStyle("cv-edu-1-school", s)} editMode={editMode} />
-                          <EditableText id="cv-edu-1-period" value="2016 - 2020" onChange={() => {}} className="text-xs text-neutral-500" styleConfig={styles["cv-edu-1-period"]} setStyleConfig={s => setStyle("cv-edu-1-period", s)} editMode={editMode} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Download CV Button */}
-                    <div className="flex gap-2 pt-4">
-                      <Button variant="outline" className="gap-2">
-                        <Download className="h-4 w-4" />
-                        Download CV
-                      </Button>
                     </div>
                   </div>
                 </motion.div>
