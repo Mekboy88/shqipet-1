@@ -117,6 +117,7 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
   const [sectionsExpanded, setSectionsExpanded] = useState(false);
   const [socialsExpanded, setSocialsExpanded] = useState(false);
   const [hireButtonExpanded, setHireButtonExpanded] = useState(false);
+  const [cvEditorExpanded, setCvEditorExpanded] = useState(false);
   const updateSocial = (i: number, key: "label" | "url" | "icon", value: string) => {
     const copy = socials.slice();
     (copy[i] as any)[key] = value;
@@ -248,6 +249,34 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
 
                         <div className="rounded-lg bg-blue-50 p-2 text-xs">
                           <strong>Note:</strong> Button appears at bottom right. Hidden in edit mode.
+                        </div>
+                      </div>}
+                  </div>
+
+                  {/* Edit my CV Section */}
+                  <div className="border-t pt-2">
+                    <button onClick={() => setCvEditorExpanded(!cvEditorExpanded)} className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                      <span className="text-sm font-medium text-neutral-700">Edit my CV</span>
+                      {cvEditorExpanded ? <ChevronDown className="h-4 w-4 text-neutral-500" /> : <ChevronRight className="h-4 w-4 text-neutral-500" />}
+                    </button>
+
+                    {/* CV Editor Settings - Expanded View */}
+                    {cvEditorExpanded && <div className="mt-2 space-y-3 pl-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            // TODO: Implement CV creation/editing functionality
+                            console.log('Create CV clicked');
+                          }}
+                          className="w-full text-xs h-8 gap-2"
+                        >
+                          <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" enableBackground="new 0 0 52 52" xmlSpace="preserve" className="h-4 w-4"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M31.4,15.3h8.2c0.6,0,1.1-0.5,1.1-1.1l0,0c0-0.3-0.1-0.5-0.3-0.8L30.2,3.3C29.9,3.1,29.7,3,29.4,3l0,0 c-0.6,0-1.1,0.5-1.1,1.1v8.1C28.3,13.9,29.7,15.3,31.4,15.3z"></path> <path d="M49.5,25.7l-0.9-0.9c-0.6-0.6-1.5-0.6-2.2,0L34.5,36.7c-0.1,0.1,0,0.2,0,0.3v2.5c0,0.2,0,0.4,0.2,0.4h2.6 c0.1,0,0.2-0.1,0.3-0.1L49.5,28C50.2,27.2,50.2,26.3,49.5,25.7z"></path> <path d="M39.9,44.4h-1.8h-3.6h-1.7c-1.6,0-2.9-1.3-2.9-2.9v-5.4c0-0.8,0.2-1.6,0.9-2.1l9.5-9.5 c0.3-0.3,0.5-0.7,0.5-1.1v-2c0-0.8-0.7-1.5-1.5-1.5H28.3c-2.6,0-4.6-2.1-4.6-4.6V4.5C23.7,3.7,23,3,22.1,3H6.6C4.1,3,2,5.1,2,7.6 v36.8C2,46.9,4.1,49,6.6,49h29.4c2.2,0,4.2-1.6,4.6-3.7C40.7,44.9,40.3,44.4,39.9,44.4z M8.2,16.8c0-0.8,0.7-1.5,1.5-1.5h6.2 c0.9,0,1.5,0.7,1.5,1.5v1.5c0,0.8-0.7,1.5-1.5,1.5H9.7c-0.9,0-1.5-0.7-1.5-1.5V16.8z M23.7,36.7c0,0.8-0.7,1.5-1.5,1.5H9.7 c-0.9,0-1.5-0.7-1.5-1.5v-1.5c0-0.8,0.7-1.5,1.5-1.5h12.4c0.9,0,1.5,0.7,1.5,1.5V36.7z M26.8,27.5c0,0.8-0.7,1.5-1.5,1.5H9.7 c-0.9,0-1.5-0.7-1.5-1.5V26c0-0.8,0.7-1.5,1.5-1.5h15.5c0.9,0,1.5,0.7,1.5,1.5V27.5z"></path> </g> </g></svg>
+                          Create CV
+                        </Button>
+
+                        <div className="rounded-lg bg-blue-50 p-2 text-xs">
+                          <strong>Note:</strong> Click to create or edit your CV content.
                         </div>
                       </div>}
                   </div>
