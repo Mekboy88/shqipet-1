@@ -159,7 +159,9 @@ class MediaService {
       if (data instanceof ArrayBuffer) {
         blob = new Blob([data]);
       } else if (data instanceof Uint8Array) {
-        blob = new Blob([data]);
+        // Convert to proper ArrayBuffer to satisfy TypeScript
+        const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+        blob = new Blob([arrayBuffer]);
       } else if (data instanceof Blob) {
         blob = data;
       } else if (data instanceof Response) {

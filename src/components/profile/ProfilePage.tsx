@@ -27,6 +27,7 @@ const ProfilePage = React.memo(() => {
   const { posts: allPosts, isLoading: postsLoading, fetchPosts } = usePostsData();
   const { userInfo: profileSettings } = useProfileSettings();
   const { getPhotosForDisplay } = useUserPhotos(user?.id);
+  const location = useLocation();
   
   // Check if viewing own profile or someone else's
   const uidParam = (() => { 
@@ -45,7 +46,6 @@ const ProfilePage = React.memo(() => {
   const { coverPhotoUrl: globalCoverUrl } = useGlobalCoverPhoto();
   // Also load via new cover system to ensure persistence across refresh
   const { resolvedUrl: coverResolvedUrl } = useCover();
-  const location = useLocation();
   
   const posts = allPosts.filter(p => p.user_id === user?.id);
 
