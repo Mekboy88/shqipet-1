@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { LanguageSelectionDialog } from './LanguageSelectionDialog';
 import HobbiesSelectionDialog from './HobbiesSelectionDialog';
 import { getHobbyEmoji, getHobbyByName } from '@/data/hobbies';
+import { useProfileRealtime } from '@/hooks/useProfileRealtime';
 
 
 // Helper function to get flag for language
@@ -203,34 +204,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
   const [isHobbiesDialogOpen, setIsHobbiesDialogOpen] = useState(false);
   const [showAllHobbies, setShowAllHobbies] = useState(false);
 
-  useEffect(() => {
-    loadData();
-    
-    // Subscribe to realtime changes for immediate updates
-    const channel = supabase
-      .channel('personal-intro-realtime')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'personal_introduction',
-        filter: `user_id=eq.${user?.id}`
-      }, (payload) => {
-        console.log('Real-time update received:', payload);
-        loadData(); // Reload data when changes occur
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  useEffect(() => {
-    const changed = JSON.stringify(data) !== JSON.stringify(originalData);
-    setHasChanges(changed);
-  }, [data, originalData]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -276,7 +250,20 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  // Initial data load
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Real-time subscription for instant updates across all devices
+  useProfileRealtime(user?.id, loadData);
+
+  useEffect(() => {
+    const changed = JSON.stringify(data) !== JSON.stringify(originalData);
+    setHasChanges(changed);
+  }, [data, originalData]);
 
   const autoSave = async () => {
     if (!user || !hasChanges) return;
