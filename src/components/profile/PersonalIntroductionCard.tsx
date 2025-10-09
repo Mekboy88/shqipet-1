@@ -432,7 +432,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
       <Card className="p-6">
         <h3 className="text-xl font-black text-black/20 animate-fade-in mb-4" style={{
           WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-        }}>Prezantim Personal</h3>
+        }}>Prezantim</h3>
         
         {!hasData ? (
           <div className="text-gray-500">
