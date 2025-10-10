@@ -134,68 +134,34 @@ export const AlertCard = ({ alert, onResolve, onDismiss, onViewDetails }: AlertC
           </div>
         </div>
 
-        <TooltipProvider>
-          <div className="flex items-center gap-1">
-            {alert.status === 'open' && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onResolve(alert)}
-                className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
-              >
-                <Check className="w-4 h-4" />
-              </Button>
-            )}
-            
-            {/* Always show dismiss button */}
-            {alert.status === 'open' && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      if (alert.source === 'admin_notifications' || alert.source === 'notifications') {
-                        onDismiss(alert);
-                      }
-                    }}
-                    disabled={alert.source !== 'admin_notifications' && alert.source !== 'notifications'}
-                    className={cn(
-                      "transition-colors",
-                      (alert.source === 'admin_notifications' || alert.source === 'notifications')
-                        ? "text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                        : "text-muted-foreground/50 cursor-not-allowed"
-                    )}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                {alert.source !== 'admin_notifications' && alert.source !== 'notifications' && (
-                  <TooltipContent>
-                    <p>This alert type cannot be dismissed</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            )}
-            
+        <div className="flex items-center gap-1">
+          {alert.status === 'open' && (
             <Button
               size="sm"
               variant="ghost"
-              onClick={copyAlertId}
-              className="text-muted-foreground hover:text-foreground"
+              onClick={() => onResolve(alert)}
+              className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
             >
-              <Copy className="w-4 h-4" />
+              <Check className="w-4 h-4" />
             </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onViewDetails(alert)}
-              className="text-primary hover:text-primary/80"
-            >
-              <Eye className="w-4 h-4" />
-            </Button>
-          </div>
-        </TooltipProvider>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={copyAlertId}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Copy className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onViewDetails(alert)}
+            className="text-primary hover:text-primary/80"
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </motion.div>
   );
