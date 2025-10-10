@@ -171,36 +171,6 @@ const CostEstimator: React.FC = () => {
     usage: Number(service.total_usage)
   })).filter(item => item.value > 0);
 
-  const handleSimulateUsage = async () => {
-    try {
-      // Simulate adding usage data
-      const services = ['Database Storage', 'API Calls', 'Bandwidth', 'Edge Functions', 'File Storage', 'Authentication'];
-      const randomService = services[Math.floor(Math.random() * services.length)];
-      const randomAmount = Math.floor(Math.random() * 1000) + 100;
-
-      const { error } = await supabase
-        .from('resource_usage')
-        .insert({
-          service_name: randomService,
-          usage_amount: randomAmount,
-          usage_date: format(new Date(), 'yyyy-MM-dd'),
-          metadata: { simulated: true }
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Usage simulated',
-        description: `Added ${randomAmount} units to ${randomService}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Error simulating usage',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  };
 
   if (loading) {
     return (
@@ -240,10 +210,6 @@ const CostEstimator: React.FC = () => {
           <Button onClick={loadAllData} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Refresh
-          </Button>
-          <Button onClick={handleSimulateUsage} variant="secondary" className="gap-2">
-            <Activity className="h-4 w-4" />
-            Simulate Usage
           </Button>
         </div>
       </div>
