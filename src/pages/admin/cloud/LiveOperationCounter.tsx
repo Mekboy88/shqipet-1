@@ -1,430 +1,285 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Activity, Database, Zap, TrendingUp, TrendingDown, AlertCircle, RefreshCw } from 'lucide-react';
+import { Activity, Database, AlertCircle, TrendingUp, RefreshCw, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
-console.log('🔵 LiveOperationCounter component loaded');
-
-interface OperationMetric {
-  label: string;
-  count: number;
-  trend: 'up' | 'down' | 'stable';
-  status: 'good' | 'warning' | 'error';
+interface RecentEvent {
+  type: string;
   description: string;
-  lastUpdate: string;
+  risk_level: string;
+  timestamp: string;
 }
 
-interface RecentLog {
+interface MetricsData {
+  total_profiles: number;
+  recent_posts: number;
+  recent_notifications: number;
+  recent_analytics: number;
+  recent_uploads: number;
+  recent_errors: number;
+  active_tables: number;
+}
+
+interface LiveData {
+  window_minutes: number;
   timestamp: string;
-  type: string;
-  message: string;
-  severity: string;
+  metrics: MetricsData;
+  recent_events: RecentEvent[];
 }
 
 const LiveOperationCounter: React.FC = () => {
-  console.log('🔵 LiveOperationCounter RENDERING');
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [metrics, setMetrics] = useState<OperationMetric[]>([
-    {
-      label: 'Database Queries',
-      count: 0,
-      trend: 'stable',
-      status: 'good',
-      description: 'Total database operations',
-      lastUpdate: new Date().toISOString()
-    },
-    {
-      label: 'Auth Operations',
-      count: 0,
-      trend: 'stable',
-      status: 'good',
-      description: 'Authentication requests',
-      lastUpdate: new Date().toISOString()
-    },
-    {
-      label: 'Error Events',
-      count: 0,
-      trend: 'stable',
-      status: 'good',
-      description: 'Database errors detected',
-      lastUpdate: new Date().toISOString()
-    },
-    {
-      label: 'Active Connections',
-      count: 0,
-      trend: 'stable',
-      status: 'good',
-      description: 'Current database connections',
-      lastUpdate: new Date().toISOString()
-    }
-  ]);
+  const [data, setData] = useState<LiveData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [totalOperations, setTotalOperations] = useState(0);
-  const [isMonitoring, setIsMonitoring] = useState(true);
-  const [recentLogs, setRecentLogs] = useState<RecentLog[]>([]);
-  const [lastFetch, setLastFetch] = useState<Date>(new Date());
-
-  // Fetch real database analytics using direct table queries
-  const fetchRealAnalytics = async () => {
+  const fetchMetrics = async () => {
     try {
-      console.log('📊 Fetching real-time analytics from app tables...');
-      
-      // Count recent profiles queries
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      
-      const { count: profilesCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-
-      // Count recent posts
-      const { count: postsCount } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact', head: true });
-
-      // Count recent notifications
-      const { count: notificationsCount } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true });
-
-      // Count security events (errors)
-      const { data: securityEvents } = await supabase
-        .from('security_events')
-        .select('*')
-        .gte('created_at', fiveMinutesAgo)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      const errorCount = securityEvents?.length || 0;
-
-      // Calculate total operations
-      const dbQueryCount = (profilesCount || 0) + (postsCount || 0) + (notificationsCount || 0);
-      const authCount = profilesCount || 0; // Profiles table queries are auth-related
-      const connectionCount = Math.floor(dbQueryCount / 10); // Estimate connections
-
-      // Create recent logs from security events
-      const logs: RecentLog[] = securityEvents?.map((event: any) => ({
-        timestamp: event.created_at,
-        type: 'Security',
-        message: event.event_description || event.event_type,
-        severity: event.risk_level?.toUpperCase() || 'INFO'
-      })) || [];
-
-      // Add some sample recent operations
-      if (logs.length < 5) {
-        logs.push({
-          timestamp: new Date().toISOString(),
-          type: 'Database',
-          message: `Query executed: profiles table (${profilesCount} records)`,
-          severity: 'LOG'
-        });
-        logs.push({
-          timestamp: new Date().toISOString(),
-          type: 'Database',
-          message: `Query executed: posts table (${postsCount} records)`,
-          severity: 'LOG'
-        });
-      }
-
-      setRecentLogs(logs);
-
-      const now = new Date().toISOString();
-      setMetrics([
-        {
-          label: 'Database Records',
-          count: dbQueryCount,
-          trend: dbQueryCount > 100 ? 'up' : 'stable',
-          status: 'good',
-          description: 'Total records across tables',
-          lastUpdate: now
-        },
-        {
-          label: 'User Profiles',
-          count: profilesCount || 0,
-          trend: 'stable',
-          status: 'good',
-          description: 'Registered users',
-          lastUpdate: now
-        },
-        {
-          label: 'Security Events',
-          count: errorCount,
-          trend: errorCount > 0 ? 'up' : 'stable',
-          status: errorCount > 5 ? 'error' : errorCount > 0 ? 'warning' : 'good',
-          description: 'Last 5 minutes',
-          lastUpdate: now
-        },
-        {
-          label: 'Active Tables',
-          count: 3,
-          trend: 'stable',
-          status: 'good',
-          description: 'Tables with data',
-          lastUpdate: now
-        }
-      ]);
-
-      setTotalOperations(dbQueryCount);
-      setLastFetch(new Date());
-      setIsLoading(false);
-      
-      console.log('✅ Analytics fetched:', {
-        profilesCount, 
-        postsCount, 
-        notificationsCount, 
-        securityEvents: errorCount 
+      setError(null);
+      const { data: result, error: rpcError } = await supabase.rpc('admin_get_live_operation_metrics', {
+        p_window_minutes: 5
       });
-    } catch (error) {
-      console.error('❌ Failed to fetch analytics:', error);
-      // Set some default values so the page still shows
-      setMetrics([
-        {
-          label: 'Database Records',
-          count: 0,
-          trend: 'stable',
-          status: 'good',
-          description: 'Checking...',
-          lastUpdate: new Date().toISOString()
-        },
-        {
-          label: 'User Profiles',
-          count: 0,
-          trend: 'stable',
-          status: 'good',
-          description: 'Checking...',
-          lastUpdate: new Date().toISOString()
-        },
-        {
-          label: 'Security Events',
-          count: 0,
-          trend: 'stable',
-          status: 'good',
-          description: 'Checking...',
-          lastUpdate: new Date().toISOString()
-        },
-        {
-          label: 'Active Tables',
-          count: 0,
-          trend: 'stable',
-          status: 'good',
-          description: 'Checking...',
-          lastUpdate: new Date().toISOString()
-        }
-      ]);
-      setIsLoading(false);
+
+      if (rpcError) throw rpcError;
+
+      setData(result);
+      setLastUpdated(new Date());
+      setLoading(false);
+      setIsRefreshing(false);
+    } catch (err: any) {
+      console.error('❌ Failed to fetch metrics:', err);
+      setError(err.message || 'Failed to load metrics');
+      setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
-  // Fetch real-time data every 5 seconds
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    fetchMetrics();
+  };
+
   useEffect(() => {
-    if (!isMonitoring) return;
+    fetchMetrics();
+    
+    // Set up polling every 5 seconds
+    const pollInterval = setInterval(fetchMetrics, 5000);
 
-    fetchRealAnalytics(); // Initial fetch
+    // Set up real-time subscriptions
+    const channel = supabase
+      .channel('live-operations')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, fetchMetrics)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, fetchMetrics)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'analytics_events' }, fetchMetrics)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'upload_logs' }, fetchMetrics)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'security_events' }, fetchMetrics)
+      .subscribe();
 
-    const interval = setInterval(() => {
-      fetchRealAnalytics();
-    }, 5000); // Refresh every 5 seconds
+    return () => {
+      clearInterval(pollInterval);
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [isMonitoring]);
-
-  const getStatusColor = (status: 'good' | 'warning' | 'error') => {
-    switch (status) {
-      case 'good':
-        return 'bg-green-50 text-green-700 border-green-200';
-      case 'warning':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'error':
-        return 'bg-red-50 text-red-700 border-red-200';
-    }
+  const getStatusColor = (errorCount: number) => {
+    if (errorCount === 0) return 'bg-green-500';
+    if (errorCount < 5) return 'bg-amber-500';
+    return 'bg-red-500';
   };
 
-  const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
-    switch (trend) {
-      case 'up':
-        return <TrendingUp className="w-4 h-4 text-blue-500" />;
-      case 'down':
-        return <TrendingDown className="w-4 h-4 text-gray-400" />;
-      case 'stable':
-        return <Activity className="w-4 h-4 text-gray-400" />;
-    }
-  };
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center space-y-4">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto text-primary" />
+            <div>
+              <p className="text-lg font-semibold text-foreground">Loading real-time data...</p>
+              <p className="text-sm text-muted-foreground">Connecting to Cloud database</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  console.log('🎨 About to render LiveOperationCounter');
-  
+  if (error) {
+    return (
+      <div className="p-6 space-y-6">
+        <Card className="p-6 border-destructive">
+          <div className="flex items-center gap-3 text-destructive">
+            <AlertCircle className="w-6 h-6" />
+            <div>
+              <p className="font-semibold">Failed to load metrics</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const metrics = data.metrics;
+  const errorCount = metrics.recent_errors;
+
   return (
     <div className="p-6 space-y-6">
-      {/* Loading State */}
-      {isLoading && (
-        <Card className="p-12 text-center">
-          <Activity className="w-12 h-12 mx-auto mb-4 animate-spin text-blue-600" />
-          <p className="text-lg font-semibold">Loading real-time data...</p>
-          <p className="text-sm text-muted-foreground mt-2">Connecting to Cloud database</p>
-        </Card>
-      )}
-      
-      {!isLoading && (
-        <>
-          {/* Header */}
-          <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">Live Operation Counter</h1>
-          <p className="text-muted-foreground">
-            Real-time monitoring from Cloud database analytics
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchRealAnalytics}
-            disabled={!isMonitoring}
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
-          <Badge
-            variant={isMonitoring ? 'default' : 'secondary'}
-            className="h-8 px-4"
-          >
-            <Activity className="w-4 h-4 mr-2 animate-pulse" />
-            {isMonitoring ? 'Live' : 'Paused'}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-foreground">Live Operation Counter</h1>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <span className={`w-2 h-2 rounded-full ${getStatusColor(errorCount)} animate-pulse`} />
+              Live
+            </Badge>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              <span>Updated: {lastUpdated.toLocaleTimeString()}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="h-7"
+            >
+              <RefreshCw className={`w-4 h-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Total Operations Card */}
-      <Card className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-blue-700">Total Operations (Last 5 min)</p>
-            <p className="text-4xl font-bold text-blue-900">{totalOperations.toLocaleString()}</p>
-            <p className="text-xs text-blue-600">
-              Last updated: {lastFetch.toLocaleTimeString()}
-            </p>
-          </div>
-          <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center animate-pulse">
-            <Zap className="w-8 h-8 text-white" />
-          </div>
-        </div>
-      </Card>
-
-      {/* Operation Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {metrics.map((metric, index) => (
-          <Card
-            key={index}
-            className={`p-6 border-2 transition-all ${getStatusColor(metric.status)}`}
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Database className="w-5 h-5" />
-                  <h3 className="font-semibold">{metric.label}</h3>
-                </div>
-                {getTrendIcon(metric.trend)}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="p-6 border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Total Profiles</p>
+              <p className="text-3xl font-bold text-foreground">{metrics.total_profiles.toLocaleString()}</p>
+              <div className="flex items-center gap-1 text-xs text-green-600">
+                <TrendingUp className="w-3 h-3" />
+                <span>Live</span>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{metric.count}</span>
-                  <span className="text-sm text-muted-foreground">operations</span>
-                </div>
-                <p className="text-xs text-muted-foreground">{metric.description}</p>
-              </div>
-
-              {metric.status === 'warning' && (
-                <div className="flex items-start gap-2 mt-4 p-3 bg-amber-100 rounded-md">
-                  <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5" />
-                  <div className="text-xs text-amber-700">
-                    <p className="font-medium">High Usage Detected</p>
-                    <p>Consider reviewing your queries for optimization</p>
-                  </div>
-                </div>
-              )}
-
-              {metric.status === 'error' && (
-                <div className="flex items-start gap-2 mt-4 p-3 bg-red-100 rounded-md">
-                  <AlertCircle className="w-4 h-4 text-red-600 mt-0.5" />
-                  <div className="text-xs text-red-700">
-                    <p className="font-medium">Critical Usage Level</p>
-                    <p>Immediate optimization recommended</p>
-                  </div>
-                </div>
-              )}
             </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Recent Activity Logs */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Database className="w-5 h-5" />
-          Recent Activity (Last 10 operations)
-        </h3>
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {recentLogs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>Waiting for operations...</p>
+            <div className="p-3 bg-blue-100 rounded-lg dark:bg-blue-900">
+              <Database className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
-          ) : (
-            recentLogs.map((log, index) => (
-              <div
-                key={index}
-                className={`p-3 rounded-lg border transition-all ${
-                  log.severity === 'ERROR' || log.severity === 'FATAL'
-                    ? 'bg-red-50 border-red-200'
-                    : 'bg-gray-50 border-gray-200'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="text-xs">
-                        {log.type}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(log.timestamp).toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-foreground truncate">{log.message}</p>
-                  </div>
-                  <Badge
-                    variant={
-                      log.severity === 'ERROR' || log.severity === 'FATAL'
-                        ? 'destructive'
-                        : 'secondary'
-                    }
-                    className="text-xs flex-shrink-0"
-                  >
-                    {log.severity}
-                  </Badge>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </Card>
-
-      {/* Info Banner */}
-      <Card className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
-        <div className="flex items-start gap-3">
-          <Activity className="w-5 h-5 text-blue-600 mt-0.5 animate-pulse" />
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-blue-900">✅ 100% Real-Time Monitoring Active</p>
-            <p className="text-xs text-blue-700">
-              Connected to Cloud database analytics. Auto-refreshes every 5 seconds with real operation data. 
-              Light green = good performance, Light red = issues detected.
-            </p>
-          </div>
           </div>
         </Card>
-        </>
-      )}
+
+        <Card className="p-6 border-l-4 border-l-green-500 hover:shadow-lg transition-shadow">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Recent Posts (5m)</p>
+              <p className="text-3xl font-bold text-foreground">{metrics.recent_posts.toLocaleString()}</p>
+              <div className="flex items-center gap-1 text-xs text-green-600">
+                <Activity className="w-3 h-3" />
+                <span>Active</span>
+              </div>
+            </div>
+            <div className="p-3 bg-green-100 rounded-lg dark:bg-green-900">
+              <Activity className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Recent Uploads (5m)</p>
+              <p className="text-3xl font-bold text-foreground">{metrics.recent_uploads.toLocaleString()}</p>
+              <div className="flex items-center gap-1 text-xs text-purple-600">
+                <Database className="w-3 h-3" />
+                <span>Connected</span>
+              </div>
+            </div>
+            <div className="p-3 bg-purple-100 rounded-lg dark:bg-purple-900">
+              <Database className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className={`p-6 border-l-4 hover:shadow-lg transition-shadow ${
+          errorCount === 0 ? 'border-l-green-500' : errorCount < 5 ? 'border-l-amber-500' : 'border-l-red-500'
+        }`}>
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Recent Errors (5m)</p>
+              <p className="text-3xl font-bold text-foreground">{errorCount.toLocaleString()}</p>
+              <div className={`flex items-center gap-1 text-xs ${
+                errorCount === 0 ? 'text-green-600' : errorCount < 5 ? 'text-amber-600' : 'text-red-600'
+              }`}>
+                <AlertCircle className="w-3 h-3" />
+                <span>{errorCount === 0 ? 'Healthy' : errorCount < 5 ? 'Warning' : 'Critical'}</span>
+              </div>
+            </div>
+            <div className={`p-3 rounded-lg ${
+              errorCount === 0 ? 'bg-green-100 dark:bg-green-900' : 
+              errorCount < 5 ? 'bg-amber-100 dark:bg-amber-900' : 
+              'bg-red-100 dark:bg-red-900'
+            }`}>
+              <AlertCircle className={`w-6 h-6 ${
+                errorCount === 0 ? 'text-green-600 dark:text-green-400' : 
+                errorCount < 5 ? 'text-amber-600 dark:text-amber-400' : 
+                'text-red-600 dark:text-red-400'
+              }`} />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">Activity Overview (Last 5 minutes)</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between py-2 border-b">
+              <span className="text-sm text-muted-foreground">Notifications</span>
+              <span className="text-lg font-semibold text-foreground">{metrics.recent_notifications}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b">
+              <span className="text-sm text-muted-foreground">Analytics Events</span>
+              <span className="text-lg font-semibold text-foreground">{metrics.recent_analytics}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b">
+              <span className="text-sm text-muted-foreground">Active Tables</span>
+              <span className="text-lg font-semibold text-foreground">{metrics.active_tables}</span>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">Recent Activity</h2>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {data.recent_events.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No recent security events</p>
+            ) : (
+              data.recent_events.map((event, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
+                  <AlertCircle className={`w-4 h-4 mt-1 ${
+                    event.risk_level === 'critical' ? 'text-red-500' :
+                    event.risk_level === 'high' ? 'text-orange-500' :
+                    event.risk_level === 'medium' ? 'text-amber-500' : 'text-blue-500'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{event.type}</p>
+                    <p className="text-xs text-muted-foreground truncate">{event.description}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(event.timestamp).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };

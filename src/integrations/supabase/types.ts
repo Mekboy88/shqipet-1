@@ -909,6 +909,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_live_operation_metrics: {
+        Args: { p_window_minutes?: number }
+        Returns: Json
+      }
       can_view_profile: {
         Args: { profile_id: string }
         Returns: boolean
