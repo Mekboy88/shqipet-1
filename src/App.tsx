@@ -270,9 +270,7 @@ function App() {
                          {/* Cloud Monitoring */}
                          <Route path="/admin/cloud" element={<AdminDashboard />}>
                            <Route index element={<CloudMonitoring />} />
-                         </Route>
-                         <Route path="/admin/cloud/operations" element={<AdminDashboard />}>
-                           <Route index element={<LiveOperationCounter />} />
+                           <Route path="operations" element={<LiveOperationCounter />} />
                          </Route>
                         
                         {/* New application routes */}
