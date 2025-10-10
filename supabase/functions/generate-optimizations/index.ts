@@ -196,20 +196,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 5. Add some general best practice suggestions
-    suggestions.push({
-      suggestion_type: 'performance',
-      severity: 'low',
-      title: 'Enable Database Connection Pooling',
-      description: 'Connection pooling can significantly improve database performance for high-traffic applications',
-      impact_score: 45,
-      potential_improvement: '30% faster database queries',
-      category: 'Performance',
-      affected_service: 'Database',
-      recommendation: 'Configure connection pooling with optimal min/max connections based on your traffic patterns',
-      auto_applicable: false,
-      metadata: { type: 'best_practice' }
-    });
 
     console.log(`Generated ${suggestions.length} optimization suggestions`);
 
