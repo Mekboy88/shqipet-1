@@ -91,6 +91,7 @@ import LiveOperationCounter from '@/pages/admin/cloud/LiveOperationCounter';
 import CostEstimator from '@/pages/admin/cloud/CostEstimator';
 import QueryLogsViewer from '@/pages/admin/cloud/QueryLogsViewer';
 import RealTimeAlerts from '@/pages/admin/cloud/RealTimeAlerts';
+import OptimizationSuggestions from '@/pages/admin/cloud/OptimizationSuggestions';
 
 import TimePage from '@/pages/admin/localization/TimePage';
 import CurrencySettingsPage from '@/pages/admin/localization/CurrencySettingsPage';
@@ -369,6 +370,7 @@ const DesktopApp: React.FC = () => {
             <Route path="costs" element={<CostEstimator />} />
             <Route path="logs" element={<QueryLogsViewer />} />
             <Route path="alerts" element={<RealTimeAlerts />} />
+            <Route path="optimizations" element={<OptimizationSuggestions />} />
           </Route>
 
           {/* Handle any other admin route */}

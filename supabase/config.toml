@@ -1,5 +1,8 @@
 project_id = "uaiwjxojbpeljzxcvgof"
 
+[functions.generate-optimizations]
+verify_jwt = true
+
 [functions.wasabi-proxy]
 verify_jwt = false
 

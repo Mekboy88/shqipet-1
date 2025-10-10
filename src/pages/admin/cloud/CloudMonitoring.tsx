@@ -44,7 +44,7 @@ const CloudMonitoring: React.FC = () => {
       title: 'Optimization Suggestions',
       description: 'Automatic recommendations to reduce costs',
       icon: Target,
-      href: '/admin/cloud/optimization',
+      href: '/admin/cloud/optimizations',
       color: 'from-indigo-500 to-purple-500'
     }
   ];

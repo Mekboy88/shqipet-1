@@ -55,6 +55,7 @@ import LiveOperationCounter from './pages/admin/cloud/LiveOperationCounter';
 import CostEstimator from './pages/admin/cloud/CostEstimator';
 import QueryLogsViewer from './pages/admin/cloud/QueryLogsViewer';
 import RealTimeAlerts from './pages/admin/cloud/RealTimeAlerts';
+import OptimizationSuggestions from './pages/admin/cloud/OptimizationSuggestions';
 // New pages
 import Albums from './pages/Albums';
 import Dating from './pages/Dating';
@@ -277,6 +278,7 @@ function App() {
                             <Route path="costs" element={<CostEstimator />} />
                             <Route path="logs" element={<QueryLogsViewer />} />
                             <Route path="alerts" element={<RealTimeAlerts />} />
+                            <Route path="optimizations" element={<OptimizationSuggestions />} />
                           </Route>
                         
                         {/* New application routes */}

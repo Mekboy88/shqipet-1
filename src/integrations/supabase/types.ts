@@ -280,6 +280,72 @@ export type Database = {
           },
         ]
       }
+      optimization_suggestions: {
+        Row: {
+          affected_service: string | null
+          applied_at: string | null
+          auto_applicable: boolean | null
+          category: string
+          created_at: string | null
+          description: string
+          dismissed_at: string | null
+          dismissed_reason: string | null
+          id: string
+          impact_score: number
+          metadata: Json | null
+          potential_improvement: string | null
+          potential_savings: number | null
+          recommendation: string
+          severity: string
+          status: string | null
+          suggestion_type: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          affected_service?: string | null
+          applied_at?: string | null
+          auto_applicable?: boolean | null
+          category: string
+          created_at?: string | null
+          description: string
+          dismissed_at?: string | null
+          dismissed_reason?: string | null
+          id?: string
+          impact_score: number
+          metadata?: Json | null
+          potential_improvement?: string | null
+          potential_savings?: number | null
+          recommendation: string
+          severity: string
+          status?: string | null
+          suggestion_type: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          affected_service?: string | null
+          applied_at?: string | null
+          auto_applicable?: boolean | null
+          category?: string
+          created_at?: string | null
+          description?: string
+          dismissed_at?: string | null
+          dismissed_reason?: string | null
+          id?: string
+          impact_score?: number
+          metadata?: Json | null
+          potential_improvement?: string | null
+          potential_savings?: number | null
+          recommendation?: string
+          severity?: string
+          status?: string | null
+          suggestion_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       personal_introduction: {
         Row: {
           city: string | null
