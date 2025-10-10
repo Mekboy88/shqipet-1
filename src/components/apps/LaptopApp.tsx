@@ -50,6 +50,8 @@ import LocalizationCurrencyPage from '@/pages/admin/localization/LocalizationCur
 import AIAPIsConnection from '@/components/admin/AIAPIsConnection';
 import AdminUserDashboard from '@/components/admin/users/AdminUserDashboard';
 import WasabiCloudPage from '@/pages/admin/api/WasabiCloudPage';
+import CloudMonitoring from '@/pages/admin/cloud/CloudMonitoring';
+import LiveOperationCounter from '@/pages/admin/cloud/LiveOperationCounter';
 
 import TimePage from '@/pages/admin/localization/TimePage';
 import CurrencySettingsPage from '@/pages/admin/localization/CurrencySettingsPage';
@@ -172,6 +174,12 @@ const LaptopApp: React.FC = () => {
           {/* AI APIs Connection */}
           <Route path="/admin/api/ai" element={<AdminDashboard />}>
             <Route index element={<AIAPIsConnection />} />
+          </Route>
+
+          {/* Cloud Monitoring routes */}
+          <Route path="/admin/cloud" element={<AdminDashboard />}>
+            <Route index element={<CloudMonitoring />} />
+            <Route path="operations" element={<LiveOperationCounter />} />
           </Route>
 
           {/* Handle any other admin route */}
