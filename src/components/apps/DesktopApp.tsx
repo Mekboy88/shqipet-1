@@ -371,6 +371,7 @@ const DesktopApp: React.FC = () => {
             <Route path="logs" element={<QueryLogsViewer />} />
             <Route path="alerts" element={<RealTimeAlerts />} />
             <Route path="optimizations" element={<OptimizationSuggestions />} />
+            <Route path="optimization" element={<Navigate to="/admin/cloud/optimizations" replace />} />
           </Route>
 
           {/* Handle any other admin route */}

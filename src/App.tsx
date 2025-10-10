@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useInstantUpdates } from '@/hooks/useInstantUpdates';
 import GlobalSkeleton from '@/components/ui/GlobalSkeleton';
@@ -271,15 +271,16 @@ function App() {
                          <Route path="/admin/uploads" element={<AdminDashboard />}>
                            <Route index element={<AdminUploadMonitoring />} />
                          </Route>
-                          {/* Cloud Monitoring */}
-                          <Route path="/admin/cloud" element={<AdminDashboard />}>
-                            <Route index element={<CloudMonitoring />} />
-                            <Route path="operations" element={<LiveOperationCounter />} />
-                            <Route path="costs" element={<CostEstimator />} />
-                            <Route path="logs" element={<QueryLogsViewer />} />
-                            <Route path="alerts" element={<RealTimeAlerts />} />
-                            <Route path="optimizations" element={<OptimizationSuggestions />} />
-                          </Route>
+                         {/* Cloud Monitoring */}
+                         <Route path="/admin/cloud" element={<AdminDashboard />}>
+                           <Route index element={<CloudMonitoring />} />
+                           <Route path="operations" element={<LiveOperationCounter />} />
+                           <Route path="costs" element={<CostEstimator />} />
+                           <Route path="logs" element={<QueryLogsViewer />} />
+                           <Route path="alerts" element={<RealTimeAlerts />} />
+                           <Route path="optimizations" element={<OptimizationSuggestions />} />
+                           <Route path="optimization" element={<Navigate to="/admin/cloud/optimizations" replace />} />
+                         </Route>
                         
                         {/* New application routes */}
                        <Route path="/albums" element={<Albums />} />
