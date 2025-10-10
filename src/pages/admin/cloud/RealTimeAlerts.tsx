@@ -42,13 +42,12 @@ export default function RealTimeAlerts() {
   const clearFilters = () => {
     setFilters({
       severity: [],
-      status: [],
+      status: ['open'],
       source: [],
-      timeRange: '',
+      timeRange: '24h',
       search: '',
     });
-    setHiddenAlertIds(new Set());
-    toast.success('All filters cleared');
+    toast.success('Filters cleared');
   };
 
   const handleClearFilterSection = (section: string) => {
@@ -238,6 +237,14 @@ export default function RealTimeAlerts() {
             >
               <Bell className="w-4 h-4 mr-2" />
               Security Event
+            </Button>
+            <Button
+              className="w-full justify-start"
+              variant="outline"
+              onClick={() => handleCreateTestAlert('brute_force_alerts')}
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              Brute Force Alert
             </Button>
             <Button
               className="w-full justify-start"

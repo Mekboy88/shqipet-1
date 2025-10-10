@@ -27,6 +27,18 @@ export const useAlertActions = () => {
             .update({ status: 'read', updated_at: new Date().toISOString() })
             .eq('id', alert.id);
         
+        case 'security_events':
+          return await supabase
+            .from('security_events')
+            .delete()
+            .eq('id', alert.id);
+        
+        case 'brute_force_alerts':
+          return await supabase
+            .from('brute_force_alerts')
+            .delete()
+            .eq('id', alert.id);
+        
         default:
           return { data: null, error: null };
       }
@@ -53,6 +65,18 @@ export const useAlertActions = () => {
         case 'notifications':
           return await supabase
             .from('notifications')
+            .delete()
+            .eq('id', alert.id);
+        
+        case 'security_events':
+          return await supabase
+            .from('security_events')
+            .delete()
+            .eq('id', alert.id);
+        
+        case 'brute_force_alerts':
+          return await supabase
+            .from('brute_force_alerts')
             .delete()
             .eq('id', alert.id);
         
@@ -83,6 +107,12 @@ export const useAlertActions = () => {
           event_type: 'Test Security Event',
           event_description: 'This is a test security event',
           risk_level: 'medium',
+        },
+        brute_force_alerts: {
+          ip_address: '192.168.1.100',
+          attempt_count: 5,
+          alert_level: 'medium',
+          last_attempt: new Date().toISOString(),
         },
         system_issues: {
           issue_type: 'Test System Issue',
