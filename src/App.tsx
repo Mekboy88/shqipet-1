@@ -53,6 +53,7 @@ import AdminUploadMonitoring from './pages/AdminUploadMonitoring';
 import CloudMonitoring from './pages/admin/cloud/CloudMonitoring';
 import LiveOperationCounter from './pages/admin/cloud/LiveOperationCounter';
 import CostEstimator from './pages/admin/cloud/CostEstimator';
+import QueryLogsViewer from './pages/admin/cloud/QueryLogsViewer';
 // New pages
 import Albums from './pages/Albums';
 import Dating from './pages/Dating';
@@ -273,6 +274,7 @@ function App() {
                             <Route index element={<CloudMonitoring />} />
                             <Route path="operations" element={<LiveOperationCounter />} />
                             <Route path="costs" element={<CostEstimator />} />
+                            <Route path="logs" element={<QueryLogsViewer />} />
                           </Route>
                         
                         {/* New application routes */}

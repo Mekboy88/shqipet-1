@@ -89,6 +89,7 @@ import WasabiCloudPage from '@/pages/admin/api/WasabiCloudPage';
 import CloudMonitoring from '@/pages/admin/cloud/CloudMonitoring';
 import LiveOperationCounter from '@/pages/admin/cloud/LiveOperationCounter';
 import CostEstimator from '@/pages/admin/cloud/CostEstimator';
+import QueryLogsViewer from '@/pages/admin/cloud/QueryLogsViewer';
 
 import TimePage from '@/pages/admin/localization/TimePage';
 import CurrencySettingsPage from '@/pages/admin/localization/CurrencySettingsPage';
@@ -365,6 +366,7 @@ const DesktopApp: React.FC = () => {
             <Route index element={<CloudMonitoring />} />
             <Route path="operations" element={<LiveOperationCounter />} />
             <Route path="costs" element={<CostEstimator />} />
+            <Route path="logs" element={<QueryLogsViewer />} />
           </Route>
 
           {/* Handle any other admin route */}
