@@ -30,6 +30,7 @@ export default function RealTimeAlerts() {
   const [selectedAlert, setSelectedAlert] = useState<UnifiedAlert | null>(null);
   const [showTestDialog, setShowTestDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [hiddenAlertIds, setHiddenAlertIds] = useState<Set<string>>(new Set());
 
   const { alerts, stats, isLoading, soundEnabled, setSoundEnabled } = useRealtimeAlerts(filters);
   const { resolveAlert, dismissAlert, createTestAlert } = useAlertActions();
@@ -41,11 +42,12 @@ export default function RealTimeAlerts() {
   const clearFilters = () => {
     setFilters({
       severity: [],
-      status: ['open'],
+      status: [],
       source: [],
-      timeRange: '24h',
+      timeRange: '',
       search: '',
     });
+    setHiddenAlertIds(new Set());
     toast.success('All filters cleared');
   };
 
@@ -101,7 +103,7 @@ export default function RealTimeAlerts() {
     return alerts.filter(alert => sourceMap[activeTab]?.includes(alert.source));
   };
 
-  const filteredAlerts = getFilteredAlerts();
+  const filteredAlerts = getFilteredAlerts().filter(a => !hiddenAlertIds.has(a.id));
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -188,8 +190,8 @@ export default function RealTimeAlerts() {
                         <AlertCard
                           key={alert.id}
                           alert={alert}
-                          onResolve={handleResolve}
-                          onDismiss={handleDismiss}
+                          onResolve={(a) => { handleResolve(a); setHiddenAlertIds(prev => new Set(prev).add(a.id)); }}
+                          onDismiss={(a) => { handleDismiss(a); setHiddenAlertIds(prev => new Set(prev).add(a.id)); }}
                           onViewDetails={setSelectedAlert}
                         />
                       ))}
