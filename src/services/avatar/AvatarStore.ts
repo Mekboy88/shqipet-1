@@ -300,7 +300,8 @@ class AvatarStore {
       if (!url) {
         try {
           console.log('🔄 Checking auth metadata fallback...');
-          const { data: authData } = await supabase.auth.getUser();
+          const { getCachedAuthUser } = await import('@/lib/authCache');
+          const { data: authData } = await getCachedAuthUser();
           const metaUrl = authData?.user?.user_metadata?.avatar_url as string | undefined;
           
           if (metaUrl) {

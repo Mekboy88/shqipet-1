@@ -85,8 +85,8 @@ class NotificationManager implements NotificationPermissionManager {
 
   private async loadActiveSound() {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const uid = userData.user?.id;
+      const { getCachedAuthUserId } = await import('@/lib/authCache');
+      const uid = await getCachedAuthUserId();
       if (!uid) {
         this.customSoundUrl = null;
         return;
@@ -147,8 +147,8 @@ class NotificationManager implements NotificationPermissionManager {
     await this.loadActiveSound();
     this.addPlaybackUnlock();
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const uid = userData.user?.id;
+      const { getCachedAuthUserId } = await import('@/lib/authCache');
+      const uid = await getCachedAuthUserId();
       if (!uid) return;
       supabase
         .channel(`notification-sounds-active-${uid}`)

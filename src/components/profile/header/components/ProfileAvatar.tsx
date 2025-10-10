@@ -69,7 +69,8 @@ export const Avatar: React.FC<AvatarProps> = ({
     if (!userId) {
       const getCurrentUser = async () => {
         try {
-          const { data: { user } } = await supabase.auth.getUser();
+          const { getCachedAuthUser } = await import('@/lib/authCache');
+          const { data: { user } } = await getCachedAuthUser();
           if (user) {
             setCurrentUserId(user.id);
           }
@@ -296,7 +297,8 @@ export const AvatarUploadZone: React.FC<AvatarUploadZoneProps> = ({
     if (!userId) {
       const getCurrentUser = async () => {
         try {
-          const { data: { user } } = await supabase.auth.getUser();
+          const { getCachedAuthUser } = await import('@/lib/authCache');
+          const { data: { user } } = await getCachedAuthUser();
           if (user) {
             setCurrentUserId(user.id);
           }

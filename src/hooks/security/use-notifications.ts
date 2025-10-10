@@ -55,7 +55,11 @@ export const useNotifications = () => {
       if (error) throw error;
       return data as NotificationData[];
     },
-    refetchInterval: 3000 // Poll every 3 seconds for notifications
+    // Stop aggressive polling; rely on realtime + manual invalidations
+    refetchInterval: false,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false
   });
 
   const markAsRead = useMutation({

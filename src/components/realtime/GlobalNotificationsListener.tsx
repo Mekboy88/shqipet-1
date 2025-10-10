@@ -22,8 +22,8 @@ export const GlobalNotificationsListener = () => {
     const init = async () => {
       await notificationManager.initializeNotifications();
 
-      const { data: userData } = await supabase.auth.getUser();
-      const uid = userData.user?.id;
+      const { getCachedAuthUserId } = await import('@/lib/authCache');
+      const uid = await getCachedAuthUserId();
       if (!uid || !mounted) return;
 
       // General user notifications
