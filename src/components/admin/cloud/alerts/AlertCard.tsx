@@ -55,11 +55,50 @@ export const AlertCard = ({ alert, onResolve, onDismiss, onViewDetails }: AlertC
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -100 }}
       className={cn(
-        "p-4 rounded-xl border-l-4 backdrop-blur-sm bg-card/50 hover:bg-card/70 transition-all duration-200",
+        "relative p-4 rounded-xl border-l-4 backdrop-blur-sm bg-card/50 hover:bg-card/70 transition-all duration-200",
         getSeverityColor()
       )}
     >
-      <div className="flex items-start justify-between gap-4">
+      {/* Clear/Dismiss button - always visible in top-right */}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                if (alert.status === 'open') {
+                  if (alert.source === 'admin_notifications' || alert.source === 'notifications') {
+                    onDismiss(alert);
+                  } else {
+                    onResolve(alert);
+                  }
+                }
+              }}
+              disabled={alert.status !== 'open'}
+              className={cn(
+                "absolute top-2 right-2 h-7 w-7 p-0 transition-colors",
+                alert.status === 'open'
+                  ? "text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
+                  : "text-muted-foreground/30 cursor-not-allowed"
+              )}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>
+              {alert.status !== 'open' 
+                ? 'Alert already resolved' 
+                : (alert.source === 'admin_notifications' || alert.source === 'notifications')
+                ? 'Dismiss alert'
+                : 'Resolve alert'}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <div className="flex items-start justify-between gap-4 pr-8">
         <div className="flex items-start gap-3 flex-1">
           <div className="mt-1 text-primary">
             {getSourceIcon()}
