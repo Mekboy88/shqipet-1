@@ -182,6 +182,45 @@ export type Database = {
           },
         ]
       }
+      cost_estimates: {
+        Row: {
+          actual_cost: number | null
+          created_at: string
+          estimated_cost: number
+          id: string
+          metadata: Json | null
+          period_end: string
+          period_start: string
+          service_name: string
+          total_usage: number
+          updated_at: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          created_at?: string
+          estimated_cost: number
+          id?: string
+          metadata?: Json | null
+          period_end: string
+          period_start: string
+          service_name: string
+          total_usage: number
+          updated_at?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          created_at?: string
+          estimated_cost?: number
+          id?: string
+          metadata?: Json | null
+          period_end?: string
+          period_start?: string
+          service_name?: string
+          total_usage?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -633,6 +672,36 @@ export type Database = {
         }
         Relationships: []
       }
+      resource_usage: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          service_name: string
+          updated_at: string
+          usage_amount: number
+          usage_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          service_name: string
+          updated_at?: string
+          usage_amount: number
+          usage_date?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          service_name?: string
+          updated_at?: string
+          usage_amount?: number
+          usage_date?: string
+        }
+        Relationships: []
+      }
       security_events: {
         Row: {
           created_at: string
@@ -670,6 +739,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_pricing: {
+        Row: {
+          cost_per_unit: number
+          created_at: string
+          free_tier_limit: number | null
+          id: string
+          service_name: string
+          unit_type: string
+          updated_at: string
+        }
+        Insert: {
+          cost_per_unit: number
+          created_at?: string
+          free_tier_limit?: number | null
+          id?: string
+          service_name: string
+          unit_type: string
+          updated_at?: string
+        }
+        Update: {
+          cost_per_unit?: number
+          created_at?: string
+          free_tier_limit?: number | null
+          id?: string
+          service_name?: string
+          unit_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       system_health_metrics: {
         Row: {
@@ -912,6 +1011,16 @@ export type Database = {
       admin_get_live_operation_metrics: {
         Args: { p_window_minutes?: number }
         Returns: Json
+      }
+      calculate_current_month_costs: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          billable_usage: number
+          estimated_cost: number
+          free_tier_used: number
+          service_name: string
+          total_usage: number
+        }[]
       }
       can_view_profile: {
         Args: { profile_id: string }

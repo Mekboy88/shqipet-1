@@ -52,6 +52,7 @@ import AdminUserDashboard from './components/admin/users/AdminUserDashboard';
 import AdminUploadMonitoring from './pages/AdminUploadMonitoring';
 import CloudMonitoring from './pages/admin/cloud/CloudMonitoring';
 import LiveOperationCounter from './pages/admin/cloud/LiveOperationCounter';
+import CostEstimator from './pages/admin/cloud/CostEstimator';
 // New pages
 import Albums from './pages/Albums';
 import Dating from './pages/Dating';
@@ -267,11 +268,12 @@ function App() {
                          <Route path="/admin/uploads" element={<AdminDashboard />}>
                            <Route index element={<AdminUploadMonitoring />} />
                          </Route>
-                         {/* Cloud Monitoring */}
-                         <Route path="/admin/cloud" element={<AdminDashboard />}>
-                           <Route index element={<CloudMonitoring />} />
-                           <Route path="operations" element={<LiveOperationCounter />} />
-                         </Route>
+                          {/* Cloud Monitoring */}
+                          <Route path="/admin/cloud" element={<AdminDashboard />}>
+                            <Route index element={<CloudMonitoring />} />
+                            <Route path="operations" element={<LiveOperationCounter />} />
+                            <Route path="costs" element={<CostEstimator />} />
+                          </Route>
                         
                         {/* New application routes */}
                        <Route path="/albums" element={<Albums />} />

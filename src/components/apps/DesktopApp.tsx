@@ -88,6 +88,7 @@ import AdminUserDashboard from '@/components/admin/users/AdminUserDashboard';
 import WasabiCloudPage from '@/pages/admin/api/WasabiCloudPage';
 import CloudMonitoring from '@/pages/admin/cloud/CloudMonitoring';
 import LiveOperationCounter from '@/pages/admin/cloud/LiveOperationCounter';
+import CostEstimator from '@/pages/admin/cloud/CostEstimator';
 
 import TimePage from '@/pages/admin/localization/TimePage';
 import CurrencySettingsPage from '@/pages/admin/localization/CurrencySettingsPage';
@@ -363,6 +364,7 @@ const DesktopApp: React.FC = () => {
           <Route path="/admin/cloud" element={<AdminDashboard />}>
             <Route index element={<CloudMonitoring />} />
             <Route path="operations" element={<LiveOperationCounter />} />
+            <Route path="costs" element={<CostEstimator />} />
           </Route>
 
           {/* Handle any other admin route */}
