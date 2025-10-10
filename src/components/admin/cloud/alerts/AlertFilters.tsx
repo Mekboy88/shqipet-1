@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Search, Filter, X } from 'lucide-react';
 import { AlertSeverity, AlertSource } from '@/hooks/useRealtimeAlerts';
 
@@ -14,9 +15,10 @@ interface AlertFiltersProps {
   };
   onFilterChange: (key: string, value: any) => void;
   onClearFilters: () => void;
+  onClearFilterSection?: (section: string) => void;
 }
 
-export const AlertFilters = ({ filters, onFilterChange, onClearFilters }: AlertFiltersProps) => {
+export const AlertFilters = ({ filters, onFilterChange, onClearFilters, onClearFilterSection }: AlertFiltersProps) => {
   const severityOptions: AlertSeverity[] = ['critical', 'high', 'medium', 'low', 'info'];
   const statusOptions = ['open', 'resolved', 'dismissed'];
   const sourceOptions: AlertSource[] = ['admin_notifications', 'security_events', 'system_issues', 'brute_force_alerts', 'notifications'];
@@ -60,28 +62,51 @@ export const AlertFilters = ({ filters, onFilterChange, onClearFilters }: AlertF
         />
       </div>
 
-      {/* Active Filters Badge */}
-      {activeFilterCount > 0 && (
-        <div className="flex items-center justify-between">
-          <Badge variant="secondary" className="text-xs">
-            <Filter className="w-3 h-3 mr-1" />
-            {activeFilterCount} active filter{activeFilterCount !== 1 ? 's' : ''}
-          </Badge>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onClearFilters}
-            className="text-xs h-7"
-          >
-            <X className="w-3 h-3 mr-1" />
-            Clear all
-          </Button>
-        </div>
-      )}
+      {/* Active Filters Badge & Clear All */}
+      <div className="flex items-center justify-between">
+        <Badge variant="secondary" className="text-xs">
+          <Filter className="w-3 h-3 mr-1" />
+          {activeFilterCount} active filter{activeFilterCount !== 1 ? 's' : ''}
+        </Badge>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={onClearFilters}
+                disabled={activeFilterCount === 0}
+                className="text-xs h-7 disabled:opacity-50"
+              >
+                <X className="w-3 h-3 mr-1" />
+                Clear all
+              </Button>
+            </TooltipTrigger>
+            {activeFilterCount === 0 && (
+              <TooltipContent>
+                <p>No active filters to clear</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+      </div>
 
       {/* Time Range */}
       <div>
-        <label className="text-sm font-medium mb-2 block">Time Range</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Time Range</label>
+          {filters.timeRange && onClearFilterSection && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onClearFilterSection('timeRange')}
+              className="h-6 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-3 h-3 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {timeRangeOptions.map(option => (
             <Button
@@ -99,7 +124,20 @@ export const AlertFilters = ({ filters, onFilterChange, onClearFilters }: AlertF
 
       {/* Severity */}
       <div>
-        <label className="text-sm font-medium mb-2 block">Severity</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Severity</label>
+          {filters.severity.length > 0 && onClearFilterSection && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onClearFilterSection('severity')}
+              className="h-6 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-3 h-3 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {severityOptions.map(severity => (
             <Button
@@ -117,7 +155,20 @@ export const AlertFilters = ({ filters, onFilterChange, onClearFilters }: AlertF
 
       {/* Status */}
       <div>
-        <label className="text-sm font-medium mb-2 block">Status</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Status</label>
+          {filters.status.length > 0 && onClearFilterSection && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onClearFilterSection('status')}
+              className="h-6 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-3 h-3 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {statusOptions.map(status => (
             <Button
@@ -135,7 +186,20 @@ export const AlertFilters = ({ filters, onFilterChange, onClearFilters }: AlertF
 
       {/* Source */}
       <div>
-        <label className="text-sm font-medium mb-2 block">Source</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Source</label>
+          {filters.source.length > 0 && onClearFilterSection && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onClearFilterSection('source')}
+              className="h-6 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-3 h-3 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {sourceOptions.map(source => (
             <Button

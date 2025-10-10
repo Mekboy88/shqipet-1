@@ -9,6 +9,7 @@ import { AlertCard } from '@/components/admin/cloud/alerts/AlertCard';
 import { AlertFilters } from '@/components/admin/cloud/alerts/AlertFilters';
 import { AlertStats } from '@/components/admin/cloud/alerts/AlertStats';
 import { AlertDetailModal } from '@/components/admin/cloud/alerts/AlertDetailModal';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,32 @@ export default function RealTimeAlerts() {
       timeRange: '24h',
       search: '',
     });
+    toast.success('All filters cleared');
+  };
+
+  const handleClearFilterSection = (section: string) => {
+    switch (section) {
+      case 'severity':
+        setFilters(prev => ({ ...prev, severity: [] }));
+        toast.success('Severity filters cleared');
+        break;
+      case 'status':
+        setFilters(prev => ({ ...prev, status: [] }));
+        toast.success('Status filters cleared');
+        break;
+      case 'source':
+        setFilters(prev => ({ ...prev, source: [] }));
+        toast.success('Source filters cleared');
+        break;
+      case 'timeRange':
+        setFilters(prev => ({ ...prev, timeRange: '' }));
+        toast.success('Time range filter cleared');
+        break;
+      case 'search':
+        setFilters(prev => ({ ...prev, search: '' }));
+        toast.success('Search cleared');
+        break;
+    }
   };
 
   const handleResolve = (alert: UnifiedAlert) => {
@@ -119,6 +146,7 @@ export default function RealTimeAlerts() {
             filters={filters}
             onFilterChange={handleFilterChange}
             onClearFilters={clearFilters}
+            onClearFilterSection={handleClearFilterSection}
           />
         </div>
 
