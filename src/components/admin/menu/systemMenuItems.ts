@@ -63,5 +63,18 @@ export const systemMenuItems: MenuItem[] = [
       { id: 'cloud-services', label: '🌐 Cloud Services', href: '/admin/api/cloud' },
       { id: 'ai-apis', label: '🤖 AI APIs', href: '/admin/api/ai' }
     ]
+  },
+  {
+    id: 'cloud-monitoring',
+    label: '☁️ Cloud Monitoring',
+    icon: Server,
+    colorVariant: 'tealGold',
+    submenu: [
+      { id: 'live-operations', label: '📊 Live Operation Counter', href: '/admin/cloud/operations' },
+      { id: 'cost-estimator', label: '💰 Cost Estimator Dashboard', href: '/admin/cloud/costs' },
+      { id: 'query-logs', label: '📋 Query Logs Viewer', href: '/admin/cloud/logs' },
+      { id: 'realtime-alerts', label: '🚨 Real-Time Alerts', href: '/admin/cloud/alerts' },
+      { id: 'optimization-suggestions', label: '🎯 Optimization Suggestions', href: '/admin/cloud/optimization' }
+    ]
   }
 ];

@@ -50,6 +50,8 @@ import LiveConnectionTopology from './pages/admin/core-platform/LiveConnectionTo
 import AIAPIsConnection from './components/admin/AIAPIsConnection';
 import AdminUserDashboard from './components/admin/users/AdminUserDashboard';
 import AdminUploadMonitoring from './pages/AdminUploadMonitoring';
+import CloudMonitoring from './pages/admin/cloud/CloudMonitoring';
+import LiveOperationCounter from './pages/admin/cloud/LiveOperationCounter';
 // New pages
 import Albums from './pages/Albums';
 import Dating from './pages/Dating';
@@ -264,6 +266,13 @@ function App() {
                          {/* Upload Monitoring */}
                          <Route path="/admin/uploads" element={<AdminDashboard />}>
                            <Route index element={<AdminUploadMonitoring />} />
+                         </Route>
+                         {/* Cloud Monitoring */}
+                         <Route path="/admin/cloud" element={<AdminDashboard />}>
+                           <Route index element={<CloudMonitoring />} />
+                         </Route>
+                         <Route path="/admin/cloud/operations" element={<AdminDashboard />}>
+                           <Route index element={<LiveOperationCounter />} />
                          </Route>
                         
                         {/* New application routes */}
