@@ -20,6 +20,8 @@ import GlobeLoader from '@/components/ui/GlobeLoader';
 import RoutePersistence from '@/components/routing/RoutePersistence';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
 import { isPrimaryDomain, isMobileSubdomain, buildUrlFor, isAdminPath, MOBILE_SUBDOMAIN, PRIMARY_DOMAINS } from '@/utils/domainConfig';
+import { supabase } from '@/integrations/supabase/client';
+import { DesktopMobileToggle } from './DesktopMobileToggle';
 
 
 // Import unified responsive styles
@@ -96,7 +98,25 @@ const ViewSwitcher: React.FC = () => {
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
         console.log('Redirecting mobile/tablet user to:', targetUrl);
-        window.location.replace(targetUrl);
+        
+        // Log redirect to database if user is authenticated
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            supabase.from('profiles').update({
+              last_device: isRealMobile ? 'mobile' : 'tablet',
+              last_redirect_host: MOBILE_SUBDOMAIN,
+              last_redirect_at: new Date().toISOString()
+            }).eq('id', user.id).then(() => {
+              window.location.replace(targetUrl);
+            }).catch(() => {
+              window.location.replace(targetUrl);
+            });
+          } else {
+            window.location.replace(targetUrl);
+          }
+        }).catch(() => {
+          window.location.replace(targetUrl);
+        });
         return;
       }
       
@@ -106,7 +126,25 @@ const ViewSwitcher: React.FC = () => {
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(PRIMARY_DOMAINS[0]);
         console.log('Redirecting desktop user to:', targetUrl);
-        window.location.replace(targetUrl);
+        
+        // Log redirect to database if user is authenticated
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            supabase.from('profiles').update({
+              last_device: 'desktop',
+              last_redirect_host: PRIMARY_DOMAINS[0],
+              last_redirect_at: new Date().toISOString()
+            }).eq('id', user.id).then(() => {
+              window.location.replace(targetUrl);
+            }).catch(() => {
+              window.location.replace(targetUrl);
+            });
+          } else {
+            window.location.replace(targetUrl);
+          }
+        }).catch(() => {
+          window.location.replace(targetUrl);
+        });
         return;
       }
       
@@ -273,9 +311,10 @@ const ViewSwitcher: React.FC = () => {
                       <RoutePersistence />
                       <CentralizedAuthGuard>
                         <PostsProvider>
-                           <PublishingProgressProvider>
+                             <PublishingProgressProvider>
                              <div className={`app-container is-${layoutType}-view vw-100 vh-100`} data-auth-ready>
                                <AppComponent />
+                               <DesktopMobileToggle />
                              </div>
                              <GlobalScrollIndicator />
                              {/* Removed toast system - using notification system */}
