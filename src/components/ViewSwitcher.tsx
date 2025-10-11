@@ -12,7 +12,6 @@ import { PublishingProgressProvider } from "@/contexts/PublishingProgressContext
 
 import LaptopApp from '@/components/apps/LaptopApp';
 import DesktopApp from '@/components/apps/DesktopApp';
-import MobileAppRedirect from '@/components/apps/MobileAppRedirect';
 import TermsOfUse from '@/pages/TermsOfUse';
 import SafetyWrapper from '@/components/SafetyWrapper';
 import RootLoadingWrapper from '@/components/RootLoadingWrapper';
@@ -20,7 +19,6 @@ import CentralizedAuthGuard from '@/components/auth/CentralizedAuthGuard';
 import GlobeLoader from '@/components/ui/GlobeLoader';
 import RoutePersistence from '@/components/routing/RoutePersistence';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
-import { isPrimaryDomain, isMobileSubdomain, buildUrlFor, MOBILE_SUBDOMAIN } from '@/utils/domainConfig';
 
 
 // Import unified responsive styles
@@ -39,22 +37,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Check if device should be redirected to mobile app based on REAL device type
-const shouldRedirectToMobileApp = (isRealMobile: boolean, isRealTablet: boolean): boolean => {
-  // NEVER redirect desktop browsers - even if window is small
-  const userAgent = navigator.userAgent.toLowerCase();
-  const isDesktopBrowser = userAgent.includes('macintosh') || 
-                          userAgent.includes('windows') || 
-                          userAgent.includes('linux') ||
-                          userAgent.includes('safari') && !userAgent.includes('mobile');
-  
-  if (isDesktopBrowser) {
-    console.log('Desktop browser detected - preventing mobile redirect:', userAgent);
-    return false;
-  }
-  
-  return isRealMobile || isRealTablet;
-};
 
 // Check if current page is a public page
 const isPublicPage = (pathname: string): boolean => {
@@ -94,30 +76,6 @@ const ViewSwitcher: React.FC = () => {
 
   // Use basic device info for now - will enhance with hooks after React is stable
   const deviceInfo = getBasicDeviceInfo();
-
-  // Mobile subdomain redirect: m.shqipet.com for mobile/tablet, shqipet.com for desktop
-  React.useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const forceDesktop = params.get('forceDesktop') === '1' || localStorage.getItem('prefersDesktop') === '1';
-      
-      // Redirect mobile/tablet from primary domains to m.shqipet.com
-      if (isPrimaryDomain() && !forceDesktop && (deviceInfo.isRealMobile || deviceInfo.isRealTablet)) {
-        console.log('Redirecting mobile/tablet to m.shqipet.com');
-        window.location.replace(buildUrlFor(MOBILE_SUBDOMAIN));
-        return;
-      }
-      
-      // Redirect desktop from m.shqipet.com back to shqipet.com
-      if (isMobileSubdomain() && deviceInfo.isRealDesktop) {
-        console.log('Redirecting desktop to shqipet.com');
-        window.location.replace(buildUrlFor('shqipet.com'));
-        return;
-      }
-    } catch (error) {
-      console.warn('Mobile subdomain redirect check failed:', error);
-    }
-  }, [deviceInfo.isRealMobile, deviceInfo.isRealTablet, deviceInfo.isRealDesktop]);
   
   const getWindowSize = () => {
     try {
@@ -176,12 +134,9 @@ const ViewSwitcher: React.FC = () => {
     }
   }
 
-  // Use real device type - desktop browsers NEVER redirect regardless of window size
-  const shouldRedirect = shouldRedirectToMobileApp(deviceInfo.isRealMobile, deviceInfo.isRealTablet);
-  
   // Determine layout type based on real device + window size
   const getLayoutType = () => {
-    // ABSOLUTE PREVENTION: Never allow mobile layout on desktop browsers
+    // Desktop browsers: choose between laptop/desktop based on screen size
     const userAgent = navigator.userAgent.toLowerCase();
     const isDesktopBrowser = userAgent.includes('macintosh') || 
                             userAgent.includes('windows') || 
@@ -189,14 +144,14 @@ const ViewSwitcher: React.FC = () => {
                             (userAgent.includes('safari') && !userAgent.includes('mobile'));
     
     if (isDesktopBrowser) {
-      // Desktop browsers: choose between laptop/desktop only, NEVER mobile
+      // Desktop browsers: laptop or desktop based on width
       if (windowSize.width >= 1280) return 'desktop';
-      return 'laptop'; // Minimum layout for desktop browsers
+      return 'laptop';
     }
     
-    // Real mobile devices always get redirected
+    // Mobile/tablet devices: use laptop layout (it's responsive)
     if (deviceInfo.isRealMobile || deviceInfo.isRealTablet) {
-      return 'mobile'; // This will trigger redirect
+      return 'laptop';
     }
     
     // Fallback for other devices
@@ -207,37 +162,24 @@ const ViewSwitcher: React.FC = () => {
   
   const layoutType = getLayoutType();
 
-  // Get the app component with error handling (only for non-redirected devices)
+  // Get the app component with error handling
   const getAppComponent = () => {
     try {
-      // Only handle laptop and desktop layouts for desktop browsers
       switch(layoutType) {
         case 'laptop':
           return LaptopApp;
         case 'desktop':
           return DesktopApp;
         default:
-          return DesktopApp;
+          return LaptopApp;
       }
     } catch (error) {
       console.error('App component selection failed:', error);
-      return DesktopApp;
+      return LaptopApp;
     }
   };
   
   const AppComponent = getAppComponent();
-
-  // Redirect mobile/tablet users to app download/open page
-  if (shouldRedirect) {
-    console.log('ViewSwitcher: Mobile/tablet detected; showing app redirect page');
-    return (
-      <RootLoadingWrapper>
-        <SafetyWrapper>
-          <MobileAppRedirect />
-        </SafetyWrapper>
-      </RootLoadingWrapper>
-    );
-  }
 
 
   // Main render with comprehensive error handling

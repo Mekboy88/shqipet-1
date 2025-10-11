@@ -1,7 +1,3 @@
-// Domain constants
-export const PRIMARY_DOMAINS = ['shqipet.com', 'www.shqipet.com'];
-export const MOBILE_SUBDOMAIN = 'm.shqipet.com';
-
 // Dynamic domain config - detects actual domain
 export const getDomainConfig = () => {
   const hostname = window?.location?.hostname || 'localhost';
@@ -18,22 +14,6 @@ export const getDomainConfig = () => {
   };
 };
 
-// Domain helpers for mobile subdomain redirect
-export const isPrimaryDomain = () => {
-  if (typeof window === 'undefined') return false;
-  return PRIMARY_DOMAINS.includes(window.location.hostname);
-};
-
-export const isMobileSubdomain = () => {
-  if (typeof window === 'undefined') return false;
-  return window.location.hostname === MOBILE_SUBDOMAIN;
-};
-
-export const buildUrlFor = (host: string) => {
-  if (typeof window === 'undefined') return `https://${host}`;
-  const { pathname, search, hash } = window.location;
-  return `https://${host}${pathname}${search}${hash}`;
-};
 
 export const shouldRedirectToPrimary = () => {
   const hostname = window?.location?.hostname;
