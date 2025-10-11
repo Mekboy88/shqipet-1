@@ -18,7 +18,8 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle,
-  Activity
+  Activity,
+  Info
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, subDays, startOfMonth } from 'date-fns';
@@ -55,6 +56,8 @@ const CostEstimator: React.FC = () => {
   const [historicalData, setHistoricalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [justUpdated, setJustUpdated] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const { toast } = useToast();
 
   const fetchCosts = async () => {
@@ -128,6 +131,8 @@ const CostEstimator: React.FC = () => {
         },
         (payload) => {
           console.log('Real-time cost update:', payload);
+          setJustUpdated(true);
+          setTimeout(() => setJustUpdated(false), 2000);
           fetchCosts();
           fetchHistoricalData();
         }
@@ -193,6 +198,11 @@ const CostEstimator: React.FC = () => {
           <h1 className="text-4xl font-bold flex items-center gap-3">
             <DollarSign className="h-10 w-10 text-green-500" />
             Cost Estimator Dashboard
+            {justUpdated && (
+              <Badge className="animate-pulse bg-green-500">
+                Data Updated
+              </Badge>
+            )}
           </h1>
           <p className="text-muted-foreground mt-2">
             Real-time cloud resource usage and cost tracking for {format(startOfMonth(new Date()), 'MMMM yyyy')}
@@ -200,12 +210,44 @@ const CostEstimator: React.FC = () => {
         </div>
         <div className="flex gap-2">
           <Button
-            variant={autoRefresh ? "default" : "outline"}
+            variant="outline"
             onClick={() => setAutoRefresh(!autoRefresh)}
-            className="gap-2"
+            className={`gap-2 transition-colors ${
+              autoRefresh 
+                ? 'bg-green-500/10 hover:bg-green-500/20 border-green-500 text-green-700 dark:text-green-400' 
+                : 'bg-red-500/10 hover:bg-red-500/20 border-red-500 text-red-700 dark:text-red-400'
+            }`}
           >
             {autoRefresh ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
             {autoRefresh ? 'Live Updates On' : 'Live Updates Off'}
+          </Button>
+          <Button 
+            onClick={async () => {
+              setIsRecording(true);
+              try {
+                const { error } = await supabase.functions.invoke('track-resource-usage');
+                if (error) throw error;
+                await loadAllData();
+                toast({
+                  title: 'Usage Recorded!',
+                  description: 'Resource usage has been updated successfully.',
+                });
+              } catch (error: any) {
+                toast({
+                  title: 'Recording Failed',
+                  description: error.message,
+                  variant: 'destructive'
+                });
+              } finally {
+                setIsRecording(false);
+              }
+            }} 
+            variant="outline" 
+            className="gap-2"
+            disabled={isRecording}
+          >
+            <Activity className={`h-4 w-4 ${isRecording ? 'animate-spin' : ''}`} />
+            {isRecording ? 'Recording...' : 'Record Usage Now'}
           </Button>
           <Button onClick={loadAllData} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
@@ -213,6 +255,51 @@ const CostEstimator: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* What's Being Tracked Info Panel */}
+      <Card className="bg-blue-500/5 border-blue-500/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-blue-500" />
+            What's Being Tracked
+          </CardTitle>
+          <CardDescription>Real-time monitoring of all cloud services</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <Database className="h-5 w-5 text-primary mb-2" />
+              <p className="font-semibold">Database Storage</p>
+              <p className="text-xs text-muted-foreground">PostgreSQL size in MB</p>
+            </div>
+            <div>
+              <Zap className="h-5 w-5 text-primary mb-2" />
+              <p className="font-semibold">API Calls</p>
+              <p className="text-xs text-muted-foreground">Total requests made</p>
+            </div>
+            <div>
+              <Globe className="h-5 w-5 text-primary mb-2" />
+              <p className="font-semibold">Bandwidth</p>
+              <p className="text-xs text-muted-foreground">Data transfer in GB</p>
+            </div>
+            <div>
+              <Activity className="h-5 w-5 text-primary mb-2" />
+              <p className="font-semibold">Edge Functions</p>
+              <p className="text-xs text-muted-foreground">Function invocations</p>
+            </div>
+            <div>
+              <HardDrive className="h-5 w-5 text-primary mb-2" />
+              <p className="font-semibold">File Storage</p>
+              <p className="text-xs text-muted-foreground">Uploaded files in GB</p>
+            </div>
+            <div>
+              <Users className="h-5 w-5 text-primary mb-2" />
+              <p className="font-semibold">Authentication</p>
+              <p className="text-xs text-muted-foreground">Monthly active users</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

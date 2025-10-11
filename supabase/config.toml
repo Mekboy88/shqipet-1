@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.wasabi-get-url]
 verify_jwt = false
+
+[functions.track-resource-usage]
+verify_jwt = false
