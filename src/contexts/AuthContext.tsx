@@ -235,7 +235,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('🔍 fetchUserRole: Fetching role for user:', userId);
       
-      // Fetch the highest priority active role from user_roles table
+      // FIRST: Check profiles.primary_role (the source of truth)
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('primary_role')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!profileError && profileData?.primary_role) {
+        const role = profileData.primary_role;
+        const level = ROLE_LEVELS[role as keyof typeof ROLE_LEVELS] || 1;
+        console.log('✅ fetchUserRole: Role found in profile:', role, 'level:', level, 'in', Math.round(performance.now() - started), 'ms');
+        setUserRole(role);
+        setUserLevel(level);
+        setAuthDataCached(true);
+        return;
+      }
+
+      // FALLBACK: Check user_roles table if primary_role is null
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -256,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data?.role) {
         const role = data.role;
         const level = ROLE_LEVELS[role as keyof typeof ROLE_LEVELS] || 1;
-        console.log('✅ fetchUserRole: Role found:', role, 'level:', level, 'in', Math.round(performance.now() - started), 'ms');
+        console.log('✅ fetchUserRole: Role found in user_roles:', role, 'level:', level, 'in', Math.round(performance.now() - started), 'ms');
         setUserRole(role);
         setUserLevel(level);
       } else {

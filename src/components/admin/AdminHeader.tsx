@@ -63,116 +63,9 @@ const AdminHeader: React.FC<AdminHeaderProps> = () => {
   
   // Use the global avatar system - never show loading
   const { avatarUrl, initials, displayName } = useUniversalUser();
-  const [role, setRole] = useState<string | null>(null);
-  const [profileRole, setProfileRole] = useState<string | null>(null);
 
   // Global fetch resilience & auto-recovery
   useFetchGuardian();
-
-  // Precisely identify current role (super_admin/admin/etc.)
-  useEffect(() => {
-    let active = true;
-    const fetchRole = async () => {
-      try {
-        console.log('🔐 [SECURITY] AdminHeader role detection starting...');
-        
-        // Database integration removed - placeholder for future Cloud integration
-        const userId = null;
-        const userEmail = null;
-        
-        console.log('🔐 [SECURITY] Auth user detected:', { userId: userId?.substring(0, 8) + '...', email: userEmail });
-        
-        if (!userId) {
-          console.error('🚨 [SECURITY CRITICAL] No authenticated user found!');
-          if (active) {
-            setRole(null);
-            setProfileRole(null);
-          }
-          return;
-        }
-
-        // SECURITY FIX: Removed hardcoded platform owner check
-        // All role verification now done through database queries
-
-        // Database integration removed - placeholder for future Cloud integration
-        console.log('🔐 [SECURITY] Database integration removed');
-        const profileData = null;
-        const profileError = new Error('Database not connected');
-
-        console.log('🔐 [SECURITY] Profile query result:', { data: profileData, error: profileError });
-
-        if (profileData?.primary_role) {
-          console.log('🔐 [SECURITY] Found profile role:', profileData.primary_role);
-          if (active) {
-            setProfileRole(profileData.primary_role);
-            setRole(profileData.primary_role);
-          }
-          return;
-        }
-
-        // Database integration removed - placeholder for future Cloud integration
-        console.log('🔐 [SECURITY] Database integration removed');
-        const data = null;
-        const error = new Error('Database not connected');
-        
-        console.log('🔐 [SECURITY] RPC result:', { data, error: error?.message });
-        
-        if (!error && data) {
-          console.log('🔐 [SECURITY] Found RPC role:', data);
-          if (active) setRole(data as string);
-          return;
-        }
-
-        console.warn('🚨 [SECURITY WARNING] RPC get_current_user_role failed; falling back to tables:', error?.message);
-
-        // Database integration removed - placeholder for future Cloud integration
-        const linkRows = [];
-        const linkErr = new Error('Database not connected');
-
-        if (linkErr) {
-          console.warn('Fallback role link query failed:', linkErr.message);
-          if (active) setRole(null);
-          return;
-        }
-
-        const roleIds = Array.isArray(linkRows) ? (linkRows as any[]).map(r => r.role_id).filter(Boolean) : [];
-        if (!roleIds.length) {
-          if (active) setRole(null);
-          return;
-        }
-
-        // Database integration removed - placeholder for future Cloud integration
-        const roleRows = [];
-        const rolesErr = new Error('Database not connected');
-
-        if (rolesErr) {
-          console.warn('Fallback roles fetch failed:', rolesErr.message);
-          if (active) setRole(null);
-          return;
-        }
-
-        const best = Array.isArray(roleRows) ? (roleRows as any[]).sort((a,b) => (b.level||0)-(a.level||0))[0] : null;
-        if (active) setRole(best?.code || null);
-        
-        console.error('🚨 [SECURITY WARNING] Had to use fallback role detection method');
-      } catch (e) {
-        console.error('🚨 [SECURITY CRITICAL] Role fetch failed:', e);
-        if (active) {
-          setRole(null);
-          setProfileRole(null);
-        }
-      }
-    };
-    
-    console.log('🔐 [SECURITY] Initializing role detection...');
-    fetchRole();
-    // Database integration removed - placeholder for future Cloud integration
-    console.log('🔐 [SECURITY] Database integration removed');
-    
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const handleAdminLogout = async () => {
     if (isLoggingOut) return;
@@ -306,7 +199,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = () => {
               variant="ghost"
               size="icon"
               className="relative bg-gradient-to-br from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 rounded-full transition-all duration-200 h-10 w-10"
-              title={`${displayName || 'Admin'} • ${(role || hookRole || adminRole) ? getRoleBadgeConfig((role || hookRole || adminRole) as string).text : 'Verifying role...'}`}
+              title={`${displayName || 'Admin'} • ${hookRole ? getRoleBadgeConfig(hookRole).text : 'Verifying role...'}`}
               data-user-id={user?.id || ''}
             >
               <span className="text-sm font-semibold">
@@ -322,7 +215,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = () => {
                   <div>
                     <p className="font-semibold text-gray-900">{displayName || 'Admin'}</p>
                     <p className="text-sm text-gray-500">
-                      {getRoleBadgeConfig((profileRole || role || hookRole || adminRole || 'user') as string).text}
+                      {getRoleBadgeConfig(hookRole || 'user').text}
                     </p>
                     <div className="flex items-center gap-1 mt-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>

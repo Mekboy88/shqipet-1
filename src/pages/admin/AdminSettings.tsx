@@ -62,7 +62,11 @@ const AdminSettings: React.FC = () => {
               <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
                 <Avatar userId={user?.id} size="lg" className="h-12 w-12 ring-2 ring-primary/20" />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">{user?.email || 'Admin User'}</h3>
+                  <h3 className="font-semibold text-foreground">
+                    {currentRole === 'platform_owner_root' && user?.email 
+                      ? `********.${user.email.split('.').pop()}`
+                      : user?.email || 'Admin User'}
+                  </h3>
                   <p className="text-sm text-muted-foreground">
                     Role: <span className="font-medium" style={{ color: roleConfig.color }}>
                       {roleConfig.text}
