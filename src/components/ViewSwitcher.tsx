@@ -12,6 +12,7 @@ import { PublishingProgressProvider } from "@/contexts/PublishingProgressContext
 
 import LaptopApp from '@/components/apps/LaptopApp';
 import DesktopApp from '@/components/apps/DesktopApp';
+import MobileAppRedirect from '@/components/apps/MobileAppRedirect';
 import TermsOfUse from '@/pages/TermsOfUse';
 import SafetyWrapper from '@/components/SafetyWrapper';
 import RootLoadingWrapper from '@/components/RootLoadingWrapper';
@@ -201,10 +202,16 @@ const ViewSwitcher: React.FC = () => {
   
   const AppComponent = getAppComponent();
 
-  // Don't block render on mobile/tablet – always render app to avoid blank screen
+  // Redirect mobile/tablet users to app download/open page
   if (shouldRedirect) {
-    console.warn('ViewSwitcher: Mobile/tablet detected; rendering desktop app to avoid blank screen');
-    // Intentionally fall through to render AppComponent
+    console.log('ViewSwitcher: Mobile/tablet detected; showing app redirect page');
+    return (
+      <RootLoadingWrapper>
+        <SafetyWrapper>
+          <MobileAppRedirect />
+        </SafetyWrapper>
+      </RootLoadingWrapper>
+    );
   }
 
 
