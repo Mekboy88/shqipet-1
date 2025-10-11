@@ -1,4 +1,7 @@
 // Dynamic domain config - detects actual domain
+export const PRIMARY_DOMAINS = ['shqipet.com', 'www.shqipet.com'];
+export const MOBILE_SUBDOMAIN = 'm.shqipet.com';
+
 export const getDomainConfig = () => {
   const hostname = window?.location?.hostname || 'localhost';
   const origin = window?.location?.origin || 'http://localhost:3000';
@@ -14,6 +17,24 @@ export const getDomainConfig = () => {
   };
 };
 
+export const isPrimaryDomain = (hostname?: string) => {
+  const host = hostname || window?.location?.hostname || 'localhost';
+  return PRIMARY_DOMAINS.includes(host);
+};
+
+export const isMobileSubdomain = (hostname?: string) => {
+  const host = hostname || window?.location?.hostname || 'localhost';
+  return host === MOBILE_SUBDOMAIN;
+};
+
+export const buildUrlFor = (targetHost: string) => {
+  const { pathname, search, hash } = window.location;
+  return `https://${targetHost}${pathname}${search}${hash}`;
+};
+
+export const isAdminPath = (pathname: string) => {
+  return pathname.startsWith('/admin');
+};
 
 export const shouldRedirectToPrimary = () => {
   const hostname = window?.location?.hostname;

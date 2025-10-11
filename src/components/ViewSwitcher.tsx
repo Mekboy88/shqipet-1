@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 // Removed toast system - using notification system instead
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +19,7 @@ import CentralizedAuthGuard from '@/components/auth/CentralizedAuthGuard';
 import GlobeLoader from '@/components/ui/GlobeLoader';
 import RoutePersistence from '@/components/routing/RoutePersistence';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
+import { isPrimaryDomain, isMobileSubdomain, buildUrlFor, isAdminPath, MOBILE_SUBDOMAIN, PRIMARY_DOMAINS } from '@/utils/domainConfig';
 
 
 // Import unified responsive styles
@@ -49,6 +50,82 @@ const isPublicPage = (pathname: string): boolean => {
 };
 
 const ViewSwitcher: React.FC = () => {
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  // Mobile redirect logic - runs once on mount
+  useEffect(() => {
+    // Skip if already redirected in this session
+    if (sessionStorage.getItem('mobileRedirectChecked') === '1') return;
+    
+    try {
+      const hostname = window.location.hostname;
+      const pathname = window.location.pathname;
+      
+      // Skip redirect for admin paths
+      if (isAdminPath(pathname)) {
+        sessionStorage.setItem('mobileRedirectChecked', '1');
+        return;
+      }
+      
+      // Check override conditions
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceDesktop = urlParams.get('forceDesktop') === '1';
+      const prefersDesktop = localStorage.getItem('prefersDesktop') === '1';
+      
+      if (forceDesktop || prefersDesktop) {
+        sessionStorage.setItem('mobileRedirectChecked', '1');
+        return;
+      }
+      
+      // Detect device
+      const userAgent = navigator.userAgent.toLowerCase();
+      const mobileKeywords = ['iphone','ipod','android','blackberry','windows phone','mobile','webos','opera mini'];
+      const tabletKeywords = ['ipad','android tablet','kindle','silk','playbook','tablet'];
+      const isMobileUA = mobileKeywords.some(k => userAgent.includes(k));
+      const isTabletUA = tabletKeywords.some(k => userAgent.includes(k));
+      const isRealMobile = isMobileUA && !isTabletUA;
+      const isRealTablet = isTabletUA;
+      const isDesktopBrowser = userAgent.includes('macintosh') || 
+                               userAgent.includes('windows') || 
+                               userAgent.includes('linux') ||
+                               (userAgent.includes('safari') && !userAgent.includes('mobile'));
+      
+      // Mobile/Tablet on primary domain → redirect to m.shqipet.com
+      if ((isRealMobile || isRealTablet) && isPrimaryDomain(hostname)) {
+        sessionStorage.setItem('mobileRedirectChecked', '1');
+        setIsRedirecting(true);
+        const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
+        console.log('Redirecting mobile/tablet user to:', targetUrl);
+        window.location.replace(targetUrl);
+        return;
+      }
+      
+      // Desktop on mobile subdomain → redirect back to primary
+      if (isDesktopBrowser && isMobileSubdomain(hostname)) {
+        sessionStorage.setItem('mobileRedirectChecked', '1');
+        setIsRedirecting(true);
+        const targetUrl = buildUrlFor(PRIMARY_DOMAINS[0]);
+        console.log('Redirecting desktop user to:', targetUrl);
+        window.location.replace(targetUrl);
+        return;
+      }
+      
+      sessionStorage.setItem('mobileRedirectChecked', '1');
+    } catch (error) {
+      console.warn('Mobile redirect check failed:', error);
+      sessionStorage.setItem('mobileRedirectChecked', '1');
+    }
+  }, []);
+
+  // Show loading while redirecting
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <GlobeLoader size="lg" showText={true} />
+      </div>
+    );
+  }
+
   // Fallback device detection without hooks for initial render
   const getBasicDeviceInfo = () => {
     try {

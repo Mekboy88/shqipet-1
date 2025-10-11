@@ -679,11 +679,15 @@ export type Database = {
           gender: string | null
           id: string
           is_hidden: boolean | null
+          last_device: string | null
           last_name: string | null
+          last_redirect_at: string | null
+          last_redirect_host: string | null
           phone_number: string | null
           phone_verified: boolean | null
           photo_text_transform: Json | null
           photo_transform: Json | null
+          prefers_desktop: boolean
           primary_role: string | null
           updated_at: string
           username: string | null
@@ -703,11 +707,15 @@ export type Database = {
           gender?: string | null
           id: string
           is_hidden?: boolean | null
+          last_device?: string | null
           last_name?: string | null
+          last_redirect_at?: string | null
+          last_redirect_host?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           photo_text_transform?: Json | null
           photo_transform?: Json | null
+          prefers_desktop?: boolean
           primary_role?: string | null
           updated_at?: string
           username?: string | null
@@ -727,11 +735,15 @@ export type Database = {
           gender?: string | null
           id?: string
           is_hidden?: boolean | null
+          last_device?: string | null
           last_name?: string | null
+          last_redirect_at?: string | null
+          last_redirect_host?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           photo_text_transform?: Json | null
           photo_transform?: Json | null
+          prefers_desktop?: boolean
           primary_role?: string | null
           updated_at?: string
           username?: string | null
