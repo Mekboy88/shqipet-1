@@ -20,6 +20,7 @@ import CentralizedAuthGuard from '@/components/auth/CentralizedAuthGuard';
 import GlobeLoader from '@/components/ui/GlobeLoader';
 import RoutePersistence from '@/components/routing/RoutePersistence';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
+import { isPrimaryDomain, isMobileSubdomain, buildUrlFor, MOBILE_SUBDOMAIN } from '@/utils/domainConfig';
 
 
 // Import unified responsive styles
@@ -93,6 +94,30 @@ const ViewSwitcher: React.FC = () => {
 
   // Use basic device info for now - will enhance with hooks after React is stable
   const deviceInfo = getBasicDeviceInfo();
+
+  // Mobile subdomain redirect: m.shqipet.com for mobile/tablet, shqipet.com for desktop
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const forceDesktop = params.get('forceDesktop') === '1' || localStorage.getItem('prefersDesktop') === '1';
+      
+      // Redirect mobile/tablet from primary domains to m.shqipet.com
+      if (isPrimaryDomain() && !forceDesktop && (deviceInfo.isRealMobile || deviceInfo.isRealTablet)) {
+        console.log('Redirecting mobile/tablet to m.shqipet.com');
+        window.location.replace(buildUrlFor(MOBILE_SUBDOMAIN));
+        return;
+      }
+      
+      // Redirect desktop from m.shqipet.com back to shqipet.com
+      if (isMobileSubdomain() && deviceInfo.isRealDesktop) {
+        console.log('Redirecting desktop to shqipet.com');
+        window.location.replace(buildUrlFor('shqipet.com'));
+        return;
+      }
+    } catch (error) {
+      console.warn('Mobile subdomain redirect check failed:', error);
+    }
+  }, [deviceInfo.isRealMobile, deviceInfo.isRealTablet, deviceInfo.isRealDesktop]);
   
   const getWindowSize = () => {
     try {
