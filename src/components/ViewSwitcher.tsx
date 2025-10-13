@@ -87,13 +87,15 @@ const ViewSwitcher: React.FC = () => {
       const isTabletUA = tabletKeywords.some(k => userAgent.includes(k));
       const isRealMobile = isMobileUA && !isTabletUA;
       const isRealTablet = isTabletUA;
-      const isDesktopBrowser = userAgent.includes('macintosh') || 
-                               userAgent.includes('windows') || 
-                               userAgent.includes('linux') ||
-                               (userAgent.includes('safari') && !userAgent.includes('mobile'));
+
+      // Robust desktop detection: real Macs/Windows/Linux (exclude iPadOS masquerading as Mac by checking touch points)
+      const isMacDesktop = (userAgent.includes('macintosh') || userAgent.includes('mac os x')) && (navigator.maxTouchPoints || 0) < 2;
+      const isWindowsDesktop = userAgent.includes('windows nt');
+      const isLinuxDesktop = userAgent.includes('linux') && !userAgent.includes('android');
+      const isDesktopBrowser = isMacDesktop || isWindowsDesktop || isLinuxDesktop || (userAgent.includes('safari') && !userAgent.includes('mobile'));
       
-      // Mobile/Tablet on primary domain → redirect to m.shqipet.com
-      if ((isRealMobile || isRealTablet) && isPrimaryDomain(hostname)) {
+      // Mobile/Tablet on primary domain → redirect to m.shqipet.com (but NEVER for real desktop browsers)
+      if ((isRealMobile || isRealTablet) && !isDesktopBrowser && isPrimaryDomain(hostname)) {
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
@@ -168,10 +170,11 @@ const ViewSwitcher: React.FC = () => {
   const getBasicDeviceInfo = () => {
     try {
       const userAgent = navigator.userAgent.toLowerCase();
-      const isDesktopBrowser = userAgent.includes('macintosh') || 
-                              userAgent.includes('windows') || 
-                              userAgent.includes('linux') ||
-                              (userAgent.includes('safari') && !userAgent.includes('mobile'));
+      // Robust desktop detection as above
+      const isMacDesktop = (userAgent.includes('macintosh') || userAgent.includes('mac os x')) && (navigator.maxTouchPoints || 0) < 2;
+      const isWindowsDesktop = userAgent.includes('windows nt');
+      const isLinuxDesktop = userAgent.includes('linux') && !userAgent.includes('android');
+      const isDesktopBrowser = isMacDesktop || isWindowsDesktop || isLinuxDesktop || (userAgent.includes('safari') && !userAgent.includes('mobile'));
       
       const mobileKeywords = ['iphone','ipod','android','blackberry','windows phone','mobile','webos','opera mini'];
       const tabletKeywords = ['ipad','android tablet','kindle','silk','playbook','tablet'];
