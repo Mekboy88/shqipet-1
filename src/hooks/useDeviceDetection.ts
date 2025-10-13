@@ -10,8 +10,15 @@ export const useDeviceDetection = () => {
   useEffect(() => {
     // Detect OS
     const userAgent = navigator.userAgent.toLowerCase();
-    setIsMobile(/iphone|ipad|ipod|android/.test(userAgent));
-    if (/iphone|ipad|ipod/.test(userAgent)) {
+    const isIPhone = /iphone|ipod/.test(userAgent);
+    const isIPad = /ipad/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isAndroidMobile = /android/.test(userAgent) && /mobile/.test(userAgent);
+    
+    // Only treat as mobile if it's actually a phone or small Android device
+    // iPads and desktop devices should not be treated as mobile
+    setIsMobile(isIPhone || isAndroidMobile);
+    
+    if (isIPhone || isIPad) {
       setDeviceOS('ios');
     } else if (/android/.test(userAgent)) {
       setDeviceOS('android');
