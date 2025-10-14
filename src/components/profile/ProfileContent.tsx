@@ -126,6 +126,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [photoToDelete, setPhotoToDelete] = useState<{ id: string; index: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deletedPhotoIndices, setDeletedPhotoIndices] = useState<Set<number>>(new Set());
   
   // Per-card loading state for grids
   const [loadedPhotoIndices, setLoadedPhotoIndices] = useState<Set<number>>(new Set());
@@ -542,11 +543,14 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
             </>
           ) : activeTab === 'photos' ? (
             <div className="mt-4">
-              {photoItems.length > 0 ? (
+              {photoItems.filter((_, idx) => !deletedPhotoIndices.has(idx)).length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-2">
                   {photoItems.map((photo, index) => {
                     const photoUrl = typeof photo === 'string' ? photo : photo.url;
                     const photoId = typeof photo === 'object' ? photo.photoId : null;
+                    
+                    // Skip deleted photos
+                    if (deletedPhotoIndices.has(index)) return null;
                     
                     return (
                       <div 
@@ -739,6 +743,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
           setIsDeleting(true);
           try {
             await deletePhoto(photoToDelete.id);
+            // Immediately remove from UI
+            setDeletedPhotoIndices(prev => new Set([...prev, photoToDelete.index]));
             toast.success('Fotoja u fshi me sukses');
             setPhotoToDelete(null);
           } catch (error) {
