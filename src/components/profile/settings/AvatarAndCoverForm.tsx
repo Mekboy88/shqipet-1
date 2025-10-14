@@ -262,41 +262,6 @@ useEffect(() => {
         )}
       </div>
 
-      <section className="mt-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <article className="rounded-lg border bg-card text-card-foreground shadow">
-            <div className="p-3">
-              <h3 className="text-sm font-medium">Current Cover Photo</h3>
-            </div>
-            <div className="aspect-[12/5] w-full overflow-hidden rounded-b-lg bg-muted">
-              {displayedUrl ? (
-                <img src={displayedUrl} alt="Current cover photo" loading="lazy" className="h-full w-full object-cover" />
-              ) : (
-                <div className="h-full w-full" />
-              )}
-            </div>
-          </article>
-
-          <article className="rounded-lg border bg-card text-card-foreground shadow">
-            <div className="p-3">
-              <h3 className="text-sm font-medium">Current Avatar</h3>
-            </div>
-            <div className="aspect-square w-full overflow-hidden rounded-b-lg bg-muted">
-              {avatarUrl ? (
-                <UIAvatar className="h-full w-full rounded-none">
-                  <UIAvatarImage src={avatarUrl} alt="Current profile avatar" className="h-full w-full object-cover" />
-                  <UIAvatarFallback>AV</UIAvatarFallback>
-                </UIAvatar>
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm">
-                  No avatar set
-                </div>
-              )}
-            </div>
-          </article>
-        </div>
-      </section>
-
       <input
         ref={avatarFileInputRef}
         type="file"
