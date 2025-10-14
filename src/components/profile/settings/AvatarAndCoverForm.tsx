@@ -248,19 +248,6 @@ useEffect(() => {
           isOwnProfile={true}
         />
 
-      <div className="mt-4 text-sm text-muted-foreground">
-        <p className="flex items-center gap-2">
-          <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-          All changes save instantly to Wasabi cloud storage
-        </p>
-        <p className="mt-1">Click the edit icon on the cover to change your cover photo.</p>
-        {(avatarLoading || isCoverLoading) && (
-          <p className="mt-2 text-primary font-medium">
-            {avatarLoading && `Uploading avatar… ${Math.round(avatarProgress || 0)}% `}
-            {isCoverLoading && `Uploading cover photo… ${coverProgress}%`}
-          </p>
-        )}
-      </div>
 
       <input
         ref={avatarFileInputRef}
