@@ -110,9 +110,27 @@ class UserPhotosService {
 
   /**
    * Get all photos for photos section (all types)
+   * Only shows current profile/cover photos, but all gallery photos
    */
   async getAllPhotosForDisplay(userId: string): Promise<UserPhoto[]> {
-    return this.getUserPhotos(userId);
+    try {
+      const { data, error } = await supabase
+        .from('user_photos')
+        .select('*')
+        .eq('user_id', userId)
+        .or('photo_type.eq.gallery,and(photo_type.in.(profile,cover),is_current.eq.true)')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching photos for display:', error);
+        return [];
+      }
+
+      return (data as UserPhoto[]) || [];
+    } catch (error) {
+      console.error('Failed to fetch photos for display:', error);
+      return [];
+    }
   }
 
   /**
