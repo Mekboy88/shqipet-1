@@ -448,11 +448,21 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
             <div className="w-1/2 h-full overflow-y-auto p-6 bg-gray-50">
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">All Photos</h2>
-                {photoItems.length > 0 ? (
+                {photoItems.filter(photo => {
+                  const photoType = typeof photo === 'object' ? (photo.type || photo.photo_type) : null;
+                  return photoType !== 'profile' && photoType !== 'cover';
+                }).length > 0 ? (
                   <div className="space-y-6">
-                    {Array.from({ length: Math.ceil(photoItems.length / 33) }).map((_, groupIndex) => {
-                      const startIndex = groupIndex * 33;
-                      const groupPhotos = photoItems.map(item => typeof item === 'string' ? item : item.url).slice(startIndex, startIndex + 33);
+                    {(() => {
+                      // Filter out profile and cover photos
+                      const galleryPhotos = photoItems.filter(photo => {
+                        const photoType = typeof photo === 'object' ? (photo.type || photo.photo_type) : null;
+                        return photoType !== 'profile' && photoType !== 'cover';
+                      });
+                      
+                      return Array.from({ length: Math.ceil(galleryPhotos.length / 33) }).map((_, groupIndex) => {
+                        const startIndex = groupIndex * 33;
+                        const groupPhotos = galleryPhotos.map(item => typeof item === 'string' ? item : item.url).slice(startIndex, startIndex + 33);
                       
                       return (
                         <div key={groupIndex} className="space-y-4">
@@ -497,7 +507,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                           )}
                         </div>
                       );
-                    })}
+                    });
+                    })()}
                   </div>
                 ) : (
                   <div className="text-center py-12">
@@ -543,14 +554,21 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
             </>
           ) : activeTab === 'photos' ? (
             <div className="mt-4">
-              {photoItems.filter((_, idx) => !deletedPhotoIndices.has(idx)).length > 0 ? (
+              {photoItems.filter((photo, idx) => {
+                if (deletedPhotoIndices.has(idx)) return false;
+                // Filter out profile and cover photos - only show gallery photos
+                const photoType = typeof photo === 'object' ? (photo.type || photo.photo_type) : null;
+                return photoType !== 'profile' && photoType !== 'cover';
+              }).length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-2">
                   {photoItems.map((photo, index) => {
                     const photoUrl = typeof photo === 'string' ? photo : photo.url;
                     const photoId = typeof photo === 'object' ? photo.photoId : null;
+                    const photoType = typeof photo === 'object' ? (photo.type || photo.photo_type) : null;
                     
-                    // Skip deleted photos
+                    // Skip deleted photos and profile/cover photos
                     if (deletedPhotoIndices.has(index)) return null;
+                    if (photoType === 'profile' || photoType === 'cover') return null;
                     
                     return (
                       <div 
