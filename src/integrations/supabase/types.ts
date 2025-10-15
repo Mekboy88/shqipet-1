@@ -1015,6 +1015,56 @@ export type Database = {
           },
         ]
       }
+      user_permissions: {
+        Row: {
+          created_at: string
+          denied_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"]
+          granted_at: string | null
+          id: string
+          last_requested_at: string | null
+          metadata: Json | null
+          permission_type: Database["public"]["Enums"]["permission_type"]
+          status: Database["public"]["Enums"]["permission_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          denied_at?: string | null
+          device_type: Database["public"]["Enums"]["device_type"]
+          granted_at?: string | null
+          id?: string
+          last_requested_at?: string | null
+          metadata?: Json | null
+          permission_type: Database["public"]["Enums"]["permission_type"]
+          status?: Database["public"]["Enums"]["permission_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          denied_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"]
+          granted_at?: string | null
+          id?: string
+          last_requested_at?: string | null
+          metadata?: Json | null
+          permission_type?: Database["public"]["Enums"]["permission_type"]
+          status?: Database["public"]["Enums"]["permission_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_photos: {
         Row: {
           content_type: string | null
@@ -1125,6 +1175,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      deny_permission: {
+        Args: {
+          _device_type: Database["public"]["Enums"]["device_type"]
+          _metadata?: Json
+          _permission_type: Database["public"]["Enums"]["permission_type"]
+        }
+        Returns: string
+      }
       get_full_profile: {
         Args: { profile_id: string }
         Returns: {
@@ -1199,6 +1257,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      grant_permission: {
+        Args: {
+          _device_type: Database["public"]["Enums"]["device_type"]
+          _metadata?: Json
+          _permission_type: Database["public"]["Enums"]["permission_type"]
+        }
+        Returns: string
+      }
+      has_permission: {
+        Args: {
+          _device_type?: Database["public"]["Enums"]["device_type"]
+          _permission_type: Database["public"]["Enums"]["permission_type"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1209,6 +1283,14 @@ export type Database = {
       is_platform_owner: {
         Args: { _user_id: string }
         Returns: boolean
+      }
+      request_permission: {
+        Args: {
+          _device_type: Database["public"]["Enums"]["device_type"]
+          _metadata?: Json
+          _permission_type: Database["public"]["Enums"]["permission_type"]
+        }
+        Returns: string
       }
       restore_post: {
         Args: { post_id_param: string }
@@ -1256,6 +1338,23 @@ export type Database = {
         | "user"
         | "super_admin"
         | "platform_owner_root"
+      device_type:
+        | "mobile_ios"
+        | "mobile_android"
+        | "mobile_web"
+        | "desktop"
+        | "laptop"
+        | "tablet"
+      permission_status: "granted" | "denied" | "pending" | "not_requested"
+      permission_type:
+        | "camera"
+        | "photo_library"
+        | "location"
+        | "notifications"
+        | "microphone"
+        | "storage"
+        | "contacts"
+        | "calendar"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1389,6 +1488,25 @@ export const Constants = {
         "user",
         "super_admin",
         "platform_owner_root",
+      ],
+      device_type: [
+        "mobile_ios",
+        "mobile_android",
+        "mobile_web",
+        "desktop",
+        "laptop",
+        "tablet",
+      ],
+      permission_status: ["granted", "denied", "pending", "not_requested"],
+      permission_type: [
+        "camera",
+        "photo_library",
+        "location",
+        "notifications",
+        "microphone",
+        "storage",
+        "contacts",
+        "calendar",
       ],
     },
   },
