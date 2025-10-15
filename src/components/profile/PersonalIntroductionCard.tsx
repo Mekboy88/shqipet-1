@@ -620,36 +620,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
           />
         </div>
 
-        {/* Languages */}
-        <div className="p-4 rounded-lg">
-          <div className="mb-2">
-            <Label>Languages</Label>
-          </div>
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => setIsLanguageDialogOpen(true)}
-                variant="outline" 
-                className="flex-1 justify-start text-gray-500 focus:outline-none focus:ring-0 focus:border-0 focus-visible:ring-0 focus-visible:outline-none"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add languages
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {data.languages?.map(language => (
-                <Badge key={language} variant="secondary" className="flex items-center gap-1">
-                  <span className="text-sm">{getLanguageFlag(language)}</span>
-                  {language}
-                  <X 
-                    className="w-3 h-3 cursor-pointer hover:text-red-500" 
-                    onClick={() => removeLanguage(language)}
-                  />
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
 
 
         {/* Favorite Quote */}
