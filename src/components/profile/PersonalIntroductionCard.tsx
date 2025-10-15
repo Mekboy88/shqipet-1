@@ -7,122 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Eye, Users, Lock, X, Plus, School, MapPin, Briefcase, Languages, Heart, Quote } from 'lucide-react';
+import { Eye, Users, Lock, School, MapPin, Briefcase, Quote } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import supabase from '@/lib/relaxedSupabase';
 import { toast } from 'sonner';
-import { LanguageSelectionDialog } from './LanguageSelectionDialog';
-import HobbiesSelectionDialog from './HobbiesSelectionDialog';
-import { getHobbyEmoji, getHobbyByName } from '@/data/hobbies';
 import { useProfileRealtime } from '@/hooks/useProfileRealtime';
 
-
-// Helper function to get flag for language
-const getLanguageFlag = (languageName: string): string => {
-  const languagesByName: Record<string, string> = {
-    'Afrikaans': '🇿🇦',
-    'Shqip': '🇦🇱',
-    'Amharikisht': '🇪🇹',
-    'Arabisht': '🇸🇦',
-    'Armenisht': '🇦🇲',
-    'Azerbajxhanisht': '🇦🇿',
-    'Baskisht': '🇪🇸',
-    'Bjellorusisht': '🇧🇾',
-    'Bengalisht': '🇧🇩',
-    'Boshnjakisht': '🇧🇦',
-    'Bullgarisht': '🇧🇬',
-    'Burmisht': '🇲🇲',
-    'Katalanisht': '🇪🇸',
-    'Kinezisht': '🇨🇳',
-    'Kroatisht': '🇭🇷',
-    'Çekisht': '🇨🇿',
-    'Danisht': '🇩🇰',
-    'Holandisht': '🇳🇱',
-    'Anglisht': '🇺🇸',
-    'Estonisht': '🇪🇪',
-    'Finlandisht': '🇫🇮',
-    'Frëngjisht': '🇫🇷',
-    'Galicianisht': '🇪🇸',
-    'Gjeorgjisht': '🇬🇪',
-    'Gjermanisht': '🇩🇪',
-    'Greqisht': '🇬🇷',
-    'Gujaratisht': '🇮🇳',
-    'Haitianisht': '🇭🇹',
-    'Hausisht': '🇳🇬',
-    'Hebraisht': '🇮🇱',
-    'Hindisht': '🇮🇳',
-    'Hungarisht': '🇭🇺',
-    'Islandisht': '🇮🇸',
-    'Indonezisht': '🇮🇩',
-    'Irlandisht': '🇮🇪',
-    'Italisht': '🇮🇹',
-    'Japonisht': '🇯🇵',
-    'Kannadisht': '🇮🇳',
-    'Kazakisht': '🇰🇿',
-    'Khmerisht': '🇰🇭',
-    'Koreanisht': '🇰🇷',
-    'Kurdisht': '🇮🇶',
-    'Kirgizisht': '🇰🇬',
-    'Laoisht': '🇱🇦',
-    'Latinisht': '🇻🇦',
-    'Letonisht': '🇱🇻',
-    'Lituanisht': '🇱🇹',
-    'Luksemburgisht': '🇱🇺',
-    'Maqedonisht': '🇲🇰',
-    'Malagasisht': '🇲🇬',
-    'Malajisht': '🇲🇾',
-    'Malayalamisht': '🇮🇳',
-    'Maltisht': '🇲🇹',
-    'Maorisht': '🇳🇿',
-    'Marathisht': '🇮🇳',
-    'Mongolisht': '🇲🇳',
-    'Nepalisht': '🇳🇵',
-    'Norvegjisht': '🇳🇴',
-    'Odiaisht': '🇮🇳',
-    'Pashtunisht': '🇦🇫',
-    'Persianisht': '🇮🇷',
-    'Polonisht': '🇵🇱',
-    'Portugalisht': '🇵🇹',
-    'Punxhabisht': '🇮🇳',
-    'Rumanisht': '🇷🇴',
-    'Rusisht': '🇷🇺',
-    'Samoanisht': '🇼🇸',
-    'Skotisht Gaelisht': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-    'Serbisht': '🇷🇸',
-    'Sesothoisht': '🇱🇸',
-    'Shonaisht': '🇿🇼',
-    'Sindhisht': '🇵🇰',
-    'Sinhalisht': '🇱🇰',
-    'Sllovakisht': '🇸🇰',
-    'Sllovenisht': '🇸🇮',
-    'Somalisht': '🇸🇴',
-    'Spanjisht': '🇪🇸',
-    'Sundanisht': '🇮🇩',
-    'Swahilisht': '🇰🇪',
-    'Suedisht': '🇸🇪',
-    'Taxhikisht': '🇹🇯',
-    'Tamilisht': '🇮🇳',
-    'Tatarisht': '🇷🇺',
-    'Telugisht': '🇮🇳',
-    'Tajlandisht': '🇹🇭',
-    'Tigrinjaisht': '🇪🇷',
-    'Tongaisht': '🇹🇴',
-    'Turqisht': '🇹🇷',
-    'Turkmenisht': '🇹🇲',
-    'Ukrainisht': '🇺🇦',
-    'Urdisht': '🇵🇰',
-    'Ujgurisht': '🇨🇳',
-    'Uzbekisht': '🇺🇿',
-    'Vietnamisht': '🇻🇳',
-    'Uellsisht': '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
-    'Xhosaisht': '🇿🇦',
-    'Jidisht': '🇮🇱',
-    'Jorubaisht': '🇳🇬',
-    'Zuluisht': '🇿🇦'
-  };
-  
-  return languagesByName[languageName] || '🌍';
-};
 
 interface VisibilityOption {
   value: 'public' | 'friends' | 'private';
@@ -140,10 +30,6 @@ interface PersonalIntroData {
   relationship_status?: string;
   relationship_visibility?: string;
   relationship_user_id?: string;
-  languages?: string[];
-  languages_visibility?: string;
-  hobbies?: string[];
-  hobbies_visibility?: string;
   favorite_quote?: string;
   favorite_quote_visibility?: string;
   school?: string;
@@ -173,17 +59,6 @@ const relationshipOptions = [
   'It\'s complicated'
 ];
 
-const languageOptions = [
-  'English', 'Albanian', 'French', 'German', 'Spanish', 'Italian', 
-  'Portuguese', 'Russian', 'Chinese', 'Japanese', 'Arabic'
-];
-
-const hobbyOptions = [
-  '⚽ Football', '🎨 Art', '💻 Coding', '📚 Reading', '🎵 Music', 
-  '🎬 Movies', '🏃 Running', '🍳 Cooking', '📸 Photography', '✈️ Travel',
-  '🎮 Gaming', '🏊 Swimming', '🎯 Darts', '♟️ Chess', '🧩 Puzzles'
-];
-
 interface PersonalIntroductionCardProps {
   isDisplayMode?: boolean;
 }
@@ -198,11 +73,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
-  const [newLanguage, setNewLanguage] = useState('');
-  const [newHobby, setNewHobby] = useState('');
-  const [isLanguageDialogOpen, setIsLanguageDialogOpen] = useState(false);
-  const [isHobbiesDialogOpen, setIsHobbiesDialogOpen] = useState(false);
-  const [showAllHobbies, setShowAllHobbies] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -222,24 +92,10 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
         return;
       }
 
-      const hobbiesArray = Array.isArray(introData?.hobbies)
-        ? introData.hobbies
-        : (typeof introData?.hobbies === 'string'
-            ? introData.hobbies.split(',').map((s: string) => s.trim()).filter(Boolean)
-            : []);
-
-      const languagesArray = Array.isArray(introData?.languages)
-        ? introData.languages
-        : (typeof introData?.languages === 'string'
-            ? introData.languages.split(',').map((s: string) => s.trim()).filter(Boolean)
-            : []);
-
       const loadedData: PersonalIntroData = {
         school: introData?.school || '',
         city_location: introData?.city || '',
         profession: introData?.profession || '',
-        languages: languagesArray,
-        hobbies: hobbiesArray,
         favorite_quote: introData?.favorite_quote || '',
       };
 
@@ -277,8 +133,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
         school: data.school || null,
         city: data.city_location || null,
         profession: data.profession || null,
-        languages: data.languages || [],
-        hobbies: data.hobbies || [],
         favorite_quote: data.favorite_quote || null,
         updated_at: new Date().toISOString()
       };
@@ -338,62 +192,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
     </Select>
   );
 
-  const addLanguage = () => {
-    if (newLanguage && !data.languages?.includes(newLanguage)) {
-      setData(prev => ({
-        ...prev,
-        languages: [...(prev.languages || []), newLanguage]
-      }));
-      setNewLanguage('');
-    }
-  };
-
-  const handleLanguageToggle = (language: string) => {
-    if (data.languages?.includes(language)) {
-      removeLanguage(language);
-    } else {
-      setData(prev => ({
-        ...prev,
-        languages: [...(prev.languages || []), language]
-      }));
-    }
-  };
-
-  const removeLanguage = (language: string) => {
-    setData(prev => ({
-      ...prev,
-      languages: prev.languages?.filter(l => l !== language) || []
-    }));
-  };
-
-  const addHobby = () => {
-    if (newHobby && !data.hobbies?.includes(newHobby)) {
-      setData(prev => ({
-        ...prev,
-        hobbies: [...(prev.hobbies || []), newHobby]
-      }));
-      setNewHobby('');
-    }
-  };
-
-  const handleHobbyToggle = (hobby: { name: string }) => {
-    const hobbyName = hobby.name;
-    if (data.hobbies?.includes(hobbyName)) {
-      removeHobby(hobbyName);
-    } else {
-      setData(prev => ({
-        ...prev,
-        hobbies: [...(prev.hobbies || []), hobbyName]
-      }));
-    }
-  };
-
-  const removeHobby = (hobby: string) => {
-    setData(prev => ({
-      ...prev,
-      hobbies: prev.hobbies?.filter(h => h !== hobby) || []
-    }));
-  };
 
   if (loading) {
     return (
@@ -410,10 +208,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
   // Display mode - show actual data or empty message
   if (isDisplayMode) {
     // Check if any data exists
-    const hasData = data.profession || data.school || data.city_location || 
-                   (data.languages && data.languages.length > 0) || 
-                   (data.hobbies && data.hobbies.length > 0) || 
-                   data.favorite_quote;
+    const hasData = data.profession || data.school || data.city_location || data.favorite_quote;
 
     return (
       <Card className="p-6">
@@ -492,65 +287,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
                     Qyteti ku jetoni
                   </h4>
                   <p className="text-gray-600 text-sm ml-7 font-medium">{data.city_location}</p>
-                </div>
-              )}
-
-              {/* Languages */}
-              {data.languages && data.languages.length > 0 && (
-                <div className="flex-none">
-                  <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
-                    WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                  }}>
-                    <svg viewBox="0 0 24 24" id="meteor-icon-kit__solid-language-alt" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
-                      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-                      <g id="SVGRepo_iconCarrier">
-                        <path fillRule="evenodd" clipRule="evenodd" d="M5.5 2.5V2C5.5 1.17157 6.17157 0.5 7 0.5C7.82843 0.5 8.5 1.17157 8.5 2V2.5H9.9742C9.9901 2.49975 10.0061 2.49974 10.0221 2.5H12C12.8284 2.5 13.5 3.17157 13.5 4C13.5 4.82843 12.8284 5.5 12 5.5H11.2512C10.7379 7.82318 9.75127 9.98263 8.30067 11.9736C9.27943 12.9992 10.4353 13.9118 11.7719 14.7138C12.4823 15.14 12.7126 16.0614 12.2864 16.7717C11.8602 17.4821 10.9388 17.7125 10.2284 17.2862C8.75981 16.4051 7.46579 15.399 6.34922 14.2699C5.33326 15.3069 4.1736 16.2908 2.87186 17.2206C2.19774 17.7021 1.26091 17.546 0.7794 16.8719C0.297886 16.1977 0.454024 15.2609 1.12814 14.7794C2.38555 13.8813 3.48271 12.9379 4.42182 11.9481C3.69705 10.8985 3.09174 9.76779 2.60746 8.55709C2.29979 7.78791 2.67391 6.91496 3.44309 6.60729C4.21226 6.29961 5.08522 6.67374 5.39289 7.44291C5.67512 8.14848 6.00658 8.8209 6.38782 9.46053C7.19463 8.20649 7.78489 6.88692 8.16216 5.5H2C1.17157 5.5 0.5 4.82843 0.5 4C0.5 3.17157 1.17157 2.5 2 2.5H5.5ZM16.4912 16.5H18.5088L17.5 13.5856L16.4912 16.5ZM15.4527 19.5L14.4175 22.4907C14.1465 23.2735 13.2922 23.6885 12.5093 23.4175C11.7265 23.1465 11.3115 22.2922 11.5825 21.5093L16.0825 8.50933C16.5484 7.16356 18.4516 7.16356 18.9175 8.50933L23.4175 21.5093C23.6885 22.2922 23.2735 23.1465 22.4907 23.4175C21.7078 23.6885 20.8535 23.2735 20.5825 22.4907L19.5473 19.5H15.4527Z" fill="#758CA3"></path>
-                      </g>
-                    </svg>
-                    Gjuhët
-                  </h4>
-                  <div className="flex flex-wrap gap-1 ml-7">
-                    {data.languages.map(language => (
-                      <Badge key={language} variant="secondary" className="text-xs text-gray-600">
-                        <span className="text-sm mr-1">{getLanguageFlag(language)}</span>
-                        {language}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Hobbies */}
-              {data.hobbies && data.hobbies.length > 0 && (
-                <div className="flex-none w-full">
-                  <h4 className="text-lg font-black mb-1 text-black/20 animate-fade-in flex items-center gap-2" style={{
-                    WebkitTextStroke: '0.5px rgba(0,0,0,0.08)'
-                  }}>
-                    <svg viewBox="0 0 2050 2050" data-name="Layer 2" id="Layer_2" xmlns="http://www.w3.org/2000/svg" fill="#000000" className="w-5 h-5"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><defs><style>{`.cls-1{fill:#f8881b;}.cls-2{fill:#f89a3e;}.cls-3{fill:#f08013;}.cls-4{fill:#67baeb;}.cls-5{fill:#46a1f8;}.cls-6{fill:#f4c23f;}.cls-7{fill:#fad564;}.cls-8{fill:#f4a93f;}.cls-9{fill:#de3226;}.cls-10{fill:#b11a31;}.cls-11{fill:#83d0fb;}.cls-12{fill:#f44533;}`}</style></defs><title></title><path className="cls-1" d="M1084.6,461.6a146,146,0,0,1-92.4,184.6,144.5,144.5,0,0,1-28.5,6.4l61.9,185.7L826.7,904.5a143.8,143.8,0,0,0-5.6-69.7C795.7,758.3,713,717,636.5,742.4a146.1,146.1,0,0,0-55,243.8l-198.8,66.2L214.8,548.3a146.2,146.2,0,0,1,92.6-185L811.5,195.4l61.8,185.7a146.3,146.3,0,0,1,211.3,80.5Z"></path><path className="cls-2" d="M1084.6,461.6a146,146,0,0,0-86.7-90.4,146.1,146.1,0,0,1-53.6,245.2,143.5,143.5,0,0,1-28.4,6.4l61.8,185.7L826.9,858.7a143.5,143.5,0,0,1-.2,45.8l198.9-66.2L963.7,652.6a144.5,144.5,0,0,0,28.5-6.4A146,146,0,0,0,1084.6,461.6Z"></path><path className="cls-3" d="M303.5,604.1a146.2,146.2,0,0,1,92.6-185l441-146.9-25.6-76.8L307.4,363.3a146.2,146.2,0,0,0-92.6,185l167.9,504.1,63-21Z"></path><path className="cls-4" d="M1842.7,1177H1636.9a146,146,0,1,1-278.9,60.3,144.7,144.7,0,0,1,13-60.3H1165.1V981.3a146,146,0,1,0,0-286.2V499.4h531.3a146.3,146.3,0,0,1,146.3,146.3Z"></path><path className="cls-5" d="M1215.3,1012.8a186.5,186.5,0,0,0,36.1,3.6A181.6,181.6,0,0,0,1433,834.8c0-100.3-81.3-181.5-181.6-181.5a186.5,186.5,0,0,0-36.1,3.5V499.4h-50.2V695.1a145.9,145.9,0,1,1,0,286.2V1177h50.2Z"></path><path className="cls-6" d="M958.6,1515.8a146,146,0,0,0,145.9,146,144.3,144.3,0,0,0,60.6-13.2v206H633.8a146.3,146.3,0,0,1-146.3-146.3V1177H697.1a146,146,0,1,1,258.4,0h209.6v206a144.3,144.3,0,0,0-60.6-13.2A146,146,0,0,0,958.6,1515.8Z"></path><path className="cls-7" d="M955.5,1177a146,146,0,0,0-257.7-137.3,146.1,146.1,0,0,1,206.3,192h209.5v138.4a143.1,143.1,0,0,1,51.5,12.9V1177Z"></path><path className="cls-8" d="M704.5,1789.4a146.3,146.3,0,0,1-146.3-146.3V1177H487.5v531.3a146.3,146.3,0,0,0,146.3,146.3h531.3v-65.2Z"></path><path className="cls-9" d="M1842.7,1177v531.3a146.3,146.3,0,0,1-146.3,146.3H1165.1v-206a144.3,144.3,0,0,1-60.6,13.2,146,146,0,0,1,0-292,144.3,144.3,0,0,1,60.6,13.2V1177H1371a146,146,0,1,0,278.9,60.3,146.3,146.3,0,0,0-13-60.3Z"></path><path className="cls-10" d="M1529.3,1381.1a150.9,150.9,0,0,0,25.4,2.2A146.1,146.1,0,0,0,1687.6,1177h-50.7a146.3,146.3,0,0,1,13,60.3C1649.9,1309.2,1597.8,1369,1529.3,1381.1Z"></path><path className="cls-10" d="M1215.9,1383V1177h-50.8v193.2A144.6,144.6,0,0,1,1215.9,1383Z"></path><path className="cls-10" d="M1009.3,1515.8A146,146,0,0,1,1129.9,1372a151.8,151.8,0,0,0-25.4-2.2,146,146,0,0,0,0,292,151.8,151.8,0,0,0,25.4-2.2C1061.4,1647.5,1009.3,1587.7,1009.3,1515.8Z"></path><path className="cls-10" d="M1165.1,1661.4v193.2h50.8v-206A144.6,144.6,0,0,1,1165.1,1661.4Z"></path><rect className="cls-11" height="329.42" rx="55.9" ry="55.9" width="111.8" x="1730.9" y="723"></rect><rect className="cls-12" height="277.54" rx="55.9" ry="55.9" width="111.8" x="1730.9" y="1438.9"></rect></g></svg>
-                    Hobi & Interesa
-                  </h4>
-                  <div className="ml-7">
-                    <div className="flex flex-wrap gap-1">
-                      {(showAllHobbies ? data.hobbies : data.hobbies.slice(0, 5)).map(hobby => {
-                        const hobbyData = getHobbyByName(hobby);
-                        return (
-                          <Badge key={hobby} variant="secondary" className="text-xs text-gray-600">
-                            <span className="text-sm mr-1">{hobbyData?.emoji || '🎯'}</span>
-                            {hobby}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                    {data.hobbies.length > 5 && (
-                      <button
-                        onClick={() => setShowAllHobbies(!showAllHobbies)}
-                        className="text-sm text-primary hover:underline mt-2"
-                      >
-                        {showAllHobbies ? 'See less' : `See more (${data.hobbies.length - 5} more)`}
-                      </button>
-                    )}
-                  </div>
                 </div>
               )}
             </div>
@@ -643,22 +379,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
           </div>
         )}
       </div>
-
-      {/* Language Selection Dialog */}
-      <LanguageSelectionDialog
-        isOpen={isLanguageDialogOpen}
-        onClose={() => setIsLanguageDialogOpen(false)}
-        selectedLanguages={data.languages || []}
-        onLanguageToggle={handleLanguageToggle}
-      />
-
-      {/* Hobbies Selection Dialog */}
-      <HobbiesSelectionDialog
-        isOpen={isHobbiesDialogOpen}
-        onClose={() => setIsHobbiesDialogOpen(false)}
-        selectedHobbies={data.hobbies || []}
-        onHobbyToggle={handleHobbyToggle}
-      />
     </Card>
   );
 };
