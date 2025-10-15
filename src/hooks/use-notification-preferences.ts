@@ -29,13 +29,14 @@ export interface NotificationPreferences {
   notify_tag_removed: boolean;
   notify_story_mention: boolean;
   
-  // Friends & Follows
+  // Friends & Follows  
   notify_friend_request: boolean;
   notify_friend_accepted: boolean;
   notify_follow_request: boolean;
   notify_new_follower: boolean;
   notify_unfollow: boolean;
   notify_suggested_friends: boolean;
+  notify_profile_visit: boolean;
   
   // Pages
   notify_page_follower: boolean;

@@ -171,6 +171,7 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = () => 
               <NotificationToggle id="notify_friend_accepted" label="Friend request accepted" />
               <NotificationToggle id="notify_follow_request" label="Follow request (private accounts)" />
               <NotificationToggle id="notify_new_follower" label="New follower" />
+              <NotificationToggle id="notify_profile_visit" label="Someone visits my profile" />
               <NotificationToggle id="notify_unfollow" label="Unfollow notifications" />
               <NotificationToggle id="notify_suggested_friends" label="Suggested friends" />
             </CardContent>

@@ -290,6 +290,7 @@ export type Database = {
           notify_privacy_changed: boolean | null
           notify_product_updates: boolean | null
           notify_profile_reaction: boolean | null
+          notify_profile_visit: boolean | null
           notify_qa_question: boolean | null
           notify_quote_repost: boolean | null
           notify_reel_comment: boolean | null
@@ -384,6 +385,7 @@ export type Database = {
           notify_privacy_changed?: boolean | null
           notify_product_updates?: boolean | null
           notify_profile_reaction?: boolean | null
+          notify_profile_visit?: boolean | null
           notify_qa_question?: boolean | null
           notify_quote_repost?: boolean | null
           notify_reel_comment?: boolean | null
@@ -478,6 +480,7 @@ export type Database = {
           notify_privacy_changed?: boolean | null
           notify_product_updates?: boolean | null
           notify_profile_reaction?: boolean | null
+          notify_profile_visit?: boolean | null
           notify_qa_question?: boolean | null
           notify_quote_repost?: boolean | null
           notify_reel_comment?: boolean | null
