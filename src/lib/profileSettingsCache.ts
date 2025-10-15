@@ -63,18 +63,8 @@ export interface ProfileSettingsData {
   timezone?: string;
   two_factor_method?: string;
   
-  // Notification settings
-  notify_on_like?: boolean;
-  notify_on_comment?: boolean;
-  notify_on_share?: boolean;
-  notify_on_follow?: boolean;
-  notify_on_page_like?: boolean;
-  notify_on_profile_visit?: boolean;
-  notify_on_mention?: boolean;
-  notify_on_group_join?: boolean;
-  notify_on_friend_request_accept?: boolean;
-  notify_on_timeline_post?: boolean;
-  notify_on_remembrance?: boolean;
+  // Note: Notification settings are now in the notification_preferences table
+  // Use the useNotificationPreferences hook to manage them
   
   // Profile Customization
   profile_background_url?: string;
@@ -324,18 +314,7 @@ export const prefetchProfileSettings = async (userId: string) => {
       language: pick(profileData?.language, 'english'),
       timezone: pick(profileData?.timezone, ''),
       two_factor_method: pick(profileData?.two_factor_method, 'email'),
-      // Notification defaults
-      notify_on_like: profileData?.notify_on_like !== undefined ? profileData.notify_on_like : true,
-      notify_on_comment: profileData?.notify_on_comment !== undefined ? profileData.notify_on_comment : true,
-      notify_on_share: profileData?.notify_on_share !== undefined ? profileData.notify_on_share : false,
-      notify_on_follow: profileData?.notify_on_follow !== undefined ? profileData.notify_on_follow : true,
-      notify_on_page_like: profileData?.notify_on_page_like !== undefined ? profileData.notify_on_page_like : false,
-      notify_on_profile_visit: profileData?.notify_on_profile_visit !== undefined ? profileData.notify_on_profile_visit : false,
-      notify_on_mention: profileData?.notify_on_mention !== undefined ? profileData.notify_on_mention : true,
-      notify_on_group_join: profileData?.notify_on_group_join !== undefined ? profileData.notify_on_group_join : false,
-      notify_on_friend_request_accept: profileData?.notify_on_friend_request_accept !== undefined ? profileData.notify_on_friend_request_accept : true,
-      notify_on_timeline_post: profileData?.notify_on_timeline_post !== undefined ? profileData.notify_on_timeline_post : false,
-      notify_on_remembrance: profileData?.notify_on_remembrance !== undefined ? profileData.notify_on_remembrance : true,
+      // Note: Notification settings moved to notification_preferences table
       profile_background_url: pick(profileData?.profile_background_url, ''),
       custom_css: pick(profileData?.custom_css, ''),
       affiliate_link: pick(profileData?.affiliate_link, ''),
