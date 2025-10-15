@@ -651,39 +651,6 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
           </div>
         </div>
 
-        {/* Hobbies */}
-        <div className="p-4 rounded-lg">
-          <div className="mb-2">
-            <Label>Hobbies & Interests</Label>
-          </div>
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => setIsHobbiesDialogOpen(true)}
-                variant="outline" 
-                className="flex-1 justify-start text-gray-500 focus:outline-none focus:ring-0 focus:border-0 focus-visible:ring-0 focus-visible:outline-none"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add hobbies & interests
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {data.hobbies?.map(hobby => {
-                const hobbyData = getHobbyByName(hobby);
-                return (
-                  <Badge key={hobby} variant="secondary" className="flex items-center gap-1">
-                    <span className="text-sm">{hobbyData?.emoji || '🎯'}</span>
-                    {hobby}
-                    <X 
-                      className="w-3 h-3 cursor-pointer hover:text-red-500" 
-                      onClick={() => removeHobby(hobby)}
-                    />
-                  </Badge>
-                );
-              })}
-            </div>
-          </div>
-        </div>
 
         {/* Favorite Quote */}
         <div className="p-4 rounded-lg">
