@@ -1,7 +1,6 @@
 
 import React from 'react';
 import ProfileInfoForm from './ProfileInfoForm';
-import SocialLinksForm from './SocialLinksForm';
 import NotificationSettingsForm from './NotificationSettingsForm';
 import DesignSettingsForm from './DesignSettingsForm';
 import AvatarAndCoverForm from './AvatarAndCoverForm';
@@ -24,7 +23,6 @@ import LocationPreferencesForm from './LocationPreferencesForm';
 
 export const settingsComponentMap: { [key: string]: React.ComponentType<any> } = {
   profile: ProfileInfoForm,
-  social: SocialLinksForm,
   notifications: NotificationSettingsForm,
   design: DesignSettingsForm,
   'avatar-and-cover': AvatarAndCoverForm,

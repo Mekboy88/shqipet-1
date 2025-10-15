@@ -2,7 +2,6 @@
 import { 
   Settings, 
   User, 
-  Link, 
   Bell, 
   Camera,
   Shield,
@@ -32,12 +31,6 @@ export const settingsSections = [
     label: 'Avatar & Cover',
     icon: Camera,
     color: 'text-cyan-600'
-  },
-  {
-    id: 'social',
-    label: 'Social Links',
-    icon: Link,
-    color: 'text-blue-600'
   },
   {
     id: 'notifications',

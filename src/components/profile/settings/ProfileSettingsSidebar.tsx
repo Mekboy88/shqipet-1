@@ -116,11 +116,10 @@ const ProfileSettingsSidebar: React.FC<ProfileSettingsSidebarProps> = ({
           const circleBgColor = iconColor.includes('gray') ? 'bg-gray-200' : iconColor.replace('text-', 'bg-').replace(/-\d+$/, '-100');
           const activeBorderColor = iconColor.replace('text-', 'border-');
           
-          // Special styling for profile, general, avatar-cover, social, notifications, privacy, and password sections
+          // Special styling for profile, general, avatar-cover, notifications, privacy, and password sections
           const isProfileSection = section.id === 'profile';
           const isGeneralSection = section.id === 'general';
           const isAvatarCoverSection = section.id === 'avatar-and-cover';
-          const isSocialSection = section.id === 'social';
           const isNotificationsSection = section.id === 'notifications';
           const isPrivacySection = section.id === 'privacy';
           const isPasswordSection = section.id === 'password';
@@ -241,8 +240,6 @@ const ProfileSettingsSidebar: React.FC<ProfileSettingsSidebarProps> = ({
             specialBgStyle = 'bg-gradient-to-r from-[#45596B]/30 to-[#647F94]/30';
           } else if (isAvatarCoverSection) {
             specialBgStyle = 'bg-gradient-to-r from-[#5C5D6E]/20 to-[#9BDCB4]/30';
-          } else if (isSocialSection) {
-            specialBgStyle = 'bg-gradient-to-r from-[#000000]/30 to-[#2ca9bc]/30';
           } else if (isNotificationsSection) {
             specialBgStyle = 'bg-gradient-to-r from-[#73D0F4]/30 to-[#3D6889]/30';
           } else if (isPrivacySection) {
@@ -306,8 +303,6 @@ const ProfileSettingsSidebar: React.FC<ProfileSettingsSidebarProps> = ({
                        <CustomGeneralIcon className="w-5 h-5" />
                      ) : isAvatarCoverSection ? (
                        <CustomAvatarCoverIcon className="w-5 h-5" />
-                     ) : isSocialSection ? (
-                       <CustomSocialLinksIcon className="w-5 h-5" />
                      ) : isNotificationsSection ? (
                        <CustomNotificationIcon className="w-5 h-5" />
                      ) : isPrivacySection ? (

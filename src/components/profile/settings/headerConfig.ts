@@ -1,6 +1,5 @@
 import { 
   Settings, 
-  Link, 
   Bell, 
   Palette, 
   Camera, 
@@ -55,16 +54,6 @@ export const headerConfig: { [key: string]: HeaderConfig } = {
     },
     containerClasses: 'bg-gray-100 p-4 rounded-xl',
     Icon: Settings,
-  },
-  social: {
-    headerText: 'Social Links',
-    avatarStyles: {
-      border: 'border-blue-200',
-      iconOverlayBg: 'bg-blue-500',
-      iconColor: 'text-white',
-    },
-    containerClasses: 'bg-blue-50 p-4 rounded-xl',
-    Icon: Link,
   },
   notifications: {
     headerText: 'Notification Settings',
