@@ -29,7 +29,8 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
   }, [isOpen]);
   if (!isOpen) return null;
   return createPortal(
-    <div className="fixed inset-0 z-[999999] isolate overflow-hidden pointer-events-auto">
+    <div className="fixed inset-0 z-[999999] isolate overflow-hidden pointer-events-auto" data-ps-root>
+      <style>{`body.profile-settings-open .fixed.inset-0:not([data-ps-root]){pointer-events:none!important;}`}</style>
       {/* Wallpaper layer - behind everything, starts below top bar */}
       <div className="absolute top-[57px] left-0 right-0 bottom-0 bg-gray-100 pointer-events-none"></div>
       
