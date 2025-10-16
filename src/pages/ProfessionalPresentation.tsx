@@ -293,11 +293,11 @@ export default function ProfessionalPresentation() {
   // Text group drag hook
   const textDrag = useGroupDrag({ userId: user?.id });
 
-  // Editable state - Start with empty/neutral defaults (no sample data)
+  // Editable state - Start with sample name/role for better UX
   const [profile, setProfile] = useState(() => {
     return {
-      name: "",
-      role: "",
+      name: "John Smith",
+      role: "Professional Title",
       entry: "",
       quick: "",
       email: "",
