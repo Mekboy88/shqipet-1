@@ -56,6 +56,8 @@ interface NavbarRightContentProps {
     highlights: string[];
   };
   isOwner?: boolean;
+  hireButtonLoaded?: boolean;
+  isSavingHireButton?: boolean;
 }
 
 const NavbarRightContent: React.FC<NavbarRightContentProps> = ({ 
@@ -68,7 +70,9 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
   professionalHireButton,
   setProfessionalHireButton,
   professionalProfile,
-  isOwner = false
+  isOwner = false,
+  hireButtonLoaded,
+  isSavingHireButton
 }) => {
   const location = useLocation();
   const isProfessionalPresentation = location.pathname === '/professional-presentation';
@@ -318,6 +322,8 @@ const NavbarRightContent: React.FC<NavbarRightContentProps> = ({
                 setSocials={setProfessionalSocials}
                 hireButton={professionalHireButton}
                 setHireButton={setProfessionalHireButton}
+                hireButtonLoaded={hireButtonLoaded}
+                isSavingHireButton={isSavingHireButton}
               />
             </>
           )}

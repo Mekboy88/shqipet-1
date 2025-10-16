@@ -47,6 +47,8 @@ interface ProfessionalPresentationSettingsDropdownProps {
     url: string;
     email: string;
   }>>;
+  hireButtonLoaded?: boolean;
+  isSavingHireButton?: boolean;
 }
 const ProfessionalPresentationSettingsIcon: React.FC<{
   className?: string;
@@ -110,7 +112,9 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
   socials,
   setSocials,
   hireButton,
-  setHireButton
+  setHireButton,
+  hireButtonLoaded = true,
+  isSavingHireButton = false
 }) => {
   const [open, setOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -208,15 +212,33 @@ const ProfessionalPresentationSettingsDropdown: React.FC<ProfessionalPresentatio
 
                     {/* Hire Button Settings - Expanded View */}
                     {hireButtonExpanded && <div className="mt-2 space-y-3 pl-2">
-                        <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                          <span className="text-sm text-neutral-700">Enable</span>
-                          <Switch checked={hireButton.enabled} onCheckedChange={v => {
-                        console.log('🔄 Hire button switch toggled to:', v);
-                        setHireButton(prev => ({
-                          ...prev,
-                          enabled: v
-                        }));
-                      }} />
+                        <div className="space-y-2 p-2 rounded-lg bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <span className="text-sm font-medium text-neutral-700">Enable Button</span>
+                              <p className="text-xs text-neutral-500 mt-0.5">
+                                {hireButton.enabled 
+                                  ? `Enabled — Button text: "${hireButton.text || 'Hire Me'}"` 
+                                  : "Disabled — Button hidden"}
+                              </p>
+                            </div>
+                            <Switch 
+                              checked={hireButton.enabled} 
+                              disabled={!hireButtonLoaded || isSavingHireButton}
+                              onCheckedChange={v => {
+                                console.log('🔄 Hire button switch toggled to:', v);
+                                setHireButton(prev => ({
+                                  ...prev,
+                                  enabled: v,
+                                  // Set default text when enabling if empty
+                                  text: v && !prev.text ? "Hire Me" : prev.text
+                                }));
+                              }} 
+                            />
+                          </div>
+                          {isSavingHireButton && (
+                            <p className="text-xs text-blue-600 font-medium">Saving...</p>
+                          )}
                         </div>
 
                         

@@ -361,15 +361,16 @@ export default function ProfessionalPresentation() {
     ["--accent-20"]: accent + "33"
   }) as React.CSSProperties, [accent]);
 
-  // Hire button settings
+  // Hire button settings - Start disabled to prevent flicker
   const [hireButton, setHireButton] = useState({
-    enabled: true,
+    enabled: false,
     text: "Hire Me",
     url: "",
     email: ""
   });
+  const [hireButtonLoaded, setHireButtonLoaded] = useState(false);
+  const [isSavingHireButton, setIsSavingHireButton] = useState(false);
   const lastAppliedKeyRef = useRef<string | null>(null);
-  const isSavingHireButtonRef = useRef(false);
   const lastLocalWriteAtRef = useRef<number>(0);
 
   // ---- Self tests (lightweight) ----
@@ -415,6 +416,7 @@ export default function ProfessionalPresentation() {
             url: data.hire_button_url || "",
             email: data.hire_button_email || ""
           });
+          setHireButtonLoaded(true);
 
           // Load saved name if available (overrides profile name)
           if (data.name) {
@@ -495,8 +497,10 @@ export default function ProfessionalPresentation() {
           }
         } else if (error) {
           console.error('❌ Error loading professional presentation data:', error);
+          setHireButtonLoaded(true); // Mark as loaded even on error
         } else {
           console.log('ℹ️ No professional presentation data found for user');
+          setHireButtonLoaded(true); // Mark as loaded when no data exists
         }
       } catch (error) {
         console.error('❌ Error loading data:', error);
@@ -585,7 +589,20 @@ export default function ProfessionalPresentation() {
             return;
           }
         }
-        if (!isSavingHireButtonRef.current) {
+        
+        // Check for actual changes to prevent redundant updates
+        const hasChanges = 
+          newData.hire_button_enabled !== hireButton.enabled ||
+          newData.hire_button_text !== hireButton.text ||
+          newData.hire_button_url !== hireButton.url ||
+          newData.hire_button_email !== hireButton.email;
+        
+        if (!hasChanges) {
+          console.log('⏭️ Skipping realtime update - no changes detected');
+          return;
+        }
+        
+        if (!isSavingHireButton) {
           console.log('📥 Applying hire button update from realtime:', {
             enabled: newData.hire_button_enabled,
             text: newData.hire_button_text
@@ -622,10 +639,10 @@ export default function ProfessionalPresentation() {
   // Save edit mode and hire button to database when they change
   useEffect(() => {
     const saveData = async () => {
-      if (!user || !isOwner) return;
+      if (!user || !isOwner || !hireButtonLoaded) return;
       
       // Set flag and timestamp to prevent realtime overwriting this change
-      isSavingHireButtonRef.current = true;
+      setIsSavingHireButton(true);
       lastLocalWriteAtRef.current = Date.now();
       console.log('💾 Saving hire button state:', hireButton);
       
@@ -644,25 +661,41 @@ export default function ProfessionalPresentation() {
         });
         if (error) {
           console.error('❌ Error saving hire button data:', error);
+          toast.error('Failed to save hire button settings');
+          // Revert on error - fetch latest state
+          const { data } = await supabase
+            .from('professional_presentations')
+            .select('hire_button_enabled, hire_button_text, hire_button_url, hire_button_email')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if (data) {
+            setHireButton({
+              enabled: data.hire_button_enabled === true,
+              text: data.hire_button_text || "Hire Me",
+              url: data.hire_button_url || "",
+              email: data.hire_button_email || ""
+            });
+          }
         } else {
           console.log('✅ Hire button data saved successfully');
         }
       } catch (error) {
         console.error('❌ Exception saving data:', error);
+        toast.error('Failed to save hire button settings');
       } finally {
         // Clear flag after a short delay to allow realtime to process
         setTimeout(() => {
-          isSavingHireButtonRef.current = false;
+          setIsSavingHireButton(false);
           console.log('🔓 Hire button save complete, realtime updates re-enabled');
         }, 500);
       }
     };
 
-    // Only save if user is owner
-    if (isOwner) {
+    // Only save if user is owner and data has been loaded
+    if (isOwner && hireButtonLoaded) {
       saveData();
     }
-  }, [editMode, hireButton, profile.name, user, isOwner]);
+  }, [editMode, hireButton, profile.name, user, isOwner, hireButtonLoaded]);
 
   // Persist to localStorage so Save keeps edits
   useEffect(() => {
@@ -828,6 +861,8 @@ export default function ProfessionalPresentation() {
           highlights: profile.quick ? [profile.quick] : []
         }}
         isOwner={isOwner}
+        hireButtonLoaded={hireButtonLoaded}
+        isSavingHireButton={isSavingHireButton}
       />
       
       <div className="min-h-screen w-full bg-white text-neutral-900 pt-14" style={accentStyle}>
