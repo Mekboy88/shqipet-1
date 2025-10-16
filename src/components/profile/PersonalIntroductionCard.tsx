@@ -116,6 +116,27 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
   // Real-time subscription for instant updates across all devices
   useProfileRealtime(user?.id, loadData);
 
+  // Local live preview for display card to avoid flicker and ensure instant UI update
+  useEffect(() => {
+    if (!isDisplayMode) return;
+    const handler = (e: any) => {
+      const detail = e?.detail;
+      if (!detail || detail.userId !== user?.id) return;
+      setData(detail.data || {});
+    };
+    window.addEventListener('personalIntroDraftChange', handler);
+    return () => window.removeEventListener('personalIntroDraftChange', handler);
+  }, [isDisplayMode, user?.id]);
+
+  // Helper to broadcast draft changes from the settings form
+  const setDataAndBroadcast = (patch: Partial<PersonalIntroData>) => {
+    setData(prev => {
+      const next = { ...prev, ...patch };
+      window.dispatchEvent(new CustomEvent('personalIntroDraftChange', { detail: { userId: user?.id, data: next } }));
+      return next;
+    });
+  };
+
   useEffect(() => {
     const changed = JSON.stringify(data) !== JSON.stringify(originalData);
     setHasChanges(changed);
@@ -322,7 +343,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
           <Input
             id="intro-school"
             value={data.school || ''}
-            onChange={e => setData(prev => ({ ...prev, school: e.target.value }))}
+            onChange={e => setDataAndBroadcast({ school: e.target.value })}
             placeholder="Enter your school name"
             className={smokeFocusStyles}
           />
@@ -336,7 +357,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
           <Input
             id="intro-cityLocation"
             value={data.city_location || ''}
-            onChange={e => setData(prev => ({ ...prev, city_location: e.target.value }))}
+            onChange={e => setDataAndBroadcast({ city_location: e.target.value })}
             placeholder="Enter the city where you live"
             className={smokeFocusStyles}
           />
@@ -350,7 +371,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
           <Input
             id="profession"
             value={data.profession || ''}
-            onChange={e => setData(prev => ({ ...prev, profession: e.target.value }))}
+            onChange={e => setDataAndBroadcast({ profession: e.target.value })}
             placeholder="Software Engineer, Teacher, etc."
             className={smokeFocusStyles}
           />
@@ -366,7 +387,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
           <Input
             id="quote"
             value={data.favorite_quote || ''}
-            onChange={e => setData(prev => ({ ...prev, favorite_quote: e.target.value }))}
+            onChange={e => setDataAndBroadcast({ favorite_quote: e.target.value })}
             placeholder="Enter your favorite quote..."
             className={smokeFocusStyles}
           />
