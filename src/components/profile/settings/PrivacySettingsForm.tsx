@@ -628,9 +628,14 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                resetToDefaults();
+              onClick={async () => {
+                // Close the dialog immediately to avoid any overlay blocking
                 setShowResetDialog(false);
+                try {
+                  await resetToDefaults();
+                } catch (err) {
+                  console.error('Reset to defaults failed', err);
+                }
               }}
             >
               Reset to Defaults
