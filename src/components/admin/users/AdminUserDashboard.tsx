@@ -537,7 +537,7 @@ const AdminUserDashboard = () => {
         
         toast.success('User deleted successfully');
         closeModal();
-        window.location.reload(); // Refresh to get updated data
+        await fetchUsers(); // Smooth refresh without page reload
       } catch (error) {
         console.error('Error deleting user:', error);
         toast.error('Failed to delete user');
@@ -556,7 +556,7 @@ const AdminUserDashboard = () => {
       
       toast.success('User updated successfully');
       closeModal();
-      window.location.reload(); // Refresh to get updated data
+      await fetchUsers(); // Smooth refresh without page reload
     } catch (error) {
       console.error('Error updating user:', error);
       toast.error('Failed to update user');
