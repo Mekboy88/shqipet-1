@@ -126,7 +126,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pointer-events-auto">
+      <div className="relative z-[1000000] grid grid-cols-1 lg:grid-cols-2 gap-6 pointer-events-auto overflow-visible">
         {/* LEFT COLUMN */}
         <div className="space-y-6">
           {/* Profile Visibility */}
