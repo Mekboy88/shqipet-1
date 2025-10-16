@@ -130,7 +130,42 @@ export const useNotificationPreferences = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    loadPreferences();
+    const setupRealtimeAndLoad = async () => {
+      await loadPreferences();
+
+      // Set up realtime subscription for instant cross-device sync
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('notification_preferences_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notification_preferences',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Notification preferences updated in realtime:', payload);
+            if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+              setPreferences(payload.new as any);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    const cleanup = setupRealtimeAndLoad();
+    
+    return () => {
+      cleanup.then((fn) => fn && fn());
+    };
   }, []);
 
   const loadPreferences = async () => {
