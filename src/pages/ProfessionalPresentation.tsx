@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import MinimalNavbar from "@/components/navbar/MinimalNavbar";
@@ -636,66 +636,98 @@ export default function ProfessionalPresentation() {
     };
   }, [user]);
 
-  // Save edit mode and hire button to database when they change
-  useEffect(() => {
-    const saveData = async () => {
-      if (!user || !isOwner || !hireButtonLoaded) return;
+  // Track previous values to detect actual changes
+  const prevHireButtonRef = useRef<typeof hireButton | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Save function with debounce to prevent flickering
+  const saveHireButtonData = useCallback(async () => {
+    if (!user || !isOwner || !hireButtonLoaded) return;
+    
+    // Check if there's an actual change
+    const prev = prevHireButtonRef.current;
+    if (prev && 
+        prev.enabled === hireButton.enabled &&
+        prev.text === hireButton.text &&
+        prev.url === hireButton.url &&
+        prev.email === hireButton.email) {
+      console.log('⏭️ No changes detected, skipping save');
+      return;
+    }
+    
+    // Set flag and timestamp to prevent realtime overwriting this change
+    setIsSavingHireButton(true);
+    lastLocalWriteAtRef.current = Date.now();
+    console.log('💾 Saving hire button state:', hireButton);
+    
+    try {
+      const { error } = await supabase.from('professional_presentations').upsert({
+        user_id: user.id,
+        edit_mode: editMode,
+        hire_button_enabled: hireButton.enabled,
+        hire_button_text: hireButton.text,
+        hire_button_url: hireButton.url,
+        hire_button_email: hireButton.email,
+        name: profile.name,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
       
-      // Set flag and timestamp to prevent realtime overwriting this change
-      setIsSavingHireButton(true);
-      lastLocalWriteAtRef.current = Date.now();
-      console.log('💾 Saving hire button state:', hireButton);
-      
-      try {
-        const { error } = await supabase.from('professional_presentations').upsert({
-          user_id: user.id,
-          edit_mode: editMode,
-          hire_button_enabled: hireButton.enabled,
-          hire_button_text: hireButton.text,
-          hire_button_url: hireButton.url,
-          hire_button_email: hireButton.email,
-          name: profile.name,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
-        if (error) {
-          console.error('❌ Error saving hire button data:', error);
-          toast.error('Failed to save hire button settings');
-          // Revert on error - fetch latest state
-          const { data } = await supabase
-            .from('professional_presentations')
-            .select('hire_button_enabled, hire_button_text, hire_button_url, hire_button_email')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          if (data) {
-            setHireButton({
-              enabled: data.hire_button_enabled === true,
-              text: data.hire_button_text || "Hire Me",
-              url: data.hire_button_url || "",
-              email: data.hire_button_email || ""
-            });
-          }
-        } else {
-          console.log('✅ Hire button data saved successfully');
-        }
-      } catch (error) {
-        console.error('❌ Exception saving data:', error);
+      if (error) {
+        console.error('❌ Error saving hire button data:', error);
         toast.error('Failed to save hire button settings');
-      } finally {
-        // Clear flag after a short delay to allow realtime to process
-        setTimeout(() => {
-          setIsSavingHireButton(false);
-          console.log('🔓 Hire button save complete, realtime updates re-enabled');
-        }, 500);
+        // Revert on error - fetch latest state
+        const { data } = await supabase
+          .from('professional_presentations')
+          .select('hire_button_enabled, hire_button_text, hire_button_url, hire_button_email')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (data) {
+          setHireButton({
+            enabled: data.hire_button_enabled === true,
+            text: data.hire_button_text || "Hire Me",
+            url: data.hire_button_url || "",
+            email: data.hire_button_email || ""
+          });
+        }
+      } else {
+        console.log('✅ Hire button data saved successfully');
+        // Update previous value only on successful save
+        prevHireButtonRef.current = { ...hireButton };
+      }
+    } catch (error) {
+      console.error('❌ Exception saving data:', error);
+      toast.error('Failed to save hire button settings');
+    } finally {
+      // Clear flag after a short delay to allow realtime to process
+      setTimeout(() => {
+        setIsSavingHireButton(false);
+        console.log('🔓 Hire button save complete, realtime updates re-enabled');
+      }, 300);
+    }
+  }, [user, isOwner, hireButtonLoaded, hireButton, editMode, profile.name]);
+
+  // Debounced save on hire button changes
+  useEffect(() => {
+    if (!hireButtonLoaded || !isOwner) return;
+    
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    // Set new timeout for debounced save (only after user stops typing)
+    saveTimeoutRef.current = setTimeout(() => {
+      saveHireButtonData();
+    }, 800);
+    
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
     };
-
-    // Only save if user is owner and data has been loaded
-    if (isOwner && hireButtonLoaded) {
-      saveData();
-    }
-  }, [editMode, hireButton, profile.name, user, isOwner, hireButtonLoaded]);
+  }, [hireButton, hireButtonLoaded, isOwner, saveHireButtonData]);
 
   // Persist to localStorage so Save keeps edits
   useEffect(() => {
