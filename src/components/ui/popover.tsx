@@ -11,28 +11,33 @@ const PopoverTrigger = PopoverPrimitive.Trigger
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
-      ref={ref}
-      align={align}
-      sideOffset={sideOffset}
-      className={cn(
-        "z-[10002] w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none",
-        className
-      )}
-      style={{
-        animation: 'none',
-        transition: 'none',
-        animationDuration: '0s',
-        transitionDuration: '0s',
-        animationDelay: '0s',
-        transitionDelay: '0s'
-      }}
-      {...props}
-    />
-  </PopoverPrimitive.Portal>
-))
+>(({ className, align = "center", sideOffset = 4, ...props }, ref) => {
+  const portalContainer = typeof document !== "undefined"
+    ? (document.querySelector("[data-ps-root]") as HTMLElement | null)
+    : null;
+  return (
+    <PopoverPrimitive.Portal container={portalContainer ?? undefined}>
+      <PopoverPrimitive.Content
+        ref={ref}
+        align={align}
+        sideOffset={sideOffset}
+        className={cn(
+          "z-[10002] w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+          className
+        )}
+        style={{
+          animation: 'none',
+          transition: 'none',
+          animationDuration: '0s',
+          transitionDuration: '0s',
+          animationDelay: '0s',
+          transitionDelay: '0s'
+        }}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
+  );
+})
 PopoverContent.displayName = PopoverPrimitive.Content.displayName
 
 export { Popover, PopoverTrigger, PopoverContent }
