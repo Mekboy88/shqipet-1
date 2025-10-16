@@ -19,6 +19,12 @@ export const useSecureSession = () => {
     setSessionData(null);
     setIsAuthenticated(false);
     
+    // SECURITY: Clear professional presentation cache to prevent cross-account leakage
+    try {
+      localStorage.removeItem('pp:last:avatar_url');
+      localStorage.removeItem('pp:avatar_meta');
+    } catch {}
+    
     toast.error(`Session terminated - ${reason}`);
     
     // Use immediate logout service
@@ -68,6 +74,12 @@ export const useSecureSession = () => {
           secureSessionManager.clearSession();
           setSessionData(null);
           setIsAuthenticated(false);
+          
+          // SECURITY: Clear professional presentation cache to prevent cross-account leakage
+          try {
+            localStorage.removeItem('pp:last:avatar_url');
+            localStorage.removeItem('pp:avatar_meta');
+          } catch {}
           return;
         }
 

@@ -278,39 +278,33 @@ export default function ProfessionalPresentation() {
   const [isOwner, setIsOwner] = useState(false);
   const [presentationUserId, setPresentationUserId] = useState<string | null>(null);
 
-  // Check if current user is the owner of this presentation
+  // SECURITY: Only allow viewing own presentation (no uid param support)
   useEffect(() => {
-    // Get uid parameter from URL (if viewing someone else's presentation)
-    const searchParams = new URLSearchParams(window.location.search);
-    const uidParam = searchParams.get('uid');
-    
-    // If there's a uid parameter, check if it matches the logged-in user
-    // If no uid parameter, assume viewing own profile
-    if (uidParam) {
-      setIsOwner(!!user && user.id === uidParam);
-      setPresentationUserId(uidParam);
+    // Always use current logged-in user - no viewing others' pages
+    if (user) {
+      setIsOwner(true);
+      setPresentationUserId(user.id);
     } else {
-      // No uid parameter means viewing own profile
-      setIsOwner(!!user);
-      setPresentationUserId(user?.id || null);
+      setIsOwner(false);
+      setPresentationUserId(null);
     }
   }, [user]);
 
   // Text group drag hook
   const textDrag = useGroupDrag({ userId: user?.id });
 
-  // Editable state
+  // Editable state - Start with empty/neutral defaults (no sample data)
   const [profile, setProfile] = useState(() => {
     return {
-      name: "Andi Mekrizvani",
-      role: "Founder • Product & Security Enthusiast",
-      entry: "Building Shqipet — a clean, focused social platform. I care about craft, security, and helpful tech.",
-      quick: "Based in London. Cybersecurity learner. I design systems that are fast, clear, and human-friendly.",
-      email: "hello@example.com",
-      phone: "+44 7123 456789",
-      website: "https://shqipet.com",
-      cvUrl: "#",
-      avatarUrl: '' // Start empty to avoid showing stale cached image on refresh
+      name: "",
+      role: "",
+      entry: "",
+      quick: "",
+      email: "",
+      phone: "",
+      website: "",
+      cvUrl: "",
+      avatarUrl: ""
     };
   });
   const [navLabels, setNavLabels] = useState({
@@ -328,32 +322,12 @@ export default function ProfessionalPresentation() {
     [k]: s
   }));
 
-  // Dynamic socials
+  // Dynamic socials - Start with empty array (no sample data)
   const [socials, setSocials] = useState<Array<{
     label: string;
     url: string;
     icon?: string;
-  }>>([{
-    label: "LinkedIn",
-    url: "https://linkedin.com",
-    icon: "linkedin"
-  }, {
-    label: "GitHub",
-    url: "https://github.com",
-    icon: "github"
-  }, {
-    label: "Facebook",
-    url: "https://facebook.com",
-    icon: "facebook"
-  }, {
-    label: "Instagram",
-    url: "https://instagram.com",
-    icon: "instagram"
-  }, {
-    label: "Website",
-    url: "https://shqipet.com",
-    icon: "website"
-  }]);
+  }>>([]);
   const [sections, setSections] = useState({
     home: true,
     skills: true,
@@ -376,8 +350,8 @@ export default function ProfessionalPresentation() {
     photoHeight: 420
   });
   const [seo, setSeo] = useState({
-    pageTitle: "Andi – Personal Presentation",
-    description: "Clean, white-first personal page with skills, portfolio, and contact.",
+    pageTitle: "Professional Presentation",
+    description: "Professional presentation page",
     openInNewWindow: true
   });
   const [accent, setAccent] = useState("#2AA1FF");
@@ -439,12 +413,13 @@ export default function ProfessionalPresentation() {
                 ...prev,
                 avatarUrl: keyOrUrl
               }));
+              // SECURITY: Store with userId to prevent cross-account leakage
               try {
                 localStorage.setItem('pp:last:avatar_url', keyOrUrl);
                 localStorage.setItem('pp:avatar_meta', JSON.stringify({
                   url: keyOrUrl,
                   rev,
-                  userId: user?.id
+                  userId: user.id
                 }));
               } catch {}
             } else {
@@ -467,13 +442,24 @@ export default function ProfessionalPresentation() {
                   } catch {}
                 } catch (e) {
                   console.warn('⚠️ Failed to resolve avatar on initial load, falling back to last good if any', e);
-                  // Fallback to cached last good (only if nothing is shown yet)
+                  // SECURITY: Fallback to cached ONLY if userId matches (prevent cross-account leakage)
                   try {
-                    const last = localStorage.getItem('pp:last:avatar_url');
-                    if (last) setProfile(prev => ({
-                      ...prev,
-                      avatarUrl: last
-                    }));
+                    const metaStr = localStorage.getItem('pp:avatar_meta');
+                    if (metaStr) {
+                      const meta = JSON.parse(metaStr);
+                      // Only use cache if it's for the CURRENT user
+                      if (meta.userId === user.id) {
+                        const last = localStorage.getItem('pp:last:avatar_url');
+                        if (last) setProfile(prev => ({
+                          ...prev,
+                          avatarUrl: last
+                        }));
+                      } else {
+                        // Clear stale cache from different user
+                        localStorage.removeItem('pp:last:avatar_url');
+                        localStorage.removeItem('pp:avatar_meta');
+                      }
+                    }
                   } catch {}
                 }
               })();
@@ -492,12 +478,13 @@ export default function ProfessionalPresentation() {
     };
     loadData();
 
-    // Set up realtime subscription for INSTANT updates (zero delay)
+    // Set up realtime subscription for INSTANT updates across devices (zero delay)
+    // SECURITY: RLS ensures only own data is received
     const channel = supabase.channel('professional-presentation-changes').on('postgres_changes', {
       event: '*',
       schema: 'public',
       table: 'professional_presentations',
-      filter: `user_id=eq.${user?.id}`
+      filter: `user_id=eq.${user.id}`
     }, async payload => {
       console.log('🔄 Realtime update received:', payload);
       if (payload.new && typeof payload.new === 'object') {
@@ -520,12 +507,13 @@ export default function ProfessionalPresentation() {
               ...prev,
               avatarUrl: keyOrUrl
             }));
+            // SECURITY: Store with userId to prevent cross-account leakage
             try {
               localStorage.setItem('pp:last:avatar_url', keyOrUrl);
               localStorage.setItem('pp:avatar_meta', JSON.stringify({
                 url: keyOrUrl,
                 rev: commitTimestamp,
-                userId: user?.id
+                userId: user.id
               }));
             } catch {}
           } else {
@@ -547,12 +535,13 @@ export default function ProfessionalPresentation() {
                 ...prev,
                 avatarUrl: versioned
               }));
+              // SECURITY: Store with userId to prevent cross-account leakage
               try {
                 localStorage.setItem('pp:last:avatar_url', versioned);
                 localStorage.setItem('pp:avatar_meta', JSON.stringify({
                   url: versioned,
                   rev: commitTimestamp,
-                  userId: user?.id
+                  userId: user.id
                 }));
               } catch {}
               console.log('✅ Applied fresh avatar URL instantly:', versioned);
