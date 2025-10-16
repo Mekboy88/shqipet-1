@@ -41,7 +41,7 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
     if (currentSection === 'profile') {
       return (
         <div className="flex-1 flex flex-col h-full overflow-hidden">
-          <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)] pointer-events-auto relative">
+          <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)]" style={{ pointerEvents: 'auto' }}>
             <ProfileSettingsSkeleton />
           </div>
         </div>
@@ -49,7 +49,7 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
     }
     return (
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)] pointer-events-auto relative">
+        <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)]" style={{ pointerEvents: 'auto' }}>
           <SettingsSkeleton />
         </div>
       </div>
@@ -58,7 +58,7 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)] pointer-events-auto relative">
+      <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)]" style={{ pointerEvents: 'auto' }}>
         <ProfileSettingsHeader activeSection={currentSection} userInfo={userInfo} />
         
         <div className="w-full pb-8">
