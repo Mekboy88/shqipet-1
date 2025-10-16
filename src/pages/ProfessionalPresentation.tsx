@@ -410,7 +410,7 @@ export default function ProfessionalPresentation() {
           console.log('📊 Loaded professional presentation data:', data);
           setEditMode(data.edit_mode || false);
           setHireButton({
-            enabled: data.hire_button_enabled ?? true,
+            enabled: data.hire_button_enabled === true,
             text: data.hire_button_text || "Hire Me",
             url: data.hire_button_url || "",
             email: data.hire_button_email || ""
@@ -591,7 +591,7 @@ export default function ProfessionalPresentation() {
             text: newData.hire_button_text
           });
           setHireButton({
-            enabled: newData.hire_button_enabled ?? true,
+            enabled: newData.hire_button_enabled === true,
             text: newData.hire_button_text || "Hire Me",
             url: newData.hire_button_url || "",
             email: newData.hire_button_email || ""
