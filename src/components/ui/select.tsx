@@ -69,11 +69,9 @@ const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
 >(({ className, children, position = "popper", ...props }, ref) => {
-  const portalContainer = typeof document !== "undefined"
-    ? (document.querySelector("[data-ps-root]") as HTMLElement | null)
-    : null;
+  console.log('SelectContent rendering...');
   return (
-    <SelectPrimitive.Portal container={portalContainer ?? undefined}>
+    <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         ref={ref}
         className={cn(
