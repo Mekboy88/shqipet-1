@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import ProfileSettingsSidebar from './ProfileSettingsSidebar';
 import ProfileSettingsContent from './ProfileSettingsContent';
 interface ProfileSettingsDialogProps {
@@ -15,9 +16,20 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
   activeSection,
   setActiveSection
 }) => {
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('profile-settings-open');
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.classList.remove('profile-settings-open');
+        document.body.style.overflow = prevOverflow || '';
+      };
+    }
+  }, [isOpen]);
   if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-[10001] overflow-hidden pointer-events-auto">
+  return createPortal(
+    <div className="fixed inset-0 z-[999999] isolate overflow-hidden pointer-events-auto">
       {/* Wallpaper layer - behind everything, starts below top bar */}
       <div className="absolute top-[57px] left-0 right-0 bottom-0 bg-gray-100 pointer-events-none"></div>
       
@@ -33,7 +45,8 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 export default ProfileSettingsDialog;
