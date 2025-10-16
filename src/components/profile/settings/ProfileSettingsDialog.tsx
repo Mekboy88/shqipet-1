@@ -28,10 +28,22 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
     }
   }, [isOpen]);
 
+  // Temporary click debug to trace pointer events
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const el = e.target as HTMLElement;
+      const pe = window.getComputedStyle(el).pointerEvents;
+      const z = (el as HTMLElement).style?.zIndex || undefined;
+      console.log('[Click debug]', { tag: el.tagName, classes: (el as HTMLElement).className, pointerEvents: pe, z });
+    };
+    document.addEventListener('pointerdown', handler, true);
+    return () => document.removeEventListener('pointerdown', handler, true);
+  }, []);
+
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000]" style={{ pointerEvents: 'auto' }}>
+    <div className="fixed inset-0 z-[2000]" data-ps-root style={{ pointerEvents: 'auto' }}>
       {/* Wallpaper layer */}
       <div className="absolute top-[57px] left-0 right-0 bottom-0 bg-gray-100" style={{ pointerEvents: 'none' }}></div>
       
