@@ -218,7 +218,7 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
         
         {!hasData ? (
           <div className="text-gray-500">
-            No introduction added yet
+            Asnjë hyrje shtuar ende
           </div>
         ) : (
           <div className="space-y-4">
