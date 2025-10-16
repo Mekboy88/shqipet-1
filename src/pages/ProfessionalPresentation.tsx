@@ -379,15 +379,33 @@ export default function ProfessionalPresentation() {
     console.assert(typeof seo.pageTitle === "string" && seo.pageTitle.length > 0, "[SelfTest] pageTitle should be non-empty string");
   }, []);
 
-  // Load edit mode, hire button, and avatar from database
+  // Load edit mode, hire button, avatar, and user's real name from database
   useEffect(() => {
     const loadData = async () => {
       if (!user) return;
       try {
+        // Fetch user's real name from profiles table
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        // Set the user's real name
+        if (profileData) {
+          const fullName = [profileData.first_name, profileData.last_name].filter(Boolean).join(' ').trim();
+          if (fullName) {
+            setProfile(prev => ({
+              ...prev,
+              name: fullName
+            }));
+          }
+        }
+
         const {
           data,
           error
-        } = await supabase.from('professional_presentations').select('edit_mode, hire_button_enabled, hire_button_text, hire_button_url, hire_button_email, avatar_url, updated_at').eq('user_id', user.id).maybeSingle();
+        } = await supabase.from('professional_presentations').select('edit_mode, hire_button_enabled, hire_button_text, hire_button_url, hire_button_email, avatar_url, name, updated_at').eq('user_id', user.id).maybeSingle();
         if (data && !error) {
           console.log('📊 Loaded professional presentation data:', data);
           setEditMode(data.edit_mode || false);
@@ -397,6 +415,14 @@ export default function ProfessionalPresentation() {
             url: data.hire_button_url || "",
             email: data.hire_button_email || ""
           });
+
+          // Load saved name if available (overrides profile name)
+          if (data.name) {
+            setProfile(prev => ({
+              ...prev,
+              name: data.name
+            }));
+          }
 
           // Load professional presentation avatar (strict no-flicker: resolve once, preload, then swap)
           if (data.avatar_url) {
@@ -570,6 +596,14 @@ export default function ProfessionalPresentation() {
             url: newData.hire_button_url || "",
             email: newData.hire_button_email || ""
           });
+          
+          // Also sync name if changed
+          if (newData.name) {
+            setProfile(prev => ({
+              ...prev,
+              name: newData.name
+            }));
+          }
         } else {
           console.log('⏭️ Skipping hire button realtime update (currently saving)');
         }
@@ -603,6 +637,7 @@ export default function ProfessionalPresentation() {
           hire_button_text: hireButton.text,
           hire_button_url: hireButton.url,
           hire_button_email: hireButton.email,
+          name: profile.name,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
@@ -627,7 +662,7 @@ export default function ProfessionalPresentation() {
     if (isOwner) {
       saveData();
     }
-  }, [editMode, hireButton, user, isOwner]);
+  }, [editMode, hireButton, profile.name, user, isOwner]);
 
   // Persist to localStorage so Save keeps edits
   useEffect(() => {
