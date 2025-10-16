@@ -17,7 +17,7 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
 }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[900] overflow-hidden pointer-events-auto">
+    <div className="fixed inset-0 z-[10001] overflow-hidden pointer-events-auto">
       {/* Wallpaper layer - behind everything, starts below top bar */}
       <div className="absolute top-[57px] left-0 right-0 bottom-0 bg-gray-100 pointer-events-none"></div>
       
