@@ -52,7 +52,7 @@ export const usePostsData = () => {
         .from('posts')
         .select(`
           *,
-          profiles!posts_user_id_fkey (
+          profiles (
             username,
             avatar_url
           )

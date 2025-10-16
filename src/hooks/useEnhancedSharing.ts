@@ -293,7 +293,7 @@ export const useEnhancedSharing = () => {
         .from('shares')
         .select(`
           id, share_type, created_at, custom_text,
-          posts (id, content_text, content_images, user_name)
+          posts (id, content)
         `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false })

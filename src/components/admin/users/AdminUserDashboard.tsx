@@ -159,7 +159,6 @@ const AdminUserDashboard = () => {
         .from('profiles')
         .select(`
           id,
-          user_id,
           auth_user_id,
           first_name,
           last_name,

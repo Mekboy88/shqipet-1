@@ -41,7 +41,7 @@ class UserDataSynchronizer {
       // Fetch all user data in parallel for maximum speed
         const [authResult, profileResult] = await Promise.allSettled([
           supabase.auth.getUser(),
-          supabase.from('profiles').select('*').or(`auth_user_id.eq.${userId},id.eq.${userId},user_id.eq.${userId}`).maybeSingle()
+          supabase.from('profiles').select('*').or(`auth_user_id.eq.${userId},id.eq.${userId}`).maybeSingle()
         ]);
 
       const authUser = authResult.status === 'fulfilled' ? authResult.value.data : null;
