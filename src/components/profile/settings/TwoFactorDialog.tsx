@@ -66,7 +66,7 @@ const TwoFactorDialog: React.FC<TwoFactorDialogProps> = ({
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-popover pointer-events-auto shadow-lg border border-gray-200">
+              <SelectContent className="bg-white shadow-lg border border-gray-200">
                 <SelectItem value="email">
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
