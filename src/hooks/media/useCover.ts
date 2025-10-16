@@ -34,6 +34,7 @@ const persistCoverToDatabase = async (userId: string, coverKey: string, position
 };
 
 interface CoverState {
+  userId: string; // CRITICAL: Track which user this state belongs to
   key: string | null;
   resolvedUrl: string | null;
   position: string;
@@ -43,8 +44,12 @@ interface CoverState {
   isPositionSaving: boolean;
 }
 
-// Global state for cross-component sync
-let globalCoverState: CoverState = {
+// SECURITY FIX: Per-user state isolation instead of global shared state
+const stateByUser = new Map<string, CoverState>();
+const listenersByUser = new Map<string, Set<(state: CoverState) => void>>();
+
+const getDefaultState = (userId: string): CoverState => ({
+  userId,
   key: null,
   resolvedUrl: null,
   position: 'center 50%',
@@ -52,15 +57,28 @@ let globalCoverState: CoverState = {
   lastGoodUrl: null,
   isPositionChanging: false,
   isPositionSaving: false
+});
+
+const getCoverState = (userId: string): CoverState => {
+  if (!stateByUser.has(userId)) {
+    stateByUser.set(userId, getDefaultState(userId));
+  }
+  return stateByUser.get(userId)!;
 };
 
-const coverListeners = new Set<(state: CoverState) => void>();
-
-const notifyCoverChange = (newState: CoverState) => {
-  globalCoverState = newState;
+const notifyCoverChange = (userId: string, newState: CoverState) => {
+  // SECURITY: Verify userId matches state
+  if (newState.userId !== userId) {
+    console.error('🚨 SECURITY: User ID mismatch detected!', { expected: userId, actual: newState.userId });
+    return;
+  }
   
-  // Real-time debug logging
-  console.log('🖼️ Cover Photo Debug:', {
+  // Update per-user state
+  stateByUser.set(userId, newState);
+  
+  // Real-time debug logging with user ID
+  console.log(`🖼️ Cover Photo Debug [User: ${userId.slice(0, 8)}]:`, {
+    userId,
     globalCoverUrl: newState.resolvedUrl,
     resolvedUrl: newState.resolvedUrl,
     baseCandidate: newState.resolvedUrl,
@@ -73,17 +91,21 @@ const notifyCoverChange = (newState: CoverState) => {
     isPositionSaving: newState.isPositionSaving
   });
   
-  coverListeners.forEach(listener => {
-    try {
-      listener(newState);
-    } catch (error) {
-      console.error('Error in cover listener:', error);
-    }
-  });
+  // Notify only listeners for this specific user
+  const listeners = listenersByUser.get(userId);
+  if (listeners) {
+    listeners.forEach(listener => {
+      try {
+        listener(newState);
+      } catch (error) {
+        console.error(`Error in cover listener for user ${userId}:`, error);
+      }
+    });
+  }
   
-  // Emit global position change event
+  // Emit user-specific position change event
   window.dispatchEvent(new CustomEvent('cover-position-changed', { 
-    detail: { position: newState.position, isChanging: newState.isPositionChanging } 
+    detail: { userId, position: newState.position, isChanging: newState.isPositionChanging } 
   }));
 };
 
@@ -109,54 +131,73 @@ export const useCover = (userId?: string) => {
   
   // Initialize with cached data immediately to prevent position shake
   const [coverState, setCoverState] = useState<CoverState>(() => {
-    if (!targetUserId) return globalCoverState;
+    if (!targetUserId) return getDefaultState('__no_user__');
     
-      try {
-        const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
-        if (cachedRaw) {
-          const cached = JSON.parse(cachedRaw);
-          const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
-          const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
-          const cachedPos = normalizePosition(cached?.position || 'center');
-          
-          if (isValidUrl) {
-            const initialState = {
-              ...globalCoverState,
-              resolvedUrl: cachedUrl as string,
-              lastGoodUrl: cachedUrl as string,
-              position: cachedPos,
-              loading: true
-            };
-            // Update global state immediately
-            globalCoverState = initialState;
-            return initialState;
-          }
+    // Try to load from per-user cache
+    try {
+      const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw);
+        const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
+        const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
+        const cachedPos = normalizePosition(cached?.position || 'center');
+        
+        if (isValidUrl) {
+          const initialState: CoverState = {
+            userId: targetUserId,
+            key: cached?.key || null,
+            resolvedUrl: cachedUrl as string,
+            lastGoodUrl: cachedUrl as string,
+            position: cachedPos,
+            loading: true,
+            isPositionChanging: false,
+            isPositionSaving: false
+          };
+          // Update per-user state
+          stateByUser.set(targetUserId, initialState);
+          return initialState;
         }
-      } catch (e) {
-        console.warn('Failed to load cached cover on init:', e);
       }
+    } catch (e) {
+      console.warn('Failed to load cached cover on init:', e);
+    }
     
-    return globalCoverState;
+    return getCoverState(targetUserId);
   });
 
-  // Subscribe to global changes
+  // Subscribe to per-user changes only
   useEffect(() => {
+    if (!targetUserId) return;
+    
     const handleStateChange = (newState: CoverState) => {
-      setCoverState(newState);
+      // SECURITY: Only update if state is for this user
+      if (newState.userId === targetUserId) {
+        setCoverState(newState);
+      }
     };
 
-    coverListeners.add(handleStateChange);
+    // Get or create listener set for this user
+    if (!listenersByUser.has(targetUserId)) {
+      listenersByUser.set(targetUserId, new Set());
+    }
+    const listeners = listenersByUser.get(targetUserId)!;
+    listeners.add(handleStateChange);
+    
     return () => {
-      coverListeners.delete(handleStateChange);
+      listeners.delete(handleStateChange);
+      // Clean up empty listener sets
+      if (listeners.size === 0) {
+        listenersByUser.delete(targetUserId);
+      }
     };
-  }, []);
+  }, [targetUserId]);
 
   // Load cover when user changes
   useEffect(() => {
     if (!targetUserId) {
-      const emptyState = { key: null, resolvedUrl: null, position: 'center', loading: false, lastGoodUrl: null, isPositionChanging: false, isPositionSaving: false };
+      const emptyState = getDefaultState('__no_user__');
+      emptyState.loading = false;
       setCoverState(emptyState);
-      notifyCoverChange(emptyState);
       return;
     }
 
@@ -200,7 +241,8 @@ export const useCover = (userId?: string) => {
     if (!targetUserId) return;
 
     // CRITICAL: Don't reload during upload
-    if (coverState.loading && globalCoverState.resolvedUrl?.startsWith('blob:')) {
+    const currentState = getCoverState(targetUserId);
+    if (currentState.loading && currentState.resolvedUrl?.startsWith('blob:')) {
       console.log('⏸️ Skipping cover load - upload in progress');
       return;
     }
@@ -208,20 +250,29 @@ export const useCover = (userId?: string) => {
     try {
       console.log('🔄 Loading cover for user:', targetUserId);
       // Optimistic: show last cached cover immediately while DB loads
-        try {
-          const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
-          if (cachedRaw) {
-            const cached = JSON.parse(cachedRaw);
-            const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
-            const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
-            const cachedPos = normalizePosition(cached?.position || coverState.position);
-            if (isValidUrl) {
-              const cachedState = { ...coverState, resolvedUrl: cachedUrl as string, lastGoodUrl: cachedUrl as string, position: cachedPos, loading: true };
-              setCoverState(cachedState);
-              notifyCoverChange(cachedState);
-            }
+      try {
+        const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
+          const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
+          const cachedPos = normalizePosition(cached?.position || coverState.position);
+          if (isValidUrl) {
+            const cachedState: CoverState = { 
+              userId: targetUserId,
+              key: cached?.key || null,
+              resolvedUrl: cachedUrl as string, 
+              lastGoodUrl: cachedUrl as string, 
+              position: cachedPos, 
+              loading: true,
+              isPositionChanging: false,
+              isPositionSaving: false
+            };
+            setCoverState(cachedState);
+            notifyCoverChange(targetUserId, cachedState);
           }
-        } catch {}
+        }
+      } catch {}
       
       // Always load fresh from database with comprehensive fallbacks
       let anyProfile: any = null;
@@ -283,9 +334,18 @@ export const useCover = (userId?: string) => {
             const cached = JSON.parse(cachedRaw);
             const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
             if (cachedUrl && !/^blob:|^data:/.test(cachedUrl)) {
-              const cachedState = { key: cached?.key ?? null, resolvedUrl: cachedUrl as string, position, loading: false, lastGoodUrl: cachedUrl as string, isPositionChanging: false, isPositionSaving: false };
+              const cachedState: CoverState = { 
+                userId: targetUserId,
+                key: cached?.key ?? null, 
+                resolvedUrl: cachedUrl as string, 
+                position, 
+                loading: false, 
+                lastGoodUrl: cachedUrl as string, 
+                isPositionChanging: false, 
+                isPositionSaving: false 
+              };
               setCoverState(cachedState);
-              notifyCoverChange(cachedState);
+              notifyCoverChange(targetUserId, cachedState);
               console.log('✅ Using cached cover from localStorage');
               // Best-effort: derive key from URL and persist so next refresh uses DB
               setTimeout(async () => {
@@ -318,9 +378,18 @@ export const useCover = (userId?: string) => {
         } catch (e) {
           console.warn('LocalStorage cover cache read failed:', e);
         }
-        const emptyState = { key: null, resolvedUrl: null, position, loading: false, lastGoodUrl: coverState.lastGoodUrl, isPositionChanging: false, isPositionSaving: false };
+        const emptyState: CoverState = { 
+          userId: targetUserId,
+          key: null, 
+          resolvedUrl: null, 
+          position, 
+          loading: false, 
+          lastGoodUrl: coverState.lastGoodUrl, 
+          isPositionChanging: false, 
+          isPositionSaving: false 
+        };
         setCoverState(emptyState);
-        notifyCoverChange(emptyState);
+        notifyCoverChange(targetUserId, emptyState);
         return;
       }
 
@@ -333,7 +402,7 @@ export const useCover = (userId?: string) => {
       const currentKey = anyProfile?.cover_url || candidate;
       const loadingState = { ...coverState, key: currentKey, position, loading: true };
       setCoverState(loadingState);
-      notifyCoverChange(loadingState);
+      notifyCoverChange(targetUserId, loadingState);
 
       // Resolve URL (support both keys and direct URLs)
       const isDirectUrl = typeof candidate === 'string' && /^(https?:|blob:|data:)/.test(candidate);
@@ -391,7 +460,8 @@ export const useCover = (userId?: string) => {
         }
       }
 
-      const finalState = {
+      const finalState: CoverState = {
+        userId: targetUserId,
         key: currentKey,
         resolvedUrl,
         position,
@@ -403,7 +473,7 @@ export const useCover = (userId?: string) => {
 
       setCoverState(finalState);
       try { localStorage.setItem(`cover:last:${targetUserId}`, JSON.stringify({ url: finalState.resolvedUrl, key: finalState.key, position: finalState.position, ts: Date.now() })); } catch {}
-      notifyCoverChange(finalState);
+      notifyCoverChange(targetUserId, finalState);
 
       // No local cache - rely on database + in-memory resolution
 
@@ -422,7 +492,7 @@ export const useCover = (userId?: string) => {
       };
       
       setCoverState(errorState);
-      notifyCoverChange(errorState);
+      notifyCoverChange(targetUserId, errorState);
     }
   };
 
@@ -440,7 +510,7 @@ export const useCover = (userId?: string) => {
     };
     
     setCoverState(optimisticState);
-    notifyCoverChange(optimisticState);
+    notifyCoverChange(targetUserId, optimisticState);
     
     console.log('🎯 Position update:', { newPosition: normalizedPosition, persist });
     
@@ -468,7 +538,7 @@ export const useCover = (userId?: string) => {
           } catch {}
           
           setCoverState(finalState);
-          notifyCoverChange(finalState);
+          notifyCoverChange(targetUserId, finalState);
           console.log('✅ Position persisted successfully');
           return true;
         } else {
@@ -479,7 +549,7 @@ export const useCover = (userId?: string) => {
             isPositionSaving: false
           };
           setCoverState(rollbackState);
-          notifyCoverChange(rollbackState);
+          notifyCoverChange(targetUserId, rollbackState);
           console.error('❌ Position persistence failed');
           return false;
         }
@@ -492,7 +562,7 @@ export const useCover = (userId?: string) => {
           isPositionSaving: false
         };
         setCoverState(rollbackState);
-        notifyCoverChange(rollbackState);
+        notifyCoverChange(targetUserId, rollbackState);
         return false;
       }
     } else {
@@ -504,7 +574,7 @@ export const useCover = (userId?: string) => {
         isPositionSaving: false
       };
       setCoverState(tempState);
-      notifyCoverChange(tempState);
+      notifyCoverChange(targetUserId, tempState);
       return true;
     }
   }, [coverState, targetUserId, user?.id]);
@@ -526,7 +596,7 @@ export const useCover = (userId?: string) => {
       // Set uploading state without changing the currently displayed image (no local preview)
       const optimisticState = { ...coverState, loading: true };
       setCoverState(optimisticState);
-      notifyCoverChange(optimisticState);
+      notifyCoverChange(targetUserId, optimisticState);
 
       console.log('🔄 Starting Wasabi upload...');
       const { key } = await uploadService.upload(file, 'cover', targetUserId);
@@ -593,7 +663,8 @@ export const useCover = (userId?: string) => {
       }
 
       // Step 4: Update local state and refresh
-      const finalState = {
+      const finalState: CoverState = {
+        userId: targetUserId,
         key,
         resolvedUrl: finalUrl,
         position: coverState.position,
@@ -604,7 +675,7 @@ export const useCover = (userId?: string) => {
       };
       setCoverState(finalState);
       try { localStorage.setItem(`cover:last:${user.id}`, JSON.stringify({ url: finalState.resolvedUrl, key: finalState.key, position: finalState.position, ts: Date.now() })); } catch {}
-      notifyCoverChange(finalState);
+      notifyCoverChange(targetUserId, finalState);
 
       // Step 5: Background refresh to verify persistence
       setTimeout(() => loadCover(), 100);
@@ -620,7 +691,7 @@ export const useCover = (userId?: string) => {
       console.error('❌ Failed to update cover:', error);
       const errorState = { ...coverState, loading: false };
       setCoverState(errorState);
-      notifyCoverChange(errorState);
+      notifyCoverChange(targetUserId, errorState);
       
       // Emit upload end event for animation
       window.dispatchEvent(new CustomEvent('cover-upload-end'));
