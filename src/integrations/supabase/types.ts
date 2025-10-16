@@ -1395,6 +1395,153 @@ export type Database = {
         }
         Relationships: []
       }
+      user_privacy_settings: {
+        Row: {
+          ads_based_on_partners_data: boolean | null
+          allow_find_by_email: boolean | null
+          allow_find_by_phone: boolean | null
+          allow_read_receipts: boolean | null
+          allow_story_replies: string | null
+          allow_story_sharing: boolean | null
+          approve_new_followers: boolean | null
+          auto_approve_follow_requests: boolean | null
+          birthday_detail: string | null
+          created_at: string
+          email_visibility: string | null
+          hidden_words: Json | null
+          id: string
+          location_visibility: string | null
+          login_alerts_new_device: boolean | null
+          message_request_filter: string | null
+          muted_accounts: Json | null
+          personalize_recommendations: boolean | null
+          personalized_ads_activity: boolean | null
+          phone_visibility: string | null
+          privacy_allow_search_engines_to_index: string | null
+          privacy_confirm_request_when_someone_follows_you: string | null
+          privacy_share_my_location_with_public: string | null
+          privacy_show_my_activities: string | null
+          privacy_status: string | null
+          privacy_who_can_follow_me: string | null
+          privacy_who_can_message_me: string | null
+          privacy_who_can_post_on_my_timeline: string | null
+          privacy_who_can_see_my_birthday: string | null
+          privacy_who_can_see_my_friends: string | null
+          restricted_list: Json | null
+          review_tagged_posts: boolean | null
+          review_tags_before_appear: boolean | null
+          sensitive_content_filter: string | null
+          show_active_status: boolean | null
+          show_in_people_you_may_know: boolean | null
+          show_typing_indicators: boolean | null
+          updated_at: string
+          user_id: string
+          who_can_comment_on_posts: string | null
+          who_can_mention_me: string | null
+          who_can_send_friend_requests: string | null
+          who_can_share_posts: string | null
+          who_can_tag_me: string | null
+          who_can_view_stories: string | null
+          work_education_visibility: string | null
+        }
+        Insert: {
+          ads_based_on_partners_data?: boolean | null
+          allow_find_by_email?: boolean | null
+          allow_find_by_phone?: boolean | null
+          allow_read_receipts?: boolean | null
+          allow_story_replies?: string | null
+          allow_story_sharing?: boolean | null
+          approve_new_followers?: boolean | null
+          auto_approve_follow_requests?: boolean | null
+          birthday_detail?: string | null
+          created_at?: string
+          email_visibility?: string | null
+          hidden_words?: Json | null
+          id?: string
+          location_visibility?: string | null
+          login_alerts_new_device?: boolean | null
+          message_request_filter?: string | null
+          muted_accounts?: Json | null
+          personalize_recommendations?: boolean | null
+          personalized_ads_activity?: boolean | null
+          phone_visibility?: string | null
+          privacy_allow_search_engines_to_index?: string | null
+          privacy_confirm_request_when_someone_follows_you?: string | null
+          privacy_share_my_location_with_public?: string | null
+          privacy_show_my_activities?: string | null
+          privacy_status?: string | null
+          privacy_who_can_follow_me?: string | null
+          privacy_who_can_message_me?: string | null
+          privacy_who_can_post_on_my_timeline?: string | null
+          privacy_who_can_see_my_birthday?: string | null
+          privacy_who_can_see_my_friends?: string | null
+          restricted_list?: Json | null
+          review_tagged_posts?: boolean | null
+          review_tags_before_appear?: boolean | null
+          sensitive_content_filter?: string | null
+          show_active_status?: boolean | null
+          show_in_people_you_may_know?: boolean | null
+          show_typing_indicators?: boolean | null
+          updated_at?: string
+          user_id: string
+          who_can_comment_on_posts?: string | null
+          who_can_mention_me?: string | null
+          who_can_send_friend_requests?: string | null
+          who_can_share_posts?: string | null
+          who_can_tag_me?: string | null
+          who_can_view_stories?: string | null
+          work_education_visibility?: string | null
+        }
+        Update: {
+          ads_based_on_partners_data?: boolean | null
+          allow_find_by_email?: boolean | null
+          allow_find_by_phone?: boolean | null
+          allow_read_receipts?: boolean | null
+          allow_story_replies?: string | null
+          allow_story_sharing?: boolean | null
+          approve_new_followers?: boolean | null
+          auto_approve_follow_requests?: boolean | null
+          birthday_detail?: string | null
+          created_at?: string
+          email_visibility?: string | null
+          hidden_words?: Json | null
+          id?: string
+          location_visibility?: string | null
+          login_alerts_new_device?: boolean | null
+          message_request_filter?: string | null
+          muted_accounts?: Json | null
+          personalize_recommendations?: boolean | null
+          personalized_ads_activity?: boolean | null
+          phone_visibility?: string | null
+          privacy_allow_search_engines_to_index?: string | null
+          privacy_confirm_request_when_someone_follows_you?: string | null
+          privacy_share_my_location_with_public?: string | null
+          privacy_show_my_activities?: string | null
+          privacy_status?: string | null
+          privacy_who_can_follow_me?: string | null
+          privacy_who_can_message_me?: string | null
+          privacy_who_can_post_on_my_timeline?: string | null
+          privacy_who_can_see_my_birthday?: string | null
+          privacy_who_can_see_my_friends?: string | null
+          restricted_list?: Json | null
+          review_tagged_posts?: boolean | null
+          review_tags_before_appear?: boolean | null
+          sensitive_content_filter?: string | null
+          show_active_status?: boolean | null
+          show_in_people_you_may_know?: boolean | null
+          show_typing_indicators?: boolean | null
+          updated_at?: string
+          user_id?: string
+          who_can_comment_on_posts?: string | null
+          who_can_mention_me?: string | null
+          who_can_send_friend_requests?: string | null
+          who_can_share_posts?: string | null
+          who_can_tag_me?: string | null
+          who_can_view_stories?: string | null
+          work_education_visibility?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
