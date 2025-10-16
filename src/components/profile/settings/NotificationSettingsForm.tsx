@@ -26,14 +26,18 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = () => 
     }
   }, [preferences]);
 
-  const handleToggle = async (key: string, value: boolean) => {
+  const handleToggle = (key: string, value: boolean) => {
+    // Instant local update for immediate UI feedback
     setLocalPrefs(prev => prev ? { ...prev, [key]: value } : null);
-    await savePreferences({ [key]: value } as any);
+    // Save to database in background without blocking UI
+    savePreferences({ [key]: value } as any);
   };
 
-  const handleSelectChange = async (key: string, value: string) => {
+  const handleSelectChange = (key: string, value: string) => {
+    // Instant local update for immediate UI feedback
     setLocalPrefs(prev => prev ? { ...prev, [key]: value } : null);
-    await savePreferences({ [key]: value } as any);
+    // Save to database in background without blocking UI
+    savePreferences({ [key]: value } as any);
   };
 
   if (loading) {
@@ -68,7 +72,6 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = () => 
         id={id}
         checked={localPrefs[id] as boolean}
         onCheckedChange={(checked) => handleToggle(id, checked)}
-        disabled={saving}
       />
     </div>
   );
