@@ -99,7 +99,7 @@ const MyEarningsForm: React.FC<MyEarningsFormProps> = ({ userInfo }) => {
                   <SelectTrigger id="withdraw-method" className="w-full transition-all duration-200 hover:shadow-md focus:shadow-lg">
                     <SelectValue placeholder="Zgjidhni metodën e tërheqjes" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white shadow-lg border border-gray-200 z-50">
+                  <SelectContent className="bg-popover pointer-events-auto z-[10002] shadow-lg border border-gray-200">
                     <SelectItem value="paypal">PayPal</SelectItem>
                     <SelectItem value="skrill">Skrill</SelectItem>
                     <SelectItem value="bank">Transfer Bankar</SelectItem>

@@ -345,7 +345,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-popover pointer-events-auto z-[10002]">
                     {privacyOptions.visibility.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}

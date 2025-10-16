@@ -135,7 +135,7 @@ const MonetizationForm: React.FC<MonetizationFormProps> = ({ userInfo, setUserIn
                               <SelectTrigger className="w-full transition-all duration-200 hover:shadow-md focus:shadow-lg">
                                 <SelectValue placeholder="Zgjidhni monedhën" />
                               </SelectTrigger>
-                              <SelectContent className="bg-white shadow-lg border border-gray-200 z-50">
+                              <SelectContent className="bg-popover pointer-events-auto z-[10002] shadow-lg border border-gray-200">
                                 <SelectItem value="USD">USD ($)</SelectItem>
                                 <SelectItem value="EUR">EUR (€)</SelectItem>
                                 <SelectItem value="JPY">JPY (¥)</SelectItem>
@@ -157,7 +157,7 @@ const MonetizationForm: React.FC<MonetizationFormProps> = ({ userInfo, setUserIn
                             <SelectTrigger className="w-full transition-all duration-200 hover:shadow-md focus:shadow-lg">
                               <SelectValue placeholder="Zgjidhni kohëzgjatjen" />
                             </SelectTrigger>
-                            <SelectContent className="bg-white shadow-lg border border-gray-200 z-50">
+                            <SelectContent className="bg-popover pointer-events-auto z-[10002] shadow-lg border border-gray-200">
                               <SelectItem value="daily">Ditore</SelectItem>
                               <SelectItem value="weekly">Javore</SelectItem>
                               <SelectItem value="monthly">Mujore</SelectItem>

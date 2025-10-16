@@ -373,7 +373,7 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = () => 
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover pointer-events-auto z-[10002]">
                     <SelectItem value="instant">Instant</SelectItem>
                     <SelectItem value="hourly">Hourly</SelectItem>
                     <SelectItem value="daily">Daily</SelectItem>
@@ -391,7 +391,7 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = () => 
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover pointer-events-auto z-[10002]">
                     <SelectItem value="all">All notifications</SelectItem>
                     <SelectItem value="important">Only important</SelectItem>
                   </SelectContent>
