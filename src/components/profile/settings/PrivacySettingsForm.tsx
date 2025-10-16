@@ -139,22 +139,11 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             <div className="space-y-4">
               {profileVisibilitySettings.map((setting) => (
                 <SettingRow key={setting.id} id={setting.id} label={setting.label} helperText="Controls who can see this information">
-                  <Select value={settings[setting.id]} onValueChange={(value) => { console.log('Select change:', setting.id, value); handleSelectChange(setting.id, value); }}>
-                    <SelectTrigger 
-                      className="w-[200px]" 
-                      style={{ pointerEvents: 'auto', zIndex: 9999 }}
-                      onPointerDown={(e) => { 
-                        console.log('PrivacyForm SelectTrigger onPointerDown:', setting.id, e); 
-                        e.stopPropagation(); 
-                      }}
-                      onClick={(e) => { 
-                        console.log('PrivacyForm SelectTrigger onClick:', setting.id, e); 
-                        e.stopPropagation(); 
-                      }}
-                    >
+                  <Select value={settings[setting.id]} onValueChange={(value) => handleSelectChange(setting.id, value)}>
+                    <SelectTrigger className="w-[200px]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover pointer-events-auto">
+                    <SelectContent>
                       {setting.options.map(opt => (
                         <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                       ))}
