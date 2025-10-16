@@ -40,10 +40,30 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
     return () => document.removeEventListener('pointerdown', handler, true);
   }, []);
 
+  // Safety: enforce and guard pointer-events on the settings root to avoid accidental freezes
+  React.useEffect(() => {
+    const root = document.querySelector('[data-ps-root]') as HTMLElement | null;
+    if (!root) return;
+
+    const ensureAuto = () => {
+      const pe = getComputedStyle(root).pointerEvents as string;
+      if (pe !== 'auto') {
+        root.style.pointerEvents = 'auto';
+        console.info('[ProfileSettings] Fixed pointer-events on root:', pe);
+      }
+    };
+
+    ensureAuto();
+
+    const mo = new MutationObserver(() => ensureAuto());
+    mo.observe(root, { attributes: true, attributeFilter: ['style', 'class'] });
+    return () => mo.disconnect();
+  }, []);
+
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[2000]" data-ps-root style={{ pointerEvents: 'auto' }}>
+    <div className="fixed inset-0 z-[12000]" data-ps-root style={{ pointerEvents: 'auto' }}>
       {/* Wallpaper layer */}
       <div className="absolute top-[57px] left-0 right-0 bottom-0 bg-gray-100" style={{ pointerEvents: 'none' }}></div>
       
