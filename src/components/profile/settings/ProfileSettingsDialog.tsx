@@ -17,7 +17,7 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
 }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[900] overflow-hidden">
+    <div className="fixed inset-0 z-[10050] overflow-hidden pointer-events-auto">
       {/* Wallpaper layer - behind everything, starts below top bar */}
       <div className="absolute top-[57px] left-0 right-0 bottom-0 bg-gray-100 pointer-events-none"></div>
       
@@ -28,7 +28,7 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
             <ProfileSettingsSidebar activeSection={activeSection} setActiveSection={setActiveSection} onClose={onClose} />
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex-1 ml-4 h-full">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex-1 ml-4 h-full relative z-[10060] pointer-events-auto">
             <ProfileSettingsContent activeSection={activeSection} />
           </div>
         </div>
