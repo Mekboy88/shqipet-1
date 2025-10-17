@@ -220,7 +220,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="review_tags_before_appear" label="Review tags before they appear" helperText="Approve tags before showing on your profile">
                 <Switch
                   id="review_tags_before_appear"
-                  checked={settings.review_tags_before_appear}
+                  checked={!!settings.review_tags_before_appear}
                   onCheckedChange={(checked) => handleSwitchChange('review_tags_before_appear', checked)}
                 />
               </SettingRow>
@@ -228,7 +228,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="review_tagged_posts" label="Review posts you're tagged in" helperText="Approve posts before they appear on your timeline">
                 <Switch
                   id="review_tagged_posts"
-                  checked={settings.review_tagged_posts}
+                  checked={!!settings.review_tagged_posts}
                   onCheckedChange={(checked) => handleSwitchChange('review_tagged_posts', checked)}
                 />
               </SettingRow>
@@ -259,7 +259,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="allow_read_receipts" label="Allow read receipts" helperText="Let others see when you've read their messages">
                 <Switch
                   id="allow_read_receipts"
-                  checked={settings.allow_read_receipts}
+                  checked={!!settings.allow_read_receipts}
                   onCheckedChange={(checked) => handleSwitchChange('allow_read_receipts', checked)}
                 />
               </SettingRow>
@@ -267,7 +267,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="show_typing_indicators" label="Show typing indicators" helperText="Show when you're typing">
                 <Switch
                   id="show_typing_indicators"
-                  checked={settings.show_typing_indicators}
+                  checked={!!settings.show_typing_indicators}
                   onCheckedChange={(checked) => handleSwitchChange('show_typing_indicators', checked)}
                 />
               </SettingRow>
@@ -275,7 +275,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="show_active_status" label="Show 'Active now / Last seen'" helperText="Let others see when you're active">
                 <Switch
                   id="show_active_status"
-                  checked={settings.show_active_status}
+                  checked={!!settings.show_active_status}
                   onCheckedChange={(checked) => handleSwitchChange('show_active_status', checked)}
                 />
               </SettingRow>
@@ -427,7 +427,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="approve_new_followers" label="Approve new followers" helperText="Manually approve each follower">
                 <Switch
                   id="approve_new_followers"
-                  checked={settings.approve_new_followers}
+                  checked={!!settings.approve_new_followers}
                   onCheckedChange={(checked) => handleSwitchChange('approve_new_followers', checked)}
                 />
               </SettingRow>
@@ -435,7 +435,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="auto_approve_follow_requests" label="Auto-approve requests from people I follow" helperText="Skip approval for mutual follows">
                 <Switch
                   id="auto_approve_follow_requests"
-                  checked={settings.auto_approve_follow_requests}
+                  checked={!!settings.auto_approve_follow_requests}
                   onCheckedChange={(checked) => handleSwitchChange('auto_approve_follow_requests', checked)}
                 />
               </SettingRow>
@@ -453,7 +453,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="allow_find_by_email" label="Allow others to find me by email" helperText="Let people discover your profile via email">
                 <Switch
                   id="allow_find_by_email"
-                  checked={settings.allow_find_by_email}
+                  checked={!!settings.allow_find_by_email}
                   onCheckedChange={(checked) => handleSwitchChange('allow_find_by_email', checked)}
                 />
               </SettingRow>
@@ -461,7 +461,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="allow_find_by_phone" label="Allow others to find me by phone" helperText="Let people discover your profile via phone">
                 <Switch
                   id="allow_find_by_phone"
-                  checked={settings.allow_find_by_phone}
+                  checked={!!settings.allow_find_by_phone}
                   onCheckedChange={(checked) => handleSwitchChange('allow_find_by_phone', checked)}
                 />
               </SettingRow>
@@ -469,7 +469,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="show_in_people_you_may_know" label="Show in 'People You May Know'" helperText="Appear in friend suggestions">
                 <Switch
                   id="show_in_people_you_may_know"
-                  checked={settings.show_in_people_you_may_know}
+                  checked={!!settings.show_in_people_you_may_know}
                   onCheckedChange={(checked) => handleSwitchChange('show_in_people_you_may_know', checked)}
                 />
               </SettingRow>
@@ -477,7 +477,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="personalize_recommendations" label="Personalize recommendations" helperText="Use your activity to improve suggestions">
                 <Switch
                   id="personalize_recommendations"
-                  checked={settings.personalize_recommendations}
+                  checked={!!settings.personalize_recommendations}
                   onCheckedChange={(checked) => handleSwitchChange('personalize_recommendations', checked)}
                 />
               </SettingRow>
@@ -540,7 +540,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="allow_story_sharing" label="Allow sharing of my stories" helperText="Let others share your stories">
                 <Switch
                   id="allow_story_sharing"
-                  checked={settings.allow_story_sharing}
+                  checked={!!settings.allow_story_sharing}
                   onCheckedChange={(checked) => handleSwitchChange('allow_story_sharing', checked)}
                 />
               </SettingRow>
@@ -581,7 +581,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="login_alerts_new_device" label="Login alerts (new device)" helperText="Get notified when logging in from a new device">
                 <Switch
                   id="login_alerts_new_device"
-                  checked={settings.login_alerts_new_device}
+                  checked={!!settings.login_alerts_new_device}
                   onCheckedChange={(checked) => handleSwitchChange('login_alerts_new_device', checked)}
                 />
               </SettingRow>
@@ -599,7 +599,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="personalized_ads_activity" label="Personalized ads from activity" helperText="See ads based on your SHQIPET activity">
                 <Switch
                   id="personalized_ads_activity"
-                  checked={settings.personalized_ads_activity}
+                  checked={!!settings.personalized_ads_activity}
                   onCheckedChange={(checked) => handleSwitchChange('personalized_ads_activity', checked)}
                 />
               </SettingRow>
@@ -607,7 +607,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               <SettingRow id="ads_based_on_partners_data" label="Ads based on partners' data" helperText="See ads based on data from our partners">
                 <Switch
                   id="ads_based_on_partners_data"
-                  checked={settings.ads_based_on_partners_data}
+                  checked={!!settings.ads_based_on_partners_data}
                   onCheckedChange={(checked) => handleSwitchChange('ads_based_on_partners_data', checked)}
                 />
               </SettingRow>
