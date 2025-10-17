@@ -102,12 +102,14 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
   const toValue = (option: string) => option.toLowerCase().replace(/ /g, '_').replace(/\+/g, '_');
 
   const SettingRow = ({ id, label, helperText, children }: any) => (
-    <div className="mb-4">
-      <div className="flex items-center justify-between mb-1">
-        <Label htmlFor={id} className="text-sm font-medium text-gray-700">
+    <div className="mb-4 relative">
+      <div className="flex items-center justify-between mb-1 gap-3">
+        <Label htmlFor={id} className="text-sm font-medium text-gray-700 flex-1 min-w-0">
           {label}
         </Label>
-        {children}
+        <div className="shrink-0 pointer-events-auto">
+          {children}
+        </div>
       </div>
       {helperText && (
         <p className="text-xs text-muted-foreground mt-1">{helperText}</p>
@@ -116,7 +118,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pointer-events-auto">
+    <div className="max-w-7xl mx-auto space-y-6 pointer-events-auto relative z-[1001] isolate">
       <div className="flex justify-end mb-4">
         <Button
           variant="outline"
@@ -142,7 +144,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               {profileVisibilitySettings.map((setting) => (
                 <SettingRow key={setting.id} id={setting.id} label={setting.label} helperText="Controls who can see this information">
                   <Select value={settings[setting.id]} onValueChange={(value) => handleSelectChange(setting.id, value)}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white">
@@ -166,7 +168,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             <div className="space-y-4">
               <SettingRow id="who_can_comment_on_posts" label="Who can comment on my posts?" helperText="Control who can add comments">
                 <Select value={settings.who_can_comment_on_posts} onValueChange={(v) => handleSelectChange('who_can_comment_on_posts', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -179,7 +181,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
               <SettingRow id="who_can_share_posts" label="Who can share my posts?" helperText="Control sharing permissions">
                 <Select value={settings.who_can_share_posts} onValueChange={(v) => handleSelectChange('who_can_share_posts', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -192,7 +194,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
               <SettingRow id="who_can_mention_me" label="Who can mention me?" helperText="Mentions can notify you and appear in search">
                 <Select value={settings.who_can_mention_me} onValueChange={(v) => handleSelectChange('who_can_mention_me', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -205,7 +207,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
               <SettingRow id="who_can_tag_me" label="Who can tag me in photos/videos?" helperText="Control photo and video tags">
                 <Select value={settings.who_can_tag_me} onValueChange={(v) => handleSelectChange('who_can_tag_me', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -217,14 +219,14 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               </SettingRow>
 
               <SettingRow id="review_tags_before_appear" label="Review tags before they appear" helperText="Approve tags before showing on your profile">
-                <Switch
+                  <Switch id="review_tags_before_appear"
                   checked={settings.review_tags_before_appear}
                   onCheckedChange={(checked) => handleSwitchChange('review_tags_before_appear', checked)}
                 />
               </SettingRow>
 
               <SettingRow id="review_tagged_posts" label="Review posts you're tagged in" helperText="Approve posts before they appear on your timeline">
-                <Switch
+                  <Switch id="review_tagged_posts"
                   checked={settings.review_tagged_posts}
                   onCheckedChange={(checked) => handleSwitchChange('review_tagged_posts', checked)}
                 />
@@ -242,7 +244,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             <div className="space-y-4">
               <SettingRow id="message_request_filter" label="Message request filter" helperText="Filter messages from unknown people">
                 <Select value={settings.message_request_filter} onValueChange={(v) => handleSelectChange('message_request_filter', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -254,21 +256,21 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               </SettingRow>
 
               <SettingRow id="allow_read_receipts" label="Allow read receipts" helperText="Let others see when you've read their messages">
-                <Switch
+                <Switch id="allow_read_receipts"
                   checked={settings.allow_read_receipts}
                   onCheckedChange={(checked) => handleSwitchChange('allow_read_receipts', checked)}
                 />
               </SettingRow>
 
               <SettingRow id="show_typing_indicators" label="Show typing indicators" helperText="Show when you're typing">
-                <Switch
+                <Switch id="show_typing_indicators"
                   checked={settings.show_typing_indicators}
                   onCheckedChange={(checked) => handleSwitchChange('show_typing_indicators', checked)}
                 />
               </SettingRow>
 
               <SettingRow id="show_active_status" label="Show 'Active now / Last seen'" helperText="Let others see when you're active">
-                <Switch
+                <Switch id="show_active_status"
                   checked={settings.show_active_status}
                   onCheckedChange={(checked) => handleSwitchChange('show_active_status', checked)}
                 />
@@ -286,7 +288,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             <div className="space-y-4">
               <SettingRow id="email_visibility" label="Email visibility" helperText="Control who can see your email">
                 <Select value={settings.email_visibility} onValueChange={(v) => handleSelectChange('email_visibility', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -299,7 +301,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
               <SettingRow id="phone_visibility" label="Phone number visibility" helperText="Control who can see your phone">
                 <Select value={settings.phone_visibility} onValueChange={(v) => handleSelectChange('phone_visibility', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -312,7 +314,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
               <SettingRow id="birthday_detail" label="Birthday detail" helperText="Control what birthday info is shown">
                 <Select value={settings.birthday_detail} onValueChange={(v) => handleSelectChange('birthday_detail', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -325,7 +327,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
               <SettingRow id="location_visibility" label="Location visibility" helperText="Control who can see your location">
                 <Select value={settings.location_visibility} onValueChange={(v) => handleSelectChange('location_visibility', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -338,7 +340,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
               <SettingRow id="work_education_visibility" label="Work/Education visibility" helperText="Control who can see work and education info">
                 <Select value={settings.work_education_visibility} onValueChange={(v) => handleSelectChange('work_education_visibility', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -364,7 +366,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               {communicationSettings.map((setting) => (
                 <SettingRow key={setting.id} id={setting.id} label={setting.label} helperText="Control who can interact with you">
                   <Select value={settings[setting.id]} onValueChange={(value) => handleSelectChange(setting.id, value)}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white">
@@ -407,7 +409,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             <div className="space-y-4">
               <SettingRow id="who_can_send_friend_requests" label="Who can send me friend requests?" helperText="Control who can send requests">
                 <Select value={settings.who_can_send_friend_requests} onValueChange={(v) => handleSelectChange('who_can_send_friend_requests', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -419,14 +421,14 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               </SettingRow>
 
               <SettingRow id="approve_new_followers" label="Approve new followers" helperText="Manually approve each follower">
-                <Switch
+                <Switch id="approve_new_followers"
                   checked={settings.approve_new_followers}
                   onCheckedChange={(checked) => handleSwitchChange('approve_new_followers', checked)}
                 />
               </SettingRow>
 
               <SettingRow id="auto_approve_follow_requests" label="Auto-approve requests from people I follow" helperText="Skip approval for mutual follows">
-                <Switch
+                <Switch id="auto_approve_follow_requests"
                   checked={settings.auto_approve_follow_requests}
                   onCheckedChange={(checked) => handleSwitchChange('auto_approve_follow_requests', checked)}
                 />
@@ -443,28 +445,28 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             
             <div className="space-y-4">
               <SettingRow id="allow_find_by_email" label="Allow others to find me by email" helperText="Let people discover your profile via email">
-                <Switch
+                <Switch id="allow_find_by_email"
                   checked={settings.allow_find_by_email}
                   onCheckedChange={(checked) => handleSwitchChange('allow_find_by_email', checked)}
                 />
               </SettingRow>
 
               <SettingRow id="allow_find_by_phone" label="Allow others to find me by phone" helperText="Let people discover your profile via phone">
-                <Switch
+                <Switch id="allow_find_by_phone"
                   checked={settings.allow_find_by_phone}
                   onCheckedChange={(checked) => handleSwitchChange('allow_find_by_phone', checked)}
                 />
               </SettingRow>
 
               <SettingRow id="show_in_people_you_may_know" label="Show in 'People You May Know'" helperText="Appear in friend suggestions">
-                <Switch
+                <Switch id="show_in_people_you_may_know"
                   checked={settings.show_in_people_you_may_know}
                   onCheckedChange={(checked) => handleSwitchChange('show_in_people_you_may_know', checked)}
                 />
               </SettingRow>
 
               <SettingRow id="personalize_recommendations" label="Personalize recommendations" helperText="Use your activity to improve suggestions">
-                <Switch
+                <Switch id="personalize_recommendations"
                   checked={settings.personalize_recommendations}
                   onCheckedChange={(checked) => handleSwitchChange('personalize_recommendations', checked)}
                 />
@@ -501,7 +503,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             <div className="space-y-4">
               <SettingRow id="who_can_view_stories" label="Who can view my stories?" helperText="Control story audience">
                 <Select value={settings.who_can_view_stories} onValueChange={(v) => handleSelectChange('who_can_view_stories', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -514,7 +516,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
               <SettingRow id="allow_story_replies" label="Allow replies to my stories" helperText="Let people respond to your stories">
                 <Select value={settings.allow_story_replies} onValueChange={(v) => handleSelectChange('allow_story_replies', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -526,7 +528,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
               </SettingRow>
 
               <SettingRow id="allow_story_sharing" label="Allow sharing of my stories" helperText="Let others share your stories">
-                <Switch
+                <Switch id="allow_story_sharing"
                   checked={settings.allow_story_sharing}
                   onCheckedChange={(checked) => handleSwitchChange('allow_story_sharing', checked)}
                 />
@@ -544,7 +546,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             <div className="space-y-4">
               <SettingRow id="sensitive_content_filter" label="Sensitive content filter" helperText="Filter potentially sensitive content">
                 <Select value={settings.sensitive_content_filter} onValueChange={(v) => handleSelectChange('sensitive_content_filter', v)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -566,7 +568,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             
             <div className="space-y-4">
               <SettingRow id="login_alerts_new_device" label="Login alerts (new device)" helperText="Get notified when logging in from a new device">
-                <Switch
+                <Switch id="login_alerts_new_device"
                   checked={settings.login_alerts_new_device}
                   onCheckedChange={(checked) => handleSwitchChange('login_alerts_new_device', checked)}
                 />
@@ -583,14 +585,14 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             
             <div className="space-y-4">
               <SettingRow id="personalized_ads_activity" label="Personalized ads from activity" helperText="See ads based on your SHQIPET activity">
-                <Switch
+                <Switch id="personalized_ads_activity"
                   checked={settings.personalized_ads_activity}
                   onCheckedChange={(checked) => handleSwitchChange('personalized_ads_activity', checked)}
                 />
               </SettingRow>
 
               <SettingRow id="ads_based_on_partners_data" label="Ads based on partners' data" helperText="See ads based on data from our partners">
-                <Switch
+                <Switch id="ads_based_on_partners_data"
                   checked={settings.ads_based_on_partners_data}
                   onCheckedChange={(checked) => handleSwitchChange('ads_based_on_partners_data', checked)}
                 />
