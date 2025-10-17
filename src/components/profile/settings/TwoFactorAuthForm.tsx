@@ -45,8 +45,8 @@ const TwoFactorAuthForm: React.FC = () => {
                   <SelectValue placeholder="Select authentication method" />
                 </SelectTrigger>
                 <SelectContent className="z-[10002] bg-white shadow-lg border border-gray-200 p-1">
-                  <SelectItem value="email">E-mail verification</SelectItem>
-                  <SelectItem value="google">Google Authenticator</SelectItem>
+                  <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" value="email">E-mail verification</SelectItem>
+                  <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" value="google">Google Authenticator</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500 mt-2">

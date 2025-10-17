@@ -146,7 +146,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                     </SelectTrigger>
                     <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                       {setting.options.map(opt => (
-                        <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                        <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -170,7 +170,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.posts.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -183,7 +183,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.posts.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -196,7 +196,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.posts.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -209,7 +209,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.posts.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -246,7 +246,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.messageFilter.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -290,7 +290,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.visibility.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -303,7 +303,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.visibility.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -316,7 +316,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.birthdayDetail.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -329,7 +329,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.visibility.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -342,7 +342,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.visibility.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -366,9 +366,9 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                     <SelectTrigger className="w-[200px]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white z-50">
+                    <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                       {setting.options.map(option => (
-                        <SelectItem key={option} value={toValue(option)}>{option}</SelectItem>
+                        <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={option} value={toValue(option)}>{option}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -411,7 +411,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.requests.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -505,7 +505,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.stories.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -518,7 +518,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.storyReplies.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -548,7 +548,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   </SelectTrigger>
                   <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.contentFilter.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
+                      <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
