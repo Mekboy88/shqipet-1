@@ -313,7 +313,7 @@ export const useUserOverview = (userId?: string) => {
           event: '*',
           schema: 'public',
           table: 'profiles',
-          filter: `auth_user_id=eq.${userId}`
+          filter: `id=eq.${userId}`
         },
         (payload) => {
           console.log(`📡 Profiles realtime update for ${userId}:`, payload);
