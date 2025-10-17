@@ -22,7 +22,7 @@ const RowSelect: React.FC<{
       {description && <div className="text-xs text-muted-foreground mt-0.5">{description}</div>}
     </div>
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="w-[180px] cursor-pointer pointer-events-auto">
+      <SelectTrigger className="w-[180px] cursor-pointer pointer-events-auto transition-shadow hover:shadow-md">
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="pointer-events-auto bg-popover">
