@@ -130,7 +130,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="relative z-[10005] pointer-events-auto isolate max-w-6xl mx-auto space-y-6">
       <div className="flex justify-end mb-4">
         <Button
           variant="outline"
@@ -159,7 +159,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                     <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent className="bg-popover pointer-events-auto">
                       {setting.options.map(opt => (
                         <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                       ))}
@@ -183,7 +183,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.posts.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -196,7 +196,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.posts.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -209,7 +209,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.posts.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -222,7 +222,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.posts.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -259,7 +259,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.messageFilter.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -303,7 +303,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.visibility.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -316,7 +316,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.visibility.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -329,7 +329,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.birthdayDetail.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -342,7 +342,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.visibility.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -355,7 +355,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.visibility.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -381,7 +381,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                     <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent className="bg-popover pointer-events-auto">
                       {setting.options.map(option => (
                         <SelectItem key={option} value={toValue(option)}>{option}</SelectItem>
                       ))}
@@ -424,7 +424,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.requests.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -518,7 +518,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.stories.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -531,7 +531,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.storyReplies.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -561,7 +561,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent className="bg-popover pointer-events-auto">
                     {privacyOptions.contentFilter.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
