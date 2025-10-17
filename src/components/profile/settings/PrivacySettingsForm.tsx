@@ -144,7 +144,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                     <SelectTrigger className="w-[200px]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white z-50">
+                    <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                       {setting.options.map(opt => (
                         <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                       ))}
@@ -168,7 +168,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.posts.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -181,7 +181,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.posts.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -194,7 +194,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.posts.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -207,7 +207,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.posts.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -244,7 +244,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.messageFilter.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -288,7 +288,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.visibility.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -301,7 +301,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.visibility.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -314,7 +314,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.birthdayDetail.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -327,7 +327,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.visibility.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -340,7 +340,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.visibility.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -409,7 +409,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.requests.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -503,7 +503,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.stories.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -516,7 +516,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.storyReplies.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
@@ -546,7 +546,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
+                  <SelectContent className="bg-white z-[10002] p-1 shadow-lg border border-gray-200">
                     {privacyOptions.contentFilter.map(opt => (
                       <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
                     ))}
