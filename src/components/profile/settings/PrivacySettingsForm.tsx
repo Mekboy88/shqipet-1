@@ -112,7 +112,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {saving && (
-        <div className="fixed top-4 right-4 z-50 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+        <div className="fixed top-4 right-4 z-50 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 pointer-events-none">
           <Loader2 className="h-4 w-4 animate-spin" />
           Saving...
         </div>
