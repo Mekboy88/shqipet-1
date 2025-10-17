@@ -397,26 +397,6 @@ const Marketplace: React.FC = () => {
     else setMode('chooser');
   }, [location.pathname]);
   
-  // Keep body wallpaper active while Marketplace is mounted
-  useEffect(() => {
-    document.body.classList.add('marketplace-bg');
-    return () => {
-      document.body.classList.remove('marketplace-bg');
-    };
-  }, []);
-  
-  // Add preload link for immediate wallpaper loading
-  useEffect(() => {
-    const preloadLink = document.createElement('link');
-    preloadLink.rel = 'preload';
-    preloadLink.as = 'image';
-    preloadLink.href = wallpaperImage;
-    document.head.appendChild(preloadLink);
-    
-    return () => {
-      document.head.removeChild(preloadLink);
-    };
-  }, []);
 
   // Platform state
   const [qP, setQP] = useState("");
@@ -466,16 +446,7 @@ const Marketplace: React.FC = () => {
   const sendShare = () => { setShareOpen(false); alert("Location shared!"); };
 
   return (
-    <div 
-      className="min-h-screen bg-transparent"
-      style={{
-        backgroundImage: `url(${wallpaperImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        opacity: imageLoaded ? 1 : 1 // Always show - image is imported and should be available immediately
-      }}
-    >
+    <div className="min-h-screen bg-transparent">
       {mode === "chooser" && (
         <EntryTwoCards onPick={(m)=> navigate(m === 'platform' ? '/marketplace/platform' : '/marketplace/users')} />
       )}
