@@ -18,6 +18,13 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
   const [showSettings, setShowSettings] = React.useState(false);
+
+  // Reset to collapsed state synchronously before paint to avoid flicker
+  React.useLayoutEffect(() => {
+    if (isOpen) {
+      setIsExpanded(false);
+    }
+  }, [isOpen]);
   
   // Reset to collapsed state whenever panel opens
   React.useEffect(() => {
@@ -221,7 +228,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
       {/* Notification Panel */}
       <div className={`
         fixed top-14 right-0 ${isOpen && isExpanded ? 'h-[calc(100vh-3.5rem)]' : 'h-1/2'} w-80 bg-white shadow-2xl z-50 
-        transform transition-all duration-300 ease-in-out border-l border-gray-200 pointer-events-auto
+        transform transition-transform duration-300 ease-in-out border-l border-gray-200 pointer-events-auto
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
       `}>
         <div className="flex flex-col h-full">
