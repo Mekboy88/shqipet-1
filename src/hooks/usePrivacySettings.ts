@@ -127,13 +127,18 @@ export const usePrivacySettings = () => {
       clearTimeout(saveTimeoutRef.current);
     }
 
+    setSaving(true); // Show saving immediately
+
     saveTimeoutRef.current = setTimeout(async () => {
-      setSaving(true);
       lastLocalWriteAtRef.current = Date.now();
 
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          setSaving(false);
+          toast.error('You must be logged in');
+          return;
+        }
 
         const { error } = await supabase
           .from('user_privacy_settings')
@@ -142,17 +147,20 @@ export const usePrivacySettings = () => {
 
         if (error) {
           console.error('Error saving privacy settings:', error);
-          toast.error('Failed to save privacy settings');
+          toast.error('Failed to save settings');
+          setSaving(false);
         } else {
-          toast.success('Privacy settings updated');
+          toast.success('Settings saved successfully', {
+            duration: 2000,
+          });
+          setTimeout(() => setSaving(false), 500);
         }
       } catch (error) {
         console.error('Error in saveSettings:', error);
-        toast.error('Failed to save privacy settings');
-      } finally {
-        setTimeout(() => setSaving(false), 300);
+        toast.error('Failed to save settings');
+        setSaving(false);
       }
-    }, 600);
+    }, 800);
   }, []);
 
   // Update settings (optimistic + debounced save)
