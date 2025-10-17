@@ -82,7 +82,7 @@ const LaptopApp: React.FC = () => {
           <Route path="/gaming" element={<><NavbarNoTooltip /><Gaming /></>} />
           <Route path="/tasks" element={<><NavbarNoTooltip /><Tasks /></>} />
           <Route path="/profile" element={<><NavbarNoTooltip /><Profile /></>} />
-          <Route path="/profile/settings" element={<><NavbarNoTooltip /><ProfileSettingsProvider><ProfileSettings /></ProfileSettingsProvider></>} />
+          <Route path="/profile/settings" element={<><NavbarNoTooltip /><Profile /><ProfileSettingsProvider><ProfileSettings /></ProfileSettingsProvider></>} />
           <Route path="/profile/*" element={<><NavbarNoTooltip /><Profile /></>} />
           <Route path="/professional-presentation" element={<ProfessionalPresentation />} />
           <Route path="/photos" element={<Photos />} />
