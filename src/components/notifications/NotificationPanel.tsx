@@ -203,10 +203,10 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
 
   return (
     <>
-      {/* Invisible backdrop for closing */}
+      {/* Invisible backdrop for closing - pointer-events-none to allow feed scrolling */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-40 pointer-events-none"
           onClick={onClose}
         />
       )}
@@ -214,7 +214,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
       {/* Notification Panel */}
       <div className={`
         fixed top-16 right-0 ${isExpanded ? 'h-[calc(100vh-4rem)]' : 'h-1/2'} w-80 bg-white shadow-2xl z-50 
-        transform transition-all duration-300 ease-in-out border-l border-gray-200
+        transform transition-all duration-300 ease-in-out border-l border-gray-200 pointer-events-auto
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
       `}>
         <div className="flex flex-col h-full">
