@@ -1,644 +1,598 @@
-import React, { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Shield, MessageSquare, Users, Eye, Search, FileText, AlertCircle, Settings, Megaphone, Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { usePrivacySettings } from '@/hooks/usePrivacySettings';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Shield, Eye, MessageSquare, Users, Globe, Image, Lock, Database, Target, RotateCcw } from 'lucide-react';
 
-interface PrivacySettingsFormProps {
-  userInfo: {
-    [key: string]: any;
-  };
-  setUserInfo: React.Dispatch<React.SetStateAction<any>>;
-  onSavingChange?: (saving: boolean) => void;
-}
+// Row component for Select fields
+const RowSelect: React.FC<{
+  label: string;
+  description?: string;
+  value: string;
+  onValueChange: (val: string) => void;
+  options: { value: string; label: string }[];
+}> = ({ label, description, value, onValueChange, options }) => (
+  <div className="flex items-center justify-between py-3 border-b last:border-0">
+    <div className="flex-1 pr-4">
+      <div className="font-medium text-sm">{label}</div>
+      {description && <div className="text-xs text-muted-foreground mt-0.5">{description}</div>}
+    </div>
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="w-[180px] cursor-pointer pointer-events-auto">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent className="pointer-events-auto bg-popover">
+        {options.map(opt => (
+          <SelectItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
+);
 
-const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, setUserInfo, onSavingChange }) => {
+// Row component for Switch fields
+const RowSwitch: React.FC<{
+  label: string;
+  description?: string;
+  id: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}> = ({ label, description, id, checked, onCheckedChange }) => (
+  <div className="flex items-center justify-between py-3 border-b last:border-0">
+    <div className="flex-1 pr-4">
+      <Label htmlFor={id} className="font-medium text-sm cursor-pointer">
+        {label}
+      </Label>
+      {description && <div className="text-xs text-muted-foreground mt-0.5">{description}</div>}
+    </div>
+    <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
+  </div>
+);
+
+export default function PrivacySettingsForm() {
   const { settings, loading, saving, updateSettings, resetToDefaults } = usePrivacySettings();
-  const [showResetDialog, setShowResetDialog] = React.useState(false);
-
-  // Notify parent about saving state changes
-  useEffect(() => {
-    if (onSavingChange) {
-      onSavingChange(saving);
-    }
-  }, [saving, onSavingChange]);
-
-  // Sync settings to parent component
-  useEffect(() => {
-    if (!loading && settings) {
-      setUserInfo((prev: any) => ({ ...prev, ...settings }));
-    }
-  }, [settings, loading, setUserInfo]);
-
-  const handleSelectChange = (field: string, value: string) => {
-    updateSettings({ [field]: value });
-  };
-
-  const handleSwitchChange = (field: string, checked: boolean) => {
-    // For legacy yes/no fields
-    if (field.startsWith('privacy_') && (field.includes('confirm') || field.includes('show') || field.includes('share') || field.includes('allow'))) {
-      updateSettings({ [field]: checked ? 'yes' : 'no' });
-    } else {
-      updateSettings({ [field]: checked });
-    }
-  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="max-w-6xl mx-auto p-8 text-center">
+        <div className="text-muted-foreground">Loading privacy settings...</div>
       </div>
     );
   }
 
-  const privacyOptions = {
-    follow: ['Everyone', 'People I Follow'],
-    message: ['Everyone', 'People I Follow'],
-    friends: ['Everyone', 'People I Follow', 'No body'],
-    timeline: ['Everyone', 'People I Follow', 'No body'],
-    birthday: ['Everyone', 'People I Follow', 'No body'],
-    status: ['Online', 'Offline'],
-    posts: ['Everyone', 'Followers', 'People I Follow', 'No one'],
-    requests: ['Everyone', 'Friends of friends', 'No one'],
-    visibility: ['Only me', 'People I Follow', 'Followers', 'Everyone'],
-    birthdayDetail: ['Only me', 'People I Follow', 'Followers', 'Everyone', 'Day+Month only'],
-    stories: ['Everyone', 'Followers', 'Close friends', 'Custom'],
-    storyReplies: ['Everyone', 'Followers', 'Off'],
-    messageFilter: ['Strict', 'Standard', 'Open'],
-    contentFilter: ['Strict', 'Standard'],
-  };
+  // Helper to normalize boolean values
+  const toBool = (val: any): boolean => val === true || val === 'yes';
+  const fromBool = (val: boolean): boolean => val;
 
-  const profileVisibilitySettings = [
-    { id: 'privacy_who_can_follow_me', label: 'Who can follow me?', options: privacyOptions.follow },
-    { id: 'privacy_who_can_see_my_friends', label: 'Who can see my friends?', options: privacyOptions.friends },
-    { id: 'privacy_who_can_see_my_birthday', label: 'Who can see my birthday?', options: privacyOptions.birthday },
-    { id: 'privacy_status', label: 'Status', options: privacyOptions.status },
-  ];
-
-  const communicationSettings = [
-    { id: 'privacy_who_can_message_me', label: 'Who can message me?', options: privacyOptions.message },
-    { id: 'privacy_who_can_post_on_my_timeline', label: 'Who can post on my timeline?', options: privacyOptions.timeline },
-  ];
-
-  const activitySettings = [
-    { id: 'privacy_confirm_request_when_someone_follows_you', label: 'Confirm request when someone follows you?' },
-    { id: 'privacy_show_my_activities', label: 'Show my activities?' },
-  ];
-
-  const locationAndIndexingSettings = [
-    { id: 'privacy_share_my_location_with_public', label: 'Share my location with public?' },
-    { id: 'privacy_allow_search_engines_to_index', label: 'Allow search engines to index my profile and posts?' },
-  ];
-
-  const toValue = (option: string) => option.toLowerCase().replace(/ /g, '_').replace(/\+/g, '_');
-
-  const SettingRowSelect = ({ label, helperText, children }: any) => (
-    <div className="mb-4 relative">
-      <div className="flex items-center justify-between mb-1 gap-3">
-        <span className="text-sm font-medium text-gray-700 flex-1 min-w-0">{label}</span>
-        <div className="shrink-0 pointer-events-auto">
-          {children}
-        </div>
-      </div>
-      {helperText && (
-        <p className="text-xs text-muted-foreground mt-1">{helperText}</p>
-      )}
-    </div>
-  );
-
-  const SettingRowSwitch = ({ id, label, helperText, children }: any) => (
-    <div className="mb-4 relative">
-      <div className="flex items-center justify-between mb-1 gap-3">
-        <Label htmlFor={id} className="text-sm font-medium text-gray-700 flex-1 min-w-0">{label}</Label>
-        <div className="shrink-0 pointer-events-auto">
-          {children}
-        </div>
-      </div>
-      {helperText && (
-        <p className="text-xs text-muted-foreground mt-1">{helperText}</p>
-      )}
-    </div>
-  );
+  // Helper to normalize select values
+  const toValue = (val: any): string => String(val || '').toLowerCase().replace(/ /g, '_');
 
   return (
-    <div className="relative z-[10005] pointer-events-auto isolate max-w-6xl mx-auto space-y-6">
-      <div className="flex justify-end mb-4">
-        <Button
-          variant="outline"
-          onClick={() => setShowResetDialog(true)}
-          className="gap-2"
-        >
-          <Settings className="h-4 w-4" />
-          Reset to Defaults
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* LEFT COLUMN */}
-        <div className="space-y-6">
-          {/* Profile Visibility */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <Eye className="h-5 w-5 text-blue-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Profile Visibility</h3>
-            </div>
-            
-            <div className="space-y-4">
-              {profileVisibilitySettings.map((setting) => (
-                <SettingRowSelect key={setting.id} label={setting.label} helperText="Controls who can see this information">
-                  <Select value={settings[setting.id]} onValueChange={(value) => handleSelectChange(setting.id, value)}>
-                    <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover pointer-events-auto">
-                      {setting.options.map(opt => (
-                        <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </SettingRowSelect>
-              ))}
-            </div>
-          </div>
-
-          {/* Timeline, Tagging & Mentions */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <MessageSquare className="h-5 w-5 text-green-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Timeline & Mentions</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <SettingRowSelect label="Who can comment on my posts?" helperText="Control who can add comments">
-                <Select value={settings.who_can_comment_on_posts} onValueChange={(v) => handleSelectChange('who_can_comment_on_posts', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.posts.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSelect label="Who can share my posts?" helperText="Control sharing permissions">
-                <Select value={settings.who_can_share_posts} onValueChange={(v) => handleSelectChange('who_can_share_posts', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.posts.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSelect label="Who can mention me?" helperText="Mentions can notify you and appear in search">
-                <Select value={settings.who_can_mention_me} onValueChange={(v) => handleSelectChange('who_can_mention_me', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.posts.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSelect label="Who can tag me in photos/videos?" helperText="Control photo and video tags">
-                <Select value={settings.who_can_tag_me} onValueChange={(v) => handleSelectChange('who_can_tag_me', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.posts.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSwitch id="review_tags_before_appear" label="Review tags before they appear" helperText="Approve tags before showing on your profile">
-                  <Switch id="review_tags_before_appear"
-                  checked={settings.review_tags_before_appear}
-                  onCheckedChange={(checked) => handleSwitchChange('review_tags_before_appear', checked)}
-                />
-              </SettingRowSwitch>
-
-              <SettingRowSwitch id="review_tagged_posts" label="Review posts you're tagged in" helperText="Approve posts before they appear on your timeline">
-                  <Switch id="review_tagged_posts"
-                  checked={settings.review_tagged_posts}
-                  onCheckedChange={(checked) => handleSwitchChange('review_tagged_posts', checked)}
-                />
-              </SettingRowSwitch>
-            </div>
-          </div>
-
-          {/* Messages & Presence */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <MessageSquare className="h-5 w-5 text-purple-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Messages & Presence</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <SettingRowSelect label="Message request filter" helperText="Filter messages from unknown people">
-                <Select value={settings.message_request_filter} onValueChange={(v) => handleSelectChange('message_request_filter', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.messageFilter.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSwitch id="allow_read_receipts" label="Allow read receipts" helperText="Let others see when you've read their messages">
-                <Switch id="allow_read_receipts"
-                  checked={settings.allow_read_receipts}
-                  onCheckedChange={(checked) => handleSwitchChange('allow_read_receipts', checked)}
-                />
-              </SettingRowSwitch>
-
-              <SettingRowSwitch id="show_typing_indicators" label="Show typing indicators" helperText="Show when you're typing">
-                <Switch id="show_typing_indicators"
-                  checked={settings.show_typing_indicators}
-                  onCheckedChange={(checked) => handleSwitchChange('show_typing_indicators', checked)}
-                />
-              </SettingRowSwitch>
-
-              <SettingRowSwitch id="show_active_status" label="Show 'Active now / Last seen'" helperText="Let others see when you're active">
-                <Switch id="show_active_status"
-                  checked={settings.show_active_status}
-                  onCheckedChange={(checked) => handleSwitchChange('show_active_status', checked)}
-                />
-              </SettingRowSwitch>
-            </div>
-          </div>
-
-          {/* Profile Field Visibility */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <Shield className="h-5 w-5 text-red-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Profile Field Visibility</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <SettingRowSelect label="Email visibility" helperText="Control who can see your email">
-                <Select value={settings.email_visibility} onValueChange={(v) => handleSelectChange('email_visibility', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.visibility.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSelect label="Phone number visibility" helperText="Control who can see your phone">
-                <Select value={settings.phone_visibility} onValueChange={(v) => handleSelectChange('phone_visibility', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.visibility.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSelect label="Birthday detail" helperText="Control what birthday info is shown">
-                <Select value={settings.birthday_detail} onValueChange={(v) => handleSelectChange('birthday_detail', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.birthdayDetail.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSelect label="Location visibility" helperText="Control who can see your location">
-                <Select value={settings.location_visibility} onValueChange={(v) => handleSelectChange('location_visibility', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.visibility.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSelect label="Work/Education visibility" helperText="Control who can see work and education info">
-                <Select value={settings.work_education_visibility} onValueChange={(v) => handleSelectChange('work_education_visibility', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.visibility.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-            </div>
-          </div>
+    <div className="max-w-6xl mx-auto space-y-6 pointer-events-auto isolate">
+      {/* Header with Reset Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold">Privacy Settings</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Control who can see your information and how you interact
+          </p>
         </div>
-
-        {/* RIGHT COLUMN */}
-        <div className="space-y-6">
-          {/* Communication Settings */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-3">
-              Communication Settings
-            </h3>
-            
-            <div className="space-y-4">
-              {communicationSettings.map((setting) => (
-                <SettingRowSelect key={setting.id} label={setting.label} helperText="Control who can interact with you">
-                  <Select value={settings[setting.id]} onValueChange={(value) => handleSelectChange(setting.id, value)}>
-                    <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover pointer-events-auto">
-                      {setting.options.map(option => (
-                        <SelectItem key={option} value={toValue(option)}>{option}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </SettingRowSelect>
-              ))}
-            </div>
-          </div>
-
-          {/* Activity Preferences */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-3">
-              Activity Preferences
-            </h3>
-            
-            <div className="space-y-4">
-              {activitySettings.map((setting) => (
-                <SettingRowSwitch key={setting.id} id={setting.id} label={setting.label} helperText="Control activity visibility">
-                  <Switch
-                    id={setting.id}
-                    checked={settings[setting.id] === 'yes'}
-                    onCheckedChange={(checked) => handleSwitchChange(setting.id, checked)}
-                  />
-                </SettingRowSwitch>
-              ))}
-            </div>
-          </div>
-
-          {/* Followers & Friend Requests */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <Users className="h-5 w-5 text-indigo-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Followers & Requests</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <SettingRowSelect label="Who can send me friend requests?" helperText="Control who can send requests">
-                <Select value={settings.who_can_send_friend_requests} onValueChange={(v) => handleSelectChange('who_can_send_friend_requests', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.requests.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSwitch id="approve_new_followers" label="Approve new followers" helperText="Manually approve each follower">
-                <Switch id="approve_new_followers"
-                  checked={settings.approve_new_followers}
-                  onCheckedChange={(checked) => handleSwitchChange('approve_new_followers', checked)}
-                />
-              </SettingRowSwitch>
-
-              <SettingRowSwitch id="auto_approve_follow_requests" label="Auto-approve requests from people I follow" helperText="Skip approval for mutual follows">
-                <Switch id="auto_approve_follow_requests"
-                  checked={settings.auto_approve_follow_requests}
-                  onCheckedChange={(checked) => handleSwitchChange('auto_approve_follow_requests', checked)}
-                />
-              </SettingRowSwitch>
-            </div>
-          </div>
-
-          {/* Discovery & Recommendations */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <Search className="h-5 w-5 text-orange-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Discovery & Recommendations</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <SettingRowSwitch id="allow_find_by_email" label="Allow others to find me by email" helperText="Let people discover your profile via email">
-                <Switch id="allow_find_by_email"
-                  checked={settings.allow_find_by_email}
-                  onCheckedChange={(checked) => handleSwitchChange('allow_find_by_email', checked)}
-                />
-              </SettingRowSwitch>
-
-              <SettingRowSwitch id="allow_find_by_phone" label="Allow others to find me by phone" helperText="Let people discover your profile via phone">
-                <Switch id="allow_find_by_phone"
-                  checked={settings.allow_find_by_phone}
-                  onCheckedChange={(checked) => handleSwitchChange('allow_find_by_phone', checked)}
-                />
-              </SettingRowSwitch>
-
-              <SettingRowSwitch id="show_in_people_you_may_know" label="Show in 'People You May Know'" helperText="Appear in friend suggestions">
-                <Switch id="show_in_people_you_may_know"
-                  checked={settings.show_in_people_you_may_know}
-                  onCheckedChange={(checked) => handleSwitchChange('show_in_people_you_may_know', checked)}
-                />
-              </SettingRowSwitch>
-
-              <SettingRowSwitch id="personalize_recommendations" label="Personalize recommendations" helperText="Use your activity to improve suggestions">
-                <Switch id="personalize_recommendations"
-                  checked={settings.personalize_recommendations}
-                  onCheckedChange={(checked) => handleSwitchChange('personalize_recommendations', checked)}
-                />
-              </SettingRowSwitch>
-            </div>
-          </div>
-
-          {/* Location & Search */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-3">
-              Location & Search Settings
-            </h3>
-            
-            <div className="space-y-4">
-              {locationAndIndexingSettings.map((setting) => (
-                <SettingRowSwitch key={setting.id} id={setting.id} label={setting.label} helperText="Control location and search visibility">
-                  <Switch
-                    id={setting.id}
-                    checked={settings[setting.id] === 'yes'}
-                    onCheckedChange={(checked) => handleSwitchChange(setting.id, checked)}
-                  />
-                </SettingRowSwitch>
-              ))}
-            </div>
-          </div>
-
-          {/* Stories & Reels */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <FileText className="h-5 w-5 text-pink-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Stories & Reels</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <SettingRowSelect label="Who can view my stories?" helperText="Control story audience">
-                <Select value={settings.who_can_view_stories} onValueChange={(v) => handleSelectChange('who_can_view_stories', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.stories.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSelect label="Allow replies to my stories" helperText="Let people respond to your stories">
-                <Select value={settings.allow_story_replies} onValueChange={(v) => handleSelectChange('allow_story_replies', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.storyReplies.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-
-              <SettingRowSwitch id="allow_story_sharing" label="Allow sharing of my stories" helperText="Let others share your stories">
-                <Switch id="allow_story_sharing"
-                  checked={settings.allow_story_sharing}
-                  onCheckedChange={(checked) => handleSwitchChange('allow_story_sharing', checked)}
-                />
-              </SettingRowSwitch>
-            </div>
-          </div>
-
-          {/* Safety & Filtering */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <AlertCircle className="h-5 w-5 text-yellow-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Safety & Filtering</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <SettingRowSelect label="Sensitive content filter" helperText="Filter potentially sensitive content">
-                <Select value={settings.sensitive_content_filter} onValueChange={(v) => handleSelectChange('sensitive_content_filter', v)}>
-                  <SelectTrigger className="w-[200px] pointer-events-auto cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover pointer-events-auto">
-                    {privacyOptions.contentFilter.map(opt => (
-                      <SelectItem key={opt} value={toValue(opt)}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </SettingRowSelect>
-            </div>
-          </div>
-
-          {/* Data & Security */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <Settings className="h-5 w-5 text-gray-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Data & Security</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <SettingRowSwitch id="login_alerts_new_device" label="Login alerts (new device)" helperText="Get notified when logging in from a new device">
-                <Switch id="login_alerts_new_device"
-                  checked={settings.login_alerts_new_device}
-                  onCheckedChange={(checked) => handleSwitchChange('login_alerts_new_device', checked)}
-                />
-              </SettingRowSwitch>
-            </div>
-          </div>
-
-          {/* Ads & Personalization */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-              <Megaphone className="h-5 w-5 text-teal-500" />
-              <h3 className="text-xl font-semibold text-gray-800">Ads & Personalization</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <SettingRowSwitch id="personalized_ads_activity" label="Personalized ads from activity" helperText="See ads based on your SHQIPET activity">
-                <Switch id="personalized_ads_activity"
-                  checked={settings.personalized_ads_activity}
-                  onCheckedChange={(checked) => handleSwitchChange('personalized_ads_activity', checked)}
-                />
-              </SettingRowSwitch>
-
-              <SettingRowSwitch id="ads_based_on_partners_data" label="Ads based on partners' data" helperText="See ads based on data from our partners">
-                <Switch id="ads_based_on_partners_data"
-                  checked={settings.ads_based_on_partners_data}
-                  onCheckedChange={(checked) => handleSwitchChange('ads_based_on_partners_data', checked)}
-                />
-              </SettingRowSwitch>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Reset Confirmation Dialog */}
-      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <AlertDialogContent className="bg-white z-[10100]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reset Privacy Settings?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will reset all privacy settings to recommended defaults. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowResetDialog(false)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                resetToDefaults();
-                setShowResetDialog(false);
-              }}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              <RotateCcw className="h-4 w-4 mr-2" />
               Reset to Defaults
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reset Privacy Settings</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will reset all privacy settings to their default values. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={resetToDefaults}>Reset All</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+
+      {/* Profile Visibility */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Profile Visibility
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSelect
+            label="Who can follow me"
+            value={toValue(settings.privacy_who_can_follow_me)}
+            onValueChange={(val) => updateSettings({ privacy_who_can_follow_me: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'no_body', label: 'Nobody' },
+            ]}
+          />
+          <RowSelect
+            label="Who can see my friends list"
+            value={toValue(settings.privacy_who_can_see_my_friends)}
+            onValueChange={(val) => updateSettings({ privacy_who_can_see_my_friends: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'only_me', label: 'Only Me' },
+            ]}
+          />
+          <RowSelect
+            label="Who can see my birthday"
+            value={toValue(settings.privacy_who_can_see_my_birthday)}
+            onValueChange={(val) => updateSettings({ privacy_who_can_see_my_birthday: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'only_me', label: 'Only Me' },
+            ]}
+          />
+          <RowSelect
+            label="Online status"
+            value={toValue(settings.privacy_status)}
+            onValueChange={(val) => updateSettings({ privacy_status: val })}
+            options={[
+              { value: 'online', label: 'Online' },
+              { value: 'offline', label: 'Offline' },
+              { value: 'invisible', label: 'Invisible' },
+            ]}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Timeline & Mentions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Timeline, Tagging & Mentions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSelect
+            label="Who can post on my timeline"
+            value={toValue(settings.privacy_who_can_post_on_my_timeline)}
+            onValueChange={(val) => updateSettings({ privacy_who_can_post_on_my_timeline: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'no_body', label: 'Nobody' },
+            ]}
+          />
+          <RowSelect
+            label="Who can comment on my posts"
+            value={toValue(settings.who_can_comment_on_posts)}
+            onValueChange={(val) => updateSettings({ who_can_comment_on_posts: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'followers', label: 'Followers' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'nobody', label: 'Nobody' },
+            ]}
+          />
+          <RowSelect
+            label="Who can share my posts"
+            value={toValue(settings.who_can_share_posts)}
+            onValueChange={(val) => updateSettings({ who_can_share_posts: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'followers', label: 'Followers' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'nobody', label: 'Nobody' },
+            ]}
+          />
+          <RowSelect
+            label="Who can mention me"
+            value={toValue(settings.who_can_mention_me)}
+            onValueChange={(val) => updateSettings({ who_can_mention_me: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'nobody', label: 'Nobody' },
+            ]}
+          />
+          <RowSelect
+            label="Who can tag me in posts"
+            value={toValue(settings.who_can_tag_me)}
+            onValueChange={(val) => updateSettings({ who_can_tag_me: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'nobody', label: 'Nobody' },
+            ]}
+          />
+          <RowSwitch
+            label="Review tags before they appear on my profile"
+            id="review_tags"
+            checked={toBool(settings.review_tags_before_appear)}
+            onCheckedChange={(val) => updateSettings({ review_tags_before_appear: fromBool(val) })}
+          />
+          <RowSwitch
+            label="Review posts I'm tagged in"
+            id="review_tagged"
+            checked={toBool(settings.review_tagged_posts)}
+            onCheckedChange={(val) => updateSettings({ review_tagged_posts: fromBool(val) })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Messages & Presence */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Messages & Presence
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSelect
+            label="Who can message me"
+            value={toValue(settings.privacy_who_can_message_me)}
+            onValueChange={(val) => updateSettings({ privacy_who_can_message_me: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'no_body', label: 'Nobody' },
+            ]}
+          />
+          <RowSelect
+            label="Message request filtering"
+            value={toValue(settings.message_request_filter)}
+            onValueChange={(val) => updateSettings({ message_request_filter: val })}
+            options={[
+              { value: 'standard', label: 'Standard' },
+              { value: 'strict', label: 'Strict' },
+              { value: 'off', label: 'Off' },
+            ]}
+          />
+          <RowSwitch
+            label="Show read receipts"
+            description="Let others know when you've read their messages"
+            id="read_receipts"
+            checked={toBool(settings.allow_read_receipts)}
+            onCheckedChange={(val) => updateSettings({ allow_read_receipts: fromBool(val) })}
+          />
+          <RowSwitch
+            label="Show typing indicators"
+            description="Let others see when you're typing"
+            id="typing"
+            checked={toBool(settings.show_typing_indicators)}
+            onCheckedChange={(val) => updateSettings({ show_typing_indicators: fromBool(val) })}
+          />
+          <RowSwitch
+            label="Show active status"
+            description="Let others see when you're online"
+            id="active_status"
+            checked={toBool(settings.show_active_status)}
+            onCheckedChange={(val) => updateSettings({ show_active_status: fromBool(val) })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Profile Field Visibility */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Profile Field Visibility
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSelect
+            label="Email visibility"
+            value={toValue(settings.email_visibility)}
+            onValueChange={(val) => updateSettings({ email_visibility: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'only_me', label: 'Only Me' },
+            ]}
+          />
+          <RowSelect
+            label="Phone number visibility"
+            value={toValue(settings.phone_visibility)}
+            onValueChange={(val) => updateSettings({ phone_visibility: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'only_me', label: 'Only Me' },
+            ]}
+          />
+          <RowSelect
+            label="Birthday detail level"
+            value={toValue(settings.birthday_detail)}
+            onValueChange={(val) => updateSettings({ birthday_detail: val })}
+            options={[
+              { value: 'full', label: 'Full Date' },
+              { value: 'day_month_only', label: 'Day & Month Only' },
+              { value: 'hidden', label: 'Hidden' },
+            ]}
+          />
+          <RowSelect
+            label="Location visibility"
+            value={toValue(settings.location_visibility)}
+            onValueChange={(val) => updateSettings({ location_visibility: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'only_me', label: 'Only Me' },
+            ]}
+          />
+          <RowSelect
+            label="Work & Education visibility"
+            value={toValue(settings.work_education_visibility)}
+            onValueChange={(val) => updateSettings({ work_education_visibility: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'people_i_follow', label: 'People I Follow' },
+              { value: 'only_me', label: 'Only Me' },
+            ]}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Communication Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Communication Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSwitch
+            label="Confirm follow requests"
+            description="Manually approve each follow request"
+            id="confirm_follow"
+            checked={toBool(settings.privacy_confirm_request_when_someone_follows_you)}
+            onCheckedChange={(val) => updateSettings({ privacy_confirm_request_when_someone_follows_you: val ? 'yes' : 'no' })}
+          />
+          <RowSwitch
+            label="Show my activities"
+            description="Let others see your recent activities"
+            id="show_activities"
+            checked={toBool(settings.privacy_show_my_activities)}
+            onCheckedChange={(val) => updateSettings({ privacy_show_my_activities: val ? 'yes' : 'no' })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Activity Preferences */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Activity Preferences
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSwitch
+            label="Share location with public"
+            description="Allow your location to be visible to everyone"
+            id="share_location"
+            checked={toBool(settings.privacy_share_my_location_with_public)}
+            onCheckedChange={(val) => updateSettings({ privacy_share_my_location_with_public: val ? 'yes' : 'no' })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Followers & Requests */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Followers & Friend Requests
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSelect
+            label="Who can send friend requests"
+            value={toValue(settings.who_can_send_friend_requests)}
+            onValueChange={(val) => updateSettings({ who_can_send_friend_requests: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'friends_of_friends', label: 'Friends of Friends' },
+              { value: 'nobody', label: 'Nobody' },
+            ]}
+          />
+          <RowSwitch
+            label="Approve new followers manually"
+            id="approve_followers"
+            checked={toBool(settings.approve_new_followers)}
+            onCheckedChange={(val) => updateSettings({ approve_new_followers: fromBool(val) })}
+          />
+          <RowSwitch
+            label="Auto-approve follow requests"
+            id="auto_approve"
+            checked={toBool(settings.auto_approve_follow_requests)}
+            onCheckedChange={(val) => updateSettings({ auto_approve_follow_requests: fromBool(val) })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Discovery & Recommendations */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Discovery & Recommendations
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSwitch
+            label="Allow find by email"
+            description="Let people find you using your email address"
+            id="find_email"
+            checked={toBool(settings.allow_find_by_email)}
+            onCheckedChange={(val) => updateSettings({ allow_find_by_email: fromBool(val) })}
+          />
+          <RowSwitch
+            label="Allow find by phone"
+            description="Let people find you using your phone number"
+            id="find_phone"
+            checked={toBool(settings.allow_find_by_phone)}
+            onCheckedChange={(val) => updateSettings({ allow_find_by_phone: fromBool(val) })}
+          />
+          <RowSwitch
+            label="Show in people you may know"
+            id="people_may_know"
+            checked={toBool(settings.show_in_people_you_may_know)}
+            onCheckedChange={(val) => updateSettings({ show_in_people_you_may_know: fromBool(val) })}
+          />
+          <RowSwitch
+            label="Personalize recommendations"
+            description="Use your activity to suggest relevant content"
+            id="personalize"
+            checked={toBool(settings.personalize_recommendations)}
+            onCheckedChange={(val) => updateSettings({ personalize_recommendations: fromBool(val) })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Location & Search Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Location & Search Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSwitch
+            label="Allow search engines to index profile"
+            description="Let search engines like Google find your profile"
+            id="search_engines"
+            checked={toBool(settings.privacy_allow_search_engines_to_index)}
+            onCheckedChange={(val) => updateSettings({ privacy_allow_search_engines_to_index: val ? 'yes' : 'no' })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Stories & Reels */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Image className="h-5 w-5" />
+            Stories & Reels
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSelect
+            label="Who can view my stories"
+            value={toValue(settings.who_can_view_stories)}
+            onValueChange={(val) => updateSettings({ who_can_view_stories: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'followers', label: 'Followers' },
+              { value: 'close_friends', label: 'Close Friends' },
+            ]}
+          />
+          <RowSelect
+            label="Allow story replies"
+            value={toValue(settings.allow_story_replies)}
+            onValueChange={(val) => updateSettings({ allow_story_replies: val })}
+            options={[
+              { value: 'everyone', label: 'Everyone' },
+              { value: 'followers', label: 'Followers' },
+              { value: 'off', label: 'Off' },
+            ]}
+          />
+          <RowSwitch
+            label="Allow story sharing"
+            id="story_sharing"
+            checked={toBool(settings.allow_story_sharing)}
+            onCheckedChange={(val) => updateSettings({ allow_story_sharing: fromBool(val) })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Safety & Filtering */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Safety & Filtering
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSelect
+            label="Sensitive content filter"
+            value={toValue(settings.sensitive_content_filter)}
+            onValueChange={(val) => updateSettings({ sensitive_content_filter: val })}
+            options={[
+              { value: 'off', label: 'Off' },
+              { value: 'standard', label: 'Standard' },
+              { value: 'strict', label: 'Strict' },
+            ]}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Data & Security */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            Data & Security
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSwitch
+            label="Login alerts for new devices"
+            description="Get notified when your account is accessed from a new device"
+            id="login_alerts"
+            checked={toBool(settings.login_alerts_new_device)}
+            onCheckedChange={(val) => updateSettings({ login_alerts_new_device: fromBool(val) })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Ads & Personalization */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Ads & Personalization
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <RowSwitch
+            label="Personalized ads based on activity"
+            id="ads_activity"
+            checked={toBool(settings.personalized_ads_activity)}
+            onCheckedChange={(val) => updateSettings({ personalized_ads_activity: fromBool(val) })}
+          />
+          <RowSwitch
+            label="Ads based on partners' data"
+            id="ads_partners"
+            checked={toBool(settings.ads_based_on_partners_data)}
+            onCheckedChange={(val) => updateSettings({ ads_based_on_partners_data: fromBool(val) })}
+          />
+        </CardContent>
+      </Card>
+
+      {saving && (
+        <div className="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg">
+          Saving...
+        </div>
+      )}
     </div>
   );
-};
-
-export default PrivacySettingsForm;
+}
