@@ -601,7 +601,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
       {/* Reset Confirmation Dialog */}
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <AlertDialogContent className="bg-white">
+        <AlertDialogContent className="bg-white z-[10100]">
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Privacy Settings?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -609,12 +609,13 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setShowResetDialog(false)}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 resetToDefaults();
                 setShowResetDialog(false);
               }}
+              className="bg-red-500 hover:bg-red-600 text-white"
             >
               Reset to Defaults
             </AlertDialogAction>
