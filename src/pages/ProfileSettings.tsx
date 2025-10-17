@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ProfileSettingsSidebar from '@/components/profile/settings/ProfileSettingsSidebar';
 import ProfileSettingsContent from '@/components/profile/settings/ProfileSettingsContent';
-import ResponsiveAppLayout from '@/components/layout/ResponsiveAppLayout';
 import { useProfileSettings } from '@/contexts/ProfileSettingsContext';
 
 
@@ -52,27 +51,28 @@ const ProfileSettings: React.FC = () => {
   // Keep dialog mounted; loading handled inside content to avoid page flicker
 
   return (
-    <ResponsiveAppLayout>
-      <main className="py-8">
-        <section aria-labelledby="settings-heading" className="w-full">
-          <h1 id="settings-heading" className="sr-only">Profile Settings</h1>
-          <div className="mx-auto max-w-6xl">
-            <div className="flex gap-4">
-              <aside className="w-80 flex-shrink-0">
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                  <ProfileSettingsSidebar activeSection={activeSection} setActiveSection={setActiveSection} onClose={handleClose} />
-                </div>
-              </aside>
-              <article className="flex-1 min-w-0">
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                  <ProfileSettingsContent activeSection={activeSection} />
-                </div>
-              </article>
-            </div>
+    <div className="min-h-screen bg-gray-100 w-full">
+      <main className="py-8 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex gap-4">
+            <aside className="w-80 flex-shrink-0">
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <ProfileSettingsSidebar 
+                  activeSection={activeSection} 
+                  setActiveSection={setActiveSection} 
+                  onClose={handleClose} 
+                />
+              </div>
+            </aside>
+            <article className="flex-1 min-w-0">
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <ProfileSettingsContent activeSection={activeSection} />
+              </div>
+            </article>
           </div>
-        </section>
+        </div>
       </main>
-    </ResponsiveAppLayout>
+    </div>
   );
 };
 
