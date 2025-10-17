@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordInputField } from './password/PasswordInputField';
@@ -212,12 +213,10 @@ const PasswordSettingsForm: React.FC = () => {
                 <label htmlFor="logout-others" className="text-sm font-medium text-gray-700">
                   Log out other devices
                 </label>
-                <input
-                  type="checkbox"
+                <Switch
                   id="logout-others"
                   checked={logoutOthers}
-                  onChange={(e) => setLogoutOthers(e.target.checked)}
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  onCheckedChange={setLogoutOthers}
                 />
               </div>
               
