@@ -41,10 +41,10 @@ const TwoFactorAuthForm: React.FC = () => {
                 Authentication method
               </Label>
               <Select value={authMethod} onValueChange={setAuthMethod}>
-                <SelectTrigger className="w-full transition-all duration-200 hover:shadow-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <SelectTrigger className="w-full transition-all duration-200 hover:shadow-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 pointer-events-auto">
                   <SelectValue placeholder="Select authentication method" />
                 </SelectTrigger>
-                <SelectContent className="z-[10002] bg-white shadow-lg border border-gray-200 p-1">
+                <SelectContent position="popper" side="bottom" sideOffset={6} avoidCollisions={false} className="z-[10050] bg-white shadow-lg border border-gray-200 p-1">
                   <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" value="email">E-mail verification</SelectItem>
                   <SelectItem className="hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground" value="google">Google Authenticator</SelectItem>
                 </SelectContent>
