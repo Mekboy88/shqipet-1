@@ -1,6 +1,7 @@
 import React from 'react';
 import ProfileSettingsSidebar from './ProfileSettingsSidebar';
 import ProfileSettingsContent from './ProfileSettingsContent';
+import ClickShieldDebugger from '@/components/debug/ClickShieldDebugger';
 interface ProfileSettingsDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,7 +18,8 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
 }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[12000] overflow-hidden">
+    <div className="fixed inset-0 z-[12000] overflow-hidden isolate">
+      <ClickShieldDebugger />
       {/* Wallpaper layer - behind everything, starts below top bar */}
       <div className="absolute top-[57px] left-0 right-0 bottom-0 bg-gray-100 pointer-events-none"></div>
       
