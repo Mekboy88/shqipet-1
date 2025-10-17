@@ -6,11 +6,9 @@ import ProfilePageHeader from './layout/ProfilePageHeader';
 import ProfileContent from './ProfileContent';
 import CoverPhotoDialog from './dialogs/CoverPhotoDialog';
 import ProfileStyles from './layout/ProfileStyles';
-import { featuredPhotos, photos, posts as samplePosts, friends } from './data/sampleData';
-import { transformPostImagesToPics } from './utils/profileUtils';
+import { posts as samplePosts } from './data/sampleData';
 import { useProfileState } from '@/hooks/useProfileState';
 import { useProfileRefs } from './hooks/useProfileRefs';
-import ProfileSettings from '@/pages/ProfileSettings';
 import ProfileSettingsContext from '@/contexts/ProfileSettingsContext';
 import { usePostsData } from '@/contexts/posts/usePostsData';
 import { useAuth } from '@/contexts/AuthContext';
@@ -224,8 +222,7 @@ const ProfilePage = React.memo(() => {
         <ProfileStyles />
       </div>
       
-      {/* Render settings outside main container to prevent scroll interference */}
-      {isSettingsOpen && <ProfileSettings />}
+      {/* Settings are now a separate route - don't render them here */}
     </ProfileSettingsContext.Provider>
   );
 });

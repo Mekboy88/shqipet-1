@@ -41,6 +41,15 @@ const ProfileSettings: React.FC = () => {
     category: ['all']
   }));
 
+  // Ensure userProfile has proper structure with defaults
+  const userProfileWithDefaults = {
+    stats: {
+      friends: 0,
+      posts: posts.length,
+      photos: dbPhotos.length
+    }
+  };
+
   useEffect(() => {
     // Always open settings when component mounts, regardless of state
     // This ensures that refreshing the page keeps the settings open
@@ -97,7 +106,7 @@ const ProfileSettings: React.FC = () => {
             {/* Right Sidebar - Profile Info */}
             <aside className="w-80 flex-shrink-0 hidden xl:block">
               <ProfileSidebar
-                userProfile={profileSettings || { stats: { friends: 0 } }}
+                userProfile={userProfileWithDefaults}
                 photoItems={dbPhotos}
                 friendSuggestions={transformedFriends}
                 isMobile={false}
