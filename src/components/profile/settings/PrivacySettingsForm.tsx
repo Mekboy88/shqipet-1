@@ -116,7 +116,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 pointer-events-auto">
       <div className="flex justify-end mb-4">
         <Button
           variant="outline"
