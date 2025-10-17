@@ -129,9 +129,9 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pointer-events-none">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* LEFT COLUMN */}
-        <div className="space-y-6 pointer-events-auto">
+        <div className="space-y-6">
           {/* Profile Visibility */}
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
             <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
@@ -359,7 +359,7 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
         </div>
 
         {/* RIGHT COLUMN */}
-        <div className="space-y-6 pointer-events-auto">
+        <div className="space-y-6">
           {/* Communication Settings */}
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
             <h3 className="text-xl font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-3">

@@ -1,15 +1,18 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ProfileSettingsDialog from '@/components/profile/settings/ProfileSettingsDialog';
+import ProfileSettingsSidebar from '@/components/profile/settings/ProfileSettingsSidebar';
+import ProfileSettingsContent from '@/components/profile/settings/ProfileSettingsContent';
+import ResponsiveAppLayout from '@/components/layout/ResponsiveAppLayout';
+import { Helmet } from 'react-helmet-async';
 import { useProfileSettings } from '@/contexts/ProfileSettingsContext';
-import { ProfileSettingsSkeleton } from '@/components/profile/skeletons/ProfileSkeleton';
-import { useProfileSettings as useProfileSettingsHook } from '@/hooks/useProfileSettings';
+
+
 
 const ProfileSettings: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { loading, loadSettings } = useProfileSettingsHook(); // Get loading and loader from settings hook
+  
   const {
     isSettingsOpen,
     setIsSettingsOpen,
@@ -50,14 +53,32 @@ const ProfileSettings: React.FC = () => {
   // Keep dialog mounted; loading handled inside content to avoid page flicker
 
   return (
-    <ProfileSettingsDialog
-      isOpen={true}
-      onClose={handleClose}
-      activeSection={activeSection}
-      setActiveSection={setActiveSection}
-      userInfo={userInfo}
-      setUserInfo={setUserInfo}
-    />
+    <ResponsiveAppLayout>
+      <Helmet>
+        <title>Profile Settings - Privacy</title>
+        <meta name="description" content="Manage your profile and privacy settings." />
+        <link rel="canonical" href="/profile/settings" />
+      </Helmet>
+      <main className="py-8">
+        <section aria-labelledby="settings-heading" className="w-full">
+          <h1 id="settings-heading" className="sr-only">Profile Settings</h1>
+          <div className="mx-auto max-w-6xl">
+            <div className="flex gap-4">
+              <aside className="w-80 flex-shrink-0">
+                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                  <ProfileSettingsSidebar activeSection={activeSection} setActiveSection={setActiveSection} onClose={handleClose} />
+                </div>
+              </aside>
+              <article className="flex-1 min-w-0">
+                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                  <ProfileSettingsContent activeSection={activeSection} />
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </ResponsiveAppLayout>
   );
 };
 
