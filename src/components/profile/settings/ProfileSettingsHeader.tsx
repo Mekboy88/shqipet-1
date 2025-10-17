@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
 import { headerConfig } from './headerConfig';
@@ -16,9 +16,10 @@ interface ProfileSettingsHeaderProps {
     earnings?: number;
     walletBalance?: number;
   };
+  saving?: boolean;
 }
 
-const ProfileSettingsHeader: React.FC<ProfileSettingsHeaderProps> = ({ activeSection, userInfo }) => {
+const ProfileSettingsHeader: React.FC<ProfileSettingsHeaderProps> = ({ activeSection, userInfo, saving }) => {
   const { displayName } = useUniversalUser();
   const config = headerConfig[activeSection];
 
@@ -140,32 +141,41 @@ const name = fullNameFromSettings || displayName || userInfo.firstName || userna
   return (
     <div className={`mb-6 p-4 rounded-lg ${getBackgroundGradient(activeSection)} ${containerClasses}`}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 justify-between">
+        {/* Left side: Avatar and Title */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-        <div className="relative flex-shrink-0">
-          <Avatar 
-            size="xl"
-            className={`border-2 ${avatarStyles.border}`}
-          />
+          <div className="relative flex-shrink-0">
+            <Avatar 
+              size="xl"
+              className={`border-2 ${avatarStyles.border}`}
+            />
+          </div>
+
+          <div>
+            {isVerification ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <p className={`text-xl sm:text-2xl font-bold ${headerColor}`}>{name}</p>
+                </div>
+                <h1 className="text-gray-600">{headerText}</h1>
+              </>
+            ) : (
+              <>
+                <h1 className={`text-xl sm:text-2xl font-bold ${headerColor}`}>{headerText}</h1>
+              </>
+            )}
+          </div>
         </div>
 
-        <div>
-          {isVerification ? (
-            <>
-              <div className="flex items-center gap-2">
-                <p className={`text-xl sm:text-2xl font-bold ${headerColor}`}>{name}</p>
-              </div>
-              <h1 className="text-gray-600">{headerText}</h1>
-            </>
-          ) : (
-            <>
-              <h1 className={`text-xl sm:text-2xl font-bold ${headerColor}`}>{headerText}</h1>
-            </>
-          )}
-        </div>
-        </div>
+        {/* Right side: Saving Indicator */}
+        {saving && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 border border-green-200 shadow-sm">
+            <Loader2 className="h-4 w-4 animate-spin text-green-600" />
+            <span className="text-sm font-medium text-green-700">Saving...</span>
+          </div>
+        )}
 
         {/* Contact Card Icon - Only show on Monetization page */}
-        {activeSection === 'monetization' && (
+        {activeSection === 'monetization' && !saving && (
           <div className="flex-shrink-0">
             <svg 
               height="72px" 

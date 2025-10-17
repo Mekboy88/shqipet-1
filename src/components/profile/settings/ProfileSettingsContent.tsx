@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ProfileSettingsHeader from './ProfileSettingsHeader';
 import { settingsSections } from './settingsData';
 import { settingsComponentMap } from './settingsSectionsMap';
@@ -16,6 +16,8 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
 }) => {
   const { userInfo, setUserInfo, saving, saveSettings, loading } = useProfileSettingsHook();
   const hasLoadedOnceRef = useRef(false);
+  const [childSaving, setChildSaving] = useState(false);
+  
   useEffect(() => {
     if (!loading) hasLoadedOnceRef.current = true;
   }, [loading]);
@@ -59,7 +61,11 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)]">
-        <ProfileSettingsHeader activeSection={currentSection} userInfo={userInfo} />
+        <ProfileSettingsHeader 
+          activeSection={currentSection} 
+          userInfo={userInfo}
+          saving={currentSection === 'privacy' ? childSaving : saving}
+        />
         
         <div className="w-full pb-8">
           {Component ? (
@@ -69,6 +75,7 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
               onSave={saveSettings}
               saving={saving}
               loading={stableLoading}
+              onSavingChange={currentSection === 'privacy' ? setChildSaving : undefined}
             />
           ) : null}
         </div>

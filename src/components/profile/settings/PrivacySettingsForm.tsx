@@ -18,11 +18,19 @@ interface PrivacySettingsFormProps {
     [key: string]: any;
   };
   setUserInfo: React.Dispatch<React.SetStateAction<any>>;
+  onSavingChange?: (saving: boolean) => void;
 }
 
-const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, setUserInfo }) => {
+const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, setUserInfo, onSavingChange }) => {
   const { settings, loading, saving, updateSettings, resetToDefaults } = usePrivacySettings();
   const [showResetDialog, setShowResetDialog] = React.useState(false);
+
+  // Notify parent about saving state changes
+  useEffect(() => {
+    if (onSavingChange) {
+      onSavingChange(saving);
+    }
+  }, [saving, onSavingChange]);
 
   // Sync settings to parent component
   useEffect(() => {
@@ -109,13 +117,6 @@ const PrivacySettingsForm: React.FC<PrivacySettingsFormProps> = ({ userInfo, set
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {saving && (
-        <div className="fixed top-4 right-4 z-50 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Saving...
-        </div>
-      )}
-
       <div className="flex justify-end mb-4">
         <Button
           variant="outline"
