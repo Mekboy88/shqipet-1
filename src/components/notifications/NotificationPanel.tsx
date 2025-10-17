@@ -220,7 +220,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
 
       {/* Notification Panel */}
       <div className={`
-        fixed top-14 right-0 ${isExpanded ? 'h-[calc(100vh-3.5rem)]' : 'h-1/2'} w-80 bg-white shadow-2xl z-50 
+        fixed top-14 right-0 ${isOpen && isExpanded ? 'h-[calc(100vh-3.5rem)]' : 'h-1/2'} w-80 bg-white shadow-2xl z-50 
         transform transition-all duration-300 ease-in-out border-l border-gray-200 pointer-events-auto
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
       `}>
