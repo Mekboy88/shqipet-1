@@ -1,252 +1,118 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useOTPVerification } from '@/hooks/auth/useOTPVerification';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordInputField } from './password/PasswordInputField';
-import { TwoFactorAuthSection } from './password/TwoFactorAuthSection';
-import { OTPVerificationFlow } from './password/OTPVerificationFlow';
-import { UserProfile } from '@/types/user';
+import { validatePassword } from '@/utils/security/inputValidation';
 
 const PasswordSettingsForm: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [repeatPassword, setRepeatPassword] = useState('');
-  const [twoFactor, setTwoFactor] = useState('disable');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [logoutOthers, setLogoutOthers] = useState(true);
   
   // Password visibility states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
-  
-  // Forgot password states
-  const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpVerified, setOtpVerified] = useState(false);
-  
-  // User profile state
-  const [userProfile, setUserProfile] = useState<Partial<UserProfile>>({});
-  const [loading, setLoading] = useState(true);
-  
-  const { generateOTP, verifyOTP, isGenerating, isVerifying } = useOTPVerification();
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Fetch user profile data
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast.error('Nuk u gjet përdoruesi');
-          return;
-        }
+  // Caps lock detection
+  const [capsLockOn, setCapsLockOn] = useState(false);
 
-        // Get user profile from profiles table
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('email, phone_number')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching profile:', error);
-          // If no profile exists, use auth user email
-          setUserProfile({ email: user.email });
-        } else {
-          setUserProfile({
-            email: profile.email || user.email,
-            phone_number: profile.phone_number
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        toast.error('Gabim në marrjen e të dhënave të përdoruesit');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
-  const validateCurrentPassword = async (password: string): Promise<boolean> => {
-    try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !user.email) {
-        toast.error('Nuk u gjet përdoruesi');
-        return false;
-      }
-
-      // Try to sign in with current credentials to validate password
-      const { error } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: password
-      });
-
-      if (error) {
-        console.error('Current password validation failed:', error);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Password validation error:', error);
-      return false;
-    }
+  const handleKeyEvent = (e: React.KeyboardEvent) => {
+    setCapsLockOn(e.getModifierState('CapsLock'));
   };
 
-  const handleNormalPasswordChange = async () => {
-    if (!currentPassword || !newPassword || !repeatPassword) {
-      toast.error('Ju lutemi plotësoni të gjitha fushat');
-      return;
-    }
-    
-    if (newPassword !== repeatPassword) {
-      toast.error('Fjalëkalimet e reja nuk përputhen');
-      return;
-    }
+  // Validation rules
+  const passwordValidation = validatePassword(newPassword);
+  const meetsPolicy = passwordValidation.isValid;
+  const notSameAsCurrent = newPassword && currentPassword && newPassword !== currentPassword;
+  const confirmMatches = newPassword === confirmPassword && confirmPassword.length > 0;
 
-    // CRITICAL: Validate current password before allowing change
-    console.log('Validating current password...');
-    const isCurrentPasswordValid = await validateCurrentPassword(currentPassword);
-    
-    if (!isCurrentPasswordValid) {
-      toast.error('Fjalëkalimi aktual është gabim');
-      return;
-    }
+  // Password strength score (0-5)
+  const getPasswordStrength = (): number => {
+    if (!newPassword) return 0;
+    let score = 0;
+    if (newPassword.length >= 12) score++;
+    if (/[A-Z]/.test(newPassword)) score++;
+    if (/[a-z]/.test(newPassword)) score++;
+    if (/\d/.test(newPassword)) score++;
+    if (/[^A-Za-z0-9]/.test(newPassword)) score++;
+    return score;
+  };
+
+  const canSubmit = meetsPolicy && notSameAsCurrent && confirmMatches && !isSaving;
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
 
     try {
-      // Update password using Supabase Auth
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
+      setIsSaving(true);
 
-      if (error) {
-        console.error('Password change failed:', error);
-        toast.error('Gabim në ndryshimin e fjalëkalimit');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Session expired. Please log in again.');
         return;
       }
 
-      console.log('Password changed successfully with proper validation');
-      toast.success('Fjalëkalimi u ndryshua me sukses');
-      
-      // Reset form
-      setCurrentPassword('');
-      setNewPassword('');
-      setRepeatPassword('');
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/change_password_secure`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            currentPassword,
+            newPassword,
+            logoutOthers
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      switch (result.code) {
+        case 'OK':
+          toast.success('Password updated successfully.');
+          setNewPassword('');
+          setConfirmPassword('');
+          setCurrentPassword('');
+          break;
+        case 'POLICY_FAILED':
+          toast.error("Password doesn't meet requirements.");
+          break;
+        case 'BREACHED_PASSWORD':
+          toast.error('This password appears in known breaches. Choose a different one.');
+          break;
+        case 'UNABLE_TO_CHANGE':
+          toast.error('Unable to change password. Check your current password and try again.');
+          break;
+        case 'RATE_LIMITED':
+          toast.error('Too many attempts. Please try again later.');
+          break;
+        case 'UNAUTHORIZED':
+          toast.error('Session expired. Please log in again.');
+          break;
+        default:
+          toast.error('Something went wrong.');
+      }
     } catch (error) {
       console.error('Password change error:', error);
-      toast.error('Gabim në ndryshimin e fjalëkalimit');
+      toast.error('Unexpected error occurred.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleForgotPassword = () => {
-    setIsForgotPasswordMode(true);
-    setCurrentPassword('');
-  };
-
-  const handleSendOTP = async () => {
-    if (!selectedMethod) {
-      toast.error('Ju lutemi zgjidhni një metodë verifikimi');
-      return;
-    }
-    
-    const contact = selectedMethod === 'email' ? userProfile.email : userProfile.phone_number;
-    
-    try {
-      const result = await generateOTP(contact);
-      if (result.success) {
-        setOtpSent(true);
-        toast.success(`Kodi i verifikimit u dërgua në ${selectedMethod === 'email' ? 'email' : 'telefon'}`);
-      } else {
-        toast.error(result.error || 'Gabim në dërgimin e kodit');
-      }
-    } catch (error) {
-      toast.error('Gabim në dërgimin e kodit të verifikimit');
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    handleKeyEvent(e);
+    if (e.key === 'Enter' && canSubmit) {
+      handleSubmit();
     }
   };
-
-  const handleVerifyOTP = async () => {
-    if (!otpCode || otpCode.length !== 6) {
-      toast.error('Ju lutemi shkruani kodin 6-shifror');
-      return;
-    }
-    
-    const contact = selectedMethod === 'email' ? userProfile.email : userProfile.phone_number;
-    
-    try {
-      const result = await verifyOTP(contact, otpCode);
-      if (result.success) {
-        setOtpVerified(true);
-        toast.success('Kodi u verifikua me sukses. Mund të ndryshoni fjalëkalimin');
-      } else {
-        toast.error(result.error || 'Kodi i gabuar');
-      }
-    } catch (error) {
-      toast.error('Gabim në verifikimin e kodit');
-    }
-  };
-
-  const handlePasswordChangeWithOTP = async () => {
-    if (!newPassword || !repeatPassword) {
-      toast.error('Ju lutemi plotësoni fjalëkalimet e reja');
-      return;
-    }
-    
-    if (newPassword !== repeatPassword) {
-      toast.error('Fjalëkalimet e reja nuk përputhen');
-      return;
-    }
-
-    try {
-      // Update password using Supabase Auth (OTP verified, no current password needed)
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (error) {
-        console.error('Password change with OTP failed:', error);
-        toast.error('Gabim në ndryshimin e fjalëkalimit');
-        return;
-      }
-
-      console.log('Password changed successfully with OTP verification');
-      toast.success('Fjalëkalimi u ndryshua me sukses');
-      
-      // Reset everything
-      setIsForgotPasswordMode(false);
-      setOtpSent(false);
-      setOtpVerified(false);
-      setSelectedMethod('');
-      setOtpCode('');
-      setCurrentPassword('');
-      setNewPassword('');
-      setRepeatPassword('');
-    } catch (error) {
-      console.error('Password change with OTP error:', error);
-      toast.error('Gabim në ndryshimin e fjalëkalimit');
-    }
-  };
-
-  const resetForgotPassword = () => {
-    setIsForgotPasswordMode(false);
-    setOtpSent(false);
-    setOtpVerified(false);
-    setSelectedMethod('');
-    setOtpCode('');
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-8 p-4 sm:p-6">
-        <div className="flex items-center justify-center">
-          <p className="text-gray-600">Duke ngarkuar...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -260,77 +126,75 @@ const PasswordSettingsForm: React.FC = () => {
             </h3>
             
             <div className="space-y-6">
-              {isForgotPasswordMode ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-lg font-semibold">Keni harruar fjalëkalimin?</h4>
-                    <Button 
-                      variant="outline" 
-                      onClick={resetForgotPassword}
-                      className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border-primary/30 font-medium transition-all duration-200 hover:shadow-md"
-                    >
-                      Anulo
-                    </Button>
-                  </div>
-                  
-                  <OTPVerificationFlow
-                    userProfile={userProfile}
-                    selectedMethod={selectedMethod}
-                    setSelectedMethod={setSelectedMethod}
-                    otpSent={otpSent}
-                    setOtpSent={setOtpSent}
-                    otpVerified={otpVerified}
-                    otpCode={otpCode}
-                    setOtpCode={setOtpCode}
-                    onSendOTP={handleSendOTP}
-                    onVerifyOTP={handleVerifyOTP}
-                    onReset={resetForgotPassword}
-                    isGenerating={isGenerating}
-                    isVerifying={isVerifying}
-                  />
-                </div>
-              ) : (
+              <div>
                 <PasswordInputField
                   id="current-password"
-                  label="Fjalëkalimi aktual"
+                  label="Current Password"
                   value={currentPassword}
                   onChange={setCurrentPassword}
                   showPassword={showCurrentPassword}
                   onToggleVisibility={() => setShowCurrentPassword(!showCurrentPassword)}
-                  disabled={isForgotPasswordMode && otpVerified}
+                  onKeyDown={handleKeyPress}
+                  autoComplete="current-password"
                 />
-              )}
-              
-              <div className="grid grid-cols-1 gap-6">
-                <PasswordInputField
-                  id="new-password"
-                  label="Fjalëkalimi i ri"
-                  value={newPassword}
-                  onChange={setNewPassword}
-                  showPassword={showNewPassword}
-                  onToggleVisibility={() => setShowNewPassword(!showNewPassword)}
-                />
-                <PasswordInputField
-                  id="repeat-password"
-                  label="Përsërit fjalëkalimin"
-                  value={repeatPassword}
-                  onChange={setRepeatPassword}
-                  showPassword={showRepeatPassword}
-                  onToggleVisibility={() => setShowRepeatPassword(!showRepeatPassword)}
-                />
+                {capsLockOn && (
+                  <p className="text-xs text-orange-600 mt-1">⚠ Caps Lock is on</p>
+                )}
               </div>
               
-              {!isForgotPasswordMode && (
-                <div className="pt-4">
-                  <Button
-                    onClick={handleNormalPasswordChange}
-                    variant="ghost"
-                    className="flex-1 p-4 bg-gradient-to-r from-red-500/10 to-gray-800/10 rounded-xl border border-red-200"
-                  >
-                    Ndrysho fjalëkalimin
-                  </Button>
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <PasswordInputField
+                    id="new-password"
+                    label="New Password"
+                    value={newPassword}
+                    onChange={setNewPassword}
+                    showPassword={showNewPassword}
+                    onToggleVisibility={() => setShowNewPassword(!showNewPassword)}
+                    onKeyDown={handleKeyPress}
+                    autoComplete="new-password"
+                  />
+                  {capsLockOn && (
+                    <p className="text-xs text-orange-600 mt-1">⚠ Caps Lock is on</p>
+                  )}
+                  {newPassword && !meetsPolicy && (
+                    <p className="text-xs text-red-600 mt-1">{passwordValidation.error}</p>
+                  )}
+                  {newPassword && currentPassword && !notSameAsCurrent && (
+                    <p className="text-xs text-red-600 mt-1">New password must be different</p>
+                  )}
                 </div>
-              )}
+                
+                <div>
+                  <PasswordInputField
+                    id="confirm-password"
+                    label="Confirm Password"
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
+                    showPassword={showConfirmPassword}
+                    onToggleVisibility={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onKeyDown={handleKeyPress}
+                    autoComplete="new-password"
+                  />
+                  {capsLockOn && (
+                    <p className="text-xs text-orange-600 mt-1">⚠ Caps Lock is on</p>
+                  )}
+                  {confirmPassword && !confirmMatches && (
+                    <p className="text-xs text-red-600 mt-1">Passwords don't match</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit}
+                  variant="ghost"
+                  className="flex-1 p-4 bg-gradient-to-r from-red-500/10 to-gray-800/10 rounded-xl border border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? 'Changing...' : 'Change Password'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -343,36 +207,41 @@ const PasswordSettingsForm: React.FC = () => {
               Security Settings
             </h3>
             
-            <TwoFactorAuthSection
-              twoFactor={twoFactor}
-              setTwoFactor={setTwoFactor}
-            />
-          </div>
-
-          {/* Action Buttons Card */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-3">
-              Actions
-            </h3>
-            
             <div className="space-y-4">
-              {!isForgotPasswordMode ? (
-                <Button
-                  onClick={handleForgotPassword}
-                  variant="outline"
-                  className="w-full px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300 font-medium transition-all duration-200 hover:shadow-md rounded-md"
-                >
-                  Keni harruar fjalëkalimin?
-                </Button>
-              ) : (
-                otpVerified && (
-                  <Button
-                    onClick={handlePasswordChangeWithOTP}
-                    className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white border-green-500 font-medium transition-all duration-200 hover:shadow-md rounded-md"
-                  >
-                    Ruaj fjalëkalimin e ri
-                  </Button>
-                )
+              <div className="flex items-center justify-between">
+                <label htmlFor="logout-others" className="text-sm font-medium text-gray-700">
+                  Log out other devices
+                </label>
+                <input
+                  type="checkbox"
+                  id="logout-others"
+                  checked={logoutOthers}
+                  onChange={(e) => setLogoutOthers(e.target.checked)}
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                />
+              </div>
+              
+              {newPassword && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Password Requirements:</p>
+                  <ul className="text-xs space-y-1">
+                    <li className={newPassword.length >= 12 ? 'text-green-600' : 'text-gray-500'}>
+                      ✓ At least 12 characters
+                    </li>
+                    <li className={/[A-Z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}>
+                      ✓ Contains uppercase letter
+                    </li>
+                    <li className={/[a-z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}>
+                      ✓ Contains lowercase letter
+                    </li>
+                    <li className={/\d/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}>
+                      ✓ Contains number
+                    </li>
+                    <li className={/[^A-Za-z0-9]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}>
+                      ✓ Contains special character
+                    </li>
+                  </ul>
+                </div>
               )}
             </div>
           </div>

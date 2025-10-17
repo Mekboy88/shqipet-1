@@ -13,6 +13,8 @@ interface PasswordInputFieldProps {
   onToggleVisibility: () => void;
   disabled?: boolean;
   className?: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  autoComplete?: string;
 }
 
 const lightFocusStyles = "bg-white border-gray-300 focus:border-red-300 focus:ring-2 focus:ring-red-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/10 focus-visible:ring-offset-0";
@@ -25,7 +27,9 @@ export const PasswordInputField: React.FC<PasswordInputFieldProps> = ({
   showPassword,
   onToggleVisibility,
   disabled = false,
-  className = ""
+  className = "",
+  onKeyDown,
+  autoComplete
 }) => {
   return (
     <div className={className}>
@@ -36,6 +40,8 @@ export const PasswordInputField: React.FC<PasswordInputFieldProps> = ({
           type={showPassword ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={onKeyDown}
+          autoComplete={autoComplete}
           className={`mt-1 pr-10 ${lightFocusStyles}`}
           disabled={disabled}
         />
