@@ -19,6 +19,13 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
   const [showSettings, setShowSettings] = React.useState(false);
   
+  // Reset to collapsed state whenever panel opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setIsExpanded(false);
+    }
+  }, [isOpen]);
+  
   const { 
     notifications: realNotifications, 
     isLoading, 
