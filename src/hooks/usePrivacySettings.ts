@@ -224,47 +224,65 @@ export const usePrivacySettings = () => {
     loadSettings();
   }, [loadSettings]);
 
-  // Real-time subscription
+  // Real-time subscription with robust reconnection
   useEffect(() => {
-    const setupRealtime = async () => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let retryTimer: number | null = null;
+    let backoff = 1000;
+
+    const setup = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const channel = supabase
-        .channel('privacy_settings_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'user_privacy_settings',
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            // Skip initial load updates
-            if (isInitialLoadRef.current) return;
-            
-            // Skip if this is our own recent update
-            const now = Date.now();
-            if (now - lastLocalWriteAtRef.current < 2000) return;
-            
-            // Update settings from remote
-            if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-              setSettings(payload.new as PrivacySettings);
-            }
-          }
-        )
-        .subscribe();
+      function createChannel() {
+        const ch = supabase
+          .channel(`privacy-settings-${user.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'user_privacy_settings',
+              filter: `user_id=eq.${user.id}`,
+            },
+            (payload) => {
+              // Skip initial load updates
+              if (isInitialLoadRef.current) return;
 
-      return channel;
+              // Skip if this is our own recent update
+              const now = Date.now();
+              if (now - lastLocalWriteAtRef.current < 1500) return;
+
+              if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+                setSettings(payload.new as PrivacySettings);
+              }
+            }
+          )
+          .subscribe((status) => {
+            console.log('🔌 [PRIVACY REAL-TIME] Channel status:', status);
+            if (status === 'SUBSCRIBED') {
+              backoff = 1000;
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+              if (retryTimer) window.clearTimeout(retryTimer);
+              retryTimer = window.setTimeout(() => {
+                try { if (ch) supabase.removeChannel(ch); } catch {}
+                channel = createChannel();
+              }, backoff);
+              backoff = Math.min(backoff * 2, 30000);
+            }
+          });
+        return ch;
+      }
+
+      channel = createChannel();
     };
 
-    let channel: any;
-    setupRealtime().then(ch => { channel = ch; });
+    setup();
 
     return () => {
+      if (retryTimer) window.clearTimeout(retryTimer);
       if (channel) {
-        supabase.removeChannel(channel);
+        try { supabase.removeChannel(channel); } catch {}
       }
     };
   }, []);
