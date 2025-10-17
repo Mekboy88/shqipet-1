@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import ProfileSettingsSidebar from '@/components/profile/settings/ProfileSettingsSidebar';
 import ProfileSettingsContent from '@/components/profile/settings/ProfileSettingsContent';
 import ResponsiveAppLayout from '@/components/layout/ResponsiveAppLayout';
-import { Helmet } from 'react-helmet-async';
 import { useProfileSettings } from '@/contexts/ProfileSettingsContext';
 
 
@@ -54,11 +53,6 @@ const ProfileSettings: React.FC = () => {
 
   return (
     <ResponsiveAppLayout>
-      <Helmet>
-        <title>Profile Settings - Privacy</title>
-        <meta name="description" content="Manage your profile and privacy settings." />
-        <link rel="canonical" href="/profile/settings" />
-      </Helmet>
       <main className="py-8">
         <section aria-labelledby="settings-heading" className="w-full">
           <h1 id="settings-heading" className="sr-only">Profile Settings</h1>
