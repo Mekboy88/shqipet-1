@@ -151,38 +151,21 @@ const AdminUserDashboard = () => {
       console.log('🔍 [AdminUserDashboard] Current route:', window.location.pathname);
       setLoading(true);
       
-      console.log('📊 Fetching visible users via secure RPC...');
-      // Use SECURITY DEFINER RPCs to bypass RLS safely for visibility rules
-      const { data: publicProfiles, error: publicErr } = await supabase
-        .rpc('get_public_profiles', { limit_count: 200, offset_count: 0 });
+      console.log('📊 Fetching visible users via edge function...');
+      const { data: efData, error: efError } = await supabase.functions.invoke('admin_list_visible_users', {
+        body: { limit: 100, offset: 0, search: '' }
+      });
 
-      if (publicErr) {
-        console.error('❌ get_public_profiles error:', publicErr);
+      if (efError) {
+        console.error('❌ Edge function error:', efError);
         toast.error('Failed to load users');
         setUsers([]);
         return;
       }
 
-      const ids = (publicProfiles || []).map((p: any) => p.id);
-      console.log('📊 Visible IDs from RPC:', ids.length);
-
-      // Fetch full details per profile via secure RPC (platform owner gets sensitive fields)
-      const fullProfiles = await Promise.all(
-        ids.map(async (pid: string) => {
-          const { data: rows, error } = await supabase.rpc('get_full_profile', { profile_id: pid });
-          if (error) {
-            console.warn('⚠️ get_full_profile error for', pid, error.message);
-            return null;
-          }
-          const row = Array.isArray(rows) ? rows[0] : rows;
-          return row || null;
-        })
-      );
-
-      let profiles = (fullProfiles.filter(Boolean) as any[])
-        .filter(p => p.is_hidden === false && p.primary_role !== 'platform_owner_root');
-
-      console.log('📊 Profiles after secure filtering:', profiles.length);
+      const profiles = (efData?.users || []) as any[];
+      const totalCount = efData?.count ?? profiles.length;
+      console.log('📊 Edge function returned profiles:', profiles.length, 'count:', totalCount);
       
       if (!profiles || profiles.length === 0) {
         console.log('⚠️ No visible users found (hidden/platform owner filtered).');
