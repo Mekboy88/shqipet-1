@@ -10,7 +10,7 @@
 
 /* Re-enable transform transition for the theme toggle knob */
 .theme-toggle-knob {
-  transition: transform 400ms ease-in-out !important;
+  transition: transform 320ms ease-in-out !important;
   will-change: transform;
 }
 
