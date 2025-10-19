@@ -84,7 +84,6 @@ Deno.serve(async (req: Request) => {
         { count: "exact" }
       )
       .eq("is_hidden", false)
-      .neq("primary_role", "platform_owner_root")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
