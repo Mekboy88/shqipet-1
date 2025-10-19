@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 export type ThemeMode = 'light-blue' | 'red' | 'milky-honey' | 'minimal-white' | 'sky-light-blue' | 'pure-clean-white' | 'soft-pink' | 'warning-red-gradient' | 'pure-white' | 'coral-reef' | 'sage-green' | 'amethyst' | 'peach-cream' | 'rose-quartz' | 'seafoam' | 'honey-amber' | 'steel-blue' | 'snow-white' | 'warning-red' | 'twilight-indigo' | 'notification-clean' | 'crimson-feed' | 'custom';
+export type DarkMode = 'light' | 'dark';
 
 export interface CustomTheme {
   id: string;
@@ -37,6 +38,9 @@ interface ThemeContextType {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
+  darkMode: DarkMode;
+  setDarkMode: (mode: DarkMode) => void;
+  toggleDarkMode: () => void;
   customThemes: CustomTheme[];
   saveCustomTheme: (theme: CustomTheme) => void;
   deleteCustomTheme: (id: string) => void;
@@ -77,6 +81,7 @@ const themeOrder: ThemeMode[] = ['light-blue', 'red', 'milky-honey', 'minimal-wh
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<ThemeMode>('light-blue');
+  const [darkMode, setDarkModeState] = useState<DarkMode>('light');
   const [customThemes, setCustomThemes] = useState<CustomTheme[]>([]);
   const [wallpaper, setWallpaperState] = useState<WallpaperSettings>({
     type: 'none',
@@ -88,6 +93,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const savedTheme = localStorage.getItem('shqipet-theme') as ThemeMode;
     if (savedTheme && themes[savedTheme]) {
       setThemeState(savedTheme);
+    }
+    
+    const savedDarkMode = localStorage.getItem('shqipet-dark-mode') as DarkMode;
+    if (savedDarkMode) {
+      setDarkModeState(savedDarkMode);
     }
     
     const savedCustomThemes = localStorage.getItem('shqipet-custom-themes');
@@ -109,6 +119,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
+  // Apply dark mode class to document root
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   const setTheme = useCallback((newTheme: ThemeMode) => {
     setThemeState(newTheme);
     localStorage.setItem('shqipet-theme', newTheme);
@@ -119,6 +139,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const nextIndex = (currentIndex + 1) % themeOrder.length;
     setTheme(themeOrder[nextIndex]);
   }, [theme, setTheme]);
+
+  const setDarkMode = useCallback((mode: DarkMode) => {
+    setDarkModeState(mode);
+    localStorage.setItem('shqipet-dark-mode', mode);
+  }, []);
+
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(darkMode === 'light' ? 'dark' : 'light');
+  }, [darkMode, setDarkMode]);
 
   const saveCustomTheme = useCallback((customTheme: CustomTheme) => {
     setCustomThemes(prev => {
@@ -156,6 +185,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       theme, 
       setTheme, 
       toggleTheme,
+      darkMode,
+      setDarkMode,
+      toggleDarkMode,
       customThemes,
       saveCustomTheme,
       deleteCustomTheme,
