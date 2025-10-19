@@ -59,11 +59,11 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
               className={`absolute left-1 h-6 w-6 rounded-full bg-white/30 shadow-lg transform-gpu will-change-transform transition-transform ease-linear ${
                 isDarkMode ? 'translate-x-8' : 'translate-x-0'
               }`}
-              style={{ transition: 'transform 2000ms linear' }}
+              style={{ transition: 'transform 3000ms linear' }}
             />
             
             <button 
-              onClick={() => setDarkMode('light')}
+              onClick={(e) => { e.stopPropagation(); setDarkMode('light'); }}
               className="absolute left-1 z-10 flex items-center justify-center h-6 w-6 rounded-full transition-all duration-300"
               style={{ color: isDarkMode ? 'hsl(60 100% 50%)' : '#ffffff' }}
             >
@@ -72,7 +72,7 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
               </svg>
             </button>
             <button 
-              onClick={() => setDarkMode('dark')}
+              onClick={(e) => { e.stopPropagation(); setDarkMode('dark'); }}
               className="absolute right-1 z-10 flex items-center justify-center h-6 w-6 rounded-full transition-all duration-300 text-gray-600"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" transform="matrix(-1, 0, 0, 1, 0, 0)">
