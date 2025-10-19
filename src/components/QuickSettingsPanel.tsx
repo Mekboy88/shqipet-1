@@ -47,12 +47,19 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
               <p className="text-sm font-medium">Theme</p>
               <p className="text-xs text-muted-foreground">Choose between light and dark theme</p>
             </div>
-          <div className={`relative flex items-center w-16 h-8 rounded-full transition-colors duration-300 ${isDarkMode ? 'bg-slate-600' : 'bg-blue-500'}`}>
+          <div 
+            onClick={() => setDarkMode(isDarkMode ? 'light' : 'dark')}
+            role="button"
+            aria-label="Toggle theme"
+            tabIndex={0}
+            className={`relative flex items-center w-16 h-8 rounded-full cursor-pointer select-none transition-colors duration-300 ${isDarkMode ? 'bg-slate-600' : 'bg-blue-500'}`}
+          >
             {/* Sliding indicator */}
             <div 
-              className={`absolute left-1 h-6 w-6 rounded-full bg-white/30 shadow-lg will-change-transform transition-transform duration-[2000ms] ease-linear ${
+              className={`absolute left-1 h-6 w-6 rounded-full bg-white/30 shadow-lg transform-gpu will-change-transform transition-transform ease-linear ${
                 isDarkMode ? 'translate-x-8' : 'translate-x-0'
               }`}
+              style={{ transition: 'transform 2000ms linear' }}
             />
             
             <button 
