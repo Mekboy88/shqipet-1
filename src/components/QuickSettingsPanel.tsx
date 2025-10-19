@@ -47,11 +47,11 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
               <p className="text-sm font-medium">Theme</p>
               <p className="text-xs text-muted-foreground">Choose between light and dark theme</p>
             </div>
-          <div className={`relative flex items-center w-16 h-8 rounded-full transition-all duration-300 ${isDarkMode ? 'bg-slate-600' : 'bg-blue-500'}`}>
+          <div className={`relative flex items-center w-16 h-8 rounded-full transition-colors duration-300 ${isDarkMode ? 'bg-slate-600' : 'bg-blue-500'}`}>
             {/* Sliding indicator */}
             <div 
-              className={`absolute left-1 h-6 w-6 rounded-full bg-white/30 shadow-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                isDarkMode ? 'translate-x-9' : 'translate-x-0'
+              className={`absolute h-6 w-6 rounded-full bg-white/30 shadow-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                isDarkMode ? 'translate-x-9' : 'translate-x-1'
               }`}
             />
             
