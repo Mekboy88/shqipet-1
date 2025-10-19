@@ -51,7 +51,7 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
             {/* Sliding indicator */}
             <div 
               className={`absolute h-6 w-6 rounded-full bg-white/30 shadow-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                isDarkMode ? 'translate-x-9' : 'translate-x-0'
+                isDarkMode ? 'translate-x-8' : 'translate-x-1'
               }`}
             />
             
