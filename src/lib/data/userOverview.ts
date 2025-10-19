@@ -353,131 +353,61 @@ export const useAdminUsers = (filters?: UserOverviewFilters) => {
       console.log('🔍 [useAdminUsers] Current route:', window.location.pathname);
       
       try {
-        // First, get all profiles with proper select
-        let profileQuery = supabase
-          .from('profiles')
-          .select(`
-            id,
-            user_id,
-            auth_user_id,
-            email,
-            first_name,
-            last_name,
-            username,
-            phone_number,
-            gender,
-            created_at,
-            updated_at,
-            email_verified,
-            phone_verified,
-            two_factor_enabled,
-            account_status,
-            profile_image_url,
-            nationality,
-            country,
-            timezone,
-            languages,
-            otp_email_pending,
-            otp_phone_pending,
-            primary_role
-          `, { count: 'exact' })
-          .eq('is_hidden', false) // SECURITY: Never show hidden users
-          .neq('primary_role', 'platform_owner_root'); // SECURITY: Never show platform owner
-
-        // Apply filters
-        if (filters?.search) {
-          profileQuery = profileQuery.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,username.ilike.%${filters.search}%`);
-        }
-
-        if (filters?.email_verified !== undefined) {
-          profileQuery = profileQuery.eq('email_verified', filters.email_verified);
-        }
-
-        if (filters?.phone_verified !== undefined) {
-          profileQuery = profileQuery.eq('phone_verified', filters.phone_verified);
-        }
-
-        // Pagination
-        if (filters?.limit) {
-          profileQuery = profileQuery.limit(filters.limit);
-        }
-
-        if (filters?.offset) {
-          profileQuery = profileQuery.range(filters.offset, (filters.offset + (filters.limit || 10)) - 1);
-        }
-
-        // Default ordering
-        profileQuery = profileQuery.order('created_at', { ascending: false });
-
-        const { data: profiles, error: profilesError, count } = await profileQuery;
-
-        if (profilesError) {
-          console.error('❌ Error fetching profiles:', profilesError);
-          throw new Error(`Failed to fetch profiles: ${profilesError.message}`);
-        }
-
-        if (!profiles) {
-          console.log('⚠️ No profiles returned from database');
-          return { data: [], count: 0 };
-        }
-
-        // SECURITY: All filtering now handled at database level for maximum security
-
-        console.log(`✅ Raw profiles fetched: ${profiles.length} profiles (hidden users and platform owner excluded at DB level)`);
-        console.log('📊 Sample profile data:', profiles[0]);
-
-        // Get user roles for all users  
-        const { data: userRoles, error: rolesError } = await supabase
-          .from('user_roles')
-          .select('user_id, role');
-
-        if (rolesError) {
-          console.warn('⚠️ Error fetching user roles (continuing without roles):', rolesError);
-        }
-
-        // Create roles map
-        const rolesMap = new Map<string, string>();
-        userRoles?.forEach(ur => {
-          rolesMap.set(ur.user_id, ur.role);
+        // Use secure backend function that authorizes and bypasses RLS safely
+        const { data: efRes, error: efErr } = await supabase.functions.invoke('admin_list_visible_users', {
+          body: {
+            limit: filters?.limit ?? 50,
+            offset: filters?.offset ?? 0,
+            search: filters?.search ?? ''
+          }
         });
 
-        // Transform profiles to UserOverview format (security filtering already done at DB level)
-        const transformedUsers: UserOverview[] = profiles.map(profile => {
-            const role = rolesMap.get(profile.auth_user_id) || 'user';
-            
-            return {
-            id: profile.id,
-            user_id: profile.auth_user_id, // Use auth_user_id as user_id for consistency
-            first_name: profile.first_name,
-            last_name: profile.last_name,
-            full_name: profile.first_name && profile.last_name ? 
-              `${profile.first_name} ${profile.last_name}` : 
-              profile.first_name || profile.last_name || profile.username || 'User',
-            username: profile.username,
-            email: profile.email,
-            phone: profile.phone_number,
-            phone_number: profile.phone_number,
-            gender: profile.gender,
-            created_at: profile.created_at,
-            email_verified: profile.email_verified || false,
-            phone_verified: profile.phone_verified || false,
-            two_factor_enabled: profile.two_factor_enabled || false,
-            role: role,
-            status: profile.account_status || 'active',
-            profile_image_url: profile.profile_image_url,
-            country: profile.nationality || profile.country,
-            timezone: profile.timezone,
-            languages: profile.languages,
-            otp_email_pending: profile.otp_email_pending || false,
-            otp_phone_pending: profile.otp_phone_pending || false,
-            synced_at: new Date().toISOString()
-          };
-        });
+        if (efErr) {
+          console.error('❌ Error invoking admin_list_visible_users:', efErr);
+          throw new Error(`Failed to list users: ${efErr.message || efErr}`);
+        }
+
+        const list = (efRes?.users ?? []) as any[];
+        const total = efRes?.count ?? list.length;
+
+        if (!list || list.length === 0) {
+          console.log('⚠️ No users returned from edge function');
+          return { data: [], count: total };
+        }
+
+        console.log(`✅ Edge function returned ${list.length} users (server-authorized)`);
+
+        // Transform EF payload to UserOverview format
+        const transformedUsers: UserOverview[] = list.map((u: any) => ({
+          id: u.id,
+          user_id: u.auth_user_id,
+          first_name: u.first_name,
+          last_name: u.last_name,
+          full_name: u.first_name && u.last_name ? `${u.first_name} ${u.last_name}` : (u.username || 'User'),
+          username: u.username,
+          email: u.email,
+          phone: u.phone_number,
+          phone_number: u.phone_number,
+          gender: u.gender,
+          created_at: u.created_at,
+          email_verified: !!u.email_verified,
+          phone_verified: !!u.phone_verified,
+          two_factor_enabled: !!u.two_factor_enabled,
+          role: u.role || u.primary_role || 'user',
+          status: u.account_status || 'active',
+          profile_image_url: u.profile_image_url || u.avatar_url,
+          country: u.nationality || u.country,
+          timezone: u.timezone,
+          languages: u.languages,
+          otp_email_pending: !!u.otp_email_pending,
+          otp_phone_pending: !!u.otp_phone_pending,
+          synced_at: new Date().toISOString()
+        }));
 
         console.log(`✅ Admin users transformed: ${transformedUsers.length} users`);
         console.log('📊 Sample transformed user:', transformedUsers[0]);
-        
-        return { data: transformedUsers, count: count || 0 };
+
+        return { data: transformedUsers, count: total };
         
       } catch (err: any) {
         console.error('❌ Critical error in useAdminUsers:', err);
@@ -511,6 +441,7 @@ export const useAdminUsers = (filters?: UserOverviewFilters) => {
 
     // Create resilient channels for admin view
     const profilesChannelData = supabase.channel('admin-users-profiles');
+    const rolesChannelData = supabase.channel('admin-users-roles');
 
     // Subscribe to profiles changes (affects all users)
     profilesChannelData
@@ -528,8 +459,25 @@ export const useAdminUsers = (filters?: UserOverviewFilters) => {
       )
       .subscribe();
 
+    // Subscribe to user_roles changes
+    rolesChannelData
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_roles'
+        },
+        (payload) => {
+          console.log('📡 Admin user_roles realtime update:', payload);
+          queryClient.invalidateQueries({ queryKey: userOverviewKeys.adminUsers(filters) });
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(profilesChannelData);
+      supabase.removeChannel(rolesChannelData);
     };
   }, [filters, queryClient]);
 

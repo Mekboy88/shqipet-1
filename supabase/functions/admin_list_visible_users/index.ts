@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 interface RequestBody {
@@ -89,8 +90,37 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Query failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Enrich with roles from user_roles (service role bypasses RLS safely)
+    let roleMap: Record<string, string> = {};
+    try {
+      const userIds = (data ?? []).map((u: any) => u.id);
+      if (userIds.length > 0) {
+        const { data: rolesData, error: rolesErr } = await serviceClient
+          .from("user_roles")
+          .select("user_id, role, is_active")
+          .in("user_id", userIds)
+          .eq("is_active", true);
+        if (rolesErr) {
+          console.warn("user_roles query warning:", rolesErr.message);
+        } else if (rolesData) {
+          // Pick highest role per user
+          const weight: Record<string, number> = { platform_owner_root: 6, super_admin: 5, admin: 4, moderator: 3, developer: 2, support: 2, user: 1 };
+          for (const r of rolesData as any[]) {
+            const cur = roleMap[r.user_id];
+            if (!cur || (weight[r.role] ?? 0) > (weight[cur] ?? 0)) {
+              roleMap[r.user_id] = r.role;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to enrich roles:", (e as any)?.message || e);
+    }
+
+    const users = (data ?? []).map((u: any) => ({ ...u, role: roleMap[u.id] || u.primary_role || 'user' }));
+
     return new Response(
-      JSON.stringify({ users: data ?? [], count: count ?? 0 }),
+      JSON.stringify({ users, count: count ?? 0 }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
