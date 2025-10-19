@@ -20,11 +20,20 @@ Deno.serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-      return new Response(JSON.stringify({ error: "Missing server configuration" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!supabaseUrl) {
+      console.error("Missing SUPABASE_URL");
+      return new Response(JSON.stringify({ error: "Server configuration error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (!anonKey) {
+      console.error("Missing SUPABASE_ANON_KEY or SUPABASE_PUBLISHABLE_KEY");
+      return new Response(JSON.stringify({ error: "Server configuration error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (!serviceRoleKey) {
+      console.error("Missing SUPABASE_SERVICE_ROLE_KEY");
+      return new Response(JSON.stringify({ error: "Server configuration error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const authHeader = req.headers.get("Authorization");
@@ -63,13 +72,15 @@ Deno.serve(async (req: Request) => {
     }
 
     // Use service role to bypass RLS safely after authorization
-    const serviceClient = createClient(supabaseUrl, serviceRoleKey);
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
 
     let query = serviceClient
       .from("profiles")
       .select(
         `id, auth_user_id, first_name, last_name, email, username, phone_number,
-         avatar_url, primary_role, is_hidden, account_status, created_at, updated_at`,
+         avatar_url, primary_role, is_hidden, created_at, updated_at`,
         { count: "exact" }
       )
       .eq("is_hidden", false)

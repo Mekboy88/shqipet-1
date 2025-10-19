@@ -4,6 +4,7 @@ import supabase from '@/lib/relaxedSupabase';
 import { toast } from 'sonner';
 import { UserProfile } from '@/types/user';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminUsers } from '@/lib/data/userOverview';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Avatar from '@/components/Avatar';
@@ -40,9 +41,10 @@ const UsersGroupIcon = ({ className }: { className?: string }) => (
 );
 
 const AdminUserDashboard = () => {
-  const { loading: authLoading } = useAuth(); // Get auth loading state
+  const { loading: authLoading } = useAuth();
+  const { users: fetchedUsers, isLoading, error, refreshAdminUsers } = useAdminUsers();
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const loading = isLoading || authLoading;
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -138,170 +140,22 @@ const AdminUserDashboard = () => {
     };
   }, []);
 
-  // Fetch real users from Supabase - try multiple sources
-  const fetchUsers = async () => {
-    // Don't fetch if auth is still loading to prevent double loading states
-    if (authLoading) {
-      console.log('🔍 [AdminUserDashboard] Skipping fetch - auth still loading');
-      return;
-    }
-
-    try {
-      console.log('🔍 [AdminUserDashboard] Starting user fetch process...');
-      console.log('🔍 [AdminUserDashboard] Current route:', window.location.pathname);
-      setLoading(true);
-      
-      console.log('📊 Fetching visible users via edge function...');
-      const { data: efData, error: efError } = await supabase.functions.invoke('admin_list_visible_users', {
-        body: { limit: 100, offset: 0, search: '' }
-      });
-
-      if (efError) {
-        console.error('❌ Edge function error:', efError);
-        toast.error('Failed to load users');
-        setUsers([]);
-        return;
-      }
-
-      const profiles = (efData?.users || []) as any[];
-      const totalCount = efData?.count ?? profiles.length;
-      console.log('📊 Edge function returned profiles:', profiles.length, 'count:', totalCount);
-      
-      if (!profiles || profiles.length === 0) {
-        console.log('⚠️ No visible users found (hidden/platform owner filtered).');
-        setUsers([]);
-        toast.info('No visible users found');
-        return;
-      }
-      
-      // Fetch roles separately since PostgREST cannot join without FK
-      const userIds = profiles
-        .map((u: any) => u.id)
-        .filter(Boolean);
-      // We rely on primary_role synced into profiles via backend trigger
-      const rolesMap: Record<string, string> = {};
-      const platformOwnerIds: Set<string> = new Set(); // no remote roles fetch to avoid RLS issues
-
-      // Helper (kept in case we need local comparisons later)
-      function getRoleLevel(roleCode: string): number {
-        const roleLevels: Record<string, number> = {
-          super_admin: 99,
-          org_admin: 90,
-          access_admin: 85,
-          security_admin: 75,
-          admin: 50,
-          moderator: 25,
-          user: 0
-        };
-        return roleLevels[roleCode] || 0;
-      }
-      
-      // Process the data correctly - filter out platform owners for security
-      const usersToDisplay = (profiles as any[])
-        .filter((user) => {
-          const userId = user.id;
-          // CRITICAL: Hide hidden users and platform owners at the last line of defense
-          if (user.is_hidden === true) {
-            console.log('🚫 [AdminUserDashboard] Filtering out hidden user:', user.email);
-            return false;
-          }
-          // Hide platform owners by profile role AND by roles lookup
-          if (user.primary_role === 'platform_owner_root') {
-            console.log('🚫 [AdminUserDashboard] Filtering out platform owner by primary_role:', user.email);
-            return false;
-          }
-          if (platformOwnerIds.has(userId)) {
-            console.log('🚫 [AdminUserDashboard] Filtering out platform owner by user_roles:', user.email);
-            return false;
-          }
-          return true;
-        })
-        .map((user) => {
-        const userId = user.id;
-        const userRole = rolesMap[userId] || user.primary_role || 'user'; // Use primary_role as fallback
-        
-        return {
-          id: userId,
-          user_id: userId, // For compatibility
-          auth_user_id: userId, // For compatibility
-          profile_id: user.id, // Keep the profile table ID
-            first_name: user.first_name || 'Not set',
-            last_name: user.last_name || 'Not set',
-          email: user.email,
-          phone_number: user.phone_number,
-          username: user.username,
-          avatar_url: user.avatar_url || user.profile_image_url || null,
-          bio: user.bio,
-          location: user.location,
-          website: user.website,
-          created_at: user.created_at,
-          updated_at: user.updated_at,
-          role: userRole,
-          two_factor_enabled: user.two_factor_enabled || false,
-          account_status: user.account_status || 'active',
-          email_verified: true, // Default since we don't have this field
-          phone_verified: !!user.phone_number,
-          last_login: null // We don't have this field in current schema
-        };
-      });
-      
-      console.log('✅ Final users to display:', usersToDisplay.length);
-      console.log('📋 Users with roles:', usersToDisplay.map(u => ({ 
-        id: u.id.substring(0, 8) + '...', 
-        email: u.email,
-        role: u.role 
-       })));
-      
-      console.log(`🔒 Security: Filtered out ${platformOwnerIds.size} platform owner(s) from admin view`);
-      console.log('📊 Final users count for display:', usersToDisplay.length);
-      
-      setUsers(usersToDisplay);
-      
-    } catch (error) {
-      console.error('💥 Fatal error fetching users:', error);
-      toast.error('Failed to fetch users: ' + error.message);
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Set up real-time subscription and initial fetch
+  // Update users when users from hook changes
   useEffect(() => {
-    // Only fetch when auth is loaded
-    if (!authLoading) {
-      fetchUsers();
+    if (fetchedUsers && fetchedUsers.length > 0) {
+      console.log('📊 [AdminUserDashboard] Users updated:', fetchedUsers.length);
+      // Map UserOverview to UserProfile format
+      setUsers(fetchedUsers.map(u => ({
+        ...u,
+        auth_user_id: u.user_id,
+        account_status: u.status || 'active',
+        avatar_url: u.profile_image_url,
+      } as UserProfile)));
+    } else if (!isLoading) {
+      console.log('ℹ️ [AdminUserDashboard] No users to display');
+      setUsers([]);
     }
-    
-    // Set up real-time subscription to profiles table (not profile_settings)
-    console.log('Setting up real-time subscription for profiles...');
-    const channel = supabase
-      .channel('profiles_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          console.log('Real-time update received for profiles:', payload);
-          // Only refetch if auth is loaded
-          if (!authLoading) {
-            fetchUsers();
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('Real-time subscription status:', status);
-      });
-
-    // Cleanup subscription on unmount
-    return () => {
-      console.log('Cleaning up real-time subscription');
-      supabase.removeChannel(channel);
-    };
-  }, [authLoading]); // Depend on authLoading
+  }, [fetchedUsers, isLoading]);
 
   // Activity data for charts
   const activityData = [
@@ -416,7 +270,7 @@ const AdminUserDashboard = () => {
       if (error) throw error;
       
       toast.success(`User ${newStatus === 'active' ? 'activated' : 'suspended'}`);
-      fetchUsers(); // Refresh the data
+      refreshAdminUsers(); // Refresh the data
     } catch (error) {
       console.error('Error updating user status:', error);
       toast.error('Failed to update user status');
@@ -437,7 +291,7 @@ const AdminUserDashboard = () => {
       if (error) throw error;
       
       toast.success(`2FA ${user.two_factor_enabled ? 'disabled' : 'enabled'}`);
-      fetchUsers(); // Refresh the data
+      refreshAdminUsers(); // Refresh the data
     } catch (error) {
       console.error('Error toggling 2FA:', error);
       toast.error('Failed to toggle 2FA');
@@ -456,7 +310,7 @@ const AdminUserDashboard = () => {
         
         toast.success('User deleted successfully');
         closeModal();
-        await fetchUsers(); // Smooth refresh without page reload
+        await refreshAdminUsers(); // Smooth refresh without page reload
       } catch (error) {
         console.error('Error deleting user:', error);
         toast.error('Failed to delete user');
@@ -475,7 +329,7 @@ const AdminUserDashboard = () => {
       
       toast.success('User updated successfully');
       closeModal();
-      await fetchUsers(); // Smooth refresh without page reload
+      await refreshAdminUsers(); // Smooth refresh without page reload
     } catch (error) {
       console.error('Error updating user:', error);
       toast.error('Failed to update user');
@@ -626,7 +480,7 @@ const AdminUserDashboard = () => {
       
       toast.success(`Successfully deleted ${selectedUsers.length} users`);
       setSelectedUsers([]);
-      fetchUsers();
+      refreshAdminUsers();
     } catch (error) {
       console.error('Error deleting users:', error);
       toast.error('Failed to delete users');
@@ -649,7 +503,7 @@ const AdminUserDashboard = () => {
       
       toast.success(`Successfully ${newStatus === 'active' ? 'activated' : 'suspended'} ${selectedUsers.length} users`);
       setSelectedUsers([]);
-      fetchUsers();
+      refreshAdminUsers();
     } catch (error) {
       console.error('Error updating user status:', error);
       toast.error('Failed to update user status');
@@ -683,7 +537,7 @@ const AdminUserDashboard = () => {
       
       toast.success(`Successfully changed role to ${newRole} for ${selectedUsers.length} users`);
       setSelectedUsers([]);
-      fetchUsers();
+      refreshAdminUsers();
     } catch (error) {
       console.error('Error updating user roles:', error);
       toast.error('Failed to update user roles');

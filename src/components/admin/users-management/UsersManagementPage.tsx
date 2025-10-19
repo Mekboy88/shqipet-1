@@ -72,15 +72,15 @@ export default function UsersManagementPage() {
   }, [page, pageSize]);
   
   // Use real-time admin users data with safe error handling
-  const { data: adminUsersData, isLoading, error, refreshAdminUsers } = useAdminUsers(filters);
+  const { users: adminUsers, isLoading, error, refreshAdminUsers } = useAdminUsers(filters);
   
-  const users = adminUsersData?.data || [];
-  const totalCount = adminUsersData?.count || 0;
+  const users = adminUsers || [];
+  const totalCount = users.length;
   const loading = isLoading;
 
   // Add debugging for admin users data
   console.log('🔍 Admin Users Page Debug:', {
-    adminUsersData,
+    adminUsers,
     usersCount: users.length,
     totalCount,
     loading,

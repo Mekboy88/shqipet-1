@@ -20,6 +20,7 @@ if (typeof window !== 'undefined' &&
 export interface UserOverview {
   id: string;
   user_id: string;
+  auth_user_id?: string; // For compatibility with UserProfile
   first_name?: string;
   last_name?: string;
   full_name: string;
@@ -79,209 +80,60 @@ export const useUserOverview = (userId?: string) => {
 
       console.log(`🔍 Fetching user overview with PERFECT verification sync for: ${userId}`);
       
-      // STEP 1: Get auth.users data (SOURCE OF TRUTH for verification)
-      const { data: authUserResponse } = await supabase.auth.admin.getUserById(userId);
-      const authUser = authUserResponse?.user;
-      
-      // STEP 2: Get current user session for additional auth data
-      const { data: currentAuthUser } = await supabase.auth.getUser();
-      
-      // STEP 3: Get profile data
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('auth_user_id', userId)
-        .maybeSingle();
-      
-      // STEP 4: Get profile settings for additional fields (birthday, etc.)
-      const { data: settingsData } = await supabase
-        .from('profile_settings')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      // STEP 5: Get user role from user_roles table
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      // STEP 6: Determine TRUE verification status from auth.users (NEVER FAILS)
-      let emailVerified = false;
-      let phoneVerified = false;
-      let userEmail = '';
-      let userPhone = '';
-
-      if (authUser) {
-        // Use admin API data (100% accurate)
-        emailVerified = !!authUser.email_confirmed_at;
-        phoneVerified = !!authUser.phone_confirmed_at;
-        userEmail = authUser.email || '';
-        userPhone = authUser.phone || '';
-        console.log(`✅ AUTH VERIFICATION STATUS - Email: ${emailVerified}, Phone: ${phoneVerified}`);
-      } else if (currentAuthUser?.user && currentAuthUser.user.id === userId) {
-        // Fallback to current user session
-        emailVerified = !!currentAuthUser.user.email_confirmed_at;
-        phoneVerified = !!currentAuthUser.user.phone_confirmed_at;
-        userEmail = currentAuthUser.user.email || '';
-        userPhone = currentAuthUser.user.phone || '';
-        console.log(`✅ FALLBACK VERIFICATION STATUS - Email: ${emailVerified}, Phone: ${phoneVerified}`);
-      }
-
-      // STEP 7: Sync profiles table with auth verification status
-      if (profileData && (
-        profileData.email_verified !== emailVerified || 
-        profileData.phone_verified !== phoneVerified ||
-        profileData.email !== userEmail ||
-        profileData.phone_number !== userPhone
-      )) {
-        console.log(`🔄 SYNCING profile verification status for user: ${userId}`);
-        
-        // Update profiles table to match auth.users
-        const { error: syncError } = await supabase
-          .from('profiles')
-          .update({
-            email: userEmail,
-            phone_number: userPhone,
-            email_verified: emailVerified,
-            phone_verified: phoneVerified,
-            updated_at: new Date().toISOString()
-          })
-          .eq('auth_user_id', userId);
-        
-        if (!syncError) {
-          console.log(`✅ PROFILE SYNCED with auth verification status`);
-          // Update local profileData
-          profileData.email_verified = emailVerified;
-          profileData.phone_verified = phoneVerified;
-          profileData.email = userEmail;
-          profileData.phone_number = userPhone;
-        } else {
-          console.error('❌ Failed to sync profile verification:', syncError);
-        }
-      }
+        .eq('id', userId)
+        .single();
 
       if (profileError) {
-        console.error('❌ Error fetching user overview:', profileError);
-        // Don't throw error, try to create minimal profile from auth data
+        console.error('❌ Error fetching profile:', profileError);
+        throw profileError;
       }
 
-      // STEP 8: If no profile exists, create one with PERFECT auth sync
-      if (!profileData && (authUser || currentAuthUser?.user)) {
-        console.log(`📝 Creating PERFECT profile with auth sync for user: ${userId}`);
-        
-        const sourceUser = authUser || currentAuthUser?.user;
-        const basicProfile = {
-          id: sourceUser.id,
-          auth_user_id: sourceUser.id,
-          first_name: sourceUser.user_metadata?.first_name || '',
-          last_name: sourceUser.user_metadata?.last_name || '',
-          email: userEmail,
-          username: sourceUser.user_metadata?.username || '',
-          phone_number: userPhone,
-          gender: sourceUser.user_metadata?.gender || settingsData?.gender || '',
-          created_at: sourceUser.created_at,
-          email_verified: emailVerified,
-          phone_verified: phoneVerified,
-          two_factor_enabled: false,
-          profile_image_url: sourceUser.user_metadata?.avatar_url || '',
-          nationality: settingsData?.country || ''
-        };
-
-        // Try to create the profile record
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .upsert({
-            ...basicProfile,
-            user_id: sourceUser.id // Add the required user_id field
-          }, { onConflict: 'auth_user_id' })
-          .select()
-          .single();
-
-        if (!createError && newProfile) {
-          console.log(`✅ PERFECT profile created with auth sync for user: ${userId}`);
-          // Use the newly created profile
-          const data = newProfile;
-          
-          return {
-            id: data.id,
-            user_id: data.auth_user_id,
-            first_name: data.first_name,
-            last_name: data.last_name,
-            full_name: data.first_name && data.last_name ? 
-              `${data.first_name} ${data.last_name}` : 
-              data.username || 'User',
-            username: data.username,
-            email: data.email,
-            phone: data.phone_number,
-            gender: data.gender,
-            created_at: data.created_at,
-            email_verified: emailVerified, // Use auth source of truth
-            phone_verified: phoneVerified, // Use auth source of truth
-            two_factor_enabled: data.two_factor_enabled || false,
-            role: roleData?.role || 'user',
-            status: 'active',
-            profile_image_url: data.profile_image_url,
-            country: data.nationality || settingsData?.country,
-            timezone: settingsData?.timezone,
-            languages: settingsData?.languages,
-            email_verified_at: authUser?.email_confirmed_at || currentAuthUser?.user?.email_confirmed_at,
-            phone_verified_at: authUser?.phone_confirmed_at || currentAuthUser?.user?.phone_confirmed_at,
-            synced_at: new Date().toISOString()
-          } as UserOverview;
-        }
-      }
-
-      if (!profileData) {
-        console.log(`⚠️ No profile found and couldn't create one for user: ${userId}`);
+      if (!profile) {
+        console.warn('⚠️ No profile found for user:', userId);
         return null;
       }
 
-      console.log(`✅ PERFECT user overview fetched for: ${userId}`, profileData);
+      const { data: authUser } = await supabase.auth.getUser();
       
-      // STEP 9: Transform data with GUARANTEED accurate verification status AND all fields
-      const transformedData = {
-        id: profileData.id,
-        user_id: profileData.auth_user_id,
-        first_name: profileData.first_name,
-        last_name: profileData.last_name,
-        full_name: profileData.first_name && profileData.last_name ? 
-          `${profileData.first_name} ${profileData.last_name}` : 
-          profileData.username || 'User',
-        username: profileData.username,
-        email: userEmail || profileData.email, // Use auth email as source of truth
-        phone: userPhone || profileData.phone_number, // Use auth phone as source of truth
-        phone_number: userPhone || profileData.phone_number, // Support both formats
-        gender: profileData.gender || settingsData?.gender,
-        created_at: profileData.created_at,
-        email_verified: emailVerified, // GUARANTEED accurate from auth.users
-        phone_verified: phoneVerified, // GUARANTEED accurate from auth.users
-        two_factor_enabled: profileData.two_factor_enabled || false,
-        role: roleData?.role || 'user', // REAL role from user_roles table
-        birthday: settingsData?.birthday, // REAL birthday from profile_settings
-        status: 'active',
-        profile_image_url: profileData.profile_image_url,
-        country: profileData.nationality || profileData.country || settingsData?.country,
-        timezone: profileData.timezone || settingsData?.timezone,
-        languages: profileData.languages || settingsData?.languages,
-        otp_email_pending: profileData.otp_email_pending || false,
-        otp_phone_pending: profileData.otp_phone_pending || false,
-        email_verified_at: authUser?.email_confirmed_at || currentAuthUser?.user?.email_confirmed_at,
-        phone_verified_at: authUser?.phone_confirmed_at || currentAuthUser?.user?.phone_confirmed_at,
-        last_sign_in_at: authUser?.last_sign_in_at || currentAuthUser?.user?.last_sign_in_at,
-        synced_at: new Date().toISOString()
-      } as UserOverview;
+      const userOverview: UserOverview = {
+        id: profile.id,
+        user_id: profile.id,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        full_name: profile.first_name && profile.last_name 
+          ? `${profile.first_name} ${profile.last_name}` 
+          : (profile.username || 'User'),
+        username: profile.username,
+        email: profile.email,
+        phone: profile.phone_number,
+        phone_number: profile.phone_number,
+        gender: profile.gender,
+        birthday: profile.birthday,
+        created_at: profile.created_at,
+        email_verified: profile.email_verified || false,
+        phone_verified: profile.phone_verified || false,
+        two_factor_enabled: profile.two_factor_enabled || false,
+        role: profile.primary_role || 'user',
+        status: profile.account_status || 'active',
+        last_sign_in_at: authUser?.user?.last_sign_in_at,
+        profile_image_url: profile.avatar_url,
+        country: profile.country,
+        languages: profile.languages,
+        timezone: profile.timezone,
+        otp_email_pending: profile.otp_email_pending,
+        otp_phone_pending: profile.otp_phone_pending,
+        otp_email_expires_at: profile.otp_email_expires_at,
+        otp_phone_expires_at: profile.otp_phone_expires_at,
+        email_verified_at: profile.email_verified_at,
+        phone_verified_at: profile.phone_verified_at,
+        synced_at: new Date().toISOString(),
+      };
 
-      console.log(`✅ PERFECT transformed user overview with guaranteed verification status:`, {
-        userId,
-        email_verified: emailVerified,
-        phone_verified: phoneVerified,
-        email: userEmail,
-        phone: userPhone
-      });
-      
-      return transformedData;
+      console.log('✅ User overview fetched successfully:', userOverview);
+      return userOverview;
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -341,110 +193,72 @@ export const useUserOverview = (userId?: string) => {
 
 /**
  * Hook for fetching admin users list (Admin Users Table)
- * Enhanced with auto-recovery and pagination safety
+ * 100% real-time with database updates
  */
 export const useAdminUsers = (filters?: UserOverviewFilters) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: userOverviewKeys.adminUsers(filters),
-    queryFn: async (): Promise<{ data: UserOverview[]; count: number }> => {
-      console.log('🔍 [useAdminUsers] Fetching admin users with filters:', filters);
-      console.log('🔍 [useAdminUsers] Current route:', window.location.pathname);
+    queryFn: async (): Promise<UserOverview[]> => {
+      console.log('🔍 [useAdminUsers] Fetching users via edge function...');
       
-      try {
-        // Use secure backend function that authorizes and bypasses RLS safely
-        const { data: efRes, error: efErr } = await supabase.functions.invoke('admin_list_visible_users', {
-          body: {
-            limit: filters?.limit ?? 50,
-            offset: filters?.offset ?? 0,
-            search: filters?.search ?? ''
-          }
-        });
+      const { data, error: efError } = await supabase.functions.invoke('admin_list_visible_users', {
+        body: { limit: 1000, offset: 0, search: '' }
+      });
 
-        if (efErr) {
-          console.error('❌ Error invoking admin_list_visible_users:', efErr);
-          throw new Error(`Failed to list users: ${efErr.message || efErr}`);
-        }
-
-        const list = (efRes?.users ?? []) as any[];
-        const total = efRes?.count ?? list.length;
-
-        if (!list || list.length === 0) {
-          console.log('⚠️ No users returned from edge function');
-          return { data: [], count: total };
-        }
-
-        console.log(`✅ Edge function returned ${list.length} users (server-authorized)`);
-
-        // Transform EF payload to UserOverview format
-        const transformedUsers: UserOverview[] = list.map((u: any) => ({
-          id: u.id,
-          user_id: u.auth_user_id,
-          first_name: u.first_name,
-          last_name: u.last_name,
-          full_name: u.first_name && u.last_name ? `${u.first_name} ${u.last_name}` : (u.username || 'User'),
-          username: u.username,
-          email: u.email,
-          phone: u.phone_number,
-          phone_number: u.phone_number,
-          gender: u.gender,
-          created_at: u.created_at,
-          email_verified: !!u.email_verified,
-          phone_verified: !!u.phone_verified,
-          two_factor_enabled: !!u.two_factor_enabled,
-          role: u.role || u.primary_role || 'user',
-          status: u.account_status || 'active',
-          profile_image_url: u.profile_image_url || u.avatar_url,
-          country: u.nationality || u.country,
-          timezone: u.timezone,
-          languages: u.languages,
-          otp_email_pending: !!u.otp_email_pending,
-          otp_phone_pending: !!u.otp_phone_pending,
-          synced_at: new Date().toISOString()
-        }));
-
-        console.log(`✅ Admin users transformed: ${transformedUsers.length} users`);
-        console.log('📊 Sample transformed user:', transformedUsers[0]);
-
-        return { data: transformedUsers, count: total };
-        
-      } catch (err: any) {
-        console.error('❌ Critical error in useAdminUsers:', err);
-        console.error('❌ Error details:', {
-          message: err.message,
-          code: err.code,
-          details: err.details
-        });
-        throw new Error(`Failed to fetch admin users: ${err.message}`);
+      if (efError) {
+        console.error('❌ [useAdminUsers] Edge function error:', efError);
+        toast.error(`Failed to load users: ${efError.message}`);
+        throw efError;
       }
+
+      const profiles = (data?.users || []) as any[];
+      console.log('✅ [useAdminUsers] Loaded', profiles.length, 'users');
+
+      if (profiles.length === 0) {
+        console.log('ℹ️ [useAdminUsers] No visible users (is_hidden=false, not platform_owner)');
+        return [];
+      }
+
+      return profiles.map((user: any) => ({
+        id: user.id,
+        user_id: user.id,
+        auth_user_id: user.id,
+        profile_id: user.id,
+        first_name: user.first_name || 'Not set',
+        last_name: user.last_name || 'Not set',
+        full_name: user.first_name && user.last_name ? 
+          `${user.first_name} ${user.last_name}` : 
+          (user.username || 'User'),
+        username: user.username,
+        email: user.email,
+        phone: user.phone_number,
+        phone_number: user.phone_number,
+        bio: user.bio,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+        role: user.role || user.primary_role || 'user',
+        status: 'active',
+        email_verified: true,
+        phone_verified: !!user.phone_number,
+        two_factor_enabled: false,
+        last_login: null,
+        profile_image_url: user.avatar_url || null,
+        synced_at: new Date().toISOString(),
+      } as UserOverview));
     },
-    staleTime: 0,
     refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-    retry: (failureCount, error: any) => {
-      // Enhanced retry logic for admin resilience
-      if (failureCount >= 3) return false;
-      
-      // Don't retry on auth errors
-      if (error?.code === '42501' || error?.message?.includes('permission')) {
-        return false;
-      }
-      return true;
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 8000)
+    staleTime: 10000, // Consider data stale after 10s
+    refetchInterval: 10000, // Auto-refresh every 10 seconds for faster updates
   });
 
-  // Setup realtime subscriptions for admin view with resilient channels
+  // Set up real-time subscriptions for instant updates
   useEffect(() => {
-    console.log('🔄 Setting up resilient admin users realtime subscriptions');
-
-    // Create resilient channels for admin view
-    const profilesChannelData = supabase.channel('admin-users-profiles');
-    const rolesChannelData = supabase.channel('admin-users-roles');
-
-    // Subscribe to profiles changes (affects all users)
-    profilesChannelData
+    console.log('🔄 [useAdminUsers] Setting up realtime subscriptions...');
+    
+    const profilesChannel = supabase
+      .channel('profiles_admin_changes')
       .on(
         'postgres_changes',
         {
@@ -453,14 +267,16 @@ export const useAdminUsers = (filters?: UserOverviewFilters) => {
           table: 'profiles'
         },
         (payload) => {
-          console.log('📡 Admin profiles realtime update:', payload);
+          console.log('🔔 [useAdminUsers] Profiles change detected:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: userOverviewKeys.adminUsers(filters) });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 [useAdminUsers] Profiles subscription status:', status);
+      });
 
-    // Subscribe to user_roles changes
-    rolesChannelData
+    const rolesChannel = supabase
+      .channel('user_roles_admin_changes')
       .on(
         'postgres_changes',
         {
@@ -469,55 +285,30 @@ export const useAdminUsers = (filters?: UserOverviewFilters) => {
           table: 'user_roles'
         },
         (payload) => {
-          console.log('📡 Admin user_roles realtime update:', payload);
+          console.log('🔔 [useAdminUsers] User roles change detected:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: userOverviewKeys.adminUsers(filters) });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 [useAdminUsers] Roles subscription status:', status);
+      });
 
     return () => {
-      supabase.removeChannel(profilesChannelData);
-      supabase.removeChannel(rolesChannelData);
+      console.log('🧹 [useAdminUsers] Cleaning up realtime subscriptions');
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(rolesChannel);
     };
-  }, [filters, queryClient]);
+  }, [queryClient, filters]);
 
   const refreshAdminUsers = useCallback(async () => {
-    console.log('🔄 Manually refreshing admin users');
+    console.log('🔄 [useAdminUsers] Manual refresh triggered');
     await queryClient.invalidateQueries({ queryKey: userOverviewKeys.adminUsers(filters) });
-  }, [filters, queryClient]);
+  }, [queryClient, filters]);
 
   return {
-    ...query,
-    refreshAdminUsers
+    users: query.data || [],
+    isLoading: query.isLoading,
+    error: query.error as Error | null,
+    refreshAdminUsers,
   };
-};
-
-/**
- * Utility function to invalidate all user overview caches
- */
-export const invalidateUserOverviewCache = (queryClient: any, userId?: string) => {
-  if (userId) {
-    queryClient.invalidateQueries({ queryKey: userOverviewKeys.user(userId) });
-  }
-  queryClient.invalidateQueries({ queryKey: userOverviewKeys.all });
-};
-
-/**
- * Utility function to show sync status in UI
- */
-export const getLastSyncTime = (user: UserOverview): string => {
-  const syncTime = new Date(user.synced_at);
-  const now = new Date();
-  const diffMs = now.getTime() - syncTime.getTime();
-  const diffSeconds = Math.floor(diffMs / 1000);
-  
-  if (diffSeconds < 60) {
-    return 'Synced with database a few seconds ago';
-  } else if (diffSeconds < 3600) {
-    const minutes = Math.floor(diffSeconds / 60);
-    return `Synced with database ${minutes} minute${minutes === 1 ? '' : 's'} ago`;
-  } else {
-    const hours = Math.floor(diffSeconds / 3600);
-    return `Synced with database ${hours} hour${hours === 1 ? '' : 's'} ago`;
-  }
 };
