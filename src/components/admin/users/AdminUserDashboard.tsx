@@ -1138,8 +1138,9 @@ const AdminUserDashboard = () => {
                             </span>
                           </td>
                           <td className="px-3 py-3 border-r border-gray-300">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role || 'user')}`}>
-                              {user.role === 'super_admin' ? 'Super Admin' : 
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${getRoleColor(user.role || 'user')}`}>
+                              {user.role === 'platform_owner_root' ? 'Platform Owner' :
+                               user.role === 'super_admin' ? 'Super Admin' : 
                                user.role === 'admin' ? 'Admin' :
                                user.role === 'moderator' ? 'Moderator' :
                                user.role === 'user' ? 'User' : 
