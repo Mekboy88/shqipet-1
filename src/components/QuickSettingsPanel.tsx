@@ -47,10 +47,10 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
               <p className="text-sm font-medium">Theme</p>
               <p className="text-xs text-muted-foreground">Choose between light and dark theme</p>
             </div>
-          <div className="relative flex items-center gap-0 rounded-full bg-muted p-0.5">
+          <div className={`relative flex items-center gap-0 rounded-full p-0.5 transition-colors ${!isDarkMode ? 'bg-blue-500' : 'bg-slate-700'}`}>
             {/* Sliding indicator */}
             <div 
-              className={`absolute h-7 w-7 rounded-full bg-primary transition-transform duration-300 ease-in-out ${
+              className={`absolute h-7 w-7 rounded-full bg-white/80 backdrop-blur-sm transition-transform duration-300 ease-in-out ${
                 isDarkMode ? 'translate-x-7' : 'translate-x-0'
               }`}
             />
@@ -58,7 +58,7 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
             <button 
               onClick={() => setDarkMode('light')}
               className={`relative z-10 p-1.5 rounded-full transition-colors duration-300 ${
-                !isDarkMode ? 'text-primary-foreground' : 'text-muted-foreground'
+                !isDarkMode ? 'text-blue-600' : 'text-white'
               }`}
             >
               <Sun className="h-4 w-4" />
@@ -66,7 +66,7 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
             <button 
               onClick={() => setDarkMode('dark')}
               className={`relative z-10 p-1.5 rounded-full transition-colors duration-300 ${
-                isDarkMode ? 'text-primary-foreground' : 'text-muted-foreground'
+                isDarkMode ? 'text-slate-700' : 'text-white'
               }`}
             >
               <Moon className="h-4 w-4" />
