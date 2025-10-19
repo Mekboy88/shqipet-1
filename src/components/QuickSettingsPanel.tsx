@@ -47,22 +47,31 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
               <p className="text-sm font-medium">Theme</p>
               <p className="text-xs text-muted-foreground">Choose between light and dark theme</p>
             </div>
-            <div className={`flex items-center gap-1 rounded-full px-0.5 py-0.5 transition-colors ${!isDarkMode ? 'bg-blue-500' : 'bg-slate-700'}`}>
-              <button 
-                onClick={() => setDarkMode('light')}
-                className={`p-1 rounded-full transition-colors ${!isDarkMode ? 'bg-white text-blue-500' : 'text-white'}`}
-              >
-                <Sun className="h-3 w-3" />
-              </button>
-              <button 
-                onClick={() => setDarkMode('dark')}
-                className={`p-1 rounded-full transition-colors ${isDarkMode ? 'bg-white text-slate-700' : 'text-white'}`}
-              >
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5">
-                  <path d="M13.589 21.659c-3.873 1.038-8.517-.545-10.98-3.632a1 1 0 0 1 .751-1.623c3.984-.118 6.662-1.485 8.17-4.098 1.51-2.613 1.354-5.616-.535-9.125a1 1 0 0 1 1.03-1.463c3.904.59 7.597 3.82 8.635 7.694 1.43 5.334-1.737 10.818-7.071 12.247z" fill="currentColor"/>
-                </svg>
-              </button>
-            </div>
+          <div className="relative flex items-center gap-0 rounded-full bg-muted p-0.5">
+            {/* Sliding indicator */}
+            <div 
+              className={`absolute h-7 w-7 rounded-full bg-primary transition-transform duration-300 ease-in-out ${
+                isDarkMode ? 'translate-x-7' : 'translate-x-0'
+              }`}
+            />
+            
+            <button 
+              onClick={() => setDarkMode('light')}
+              className={`relative z-10 p-1.5 rounded-full transition-colors duration-300 ${
+                !isDarkMode ? 'text-primary-foreground' : 'text-muted-foreground'
+              }`}
+            >
+              <Sun className="h-4 w-4" />
+            </button>
+            <button 
+              onClick={() => setDarkMode('dark')}
+              className={`relative z-10 p-1.5 rounded-full transition-colors duration-300 ${
+                isDarkMode ? 'text-primary-foreground' : 'text-muted-foreground'
+              }`}
+            >
+              <Moon className="h-4 w-4" />
+            </button>
+          </div>
           </div>
         </div>
 
