@@ -683,7 +683,6 @@ const AdminUserDashboard = () => {
             <TabButton tabKey="analytics" icon={BarChart3} label="Analytics" />
             <TabButton tabKey="activity" icon={Activity} label="Activity" />
             <TabButton tabKey="reports" icon={FileText} label="Reports" />
-            <TabButton tabKey="settings" icon={Settings} label="Settings" />
           </div>
         </div>
 
