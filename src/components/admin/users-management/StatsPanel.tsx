@@ -40,7 +40,9 @@ export function StatsPanel({ isOpen, onClose, statsType, data }: StatsPanelProps
         // Fetch all profiles for comprehensive analysis
         const { data: allProfiles, error } = await supabase
           .from('profiles')
-          .select('*');
+          .select('*')
+          .eq('is_hidden', false)
+          .neq('primary_role', 'platform_owner_root');
           
         if (error) {
           console.error('❌ REAL-TIME: Error fetching profiles:', error);

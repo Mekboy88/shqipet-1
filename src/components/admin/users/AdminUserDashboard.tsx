@@ -164,10 +164,12 @@ const AdminUserDashboard = () => {
           last_name,
           email,
           primary_role,
+          is_hidden,
           created_at,
           updated_at
         `)
-        .neq('primary_role', 'platform_owner_root') // Hide platform owner at source
+        .eq('is_hidden', false) // SECURITY: Hide hidden users at source
+        .neq('primary_role', 'platform_owner_root') // SECURITY: Never show platform owner
         .order('created_at', { ascending: false });
       
       console.log('📊 Profiles query result:', { 
@@ -286,7 +288,12 @@ const AdminUserDashboard = () => {
       const usersToDisplay = (profiles as any[])
         .filter((user) => {
           const userId = user.id;
-          // CRITICAL: Hide platform owners by profile role AND by roles lookup
+          // CRITICAL: Hide hidden users and platform owners at the last line of defense
+          if (user.is_hidden === true) {
+            console.log('🚫 [AdminUserDashboard] Filtering out hidden user:', user.email);
+            return false;
+          }
+          // Hide platform owners by profile role AND by roles lookup
           if (user.primary_role === 'platform_owner_root') {
             console.log('🚫 [AdminUserDashboard] Filtering out platform owner by primary_role:', user.email);
             return false;

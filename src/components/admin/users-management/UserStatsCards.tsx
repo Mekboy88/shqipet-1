@@ -18,21 +18,27 @@ interface UserStats {
 const fetchUserStats = async (): Promise<UserStats> => {
   try {
     // Get total users count
-    const { count: totalUsers } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true });
+      const { count: totalUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_hidden', false)
+        .neq('primary_role', 'platform_owner_root');
 
     // Get active users count
-    const { count: activeUsers } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('account_status', 'active');
+      const { count: activeUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_hidden', false)
+        .neq('primary_role', 'platform_owner_root')
+        .eq('account_status', 'active');
 
     // Get inactive users count
-    const { count: inactiveUsers } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .in('account_status', ['suspended', 'deactivated']);
+      const { count: inactiveUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_hidden', false)
+        .neq('primary_role', 'platform_owner_root')
+        .in('account_status', ['suspended', 'deactivated']);
 
     return {
       totalUsers: totalUsers || 0,
