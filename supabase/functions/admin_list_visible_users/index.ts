@@ -84,6 +84,7 @@ Deno.serve(async (req: Request) => {
         { count: "exact" }
       )
       .eq("is_hidden", false)
+      .neq("primary_role", "platform_owner_root")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -100,10 +101,13 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Query failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Enforce safety filter as defense-in-depth (even if DB changes)
+    const safeData = (data ?? []).filter((u: any) => u?.primary_role !== 'platform_owner_root' && u?.is_hidden === false);
+
     // Enrich with roles from user_roles (service role bypasses RLS safely)
     let roleMap: Record<string, string> = {};
     try {
-      const userIds = (data ?? []).map((u: any) => u.id);
+      const userIds = safeData.map((u: any) => u.id);
       if (userIds.length > 0) {
         const { data: rolesData, error: rolesErr } = await serviceClient
           .from("user_roles")
@@ -127,10 +131,10 @@ Deno.serve(async (req: Request) => {
       console.warn("Failed to enrich roles:", (e as any)?.message || e);
     }
 
-    const users = (data ?? []).map((u: any) => ({ ...u, role: roleMap[u.id] || u.primary_role || 'user' }));
+    const users = safeData.map((u: any) => ({ ...u, role: roleMap[u.id] || u.primary_role || 'user' }));
 
     return new Response(
-      JSON.stringify({ users, count: count ?? 0 }),
+      JSON.stringify({ users, count: users.length }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
