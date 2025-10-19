@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.track-resource-usage]
 verify_jwt = false
+
+[functions.admin_list_visible_users]
+verify_jwt = true

@@ -1,6 +1,11 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 interface RequestBody {
   limit?: number;
   offset?: number;
@@ -8,18 +13,22 @@ interface RequestBody {
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-      return new Response(JSON.stringify({ error: "Missing server configuration" }), { status: 500 });
+      return new Response(JSON.stringify({ error: "Missing server configuration" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Parse body
@@ -36,7 +45,7 @@ Deno.serve(async (req: Request) => {
     const { data: userRes } = await anonClient.auth.getUser();
     const callerId = userRes?.user?.id;
     if (!callerId) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Authorize: platform owner or admin/super_admin can access
@@ -46,10 +55,10 @@ Deno.serve(async (req: Request) => {
     );
     if (accessErr) {
       console.error("validate_admin_access error:", accessErr.message);
-      return new Response(JSON.stringify({ error: "Access validation failed" }), { status: 403 });
+      return new Response(JSON.stringify({ error: "Access validation failed" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     if (!accessAllowed) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Use service role to bypass RLS safely after authorization
@@ -77,15 +86,15 @@ Deno.serve(async (req: Request) => {
     const { data, error, count } = await query;
     if (error) {
       console.error("profiles query error:", error.message);
-      return new Response(JSON.stringify({ error: "Query failed" }), { status: 500 });
+      return new Response(JSON.stringify({ error: "Query failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(
       JSON.stringify({ users: data ?? [], count: count ?? 0 }),
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
     console.error("admin_list_visible_users fatal:", err?.message || err);
-    return new Response(JSON.stringify({ error: "Server error" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
