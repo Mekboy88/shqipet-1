@@ -8,6 +8,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Re-enable very slow transform transition for the theme toggle knob */
+.theme-toggle-knob {
+  transition: transform 12000ms linear !important;
+  will-change: transform;
+}
+
+
 /* GLOBAL SCROLLBAR ELIMINATION */
 * {
   scrollbar-width: none !important;

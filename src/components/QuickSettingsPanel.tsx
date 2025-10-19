@@ -63,10 +63,9 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
           >
             {/* Sliding indicator */}
             <div 
-              className={`absolute h-6 w-6 rounded-full bg-white/30 shadow-lg ${
+              className={`theme-toggle-knob absolute h-6 w-6 rounded-full bg-white/30 shadow-lg ${
                 isDarkMode ? 'translate-x-9' : 'translate-x-1'
               }`}
-              style={{ transition: 'transform 12000ms linear' }}
             />
             
             <button 
