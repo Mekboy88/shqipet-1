@@ -381,7 +381,8 @@ export const useAdminUsers = (filters?: UserOverviewFilters) => {
             otp_phone_pending,
             primary_role
           `, { count: 'exact' })
-          .neq('primary_role', 'platform_owner_root'); // Hide platform owner at source
+          .eq('is_hidden', false) // SECURITY: Never show hidden users
+          .neq('primary_role', 'platform_owner_root'); // SECURITY: Never show platform owner
 
         // Apply filters
         if (filters?.search) {
@@ -420,13 +421,10 @@ export const useAdminUsers = (filters?: UserOverviewFilters) => {
           return { data: [], count: 0 };
         }
 
-        // SECURITY FIX: Platform owner filtering now handled by database query
-        const filteredProfiles = profiles.filter((profile: any) => {
-          return true;
-        });
+        // SECURITY: All filtering now handled at database level for maximum security
 
-        console.log(`✅ Raw profiles fetched: ${filteredProfiles.length} profiles`);
-        console.log('📊 Sample profile data:', filteredProfiles[0]);
+        console.log(`✅ Raw profiles fetched: ${profiles.length} profiles (hidden users and platform owner excluded at DB level)`);
+        console.log('📊 Sample profile data:', profiles[0]);
 
         // Get user roles for all users  
         const { data: userRoles, error: rolesError } = await supabase
@@ -443,15 +441,8 @@ export const useAdminUsers = (filters?: UserOverviewFilters) => {
           rolesMap.set(ur.user_id, ur.role);
         });
 
-        // Transform profiles to UserOverview format (excluding platform owner for security)
-        const transformedUsers: UserOverview[] = filteredProfiles
-          .filter(profile => {
-            // Double-check filtering: hide platform owners by primary_role and by user_roles lookup
-            if (profile.primary_role === 'platform_owner_root') return false;
-            const role = rolesMap.get(profile.auth_user_id) || 'user';
-            return role !== 'platform_owner_root'; // Hide platform owner for security
-          })
-          .map(profile => {
+        // Transform profiles to UserOverview format (security filtering already done at DB level)
+        const transformedUsers: UserOverview[] = profiles.map(profile => {
             const role = rolesMap.get(profile.auth_user_id) || 'user';
             
             return {

@@ -33,7 +33,9 @@ export const useUsersList = () => {
           last_login,
           created_at,
           primary_role
-        `, { count: 'exact' });
+        `, { count: 'exact' })
+        .eq('is_hidden', false) // SECURITY: Never show hidden users
+        .neq('primary_role', 'platform_owner_root'); // SECURITY: Never show platform owner
       
       // Apply filters
       if (memoizedFilters.search) {
@@ -54,10 +56,8 @@ export const useUsersList = () => {
       
       if (error) throw error;
       
-      // Transform data to match our interface with explicit typing (excluding platform owner for security)
-      const transformedUsers: SimpleUserProfile[] = (data || [])
-        .filter(user => user.primary_role !== 'platform_owner_root') // Hide platform owner for security
-        .map((user: any) => ({
+      // Transform data to match our interface (security filtering already done at DB level)
+      const transformedUsers: SimpleUserProfile[] = (data || []).map((user: any) => ({
         id: user.id as string,
         username: user.username as string | null,
         email: user.email as string | null,

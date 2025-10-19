@@ -56,7 +56,7 @@ export const useUsers = () => {
     try {
       console.log('🔄 Fetching users from Supabase...');
       
-      // First, get all profiles (excluding hidden system users)
+      // First, get all profiles (excluding hidden system users and platform owner)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -67,7 +67,8 @@ export const useUsers = () => {
           updated_at,
           is_hidden
         `)
-        .eq('is_hidden', false)
+        .eq('is_hidden', false) // SECURITY: Never show hidden users
+        .neq('primary_role', 'platform_owner_root') // SECURITY: Never show platform owner
         .order('created_at', { ascending: false });
 
       if (profilesError) {
