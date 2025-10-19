@@ -1042,8 +1042,17 @@ const AdminUserDashboard = () => {
                               <div className="flex-shrink-0 h-8 w-8">
                                 <img 
                                   className="h-8 w-8 rounded-full object-cover" 
-                                  src={user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff`} 
+                                  src={(user.avatar_url && (user.avatar_url.startsWith('http') || user.avatar_url.startsWith('blob:') || user.avatar_url.startsWith('data:'))) 
+                                    ? user.avatar_url 
+                                    : (user.profile_image_url && (user.profile_image_url.startsWith('http') || user.profile_image_url.startsWith('blob:') || user.profile_image_url.startsWith('data:'))) 
+                                      ? user.profile_image_url 
+                                      : (user.profile_photo_url && (user.profile_photo_url.startsWith('http') || user.profile_photo_url.startsWith('blob:') || user.profile_photo_url.startsWith('data:'))) 
+                                        ? user.profile_photo_url 
+                                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff`} 
                                   alt={displayName}
+                                  loading="lazy"
+                                  referrerPolicy="no-referrer"
+                                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff`; }}
                                 />
                               </div>
                               <div className="ml-2">
