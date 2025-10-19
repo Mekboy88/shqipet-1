@@ -49,24 +49,28 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
             </div>
           <div 
             onClick={() => setDarkMode(isDarkMode ? 'light' : 'dark')}
-            className={`relative flex items-center gap-0 rounded-full p-0.5 transition-colors duration-[1200ms] cursor-pointer ${!isDarkMode ? 'bg-blue-500' : 'bg-slate-700'}`}
+            role="switch"
+            aria-checked={isDarkMode}
+            className={`relative flex items-center gap-0 rounded-full p-0.5 transition-colors duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer ${!isDarkMode ? 'bg-blue-500' : 'bg-slate-700'}`}
           >
             {/* Sliding indicator */}
             <div 
-              className={`absolute h-7 w-7 rounded-full bg-white/80 backdrop-blur-sm transition-transform duration-[1200ms] ease-in-out ${
-                isDarkMode ? 'translate-x-7' : 'translate-x-0'
+              className={`absolute h-7 w-7 rounded-full bg-white/70 backdrop-blur-sm shadow-sm ring-1 ring-white/30 transition-transform duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform ${
+                isDarkMode ? 'translate-x-[calc(100%-1.75rem)]' : 'translate-x-0'
               }`}
             />
             
             <button 
-              className={`relative z-10 p-1.5 rounded-full transition-colors duration-[1200ms] ${
+              onClick={(e) => { e.stopPropagation(); setDarkMode('light'); }}
+              className={`relative z-10 p-1.5 rounded-full transition-colors duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
                 !isDarkMode ? 'text-blue-600' : 'text-white'
               }`}
             >
               <Sun className="h-4 w-4" />
             </button>
             <button 
-              className={`relative z-10 p-1.5 rounded-full transition-colors duration-[1200ms] ${
+              onClick={(e) => { e.stopPropagation(); setDarkMode('dark'); }}
+              className={`relative z-10 p-1.5 rounded-full transition-colors duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
                 isDarkMode ? 'text-slate-700' : 'text-white'
               }`}
             >
