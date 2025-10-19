@@ -47,17 +47,17 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
               <p className="text-sm font-medium">Theme</p>
               <p className="text-xs text-muted-foreground">Choose between light and dark theme</p>
             </div>
-          <div className={`relative flex items-center justify-between w-16 h-8 rounded-full px-1 transition-colors duration-300 ${isDarkMode ? 'bg-slate-600' : 'bg-blue-500'}`}>
+          <div className={`relative flex items-center w-16 h-8 rounded-full transition-colors duration-300 ${isDarkMode ? 'bg-slate-600' : 'bg-blue-500'}`}>
             {/* Sliding indicator */}
             <div 
               className={`absolute h-6 w-6 rounded-full bg-white/30 shadow-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                isDarkMode ? 'translate-x-8' : 'translate-x-1'
+                isDarkMode ? 'translate-x-9' : 'translate-x-1'
               }`}
             />
             
             <button 
               onClick={() => setDarkMode('light')}
-              className={`relative z-10 flex items-center justify-center h-6 w-6 rounded-full transition-all duration-300 ${
+              className={`absolute left-1 z-10 flex items-center justify-center h-6 w-6 rounded-full transition-all duration-300 ${
                 isDarkMode ? 'text-gray-600' : 'text-white'
               }`}
             >
@@ -67,7 +67,7 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
             </button>
             <button 
               onClick={() => setDarkMode('dark')}
-              className={`relative z-10 flex items-center justify-center h-6 w-6 rounded-full transition-all duration-300`}
+              className={`absolute right-1 z-10 flex items-center justify-center h-6 w-6 rounded-full transition-all duration-300`}
               style={{ color: isDarkMode ? 'hsl(60 100% 50%)' : '#ffffff' }}
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" transform="matrix(-1, 0, 0, 1, 0, 0)">
