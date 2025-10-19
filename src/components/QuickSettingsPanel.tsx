@@ -47,30 +47,25 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
               <p className="text-sm font-medium">Theme</p>
               <p className="text-xs text-muted-foreground">Choose between light and dark theme</p>
             </div>
-          <div 
-            onClick={() => setDarkMode(isDarkMode ? 'light' : 'dark')}
-            role="switch"
-            aria-checked={isDarkMode}
-            className={`relative flex items-center gap-0 rounded-full p-0.5 transition-colors duration-[3000ms] ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer ${!isDarkMode ? 'bg-blue-500' : 'bg-slate-700'}`}
-          >
+          <div className={`relative flex items-center gap-0 rounded-full p-0.5 transition-colors ${!isDarkMode ? 'bg-blue-500' : 'bg-slate-700'}`}>
             {/* Sliding indicator */}
             <div 
-              className={`absolute left-0 top-0 h-7 w-7 rounded-full bg-white/70 backdrop-blur-sm shadow-sm ring-1 ring-white/30 pointer-events-none transition-transform duration-[3000ms] ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform ${
+              className={`absolute h-7 w-7 rounded-full bg-white/80 backdrop-blur-sm transition-transform duration-300 ease-in-out ${
                 isDarkMode ? 'translate-x-7' : 'translate-x-0'
               }`}
             />
             
             <button 
-              onClick={(e) => { e.stopPropagation(); setDarkMode('light'); }}
-              className={`relative z-10 p-1.5 rounded-full transition-colors duration-[3000ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              onClick={() => setDarkMode('light')}
+              className={`relative z-10 p-1.5 rounded-full transition-colors duration-300 ${
                 !isDarkMode ? 'text-blue-600' : 'text-white'
               }`}
             >
               <Sun className="h-4 w-4" />
             </button>
             <button 
-              onClick={(e) => { e.stopPropagation(); setDarkMode('dark'); }}
-              className={`relative z-10 p-1.5 rounded-full transition-colors duration-[3000ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              onClick={() => setDarkMode('dark')}
+              className={`relative z-10 p-1.5 rounded-full transition-colors duration-300 ${
                 isDarkMode ? 'text-slate-700' : 'text-white'
               }`}
             >
