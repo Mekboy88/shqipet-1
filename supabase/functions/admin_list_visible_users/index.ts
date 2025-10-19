@@ -101,7 +101,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Enforce safety filter as defense-in-depth (even if DB changes)
-    const safeData = (data ?? []).filter((u: any) => u?.primary_role !== 'platform_owner_root' && u?.is_hidden === false);
+    const safeData = (data ?? []).filter((u: any) => u?.is_hidden === false);
 
     // Enrich with roles from user_roles (service role bypasses RLS safely)
     let roleMap: Record<string, string> = {};
