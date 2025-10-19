@@ -151,41 +151,38 @@ const AdminUserDashboard = () => {
       console.log('🔍 [AdminUserDashboard] Current route:', window.location.pathname);
       setLoading(true);
       
-      // Fetch from profiles with proper auth_user_id display
-      console.log('📊 Fetching from profiles table with correct IDs...');
-      
-      // Fetch from profiles table directly with API schema
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          auth_user_id,
-          first_name,
-          last_name,
-          email,
-          primary_role,
-          is_hidden,
-          created_at,
-          updated_at
-        `)
-        .eq('is_hidden', false) // SECURITY: Hide hidden users at source
-        .neq('primary_role', 'platform_owner_root') // SECURITY: Never show platform owner
-        .order('created_at', { ascending: false });
-      
-      console.log('📊 Profiles query result:', { 
-        data: profilesData?.length || 0, 
-        error: profilesError 
-      });
-      
-      // SECURITY FIX: Filter platform owners using database role only
-      let profiles = (profilesData || []) as any[];
-      
-      if (profilesError) {
-        console.error('❌ Profiles table error:', profilesError);
-        toast.error('Failed to fetch users: ' + profilesError.message);
+      console.log('📊 Fetching visible users via secure RPC...');
+      // Use SECURITY DEFINER RPCs to bypass RLS safely for visibility rules
+      const { data: publicProfiles, error: publicErr } = await supabase
+        .rpc('get_public_profiles', { limit_count: 200, offset_count: 0 });
+
+      if (publicErr) {
+        console.error('❌ get_public_profiles error:', publicErr);
+        toast.error('Failed to load users');
         setUsers([]);
         return;
       }
+
+      const ids = (publicProfiles || []).map((p: any) => p.id);
+      console.log('📊 Visible IDs from RPC:', ids.length);
+
+      // Fetch full details per profile via secure RPC (platform owner gets sensitive fields)
+      const fullProfiles = await Promise.all(
+        ids.map(async (pid: string) => {
+          const { data: rows, error } = await supabase.rpc('get_full_profile', { profile_id: pid });
+          if (error) {
+            console.warn('⚠️ get_full_profile error for', pid, error.message);
+            return null;
+          }
+          const row = Array.isArray(rows) ? rows[0] : rows;
+          return row || null;
+        })
+      );
+
+      let profiles = (fullProfiles.filter(Boolean) as any[])
+        .filter(p => p.is_hidden === false && p.primary_role !== 'platform_owner_root');
+
+      console.log('📊 Profiles after secure filtering:', profiles.length);
       
       if (!profiles || profiles.length === 0) {
         console.log('⚠️ No visible users found (hidden/platform owner filtered).');
