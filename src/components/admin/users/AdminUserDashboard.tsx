@@ -1042,7 +1042,7 @@ const AdminUserDashboard = () => {
                               <div className="flex-shrink-0 h-8 w-8">
                                 <img 
                                   className="h-8 w-8 rounded-full object-cover" 
-                                  src={user.profile_image_url || user.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff`} 
+                                  src={user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff`} 
                                   alt={displayName}
                                 />
                               </div>

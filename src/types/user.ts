@@ -21,6 +21,7 @@ export interface UserProfile {
   languages?: string[];
   profile_image_url?: string;
   profile_photo_url?: string; // Alternative property name
+  avatar_url?: string; // Avatar URL from profiles table
   created_at?: string;
   updated_at?: string;
   date_of_birth?: string;
