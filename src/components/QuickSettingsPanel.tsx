@@ -32,9 +32,6 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
           </button>
           <h2 className="text-lg font-semibold">Cilësimet e Shpejta</h2>
         </div>
-        <p className="text-sm text-gray-500 mt-2">
-          Customize your experience and manage your privacy settings to make the app work best for you.
-        </p>
       </div>
 
       <div className="p-3 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100% - 120px)' }}>
