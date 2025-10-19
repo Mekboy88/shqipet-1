@@ -195,63 +195,20 @@ const AdminUserDashboard = () => {
       const userIds = profiles
         .map((u: any) => u.id)
         .filter(Boolean);
+      // We rely on primary_role synced into profiles via backend trigger
+      const rolesMap: Record<string, string> = {};
+      const platformOwnerIds: Set<string> = new Set(); // no remote roles fetch to avoid RLS issues
 
-      let rolesMap: Record<string, string> = {};
-      let platformOwnerIds: Set<string> = new Set();
-      
-      // Fetch platform owner IDs first (public schema) - CRITICAL: Remove API schema
-      const { data: ownerRoles, error: ownerErr } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .eq('is_active', true)
-        .eq('role', 'platform_owner_root');
-
-      if (ownerErr) {
-        console.warn('⚠️ Failed to fetch platform owner roles:', ownerErr.message);
-        console.warn('⚠️ This is expected if using primary_role filtering instead');
-      }
-      platformOwnerIds = new Set((ownerRoles || []).map((r: any) => r.user_id));
-
-      // Fetch roles for the current users to identify highest privilege (still public schema)
-      if (userIds.length) {
-        const { data: rolesData, error: rolesError } = await supabase
-          .from('user_roles')
-          .select('user_id, role')
-          .in('user_id', userIds as any)
-          .eq('is_active', true);
-          
-        if (rolesError) {
-          console.warn('⚠️ user_roles fetch failed - defaulting roles to user:', rolesError.message);
-          console.warn('⚠️ Using primary_role from profiles instead');
-        } else if (rolesData) {
-          // Process roles and identify platform owners
-          for (const r of rolesData as any[]) {
-            const roleCode = (r.role as string) || 'user';
-            const roleLevel = getRoleLevel(roleCode);
-            // Hide platform owners for security
-            if (roleCode === 'platform_owner_root') {
-              platformOwnerIds.add(r.user_id);
-              continue; // Don't add to rolesMap so they don't appear in table
-            }
-            // Map role codes to display names and pick highest privilege role
-            const prev = rolesMap[r.user_id];
-            if (!prev || roleLevel > (getRoleLevel(prev) || 0)) {
-              rolesMap[r.user_id] = roleCode;
-            }
-          }
-        }
-      }
-      
-      // Helper function to get role level for comparison
+      // Helper (kept in case we need local comparisons later)
       function getRoleLevel(roleCode: string): number {
         const roleLevels: Record<string, number> = {
-          'super_admin': 99,
-          'org_admin': 90,
-          'access_admin': 85,
-          'security_admin': 75,
-          'admin': 50,
-          'moderator': 25,
-          'user': 0
+          super_admin: 99,
+          org_admin: 90,
+          access_admin: 85,
+          security_admin: 75,
+          admin: 50,
+          moderator: 25,
+          user: 0
         };
         return roleLevels[roleCode] || 0;
       }
