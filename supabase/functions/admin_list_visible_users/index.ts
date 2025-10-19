@@ -59,16 +59,42 @@ Deno.serve(async (req: Request) => {
     }
 
     // Authorize: platform owner or admin/super_admin can access
-    const { data: accessAllowed, error: accessErr } = await anonClient.rpc(
-      "validate_admin_access",
-      { required_action: "access_admin_portal" }
-    );
-    if (accessErr) {
-      console.error("validate_admin_access error:", accessErr.message);
-      return new Response(JSON.stringify({ error: "Access validation failed" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    let allowed = false;
+
+    try {
+      // Fast path: if caller is platform owner, allow
+      const { data: me, error: meErr } = await anonClient
+        .from('profiles')
+        .select('primary_role')
+        .eq('id', callerId)
+        .maybeSingle();
+      if (!meErr && me?.primary_role === 'platform_owner_root') {
+        allowed = true;
+      }
+    } catch (e) {
+      console.warn('self profile check failed, falling back to RPC:', (e as any)?.message || e);
     }
-    if (!accessAllowed) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    if (!allowed) {
+      const { data: accessAllowed, error: accessErr } = await anonClient.rpc(
+        'validate_admin_access',
+        { required_action: 'access_admin_portal' }
+      );
+      if (accessErr) {
+        console.error('validate_admin_access error:', accessErr.message);
+        return new Response(
+          JSON.stringify({ error: 'Access validation failed' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      allowed = !!accessAllowed;
+    }
+
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Use service role to bypass RLS safely after authorization
