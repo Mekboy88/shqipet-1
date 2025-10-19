@@ -56,10 +56,10 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
           >
             {/* Sliding indicator */}
             <div 
-              className={`absolute left-1 h-6 w-6 rounded-full bg-white/30 shadow-lg transform-gpu will-change-transform transition-transform ease-linear ${
-                isDarkMode ? 'translate-x-8' : 'translate-x-0'
+              className={`absolute left-1 h-6 w-6 rounded-full bg-white/30 shadow-lg transform-gpu will-change-transform pointer-events-none z-0 transition-transform ease-linear ${
+                isDarkMode ? 'translate-x-9' : 'translate-x-0'
               }`}
-              style={{ transition: 'transform 3000ms linear' }}
+              style={{ transition: 'transform 4000ms linear' }}
             />
             
             <button 
