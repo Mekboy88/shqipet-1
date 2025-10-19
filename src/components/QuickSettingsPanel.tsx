@@ -49,24 +49,24 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
             </div>
           <div 
             onClick={() => setDarkMode(isDarkMode ? 'light' : 'dark')}
-            className={`relative flex items-center gap-0 rounded-full p-0.5 transition-colors duration-700 cursor-pointer ${!isDarkMode ? 'bg-blue-500' : 'bg-slate-700'}`}
+            className={`relative flex items-center gap-0 rounded-full p-0.5 transition-colors duration-[1200ms] cursor-pointer ${!isDarkMode ? 'bg-blue-500' : 'bg-slate-700'}`}
           >
             {/* Sliding indicator */}
             <div 
-              className={`absolute h-7 w-7 rounded-full bg-white/80 backdrop-blur-sm transition-transform duration-700 ease-in-out ${
+              className={`absolute h-7 w-7 rounded-full bg-white/80 backdrop-blur-sm transition-transform duration-[1200ms] ease-in-out ${
                 isDarkMode ? 'translate-x-7' : 'translate-x-0'
               }`}
             />
             
             <button 
-              className={`relative z-10 p-1.5 rounded-full transition-colors duration-700 ${
+              className={`relative z-10 p-1.5 rounded-full transition-colors duration-[1200ms] ${
                 !isDarkMode ? 'text-blue-600' : 'text-white'
               }`}
             >
               <Sun className="h-4 w-4" />
             </button>
             <button 
-              className={`relative z-10 p-1.5 rounded-full transition-colors duration-700 ${
+              className={`relative z-10 p-1.5 rounded-full transition-colors duration-[1200ms] ${
                 isDarkMode ? 'text-slate-700' : 'text-white'
               }`}
             >
