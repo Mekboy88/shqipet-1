@@ -188,27 +188,10 @@ const AdminUserDashboard = () => {
       }
       
       if (!profiles || profiles.length === 0) {
-        console.log('⚠️ No users found in profiles table. Falling back to current user profile.');
-        const { data: auth } = await supabase.auth.getUser();
-        const currentId = auth?.user?.id;
-        if (currentId) {
-           const { data: ownProfile, error: ownErr } = await supabase
-              .from('profiles')
-              .select(`
-                id, first_name, last_name, email,
-                created_at, updated_at
-              `)
-              .eq('id', currentId)
-              .maybeSingle();
-          if (!ownErr && ownProfile) {
-            profiles = [ownProfile] as any;
-          }
-        }
-        if (!profiles || profiles.length === 0) {
-          toast.error('No users found in database');
-          setUsers([]);
-          return;
-        }
+        console.log('⚠️ No visible users found (hidden/platform owner filtered).');
+        setUsers([]);
+        toast.info('No visible users found');
+        return;
       }
       
       // Fetch roles separately since PostgREST cannot join without FK
@@ -222,12 +205,9 @@ const AdminUserDashboard = () => {
       // Fetch platform owner IDs first (public schema) - CRITICAL: Remove API schema
       const { data: ownerRoles, error: ownerErr } = await supabase
         .from('user_roles')
-        .select(`
-          user_id,
-          roles!inner(code, level)
-        `)
+        .select('user_id, role')
         .eq('is_active', true)
-        .eq('roles.code', 'platform_owner_root');
+        .eq('role', 'platform_owner_root');
 
       if (ownerErr) {
         console.warn('⚠️ Failed to fetch platform owner roles:', ownerErr.message);
@@ -239,10 +219,7 @@ const AdminUserDashboard = () => {
       if (userIds.length) {
         const { data: rolesData, error: rolesError } = await supabase
           .from('user_roles')
-          .select(`
-            user_id,
-            roles!inner(code, level)
-          `)
+          .select('user_id, role')
           .in('user_id', userIds as any)
           .eq('is_active', true);
           
@@ -252,15 +229,13 @@ const AdminUserDashboard = () => {
         } else if (rolesData) {
           // Process roles and identify platform owners
           for (const r of rolesData as any[]) {
-            const roleCode = r.roles.code;
-            const roleLevel = r.roles.level;
-            
+            const roleCode = (r.role as string) || 'user';
+            const roleLevel = getRoleLevel(roleCode);
             // Hide platform owners for security
             if (roleCode === 'platform_owner_root') {
               platformOwnerIds.add(r.user_id);
               continue; // Don't add to rolesMap so they don't appear in table
             }
-            
             // Map role codes to display names and pick highest privilege role
             const prev = rolesMap[r.user_id];
             if (!prev || roleLevel > (getRoleLevel(prev) || 0)) {
