@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import ChatThemeWrapper from '@/components/chat/ChatThemeWrapper';
 
 interface ChatMessage {
   text: string;
@@ -102,8 +101,7 @@ const ChatWindow: React.FC = () => {
   if (!showChat) return null;
 
   return (
-    <ChatThemeWrapper>
-      <div className="fixed bottom-6 right-6 w-96 h-[550px] bg-white/95 backdrop-blur-3xl border-2 border-gray-200/50 rounded-3xl shadow-2xl overflow-hidden animate-slide-up z-50">
+    <div className="fixed bottom-6 right-6 w-96 h-[550px] bg-white/95 backdrop-blur-3xl border-2 border-gray-200/50 rounded-3xl shadow-2xl overflow-hidden animate-slide-up z-50">
       {/* Header */}
       <div className="p-6 bg-gradient-to-r from-red-500/20 to-rose-500/20 border-b border-gray-200/30">
         <div className="flex justify-between items-center">
@@ -196,8 +194,7 @@ const ChatWindow: React.FC = () => {
           </button>
         </div>
       </div>
-      </div>
-    </ChatThemeWrapper>
+    </div>
   );
 };
 
