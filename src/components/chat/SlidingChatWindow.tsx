@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -428,12 +429,13 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   // Full chat window
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <ChatSettingsProvider>
       <ChatThemeProvider>
-        <ChatThemeWrapper>
-        {/* Chat Window */}
-        <Card className="fixed w-[380px] h-[500px] bg-background border border-border shadow-2xl animate-slide-in-right overflow-hidden pointer-events-auto flex flex-col rounded-xl" style={{ right: '20px', bottom: '20px' }}>
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          <ChatThemeWrapper>
+            {/* Chat Window */}
+            <Card className="fixed w-[380px] h-[500px] bg-background border border-border shadow-2xl animate-slide-in-right overflow-hidden pointer-events-auto flex flex-col rounded-xl" style={{ right: '20px', bottom: '20px', zIndex: 9999 }}>
         {/* Header - Fixed at top */}
         <div className="absolute top-0 left-0 right-0 bg-primary/10 border-b border-border p-4 z-10">
           <div className="flex items-center justify-between">
@@ -795,8 +797,10 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
         )}
       </Card>
       </ChatThemeWrapper>
+    </div>
     </ChatThemeProvider>
-  </ChatSettingsProvider>
+  </ChatSettingsProvider>,
+  document.body
   );
 };
 
