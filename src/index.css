@@ -661,8 +661,17 @@ textarea[placeholder="Type your message..."]:focus-visible {
   }
   
   /* Dark mode for cards, sidebars, and components */
-  .dark .bg-white {
+  .dark .bg-white,
+  .dark .bg-gray-50,
+  .dark .bg-gray-100,
+  .dark .bg-gray-200 {
     background-color: hsl(var(--card)) !important;
+  }
+  
+  .dark .border-gray-100,
+  .dark .border-gray-200,
+  .dark .border-gray-300 {
+    border-color: hsl(var(--border)) !important;
   }
   
   .dark nav,

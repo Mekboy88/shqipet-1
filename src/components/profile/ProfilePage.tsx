@@ -190,7 +190,7 @@ const ProfilePage = React.memo(() => {
 
   return (
     <ProfileSettingsContext.Provider value={contextValue}>
-      <div className="min-h-screen bg-gray-100 border-r border-border">
+      <div className="min-h-screen bg-background border-r border-border">
         <ProfilePageHeader 
           headerRef={profileRefs.headerRef} 
           userData={profileState.userData} 
