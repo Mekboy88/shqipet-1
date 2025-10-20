@@ -17,7 +17,7 @@ const ResponsiveAppLayout: React.FC<ResponsiveAppLayoutProps> = ({
   const isMarketplace = location.pathname === '/marketplace' || location.pathname.startsWith('/marketplace/');
 
   return (
-    <div className={`min-h-screen ${isMarketplace ? 'bg-transparent' : 'bg-gray-100'} w-full ${className}`}>
+    <div className={`min-h-screen ${isMarketplace ? 'bg-transparent' : 'bg-background'} w-full ${className}`}>
       <div className="w-full max-w-none mx-auto">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {children}
