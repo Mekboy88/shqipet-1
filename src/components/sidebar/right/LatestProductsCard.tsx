@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 const products: Array<{ name: string; price: string }> = [];
 
 const ProductImage = () => (
-    <div className="bg-[#fcfaf6] p-4 rounded-t-lg flex flex-col items-center justify-center text-center h-[120px] border-b">
+    <div className="bg-[#fcfaf6] p-4 rounded-none flex flex-col items-center justify-center text-center h-[120px] border-b">
         <p className="font-bold text-sm text-black">Wowonder Developer</p>
         <p className="text-xs text-black">Help & Support</p>
         <div className="flex items-center text-green-500 font-bold my-1">

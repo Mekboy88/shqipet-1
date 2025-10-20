@@ -10,7 +10,7 @@ const proMembers: Array<{ name: string; image: string }> = [];
 const ProMembersCard = () => {
   return (
     <Card className="bg-card rounded-lg border border-border shadow-md w-full">
-        <div className="p-4 bg-muted dark:bg-card rounded-t-lg">
+        <div className="p-4 bg-muted dark:bg-card rounded-none">
             <div className="flex justify-between items-center">
                 <div className="flex items-center">
                     <Crown className="w-5 h-5 text-orange-500 mr-2" />

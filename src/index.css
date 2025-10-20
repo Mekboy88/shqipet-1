@@ -671,12 +671,6 @@ textarea[placeholder="Type your message..."]:focus-visible {
     border-color: hsl(var(--border)) !important;
   }
   
-  /* Make sidebars darker in dark mode */
-  .dark aside,
-  .dark aside .bg-card,
-  .dark aside .rounded-lg {
-    background-color: hsl(var(--sidebar-dark)) !important;
-  }
 }
 
 .logo-text {

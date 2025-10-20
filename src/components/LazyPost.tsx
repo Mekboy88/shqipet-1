@@ -57,7 +57,7 @@ const LazyPost: React.FC<LazyPostProps> = ({
   // Render loading skeleton for posts that haven't loaded yet
   if (!shouldLoad) {
     return (
-      <div ref={postRef} className="bg-background rounded-lg shadow-sm border border-border mb-6 w-full">
+      <div ref={postRef} className="bg-card rounded-lg shadow-sm border border-border mb-6 w-full">
         {/* Post skeleton - lightweight */}
         <div className="p-4">
           <div className="flex items-center space-x-3 mb-3">

@@ -308,7 +308,7 @@ const Post: React.FC<PostProps> = ({
   // If this is a reshared post, show it with special formatting - FULL SIZE
   if (isResharedPost) {
     return (
-      <div className="relative bg-background border border-border rounded-lg p-4 mb-4 w-full" data-post-id={post.id}>
+      <div className="relative bg-card border border-border rounded-lg p-4 mb-4 w-full" data-post-id={post.id}>
         {/* Reshare Header */}
         <div className="flex items-center gap-3 mb-3">
           <Avatar userId={post.user_id} size="sm" />
@@ -380,8 +380,8 @@ const Post: React.FC<PostProps> = ({
   // If this is a video-ONLY post (no photos), render it like the Watch page - FULL SIZE
   if (isVideoOnly && processedVideoUrl && !isResharedPost) {
     return (
-      <div className="relative bg-background rounded-lg shadow-sm border border-border mb-4 w-full" data-post-id={post.id}>
-        <div className="bg-background p-4 rounded-t-lg">
+      <div className="relative bg-card rounded-lg shadow-sm border border-border mb-4 w-full" data-post-id={post.id}>
+        <div className="bg-card p-4 rounded-t-lg">
           <PostHeader 
             user={userWithRealName} 
             time={post.time} 
@@ -469,7 +469,7 @@ const Post: React.FC<PostProps> = ({
 
   // For non-video posts, use the original layout - FULL SIZE
   return (
-    <div className="relative bg-background rounded-lg shadow-sm border border-border mb-6 w-full" data-post-id={post.id}>
+    <div className="relative bg-card rounded-lg shadow-sm border border-border mb-6 w-full" data-post-id={post.id}>
       <PostHeader
         user={userWithRealName} 
         time={post.time} 
