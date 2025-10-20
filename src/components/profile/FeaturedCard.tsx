@@ -16,7 +16,7 @@ const FeaturedCard: React.FC<FeaturedCardProps> = ({ photos }) => {
   if (!photos || photos.length === 0) return null;
   
   return (
-    <Card className="p-4 shadow-sm mb-4 bg-white border border-gray-200">
+    <Card className="p-4 shadow-sm mb-4 bg-card border border-border">
       <div className="flex flex-col space-y-4">
         <div className="flex gap-1 overflow-x-auto pb-2">
           {photos.map(photo => (
@@ -33,7 +33,7 @@ const FeaturedCard: React.FC<FeaturedCardProps> = ({ photos }) => {
           ))}
         </div>
         
-        <Button variant="outline" className="w-full bg-gray-100 hover:bg-gray-200 border-gray-200 text-gray-800 py-2 h-auto font-medium">
+        <Button variant="outline" className="w-full py-2 h-auto font-medium">
           Edit featured
         </Button>
       </div>

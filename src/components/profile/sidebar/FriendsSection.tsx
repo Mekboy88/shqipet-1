@@ -60,7 +60,7 @@ const FriendsSection: React.FC<FriendsSectionProps> = ({
     }
   }, [friends, friendIndex]);
   
-  return <Card className="p-4 shadow-sm bg-white rounded-lg">
+  return <Card className="p-4 shadow-sm bg-card rounded-lg">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-semibold">Shokët</h2>
         <span className="text-blue-500 text-sm font-medium hover:underline cursor-pointer">See All Friends</span>

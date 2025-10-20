@@ -5,7 +5,7 @@ import ProfileScrollContainer from '@/components/profile/layout/ProfileScrollCon
 
 const Profile = () => {
   return (
-    <div className="min-h-screen bg-gray-200 w-full">
+    <div className="min-h-screen bg-background w-full">
       <div className="w-full max-w-none mx-auto">
         <ProfileScrollContainer>
           <ProfilePage />

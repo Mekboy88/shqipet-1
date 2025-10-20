@@ -29,7 +29,7 @@ const FriendsCard: React.FC<FriendsCardProps> = ({
   const displayFriends = limit ? friends.slice(0, limit) : friends;
   
   return (
-    <Card className="p-4 shadow-sm mb-4 bg-white border border-gray-200">
+    <Card className="p-4 shadow-sm mb-4 bg-card border border-border">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-semibold">Friends</h2>
         {showSeeAllButton && (

@@ -65,13 +65,13 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 
   if (loading) {
     return (
-      <Card className="p-4 shadow-sm bg-white rounded-lg">
+      <Card className="p-4 shadow-sm bg-card rounded-lg">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Fotot</h2>
         </div>
         <div className="grid grid-cols-3 gap-1">
           {Array.from({ length: maxPhotosToDisplay }).map((_, i) => (
-            <div key={`loading-${i}`} className="aspect-square rounded-md bg-gray-200 animate-pulse"></div>
+            <div key={`loading-${i}`} className="aspect-square rounded-md bg-muted animate-pulse"></div>
           ))}
         </div>
       </Card>
@@ -79,7 +79,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   }
 
   return (
-    <Card className="p-4 shadow-sm bg-white rounded-lg">
+    <Card className="p-4 shadow-sm bg-card rounded-lg">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Fotot</h2>
           {photos.length > 0 && (

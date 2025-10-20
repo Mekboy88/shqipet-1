@@ -22,7 +22,7 @@ const PhotosCard: React.FC<PhotosCardProps> = ({
   const displayPhotos = limit ? photos.slice(0, limit) : photos;
   
   return (
-    <Card className="p-4 shadow-sm mb-4 bg-white border border-gray-200">
+    <Card className="p-4 shadow-sm mb-4 bg-card border border-border">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-xl font-semibold">Photos</h2>
         {showSeeAllButton && (

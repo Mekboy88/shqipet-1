@@ -61,11 +61,11 @@ const FeaturedPhotosSection: React.FC<FeaturedPhotosSectionProps> = ({
   };
 
   return (
-    <Card className="shadow-sm bg-white rounded-lg">
+    <Card className="shadow-sm bg-card rounded-lg">
       <div className="relative">
         {showLeftButton && (
           <button 
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full shadow-md p-1"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-card rounded-full shadow-md p-1"
             onClick={() => scroll('left')}
             aria-label="Scroll left"
           >
@@ -75,7 +75,7 @@ const FeaturedPhotosSection: React.FC<FeaturedPhotosSectionProps> = ({
         
         {showRightButton && (
           <button 
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full shadow-md p-1"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-card rounded-full shadow-md p-1"
             onClick={() => scroll('right')}
             aria-label="Scroll right"
           >
@@ -103,7 +103,7 @@ const FeaturedPhotosSection: React.FC<FeaturedPhotosSectionProps> = ({
       </div>
       
       <div className="px-4 pb-4 pt-1">
-        <Button variant="outline" className="w-full bg-gray-200 hover:bg-gray-300 rounded-md h-12 text-base font-medium">
+        <Button variant="outline" className="w-full rounded-md h-12 text-base font-medium">
           Edit featured
         </Button>
       </div>

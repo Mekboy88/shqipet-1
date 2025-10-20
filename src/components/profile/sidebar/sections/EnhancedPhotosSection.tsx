@@ -26,7 +26,7 @@ const EnhancedPhotosSection: React.FC<EnhancedPhotosSectionProps> = ({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+      <div className="bg-card rounded-lg shadow-sm border border-border p-4 mb-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-800 flex items-center">
             <Camera className="w-5 h-5 mr-2 text-blue-500" />
@@ -35,7 +35,7 @@ const EnhancedPhotosSection: React.FC<EnhancedPhotosSectionProps> = ({
         </div>
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 9 }).map((_, i) => (
-            <div key={`loading-${i}`} className="aspect-square bg-gray-200 animate-pulse rounded-lg"></div>
+            <div key={`loading-${i}`} className="aspect-square bg-muted animate-pulse rounded-lg"></div>
           ))}
         </div>
       </div>
@@ -43,7 +43,7 @@ const EnhancedPhotosSection: React.FC<EnhancedPhotosSectionProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+    <div className="bg-card rounded-lg shadow-sm border border-border p-4 mb-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-gray-800 flex items-center">
           <Camera className="w-5 h-5 mr-2 text-blue-500" />

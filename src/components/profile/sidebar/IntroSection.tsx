@@ -58,7 +58,7 @@ const IntroSection: React.FC<IntroSectionProps> = ({
   const singlePhoto = featuredPhotos.length > 0 ? [featuredPhotos[0]] : [];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-card rounded-xl shadow-sm overflow-hidden">
       {/* Intro section with reduced padding */}
       <div className="p-2.5 py-[18px]">
         <h2 className="text-[18px] font-bold mb-0.5">Intro</h2>
@@ -111,7 +111,7 @@ const IntroSection: React.FC<IntroSectionProps> = ({
       </div>
 
       {/* Featured photos section with single photo and lighter background */}
-      <div className="bg-white relative" style={{ backgroundColor: 'rgba(248, 250, 252, 0.3)' }}>
+      <div className="bg-muted/30 relative">
         {/* Navigation buttons removed since we only have one photo */}
         
         {/* Single photo container with lighter, more transparent styling */}
