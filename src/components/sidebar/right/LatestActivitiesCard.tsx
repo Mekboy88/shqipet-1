@@ -16,7 +16,7 @@ const activities: Array<{
 
 const LatestActivitiesCard = () => {
     return (
-        <Card className="bg-card rounded-lg shadow-md w-full">
+        <Card className="dark:bg-[hsl(0,0%,5%)] bg-card rounded-lg shadow-md w-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
                 <CardTitle className="text-lg font-bold text-gray-700">Latest Activities</CardTitle>
                 <Button variant="ghost" size="icon">

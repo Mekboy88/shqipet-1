@@ -69,7 +69,7 @@ const ProfileSummaryCard = () => {
 
   return (
     <>
-      <Card className="bg-card rounded-lg shadow-md overflow-hidden w-full">
+      <Card className="dark:bg-[hsl(0,0%,5%)] bg-card rounded-lg shadow-md overflow-hidden w-full">
         <div className="relative">
         <NewCoverPhoto height={96} className="rounded-t-lg" />
           {/* Avatar positioned at the bottom of the cover, half out and half in */}

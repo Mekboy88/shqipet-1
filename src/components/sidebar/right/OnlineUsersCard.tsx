@@ -10,7 +10,7 @@ const OnlineUsersIcon = () => (
 
 const OnlineUsersCard = () => {
   return (
-    <Card className="bg-cyan-200 rounded-lg shadow-md w-full">
+    <Card className="dark:bg-[hsl(0,0%,5%)] bg-cyan-200 rounded-lg shadow-md w-full">
       <CardContent className="p-3 flex items-center justify-center space-x-2">
         <OnlineUsersIcon />
         <span className="font-bold text-blue-800">- Online Users</span>

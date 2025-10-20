@@ -22,7 +22,7 @@ const groups: Array<{ name: string; members: string }> = [];
 
 const SuggestedGroupsCard = () => {
   return (
-    <Card className="bg-card rounded-lg shadow-md w-full">
+    <Card className="dark:bg-[hsl(0,0%,5%)] bg-card rounded-lg shadow-md w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
         <h3 className="font-bold text-md">Suggested groups</h3>
         <Button variant="ghost" size="icon">
