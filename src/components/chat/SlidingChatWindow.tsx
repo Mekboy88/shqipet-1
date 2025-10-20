@@ -431,7 +431,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   return (
     <ChatSettingsProvider>
       <ChatThemeProvider>
-        <ChatThemeWrapper className="fixed inset-0 z-50 pointer-events-none">
+        <ChatThemeWrapper>
         {/* Chat Window */}
         <Card className="fixed w-[380px] h-[500px] bg-background border border-border shadow-2xl animate-slide-in-right overflow-hidden pointer-events-auto flex flex-col rounded-xl" style={{ right: '20px', bottom: '20px' }}>
         {/* Header - Fixed at top */}

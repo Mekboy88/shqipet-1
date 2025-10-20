@@ -564,7 +564,7 @@
 }
 
 .chat-theme-scope.theme-crimson-feed {
-  background: linear-gradient(to right, rgba(239, 68, 68, 0.1), rgba(31, 41, 55, 0.1)) !important;
+  background: transparent !important;
 }
 
 .chat-theme-scope.theme-crimson-feed * {
