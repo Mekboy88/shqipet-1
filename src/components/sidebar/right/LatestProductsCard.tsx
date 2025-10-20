@@ -20,7 +20,7 @@ const ProductImage = () => (
 
 const LatestProductsCard = () => {
   return (
-    <Card className="bg-white rounded-lg shadow-md w-full">
+    <Card className="bg-card rounded-lg shadow-md w-full">
       <CardHeader className="p-4 pb-2">
         <CardTitle className="text-lg font-bold text-gray-700">Latest Products</CardTitle>
       </CardHeader>

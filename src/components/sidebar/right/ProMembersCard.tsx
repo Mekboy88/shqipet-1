@@ -9,7 +9,7 @@ const proMembers: Array<{ name: string; image: string }> = [];
 
 const ProMembersCard = () => {
   return (
-    <Card className="bg-white rounded-lg shadow-md w-full">
+    <Card className="bg-card rounded-lg shadow-md w-full">
         <div className="p-4 bg-orange-100 rounded-t-lg">
             <div className="flex justify-between items-center">
                 <div className="flex items-center">

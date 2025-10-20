@@ -73,7 +73,7 @@ const RightSidebarFooter = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
-            className="w-64 bg-white border shadow-lg z-50 max-h-80 overflow-y-auto" 
+            className="w-64 bg-popover border shadow-lg z-50 max-h-80 overflow-y-auto" 
             side={dropDirection === 'up' ? 'top' : 'bottom'}
             align="end"
             sideOffset={4}
@@ -116,7 +116,7 @@ const RightSidebarFooter = () => {
               <ChevronUp className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-48 bg-white" side="top" align="end">
+          <DropdownMenuContent className="w-48 bg-popover" side="top" align="end">
             <DropdownMenuItem asChild>
               <button onClick={(e) => e.preventDefault()} className="w-full cursor-pointer text-left">{t('privacy')} Policy</button>
             </DropdownMenuItem>

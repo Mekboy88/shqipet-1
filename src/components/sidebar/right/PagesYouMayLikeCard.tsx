@@ -5,7 +5,7 @@ import { RefreshCw } from 'lucide-react';
 
 const PagesYouMayLikeCard = () => {
   return (
-    <Card className="bg-white rounded-lg shadow-md w-full">
+    <Card className="bg-card rounded-lg shadow-md w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
         <h3 className="font-bold text-md">Pages you may like</h3>
         <Button variant="ghost" size="icon">

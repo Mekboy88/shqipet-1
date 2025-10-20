@@ -81,10 +81,10 @@ const ProgressivePost: React.FC<ProgressivePostProps> = ({
     return (
       <div 
         ref={postRef}
-        className="bg-white rounded-lg shadow-sm border border-gray-200 mb-3 p-8 text-center"
+        className="bg-card rounded-lg shadow-sm border border-border mb-3 p-8 text-center"
         style={{ minHeight: '200px' }}
       >
-        <div className="text-gray-600 mb-4">
+        <div className="text-muted-foreground mb-4">
           <div className="text-lg mb-2">Something went wrong</div>
           <div className="text-sm">We couldn't load this post</div>
         </div>
@@ -106,7 +106,7 @@ const ProgressivePost: React.FC<ProgressivePostProps> = ({
     return (
       <div 
         ref={postRef}
-        className="bg-white rounded-lg shadow-sm border border-gray-200 mb-3"
+        className="bg-card rounded-lg shadow-sm border border-border mb-3"
         style={{ minHeight: '500px' }} // Facebook post average height
       >
         {/* Header - exactly 48px like Facebook */}

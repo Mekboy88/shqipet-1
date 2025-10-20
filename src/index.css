@@ -256,7 +256,7 @@
     --foreground: 0 0% 100%;
     --card: 0 0% 12%;
     --card-foreground: 0 0% 100%;
-    --popover: 0 0% 10%;
+    --popover: 0 0% 6%;
     --popover-foreground: 0 0% 100%;
     --primary: 0 0% 100%;
     --primary-foreground: 0 0% 10%;
@@ -271,6 +271,8 @@
     --border: 0 0% 20%;
     --input: 0 0% 18%;
     --ring: 0 0% 30%;
+    --sidebar-dark: 0 0% 5%;
+    --navbar-dark: 0 0% 7%;
   }
 
   .theme-coral-reef {
@@ -656,6 +658,24 @@ textarea[placeholder="Type your message..."]:focus-visible {
   .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
   .dark p, .dark span, .dark div, .dark label, .dark button {
     color: hsl(var(--foreground));
+  }
+  
+  /* Dark mode for cards, sidebars, and components */
+  .dark .bg-white {
+    background-color: hsl(var(--card)) !important;
+  }
+  
+  .dark nav,
+  .dark header {
+    background-color: hsl(var(--navbar-dark)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  
+  /* Make sidebars darker in dark mode */
+  .dark aside,
+  .dark aside .bg-card,
+  .dark aside .rounded-lg {
+    background-color: hsl(var(--sidebar-dark)) !important;
   }
 }
 

@@ -32,12 +32,12 @@ const CreatePostCard = () => {
     <>
       <Card 
         data-create-post-card 
-        className="p-4 mb-4 shadow-sm bg-white rounded-2xl cursor-pointer" 
+        className="p-4 mb-4 shadow-sm bg-card rounded-2xl cursor-pointer" 
         onClick={handleOpenCreatePost}
       >
         <div className="flex items-center space-x-3">
           <Avatar size="md" className="h-10 w-10" />
-          <div className="flex-1 bg-gray-100 rounded-lg px-4 py-2.5 text-gray-500 cursor-pointer hover:bg-gray-200 text-left">
+          <div className="flex-1 bg-secondary rounded-lg px-4 py-2.5 text-muted-foreground cursor-pointer hover:bg-secondary/80 text-left">
             Qdo moment është një fillim i ri.......
           </div>
         </div>

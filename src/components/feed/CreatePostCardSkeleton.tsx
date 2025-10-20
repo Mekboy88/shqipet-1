@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 
 const CreatePostCardSkeleton: React.FC = () => {
   return (
-    <Card className="p-4 shadow-sm bg-white rounded-2xl">
+    <Card className="p-4 shadow-sm bg-card rounded-2xl">
       <div className="flex items-center space-x-3">
         <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
         <Skeleton className="h-10 flex-1 rounded-lg" />

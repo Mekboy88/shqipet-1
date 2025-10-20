@@ -144,7 +144,7 @@ const StoryCards: React.FC = () => {
   });
 
   return (
-    <Card className="p-4 mb-4 shadow-sm">
+    <Card className="p-4 mb-4 shadow-sm bg-card">
       <div 
         data-horizontal-scroll="true" 
         className="overflow-x-auto pb-4 -mx-1 px-1"

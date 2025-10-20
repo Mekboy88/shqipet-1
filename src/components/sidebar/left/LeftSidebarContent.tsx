@@ -18,7 +18,7 @@ const LeftSidebarContent: React.FC = () => {
     console.log(`Dropdown clicked: ${item}`);
     setIsDropdownOpen(false);
   };
-  return <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-full overflow-hidden mx-px px-[7px]">
+  return <div className="bg-card rounded-lg border border-border shadow-sm h-full overflow-hidden mx-px px-[7px]">
       <DropdownSection isDropdownOpen={isDropdownOpen} setIsDropdownOpen={setIsDropdownOpen} onDropdownItemClick={handleDropdownItemClick} />
       
       <div className="overflow-y-auto h-full custom-scrollbar">

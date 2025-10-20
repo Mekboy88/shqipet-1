@@ -78,8 +78,8 @@ const UserProfileDropdown: React.FC = () => {
               </PopoverTrigger>
             </TooltipTrigger>
             
-            <PopoverContent className="w-80 p-0 rounded-xl shadow-lg border-none z-[1000]" align="end" sideOffset={12}>
-              <div className="bg-white rounded-xl overflow-hidden text-gray-800 relative">
+            <PopoverContent className="w-80 p-0 rounded-xl shadow-lg border-none z-[1000] bg-popover" align="end" sideOffset={12}>
+              <div className="bg-popover rounded-xl overflow-hidden text-foreground relative">
                 {/* Main content */}
                 <div className={`transition-transform duration-300 ${showQuickSettings ? '-translate-x-full' : 'translate-x-0'}`}>
                   <div onClick={() => handleLinkClick('/profile')} className="group p-3 flex items-center justify-between cursor-pointer transition-colors rounded-t-xl hover:text-red-900 hover:bg-gradient-to-r hover:from-red-200 hover:via-red-400 hover:to-red-600">

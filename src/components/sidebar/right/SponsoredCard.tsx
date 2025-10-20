@@ -13,7 +13,7 @@ interface SponsoredCardProps {
 
 const SponsoredCard: React.FC<SponsoredCardProps> = ({ imgSrc, altText, title, description, link, linkText }) => {
   return (
-    <Card className="bg-white rounded-lg shadow-md w-full">
+    <Card className="bg-card rounded-lg shadow-md w-full">
       <CardHeader className="p-4 pb-2">
         <CardTitle className="text-md font-semibold text-gray-500">Sponsored</CardTitle>
       </CardHeader>
