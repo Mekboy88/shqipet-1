@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from '@/contexts/AuthContext';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
 import { ChatSettingsProvider } from '@/contexts/ChatSettingsContext';
+import { ChatThemeProvider } from '@/contexts/ChatThemeContext';
 import VoiceMessagePlayer from './VoiceMessagePlayer';
 import ConversationsList from './ConversationsList';
 import ChatThemeWrapper from './ChatThemeWrapper';
@@ -429,7 +430,8 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
 
   return (
     <ChatSettingsProvider>
-      <ChatThemeWrapper className="fixed inset-0 z-50 pointer-events-none">
+      <ChatThemeProvider>
+        <ChatThemeWrapper className="fixed inset-0 z-50 pointer-events-none">
         {/* Chat Window */}
         <Card className="fixed w-[380px] h-[500px] bg-background border border-border shadow-2xl animate-slide-in-right overflow-hidden pointer-events-auto flex flex-col rounded-xl" style={{ right: '20px', bottom: '20px' }}>
         {/* Header - Fixed at top */}
@@ -792,7 +794,8 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
           </>
         )}
       </Card>
-    </ChatThemeWrapper>
+      </ChatThemeWrapper>
+    </ChatThemeProvider>
   </ChatSettingsProvider>
   );
 };

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useChatTheme } from '@/contexts/ChatThemeContext';
 import { useChatSettings } from '@/contexts/ChatSettingsContext';
 import CustomThemeCreator from './CustomThemeCreator';
 import WallpaperSettings from './WallpaperSettings';
@@ -140,7 +140,7 @@ const themeOptions: ThemeOption[] = [
 ];
 
 const ChatThemeSettings: React.FC = () => {
-  const { theme, setTheme } = useTheme();
+  const { chatTheme, setChatTheme } = useChatTheme();
   const {
     autoTheme,
     highContrast,
@@ -169,7 +169,7 @@ const ChatThemeSettings: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {themeOptions.map((option) => {
-                const isActive = theme === option.id;
+                const isActive = chatTheme === option.id;
                 
                 return (
                   <Card
@@ -179,7 +179,7 @@ const ChatThemeSettings: React.FC = () => {
                         ? 'transform -translate-y-1 shadow-xl ring-3 ring-blue-400' 
                         : 'shadow-md'
                     } ${option.isWarning ? 'border-2 border-red-300' : ''}`}
-                    onClick={() => setTheme(option.id as any)}
+                    onClick={() => setChatTheme(option.id as any)}
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-2">

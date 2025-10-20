@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useChatTheme } from '@/contexts/ChatThemeContext';
 
 interface ChatThemeWrapperProps {
   children: React.ReactNode;
@@ -7,7 +7,7 @@ interface ChatThemeWrapperProps {
 }
 
 const ChatThemeWrapper: React.FC<ChatThemeWrapperProps> = ({ children, className = '' }) => {
-  const { theme } = useTheme();
+  const { chatTheme } = useChatTheme();
 
   const themeClasses = {
     'coral-reef': 'theme-coral-reef',
@@ -26,7 +26,7 @@ const ChatThemeWrapper: React.FC<ChatThemeWrapperProps> = ({ children, className
   };
 
   return (
-    <div className={`${themeClasses[theme]} ${className}`}>
+    <div className={`${themeClasses[chatTheme] || ''} ${className}`}>
       {children}
     </div>
   );
