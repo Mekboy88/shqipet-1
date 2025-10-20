@@ -78,7 +78,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   onMaximize
 }) => {
   const { user } = useAuth();
-  const { displayName } = useUniversalUser(user?.id);
+  const { displayName, avatarUrl } = useUniversalUser(user?.id);
   
   // View state
   const [currentView, setCurrentView] = useState<'conversations' | 'chat'>('conversations');
@@ -387,7 +387,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
           <div className="p-3">
             <div className="flex items-center gap-2 mb-2">
               <Avatar className="h-8 w-8 ring-2 ring-primary/30">
-                <AvatarImage src="/placeholder.svg" />
+                <AvatarImage src={avatarUrl || "/placeholder.svg"} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">{getInitials(displayName || "User")}</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium text-primary">
@@ -453,7 +453,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                 </Button>
               )}
               <Avatar className="h-10 w-10 ring-2 ring-border">
-                <AvatarImage src={selectedConversation?.avatar || "/placeholder.svg"} />
+                <AvatarImage src={currentView === 'conversations' ? (avatarUrl || "/placeholder.svg") : (selectedConversation?.avatar || "/placeholder.svg")} />
                 <AvatarFallback className="bg-muted text-foreground font-semibold">
                   {getInitials(currentView === 'conversations' ? (displayName || "User") : (selectedConversation?.name || "User"))}
                 </AvatarFallback>
