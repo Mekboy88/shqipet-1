@@ -12,7 +12,7 @@ const SendIcon = () => (
 
 const InviteFriendsCard = () => {
   return (
-    <Card className="dark:bg-[hsl(0,0%,5%)] bg-yellow-100 rounded-lg shadow-md w-full text-center">
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full text-center">
       <CardContent className="p-4">
         <div className="flex justify-center mb-2">
            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 512 512">

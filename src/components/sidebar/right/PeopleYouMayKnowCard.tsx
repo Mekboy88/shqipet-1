@@ -9,7 +9,7 @@ const people: Array<{ name: string; image: string }> = [];
 
 const PeopleYouMayKnowCard = () => {
   return (
-    <Card className="dark:bg-[hsl(0,0%,5%)] bg-card rounded-lg shadow-md w-full">
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg font-bold">People you may know</CardTitle>
         <Button variant="ghost" size="icon">

@@ -16,7 +16,7 @@ const activities: Array<{
 
 const LatestActivitiesCard = () => {
     return (
-        <Card className="dark:bg-[hsl(0,0%,5%)] bg-card rounded-lg shadow-md w-full">
+        <Card className="bg-card rounded-lg border border-border shadow-md w-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
                 <CardTitle className="text-lg font-bold text-gray-700">Latest Activities</CardTitle>
                 <Button variant="ghost" size="icon">
@@ -27,7 +27,7 @@ const LatestActivitiesCard = () => {
                 {activities.length > 0 ? (
                     <ul className="space-y-2">
                         {activities.map((activity, index) => (
-                            <li key={index} className="flex items-center space-x-3 bg-gray-100 p-2 rounded-lg">
+                            <li key={index} className="flex items-center space-x-3 bg-secondary dark:bg-muted/20 p-2 rounded-lg border border-border/50">
                                 <div className="relative">
                                     <Avatar className="w-10 h-10">
                                         <AvatarImage src={activity.avatar} alt={activity.user} />

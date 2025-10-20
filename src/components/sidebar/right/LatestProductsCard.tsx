@@ -20,7 +20,7 @@ const ProductImage = () => (
 
 const LatestProductsCard = () => {
   return (
-    <Card className="dark:bg-[hsl(0,0%,5%)] bg-card rounded-lg shadow-md w-full">
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full">
       <CardHeader className="p-4 pb-2">
         <CardTitle className="text-lg font-bold text-gray-700">Latest Products</CardTitle>
       </CardHeader>
@@ -28,9 +28,9 @@ const LatestProductsCard = () => {
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {products.map((product, index) => (
-              <div key={index} className="border rounded-lg overflow-hidden bg-white">
+              <div key={index} className="border rounded-lg overflow-hidden bg-white dark:bg-card">
                 <ProductImage />
-                <div className="p-2 text-center bg-[#f0f2f5]">
+                <div className="p-2 text-center bg-muted dark:bg-muted/20">
                   <p className="font-semibold truncate text-sm">{product.name}</p>
                   <p className="text-sm text-gray-600 font-bold">{product.price}</p>
                 </div>
