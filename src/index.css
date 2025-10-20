@@ -584,46 +584,46 @@
   }
 }
 
-.theme-crimson-feed {
+.chat-theme-scope.theme-crimson-feed {
   background: linear-gradient(to right, rgba(239, 68, 68, 0.1), rgba(31, 41, 55, 0.1)) !important;
 }
 
-.theme-crimson-feed * {
+.chat-theme-scope.theme-crimson-feed * {
   --background-override: linear-gradient(to right, rgba(239, 68, 68, 0.1), rgba(31, 41, 55, 0.1));
 }
 
-.theme-crimson-feed .bg-background,
-.theme-crimson-feed .bg-card,
-.theme-crimson-feed [class*="bg-background"],
-.theme-crimson-feed [class*="bg-card"] {
+.chat-theme-scope.theme-crimson-feed .bg-background,
+.chat-theme-scope.theme-crimson-feed .bg-card,
+.chat-theme-scope.theme-crimson-feed [class*="bg-background"],
+.chat-theme-scope.theme-crimson-feed [class*="bg-card"] {
   background: white !important;
   background-image: linear-gradient(to right, rgba(239, 68, 68, 0.1), rgba(31, 41, 55, 0.1)) !important;
   border: 1px solid #fecaca !important;
 }
 
-.theme-crimson-feed .border,
-.theme-crimson-feed [class*="border"] {
+.chat-theme-scope.theme-crimson-feed .border,
+.chat-theme-scope.theme-crimson-feed [class*="border"] {
   border-color: #fecaca !important;
 }
 
-.theme-crimson-feed .bg-primary\/10,
-.theme-crimson-feed [class*="bg-primary/10"] {
+.chat-theme-scope.theme-crimson-feed .bg-primary\/10,
+.chat-theme-scope.theme-crimson-feed [class*="bg-primary/10"] {
   background: white !important;
   background-image: linear-gradient(to right, rgba(239, 68, 68, 0.15), rgba(31, 41, 55, 0.15)) !important;
 }
 
-/* Override Input component focus styles globally */
-input.flex.h-10.w-full:focus,
-input.flex.h-10.w-full:focus-visible,
-.theme-crimson-feed input:focus,
-.theme-crimson-feed input:focus-visible,
-.theme-crimson-feed .focus\:ring-1:focus,
-.theme-crimson-feed input[class*="focus:ring"]:focus,
-.theme-crimson-feed input[class*="focus:border"]:focus,
-input[placeholder="Type your message..."]:focus,
-input[placeholder="Type your message..."]:focus-visible,
-textarea[placeholder="Type your message..."]:focus,
-textarea[placeholder="Type your message..."]:focus-visible {
+/* Override Input component focus styles within chat only */
+.chat-theme-scope.theme-crimson-feed input.flex.h-10.w-full:focus,
+.chat-theme-scope.theme-crimson-feed input.flex.h-10.w-full:focus-visible,
+.chat-theme-scope.theme-crimson-feed input:focus,
+.chat-theme-scope.theme-crimson-feed input:focus-visible,
+.chat-theme-scope.theme-crimson-feed .focus\:ring-1:focus,
+.chat-theme-scope.theme-crimson-feed input[class*="focus:ring"]:focus,
+.chat-theme-scope.theme-crimson-feed input[class*="focus:border"]:focus,
+.chat-theme-scope.theme-crimson-feed input[placeholder="Type your message..."]:focus,
+.chat-theme-scope.theme-crimson-feed input[placeholder="Type your message..."]:focus-visible,
+.chat-theme-scope.theme-crimson-feed textarea[placeholder="Type your message..."]:focus,
+.chat-theme-scope.theme-crimson-feed textarea[placeholder="Type your message..."]:focus-visible {
   outline: none !important;
   border: 1px solid hsl(var(--primary) / 0.3) !important;
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15), 0 0 16px hsl(var(--primary) / 0.12), 0 0 25px hsl(var(--primary) / 0.08) !important;

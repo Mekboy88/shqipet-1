@@ -26,7 +26,7 @@ const ChatThemeWrapper: React.FC<ChatThemeWrapperProps> = ({ children, className
   };
 
   return (
-    <div className={`${themeClasses[chatTheme] || ''} ${className}`}>
+    	<div className={`chat-theme-scope ${themeClasses[chatTheme] || ''} ${className}`}>
       {children}
     </div>
   );
