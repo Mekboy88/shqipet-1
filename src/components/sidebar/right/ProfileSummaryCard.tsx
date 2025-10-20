@@ -125,7 +125,7 @@ const ProfileSummaryCard = () => {
                 viewBox="0 0 32 32" 
                 fill="none" 
                 stroke="currentColor" 
-                strokeWidth="2" 
+                strokeWidth="3.5" 
                 strokeLinecap="round" 
                 strokeLinejoin="round"
               >
