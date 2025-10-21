@@ -1,9 +1,46 @@
-import React from 'react';
-import { X, Settings, FileText, Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNotifications } from '@/hooks/security/use-notifications';
+import { useNotificationSettings } from '@/contexts/NotificationSettingsContext';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { 
+  Bell, 
+  X, 
+  CheckCheck, 
+  Filter, 
+  Search,
+  AlertCircle,
+  CheckCircle,
+  Info,
+  AlertTriangle,
+  Trash2,
+  Clock,
+  Settings,
+  AtSign,
+  MessageSquare,
+  UserPlus,
+  MessageCircle,
+  Heart,
+  Share2,
+  Users,
+  Calendar,
+  ShoppingBag,
+  Shield,
+  Check,
+  Eye,
+  EyeOff,
+  Flag,
+  Bookmark,
+  Volume2,
+  VolumeX,
+  ChevronDown,
+  Wifi,
+  WifiOff
+} from 'lucide-react';
 import NotificationSettingsDialog from './NotificationSettingsDialog';
 
 interface NotificationPanelProps {
@@ -12,111 +49,226 @@ interface NotificationPanelProps {
 }
 
 const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = React.useState<'all' | 'mentions' | 'unread'>('all');
-  const [showSettings, setShowSettings] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [showPriorityOnly, setShowPriorityOnly] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [bulkSelectMode, setBulkSelectMode] = useState(false);
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+  const [isConnected, setIsConnected] = useState(true);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [showSettings, setShowSettings] = useState(false);
 
-  
-  const { 
-    notifications: realNotifications, 
-    markAsRead, 
-    markAllAsRead
-  } = useNotifications();
+  const { notifications, isLoading, markAsRead, markAllAsRead } = useNotifications();
+  const { settings, isInQuietHours } = useNotificationSettings();
 
-  // Create mock notifications matching the reference image
-  const mockNotifications = [
-    {
-      id: '1',
-      users: ['Alena King', 'Thomas Partey'],
-      avatars: ['/placeholder.svg', '/placeholder.svg'],
-      action: 'commented in',
-      subject: 'Dashboard V2',
-      date: 'Apr 14',
-      metadata: '21 comments',
-      status: 'unread',
-      type: 'comment'
-    },
-    {
-      id: '2',
-      users: ['Thomas Partey'],
-      avatars: ['/placeholder.svg'],
-      action: 'Invited you to a project',
-      subject: 'NetNest',
-      date: 'Apr 14',
-      metadata: 'Design',
-      status: 'read',
-      type: 'invitation',
-      hasActions: true
-    },
-    {
-      id: '3',
-      users: ['Thomas Partey'],
-      avatars: ['/placeholder.svg'],
-      action: 'added new project',
-      subject: 'NetNest',
-      date: 'Apr 13',
-      metadata: 'Design',
-      status: 'unread',
-      type: 'project'
-    },
-    {
-      id: '4',
-      users: ['Justin Keith'],
-      avatars: ['/placeholder.svg'],
-      action: 'added new project',
-      subject: 'Signature Spark',
-      date: 'Apr 10',
-      metadata: 'Testing',
-      status: 'read',
-      type: 'project'
-    },
-    {
-      id: '5',
-      users: ['Maria Joyce'],
-      avatars: ['/placeholder.svg'],
-      action: 'mentioned you in',
-      subject: 'Pixel Pulse',
-      date: 'Apr 02',
-      metadata: '3 comments',
-      status: 'read',
-      type: 'mention'
-    },
-    {
-      id: '6',
-      users: ['Adam Maccall'],
-      avatars: ['/placeholder.svg'],
-      action: 'shared a file',
-      subject: 'Design Requirements',
-      date: 'Mar 31',
-      metadata: 'Design',
-      status: 'read',
-      type: 'file',
-      file: {
-        name: 'Design_requirements_D2361.pdf',
-        size: '4.2MB',
-        type: 'pdf'
+  // Simulate connection monitoring
+  useEffect(() => {
+    const checkConnection = setInterval(() => {
+      setIsConnected(navigator.onLine);
+    }, 5000);
+    
+    const handleOnline = () => setIsConnected(true);
+    const handleOffline = () => setIsConnected(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      clearInterval(checkConnection);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Group similar notifications
+  const groupedNotifications = useMemo(() => {
+    if (!notifications) return [];
+    
+    const groups: { [key: string]: any[] } = {};
+    const ungrouped: any[] = [];
+    
+    notifications.forEach(notif => {
+      // Group by type and linked_module
+      const groupKey = `${notif.type}_${notif.linked_module || 'none'}`;
+      
+      // Only group certain types
+      if (['like', 'reaction', 'follow', 'mention'].includes(notif.type)) {
+        if (!groups[groupKey]) {
+          groups[groupKey] = [];
+        }
+        groups[groupKey].push(notif);
+      } else {
+        ungrouped.push(notif);
       }
+    });
+    
+    // Convert groups to array format
+    const result: any[] = [];
+    
+    Object.entries(groups).forEach(([key, items]) => {
+      if (items.length > 1) {
+        result.push({
+          isGroup: true,
+          groupKey: key,
+          type: items[0].type,
+          count: items.length,
+          items: items,
+          created_at: items[0].created_at,
+          status: items.some(i => i.status === 'unread') ? 'unread' : 'read'
+        });
+      } else {
+        result.push(items[0]);
+      }
+    });
+    
+    return [...result, ...ungrouped].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [notifications]);
+
+  // Filter notifications based on search and filters
+  const filteredNotifications = useMemo(() => {
+    return groupedNotifications.filter(notification => {
+      // Search filter
+      const matchesSearch = searchQuery === '' || 
+        (notification.isGroup ? 
+          notification.items.some((item: any) => 
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+          ) :
+          notification.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          notification.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      
+      // Unread filter
+      const matchesUnread = !showUnreadOnly || notification.status === 'unread';
+      
+      // Priority filter
+      const matchesPriority = !showPriorityOnly || notification.priority === 'critical' || notification.priority === 'high';
+      
+      // Tab filter
+      const matchesTab = activeTab === 'all' || 
+        (activeTab === 'mentions' && notification.type === 'mention') ||
+        (activeTab === 'messages' && notification.type === 'message') ||
+        (activeTab === 'follows' && (notification.type === 'follow' || notification.type === 'request')) ||
+        (activeTab === 'comments' && (notification.type === 'comment' || notification.type === 'reply')) ||
+        (activeTab === 'reactions' && (notification.type === 'like' || notification.type === 'reaction')) ||
+        (activeTab === 'shares' && notification.type === 'share') ||
+        (activeTab === 'groups' && (notification.type === 'group' || notification.type === 'page')) ||
+        (activeTab === 'events' && notification.type === 'event') ||
+        (activeTab === 'marketplace' && notification.type === 'marketplace') ||
+        (activeTab === 'system' && (notification.type === 'system' || notification.type === 'security'));
+      
+      return matchesSearch && matchesUnread && matchesPriority && matchesTab;
+    });
+  }, [groupedNotifications, searchQuery, showUnreadOnly, showPriorityOnly, activeTab]);
+
+  // Handle selection
+  const toggleSelection = (id: string, index: number, shiftKey: boolean) => {
+    if (shiftKey && lastSelectedIndex !== null) {
+      // Shift-click: select range
+      const start = Math.min(lastSelectedIndex, index);
+      const end = Math.max(lastSelectedIndex, index);
+      const newSelected = new Set(selectedItems);
+      
+      for (let i = start; i <= end; i++) {
+        if (filteredNotifications[i]) {
+          const notifId = filteredNotifications[i].isGroup ? 
+            filteredNotifications[i].groupKey : 
+            filteredNotifications[i].id;
+          newSelected.add(notifId);
+        }
+      }
+      setSelectedItems(newSelected);
+    } else {
+      // Regular click: toggle single item
+      const newSelected = new Set(selectedItems);
+      if (newSelected.has(id)) {
+        newSelected.delete(id);
+      } else {
+        newSelected.add(id);
+      }
+      setSelectedItems(newSelected);
+      setLastSelectedIndex(index);
     }
-  ];
+  };
 
-  const notifications = mockNotifications;
+  const handleMarkSelectedAsRead = () => {
+    selectedItems.forEach(id => {
+      const notification = notifications?.find(n => n.id === id);
+      if (notification && notification.status === 'unread') {
+        markAsRead.mutate(id);
+      }
+    });
+    setSelectedItems(new Set());
+    setBulkSelectMode(false);
+  };
 
-  // Filter notifications based on active tab
-  const filteredNotifications = React.useMemo(() => {
-    if (activeTab === 'mentions') {
-      return notifications.filter(n => n.type === 'mention');
+  const handleClearSelected = () => {
+    // In a real app, this would delete notifications
+    setSelectedItems(new Set());
+    setBulkSelectMode(false);
+  };
+
+  const toggleGroupExpansion = (groupKey: string) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(groupKey)) {
+      newExpanded.delete(groupKey);
+    } else {
+      newExpanded.add(groupKey);
     }
-    if (activeTab === 'unread') {
-      return notifications.filter(n => n.status === 'unread');
+    setExpandedGroups(newExpanded);
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'mention':
+        return <AtSign className="h-5 w-5 text-blue-500" />;
+      case 'message':
+        return <MessageSquare className="h-5 w-5 text-purple-500" />;
+      case 'follow':
+      case 'request':
+        return <UserPlus className="h-5 w-5 text-green-500" />;
+      case 'comment':
+      case 'reply':
+        return <MessageCircle className="h-5 w-5 text-indigo-500" />;
+      case 'like':
+      case 'reaction':
+        return <Heart className="h-5 w-5 text-pink-500" />;
+      case 'share':
+        return <Share2 className="h-5 w-5 text-cyan-500" />;
+      case 'group':
+      case 'page':
+        return <Users className="h-5 w-5 text-orange-500" />;
+      case 'event':
+        return <Calendar className="h-5 w-5 text-teal-500" />;
+      case 'marketplace':
+        return <ShoppingBag className="h-5 w-5 text-amber-500" />;
+      case 'security':
+      case 'system':
+      case 'critical':
+        return <Shield className="h-5 w-5 text-red-500" />;
+      case 'warning':
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+      case 'success':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      default:
+        return <Info className="h-5 w-5 text-blue-500" />;
     }
-    return notifications;
-  }, [notifications, activeTab]);
+  };
 
-  const unreadCount = notifications.filter(n => n.status === 'unread').length;
-
-
-  const handleMarkAllRead = async () => {
-    // Mark all as read logic
-    console.log('Mark all as read');
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (seconds < 60) return `${seconds}s`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d`;
+    return date.toLocaleDateString();
   };
 
   if (!isOpen) return null;
@@ -125,154 +277,365 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 z-40 bg-black/5"
-        onClick={onClose}
+        className="fixed inset-0 bg-black/20 z-40" 
+        onClick={onClose} 
       />
-
+      
       {/* Notification Panel */}
-      <div className="fixed top-14 right-4 w-[588px] max-h-[calc(100vh-80px)] bg-white rounded-lg shadow-2xl z-50 flex flex-col">
+      <div className="fixed top-14 right-4 w-[588px] max-h-[calc(100vh-80px)] bg-background border border-border rounded-lg shadow-2xl z-50 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-3xl font-bold text-gray-900">Notification</h2>
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowSettings(true)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Settings className="h-5 w-5 text-gray-500" />
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="h-5 w-5 text-gray-500" />
-            </button>
+            <Bell className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-bold">Notifications</h2>
+            {!isConnected && (
+              <Badge variant="destructive" className="gap-1">
+                <WifiOff className="h-3 w-3" />
+                Reconnecting...
+              </Badge>
+            )}
           </div>
-        </div>
-
-        {/* Tabs and Actions */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'all' 
-                  ? 'bg-white shadow-sm text-gray-900' 
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSettings(true)}
+              className="h-8 w-8 p-0"
             >
-              View all
-            </button>
-            <button
-              onClick={() => setActiveTab('mentions')}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'mentions' 
-                  ? 'bg-white shadow-sm text-gray-900' 
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setBulkSelectMode(!bulkSelectMode)}
+              className="h-8 px-2"
             >
-              Mentions
-            </button>
-            <button
-              onClick={() => setActiveTab('unread')}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'unread' 
-                  ? 'bg-white shadow-sm text-gray-900' 
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
+              <CheckCheck className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0"
             >
-              Unread ({unreadCount})
-            </button>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-          <button
-            onClick={handleMarkAllRead}
-            className="text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors"
-          >
-            Mark all as read
-          </button>
         </div>
 
-        {/* Notifications List */}
-        <ScrollArea className="flex-1">
-          <div className="p-4 space-y-4">
-            {filteredNotifications.map((notification) => (
-              <div key={notification.id} className="flex items-start gap-4 p-4 hover:bg-gray-50 rounded-lg transition-colors relative">
-                {/* Unread Indicator */}
-                {notification.status === 'unread' && (
-                  <div className="absolute left-2 top-7 w-2 h-2 bg-blue-500 rounded-full" />
-                )}
-                
-                {/* Avatar(s) */}
-                <div className="relative flex-shrink-0">
-                  {notification.avatars.length === 1 ? (
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={notification.avatars[0]} />
-                      <AvatarFallback>{notification.users[0].charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <div className="flex items-center">
-                      <Avatar className="h-12 w-12 border-2 border-white">
-                        <AvatarImage src={notification.avatars[0]} />
-                        <AvatarFallback>{notification.users[0].charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <Avatar className="h-12 w-12 -ml-3 border-2 border-white">
-                        <AvatarImage src={notification.avatars[1]} />
-                        <AvatarFallback>{notification.users[1].charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    </div>
-                  )}
-                </div>
+        {/* Quiet Mode Banner */}
+        {isInQuietHours() && (
+          <div className="bg-amber-50 border-b border-amber-200 p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-amber-800">
+              <VolumeX className="h-4 w-4" />
+              <span>Do Not Disturb is active until {settings.quietHoursEnd}</span>
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 text-xs text-amber-800">
+              End now
+            </Button>
+          </div>
+        )}
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900">
-                    <span className="font-semibold">{notification.users.join(' and ')}</span>
-                    {' '}{notification.action}{' '}
-                    <span className="font-semibold">{notification.subject}</span>
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {notification.date} · {notification.metadata}
-                  </p>
+        {/* Search and Filters */}
+        <div className="p-3 space-y-2 border-b border-border">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search notifications..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-9"
+            />
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {bulkSelectMode && selectedItems.size > 0 ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleMarkSelectedAsRead}
+                  className="h-8 text-xs"
+                >
+                  <Check className="h-3 w-3 mr-1" />
+                  Mark Selected Read ({selectedItems.size})
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearSelected}
+                  className="h-8 text-xs"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Clear Selected
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedItems(new Set());
+                    setBulkSelectMode(false);
+                  }}
+                  className="h-8 text-xs"
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => markAllAsRead.mutate()}
+                  disabled={!notifications?.some(n => n.status === 'unread')}
+                  className="h-8 text-xs"
+                >
+                  <CheckCheck className="h-3 w-3 mr-1" />
+                  Mark All Read
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowUnreadOnly(!showUnreadOnly)}
+                  className={`h-8 text-xs ${showUnreadOnly ? 'bg-primary/10' : ''}`}
+                >
+                  <Filter className="h-3 w-3 mr-1" />
+                  Unread
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPriorityOnly(!showPriorityOnly)}
+                  className={`h-8 text-xs ${showPriorityOnly ? 'bg-primary/10' : ''}`}
+                >
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Priority
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
 
-                  {/* Action Buttons */}
-                  {notification.hasActions && (
-                    <div className="flex items-center gap-3 mt-3">
-                      <Button 
-                        variant="outline" 
-                        className="h-9 px-6 text-sm font-medium border-gray-300 hover:bg-gray-50"
-                      >
-                        Decline
-                      </Button>
-                      <Button 
-                        className="h-9 px-6 text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white"
-                      >
-                        Accept
-                      </Button>
-                    </div>
-                  )}
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+          <div className="border-b border-border overflow-x-auto">
+            <TabsList className="w-full justify-start h-auto p-1 bg-transparent rounded-none">
+              <TabsTrigger value="all" className="text-xs px-3 py-1.5">All</TabsTrigger>
+              <TabsTrigger value="mentions" className="text-xs px-3 py-1.5">@Mentions</TabsTrigger>
+              <TabsTrigger value="messages" className="text-xs px-3 py-1.5">Messages</TabsTrigger>
+              <TabsTrigger value="follows" className="text-xs px-3 py-1.5">Follows</TabsTrigger>
+              <TabsTrigger value="comments" className="text-xs px-3 py-1.5">Comments</TabsTrigger>
+              <TabsTrigger value="reactions" className="text-xs px-3 py-1.5">Reactions</TabsTrigger>
+              <TabsTrigger value="shares" className="text-xs px-3 py-1.5">Shares</TabsTrigger>
+              <TabsTrigger value="groups" className="text-xs px-3 py-1.5">Groups</TabsTrigger>
+              <TabsTrigger value="events" className="text-xs px-3 py-1.5">Events</TabsTrigger>
+              <TabsTrigger value="marketplace" className="text-xs px-3 py-1.5">Market</TabsTrigger>
+              <TabsTrigger value="system" className="text-xs px-3 py-1.5">System</TabsTrigger>
+            </TabsList>
+          </div>
 
-                  {/* File Attachment */}
-                  {notification.file && (
-                    <div className="flex items-center justify-between p-4 mt-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-12 bg-red-500 rounded flex items-center justify-center">
-                          <FileText className="h-6 w-6 text-white" />
+          {/* Notifications List */}
+          <TabsContent value={activeTab} className="flex-1 m-0 overflow-hidden">
+            <ScrollArea className="h-[calc(100vh-340px)]">
+              <div className="p-3 space-y-2">
+                {isLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Loading notifications...
+                  </div>
+                ) : filteredNotifications.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No notifications found
+                  </div>
+                ) : (
+                  filteredNotifications.map((notification, index) => {
+                    const notifId = notification.isGroup ? notification.groupKey : notification.id;
+                    const isSelected = selectedItems.has(notifId);
+                    const isExpanded = expandedGroups.has(notifId);
+                    
+                    if (notification.isGroup) {
+                      return (
+                        <div key={notifId} className="space-y-1">
+                          <div
+                            className={`p-3 rounded-lg border transition-all ${
+                              notification.status === 'unread'
+                                ? 'bg-primary/5 border-primary/20'
+                                : 'bg-background border-border'
+                            } hover:shadow-sm ${isSelected ? 'ring-2 ring-primary' : ''}`}
+                          >
+                            <div className="flex items-start gap-2">
+                              {bulkSelectMode && (
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={() => toggleSelection(notifId, index, false)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleSelection(notifId, index, (e as any).shiftKey);
+                                  }}
+                                  className="mt-1"
+                                />
+                              )}
+                              <div className="flex-shrink-0 mt-0.5">
+                                {getNotificationIcon(notification.type)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 mb-1">
+                                  <div className="flex items-center gap-2">
+                                    <h3 className="font-semibold text-sm">
+                                      {notification.count} new {notification.type}s
+                                    </h3>
+                                    {notification.status === 'unread' && (
+                                      <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {getTimeAgo(notification.created_at)}
+                                  </span>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleGroupExpansion(notifId)}
+                                  className="h-6 px-2 text-xs"
+                                >
+                                  <ChevronDown className={`h-3 w-3 mr-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                  {isExpanded ? 'Hide' : 'Show'} all
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {isExpanded && (
+                            <div className="ml-8 space-y-1">
+                              {notification.items.map((item: any) => (
+                                <div
+                                  key={item.id}
+                                  className="p-2 rounded-lg border border-border bg-background/50 hover:shadow-sm text-xs"
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1">
+                                      <p className="font-medium">{item.title}</p>
+                                      {item.description && (
+                                        <p className="text-muted-foreground text-xs mt-0.5">{item.description}</p>
+                                      )}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                      {getTimeAgo(item.created_at)}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{notification.file.name}</p>
-                          <p className="text-sm text-gray-500">{notification.file.size}</p>
+                      );
+                    }
+                    
+                    return (
+                      <div
+                        key={notification.id}
+                        className={`p-3 rounded-lg border transition-all ${
+                          notification.status === 'unread'
+                            ? 'bg-primary/5 border-primary/20'
+                            : 'bg-background border-border'
+                        } hover:shadow-sm ${isSelected ? 'ring-2 ring-primary' : ''}`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {bulkSelectMode && (
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggleSelection(notifId, index, false)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleSelection(notifId, index, (e as any).shiftKey);
+                              }}
+                              className="mt-1"
+                            />
+                          )}
+                          <div className="flex-shrink-0 mt-0.5">
+                            {getNotificationIcon(notification.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-sm">{notification.title}</h3>
+                                {notification.status === 'unread' && (
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                )}
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {getTimeAgo(notification.created_at)}
+                              </span>
+                            </div>
+                            {notification.description && (
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {notification.description}
+                              </p>
+                            )}
+                            
+                            {/* Inline Actions */}
+                            <div className="flex items-center gap-1 flex-wrap mt-2">
+                              {notification.status === 'unread' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markAsRead.mutate(notification.id);
+                                  }}
+                                  className="h-7 px-2 text-xs"
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  Mark Read
+                                </Button>
+                              )}
+                              {['follow', 'request'].includes(notification.type) && (
+                                <>
+                                  <Button variant="default" size="sm" className="h-7 px-2 text-xs">
+                                    Accept
+                                  </Button>
+                                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                                    Decline
+                                  </Button>
+                                </>
+                              )}
+                              {['comment', 'message'].includes(notification.type) && (
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                                  <MessageCircle className="h-3 w-3 mr-1" />
+                                  Reply
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                                <Bookmark className="h-3 w-3" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                                <VolumeX className="h-3 w-3" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-destructive">
+                                <Flag className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-                        <Download className="h-5 w-5 text-gray-500" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    );
+                  })
+                )}
+                
+                {/* Pagination */}
+                {filteredNotifications.length > 0 && (
+                  <div className="pt-3 text-center">
+                    <Button variant="outline" size="sm" className="text-xs">
+                      See older notifications
+                    </Button>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        </ScrollArea>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
       </div>
       
       <NotificationSettingsDialog 
