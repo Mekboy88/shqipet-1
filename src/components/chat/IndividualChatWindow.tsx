@@ -534,7 +534,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
-            className="flex-1 border border-input bg-background/50 focus:ring-2 focus:ring-primary/5 focus:outline-none focus:border-primary/8 rounded-lg resize-none overflow-hidden px-3 py-2 text-sm"
+            className="flex-1 border border-input bg-background/50 focus:ring-2 focus:ring-primary/5 focus:outline-none focus:border-primary/8 rounded-lg resize-none overflow-hidden px-3 py-2 text-sm text-center placeholder:text-center caret-primary"
             style={{
               height: '40px',
               minHeight: '40px',

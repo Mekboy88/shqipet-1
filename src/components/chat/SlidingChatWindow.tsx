@@ -461,7 +461,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
-                className="flex-1 border-primary/30 bg-background/50 focus:ring-2 focus:ring-primary/50"
+                className="flex-1 border-primary/30 bg-background/50 focus:ring-2 focus:ring-primary/50 text-center placeholder:text-center caret-primary"
               />
               <Button 
                 onClick={sendMessage} 
