@@ -128,6 +128,11 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
     );
   }, [notifications]);
 
+  // Calculate unread count
+  const unreadCount = useMemo(() => {
+    return notifications?.filter(n => n.status === 'unread').length || 0;
+  }, [notifications]);
+
   // Filter notifications based on search and filters
   const filteredNotifications = useMemo(() => {
     return groupedNotifications.filter(notification => {
@@ -405,10 +410,17 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
                   variant="outline"
                   size="sm"
                   onClick={() => setShowUnreadOnly(!showUnreadOnly)}
-                  className={`h-8 text-xs ${showUnreadOnly ? 'bg-primary/10' : ''}`}
+                  className={`h-8 text-xs ${showUnreadOnly ? 'bg-primary/10' : ''} relative`}
                 >
-                  <Filter className="h-3 w-3 mr-1" />
+                  <svg className="h-3 w-3 mr-1" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                    <path d="M202 895q-43 0-72.5-29T100 795V203q0-28 13.5-51.5t37-37.5 51.5-14h592q28 0 51.5 14t37 37.5T896 203v592q0 42-29.5 71T794 895H202zm543-572V214H377q-91 0-146 41-64 49-64 145v208q0 99 55 143 46 38 138 38h296q91 0 137-38 54-44 54-143v-6q0-97-55-141-47-38-136-38H362q-33 0-62 39v-68q0-72 100-72h345v1zM616 520q47 0 70 16 28 19 28 65t-27 64q-23 16-71 16H395q-44 0-67-16-28-19-28-64t29-65q23-16 66-16h221z"/>
+                  </svg>
                   Unread
+                  {unreadCount > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-4 min-w-[1rem] px-1 text-[10px] leading-4">
+                      {unreadCount}
+                    </Badge>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
