@@ -14,6 +14,25 @@
   will-change: transform;
 }
 
+/* Thicker cursor/caret for input fields */
+.thick-caret {
+  caret-color: hsl(var(--primary));
+}
+
+.thick-caret::before {
+  content: '';
+  position: absolute;
+  width: 3px;
+  height: 100%;
+  background: hsl(var(--primary));
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
 
 /* GLOBAL SCROLLBAR ELIMINATION */
 * {

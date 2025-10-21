@@ -534,7 +534,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
-            className="flex-1 border border-input bg-background/50 focus:ring-2 focus:ring-primary/5 focus:outline-none focus:border-primary/8 rounded-lg resize-none overflow-hidden px-3 text-sm caret-primary flex items-center"
+            className="flex-1 border border-input bg-background/50 focus:ring-2 focus:ring-primary/5 focus:outline-none focus:border-primary/8 rounded-lg resize-none overflow-hidden px-3 text-sm thick-caret flex items-center text-base"
             style={{
               height: '40px',
               minHeight: '40px',
@@ -544,7 +544,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
               paddingBottom: '0',
               transition: 'height 0.15s ease-out',
               overflowY: 'hidden'
-            }}
+            } as React.CSSProperties}
             rows={1}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
