@@ -60,6 +60,9 @@ interface IndividualChatWindowProps {
   onMinimize: () => void;
   windowIndex: number;
   isMinimized?: boolean;
+  minimizedIndex?: number;
+  hoveredMinimizedIndex?: number | null;
+  onMinimizedHover?: (index: number | null) => void;
 }
 
 const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
@@ -67,7 +70,10 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
   onClose,
   onMinimize,
   windowIndex,
-  isMinimized = false
+  isMinimized = false,
+  minimizedIndex = 0,
+  hoveredMinimizedIndex = null,
+  onMinimizedHover
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -283,30 +289,31 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
   }, [isResizing, handleResizeMove, handleResizeEnd]);
 
   const leftPosition = 20 + (windowIndex * 400);
-  const [isHovered, setIsHovered] = useState(false);
 
   // Minimized state - show compact version
   if (isMinimized) {
     // Stack vertically from bottom, overlapping by half when not hovered
-    const collapsedHeight = 60; // Height of visible portion when collapsed
+    const collapsedHeight = 30; // Height of visible portion when collapsed (half of window)
     const fullHeight = 60; // Full height of minimized window
     const hoverGap = 8; // Gap between windows when hovered
     
-    const bottomPosition = isHovered 
-      ? 20 + (windowIndex * (fullHeight + hoverGap))
-      : 20 + (windowIndex * collapsedHeight);
+    // Calculate position based on whether ANY window is being hovered
+    const isAnyHovered = hoveredMinimizedIndex !== null;
+    const bottomPosition = isAnyHovered
+      ? 20 + (minimizedIndex * (fullHeight + hoverGap))
+      : 20 + (minimizedIndex * collapsedHeight);
 
     return createPortal(
       <ChatThemeWrapper>
         <Card 
           className="fixed w-[300px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto rounded-xl transition-all duration-300 ease-in-out" 
           style={{ 
-            left: '20px',
+            left: '20px', 
             bottom: `${bottomPosition}px`, 
-            zIndex: 9999 + windowIndex
+            zIndex: 9999 + minimizedIndex
           }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseEnter={() => onMinimizedHover?.(minimizedIndex)}
+          onMouseLeave={() => onMinimizedHover?.(null)}
         >
           <div className="p-3">
             <div className="flex items-center gap-2">

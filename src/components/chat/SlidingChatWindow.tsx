@@ -84,6 +84,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   // View state - now manages multiple open chats
   const [openChats, setOpenChats] = useState<Conversation[]>([]);
   const [minimizedChats, setMinimizedChats] = useState<Set<string>>(new Set());
+  const [hoveredMinimizedIndex, setHoveredMinimizedIndex] = useState<number | null>(null);
   
   // Sample conversations data
   const [conversations, setConversations] = useState<Conversation[]>([
@@ -588,16 +589,22 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
             </Card>
 
             {/* Individual Chat Windows - Left Side */}
-            {openChats.map((chat, index) => (
-              <IndividualChatWindow
-                key={chat.id}
-                conversation={chat}
-                onClose={() => handleCloseChat(chat.id)}
-                onMinimize={() => handleMinimizeChat(chat.id)}
-                windowIndex={index}
-                isMinimized={minimizedChats.has(chat.id)}
-              />
-            ))}
+            {openChats.map((chat, index) => {
+              const minimizedIndex = Array.from(minimizedChats).indexOf(chat.id);
+              return (
+                <IndividualChatWindow
+                  key={chat.id}
+                  conversation={chat}
+                  onClose={() => handleCloseChat(chat.id)}
+                  onMinimize={() => handleMinimizeChat(chat.id)}
+                  windowIndex={index}
+                  isMinimized={minimizedChats.has(chat.id)}
+                  minimizedIndex={minimizedIndex}
+                  hoveredMinimizedIndex={hoveredMinimizedIndex}
+                  onMinimizedHover={setHoveredMinimizedIndex}
+                />
+              );
+            })}
           </ChatThemeWrapper>
         </div>
       </ChatThemeProvider>
