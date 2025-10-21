@@ -124,7 +124,7 @@ const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
                       variant={activeSection === section.id ? 'default' : 'ghost'}
                       className={`w-full h-auto p-4 justify-start text-left ${
                         activeSection === section.id
-                          ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30'
+                          ? 'bg-black/5 shadow-[0_0_0_1px_rgba(0,0,0,0.08)] active:shadow-[0_0_0_1px_rgba(0,0,0,0.12)]'
                           : 'hover:bg-primary/5'
                       }`}
                       onClick={() => setActiveSection(section.id)}
