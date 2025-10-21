@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type NotificationChannel = 'inApp' | 'push' | 'email' | 'sms';
+export type NotificationChannel = 'inApp' | 'push' | 'email';
 export type NotificationFrequency = 'realtime' | 'smart_digest_hourly' | 'smart_digest_daily' | 'smart_digest_weekly' | 'only_offline' | 'mentions_only';
 export type PriorityLevel = 'high' | 'normal' | 'low';
 
@@ -8,7 +8,6 @@ export interface CategoryChannelSettings {
   inApp: boolean;
   push: boolean;
   email: boolean;
-  sms: boolean;
 }
 
 export interface NotificationSettings {
@@ -17,7 +16,6 @@ export interface NotificationSettings {
     inApp: boolean;
     push: boolean;
     email: boolean;
-    sms: boolean;
   };
   
   // Frequency & Delivery
@@ -116,7 +114,6 @@ const defaultSettings: NotificationSettings = {
     inApp: true,
     push: true,
     email: true,
-    sms: false,
   },
   
   frequency: 'realtime',
@@ -144,17 +141,17 @@ const defaultSettings: NotificationSettings = {
   },
   
   categories: {
-    directMessages: { inApp: true, push: true, email: true, sms: false },
-    mentions: { inApp: true, push: true, email: false, sms: false },
-    comments: { inApp: true, push: false, email: false, sms: false },
-    reactions: { inApp: true, push: false, email: false, sms: false },
-    shares: { inApp: true, push: false, email: false, sms: false },
-    follows: { inApp: true, push: false, email: false, sms: false },
-    groups: { inApp: true, push: false, email: false, sms: false },
-    events: { inApp: true, push: true, email: false, sms: false },
-    marketplace: { inApp: true, push: true, email: true, sms: false },
-    recommendations: { inApp: true, push: false, email: false, sms: false },
-    security: { inApp: true, push: true, email: true, sms: false },
+    directMessages: { inApp: true, push: true, email: true },
+    mentions: { inApp: true, push: true, email: false },
+    comments: { inApp: true, push: false, email: false },
+    reactions: { inApp: true, push: false, email: false },
+    shares: { inApp: true, push: false, email: false },
+    follows: { inApp: true, push: false, email: false },
+    groups: { inApp: true, push: false, email: false },
+    events: { inApp: true, push: true, email: false },
+    marketplace: { inApp: true, push: true, email: true },
+    recommendations: { inApp: true, push: false, email: false },
+    security: { inApp: true, push: true, email: true },
   },
   
   security: {

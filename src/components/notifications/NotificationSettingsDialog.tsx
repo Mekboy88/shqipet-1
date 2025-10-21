@@ -142,17 +142,6 @@ const NotificationSettingsDialog: React.FC<NotificationSettingsDialogProps> = ({
                     />
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      <Label>SMS / WhatsApp</Label>
-                      <Badge variant="secondary" className="text-xs">Optional</Badge>
-                    </div>
-                    <Switch
-                      checked={settings.channels.sms}
-                      onCheckedChange={(checked) => updateSettings({ channels: { ...settings.channels, sms: checked } })}
-                    />
-                  </div>
                 </CardContent>
               </Card>
 
@@ -207,12 +196,11 @@ const NotificationSettingsDialog: React.FC<NotificationSettingsDialogProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-5 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
+                    <div className="grid grid-cols-4 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
                       <div className="col-span-1">Category</div>
                       <div className="text-center">In-App</div>
                       <div className="text-center">Push</div>
                       <div className="text-center">Email</div>
-                      <div className="text-center">SMS</div>
                     </div>
 
                     {categoryInfo.map(({ key, label, icon: Icon, critical }) => (
