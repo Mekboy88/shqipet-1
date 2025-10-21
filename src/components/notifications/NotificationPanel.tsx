@@ -417,8 +417,9 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
                   onClick={() => setShowUnreadOnly(!showUnreadOnly)}
                   className={`h-8 text-xs ${showUnreadOnly ? 'bg-primary/10' : ''} relative`}
                 >
-                  <svg className="h-3 w-3 mr-1" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                    <path d="M202 895q-43 0-72.5-29T100 795V203q0-28 13.5-51.5t37-37.5 51.5-14h592q28 0 51.5 14t37 37.5T896 203v592q0 42-29.5 71T794 895H202zm543-572V214H377q-91 0-146 41-64 49-64 145v208q0 99 55 143 46 38 138 38h296q91 0 137-38 54-44 54-143v-6q0-97-55-141-47-38-136-38H362q-33 0-62 39v-68q0-72 100-72h345v1zM616 520q47 0 70 16 28 19 28 65t-27 64q-23 16-71 16H395q-44 0-67-16-28-19-28-64t29-65q23-16 66-16h221z"/>
+                  <svg className="h-3 w-3 mr-1" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                    <path d="M8.964 15a3.115 3.115 0 0 1-1.63-.462l-7.32-4.482V17a1 1 0 0 0 1 1H16.92a1 1 0 0 0 1-1v-6.944l-7.32 4.48A3.116 3.116 0 0 1 8.964 15z"/>
+                    <path d="M17.73 6.31l-1.8-1.91V1.04A1.043 1.043 0 0 0 14.89 0H3.036A1.044 1.044 0 0 0 2 1.04v3.42L.268 6.31a.95.95 0 0 0-.26.79.34.34 0 0 0 .01.1 1.07 1.07 0 0 0 .52.84l7.833 4.79a1.15 1.15 0 0 0 .6.17 1.14 1.14 0 0 0 .588-.17l7.832-4.79a1.078 1.078 0 0 0 .41-.44 1 1 0 0 0-.07-1.29zM10.95 8H4.987a1 1 0 0 1 0-2h5.963a1 1 0 0 1 0 2zm1.99-3.99H4.987a1.01 1.01 0 0 1 0-2.02h7.953a1.01 1.01 0 0 1 0 2.02z"/>
                   </svg>
                   Unread
                   <Badge variant="destructive" className="ml-1 h-4 min-w-[1rem] px-1 text-[10px] leading-4">
