@@ -301,7 +301,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
         <Card 
           className="fixed w-[300px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto rounded-xl transition-all duration-300 ease-in-out" 
           style={{ 
-            right: '20px', 
+            left: '20px',
             bottom: `${bottomPosition}px`, 
             zIndex: 9999 + windowIndex
           }}
