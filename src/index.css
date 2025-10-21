@@ -14,18 +14,13 @@
   will-change: transform;
 }
 
-/* Thicker cursor/caret for input fields */
+/* Thicker cursor/caret for input fields - strong black in light mode */
 .thick-caret {
-  caret-color: hsl(var(--primary));
+  caret-color: #000000;
 }
 
-.thick-caret::before {
-  content: '';
-  position: absolute;
-  width: 3px;
-  height: 100%;
-  background: hsl(var(--primary));
-  animation: blink 1s step-end infinite;
+.dark .thick-caret {
+  caret-color: hsl(var(--primary));
 }
 
 @keyframes blink {
