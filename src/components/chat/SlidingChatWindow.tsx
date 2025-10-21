@@ -86,6 +86,22 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   const [minimizedChats, setMinimizedChats] = useState<Set<string>>(new Set());
   const [isMinimizedGroupHovered, setIsMinimizedGroupHovered] = useState(false);
   const hoverTimerRef = useRef<number | null>(null);
+  const handleGroupHoverEnter = () => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setIsMinimizedGroupHovered(true);
+  };
+  const handleGroupHoverLeave = () => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+    }
+    hoverTimerRef.current = window.setTimeout(() => {
+      setIsMinimizedGroupHovered(false);
+      hoverTimerRef.current = null;
+    }, 150);
+  };
   
   // Sample conversations data
   const [conversations, setConversations] = useState<Conversation[]>([
@@ -611,22 +627,8 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                         height: `${expandedHeight}px`,
                         zIndex: 9998
                       }}
-                      onMouseEnter={() => {
-                        if (hoverTimerRef.current) {
-                          clearTimeout(hoverTimerRef.current);
-                          hoverTimerRef.current = null;
-                        }
-                        setIsMinimizedGroupHovered(true);
-                      }}
-                      onMouseLeave={() => {
-                        if (hoverTimerRef.current) {
-                          clearTimeout(hoverTimerRef.current);
-                        }
-                        hoverTimerRef.current = window.setTimeout(() => {
-                          setIsMinimizedGroupHovered(false);
-                          hoverTimerRef.current = null;
-                        }, 250);
-                      }}
+                      onMouseEnter={handleGroupHoverEnter}
+                      onMouseLeave={handleGroupHoverLeave}
                     />
                   )}
 
@@ -642,6 +644,8 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                         isMinimized={minimizedChats.has(chat.id)}
                         minimizedIndex={minimizedIndex}
                         isMinimizedGroupHovered={isMinimizedGroupHovered}
+                        onGroupHoverEnter={handleGroupHoverEnter}
+                        onGroupHoverLeave={handleGroupHoverLeave}
                       />
                     );
                   })}

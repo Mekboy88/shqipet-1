@@ -62,6 +62,8 @@ interface IndividualChatWindowProps {
   isMinimized?: boolean;
   minimizedIndex?: number;
   isMinimizedGroupHovered?: boolean;
+  onGroupHoverEnter?: () => void;
+  onGroupHoverLeave?: () => void;
 }
 
 const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
@@ -71,7 +73,9 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
   windowIndex,
   isMinimized = false,
   minimizedIndex = 0,
-  isMinimizedGroupHovered = false
+  isMinimizedGroupHovered = false,
+  onGroupHoverEnter,
+  onGroupHoverLeave
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -296,20 +300,22 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
     const hoverGap = 8; // Gap between windows when hovered
     
     // Calculate offset using transform for smooth animation
-    const translateY = (isMinimizedGroupHovered
+    const yOffset = (isMinimizedGroupHovered
       ? minimizedIndex * (fullHeight + hoverGap)
       : minimizedIndex * collapsedHeight);
 
     return createPortal(
       <ChatThemeWrapper>
         <Card 
-          className="fixed w-[300px] h-[60px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto rounded-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform" 
+          className="fixed w-[300px] h-[60px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto rounded-xl transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform" 
           style={{ 
             left: '20px', 
             bottom: '20px', 
-            transform: `translateY(${translateY}px)`,
+            transform: `translateY(-${yOffset}px)`,
             zIndex: 9999 + minimizedIndex
           }}
+          onMouseEnter={onGroupHoverEnter}
+          onMouseLeave={onGroupHoverLeave}
         >
           <div className="p-3">
             <div className="flex items-center gap-2">
