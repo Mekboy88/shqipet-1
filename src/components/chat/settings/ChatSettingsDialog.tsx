@@ -121,21 +121,23 @@ const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
                   return (
                     <Button
                       key={section.id}
-                      variant={activeSection === section.id ? 'default' : 'ghost'}
+                      variant="ghost"
                       className={`w-full h-auto p-4 justify-start text-left ${
                         activeSection === section.id
-                          ? 'bg-black/5 shadow-[0_0_0_1px_rgba(0,0,0,0.08)] active:shadow-[0_0_0_1px_rgba(0,0,0,0.12)]'
-                          : 'hover:bg-primary/5'
+                          ? 'bg-black/5 shadow-[0_0_0_1px_rgba(0,0,0,0.08)]'
+                          : 'hover:bg-black/80 hover:text-white'
                       }`}
                       onClick={() => setActiveSection(section.id)}
                     >
                       <div className="flex items-start gap-3 w-full">
                         <Icon className={`h-5 w-5 mt-0.5 ${
-                          activeSection === section.id ? 'text-primary' : 'text-muted-foreground'
+                          activeSection === section.id ? 'text-black' : 'text-muted-foreground'
                         }`} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm truncate">
+                            <span className={`font-medium text-sm truncate ${
+                              activeSection === section.id ? 'text-black' : ''
+                            }`}>
                               {section.name}
                             </span>
                             {section.badge && (
