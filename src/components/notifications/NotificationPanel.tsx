@@ -63,13 +63,6 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
   const { notifications, isLoading, markAsRead, markAllAsRead } = useNotifications();
   const { settings, isInQuietHours } = useNotificationSettings();
 
-  // Mark all as read on mount to start with 0 unread
-  useEffect(() => {
-    if (notifications && notifications.some(n => n.status === 'unread')) {
-      markAllAsRead.mutate();
-    }
-  }, []); // Only run once on mount
-
   // Simulate connection monitoring
   useEffect(() => {
     const checkConnection = setInterval(() => {
@@ -176,6 +169,11 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
       return matchesSearch && matchesUnread && matchesPriority && matchesTab;
     });
   }, [groupedNotifications, searchQuery, showUnreadOnly, showPriorityOnly, activeTab]);
+
+  // Unread count respecting current filters/tabs
+  const unreadFilteredCount = useMemo(() => {
+    return filteredNotifications.filter((n: any) => n.status === 'unread').length;
+  }, [filteredNotifications]);
 
   // Handle selection
   const toggleSelection = (id: string, index: number, shiftKey: boolean) => {
@@ -423,11 +421,9 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
                     <path d="M202 895q-43 0-72.5-29T100 795V203q0-28 13.5-51.5t37-37.5 51.5-14h592q28 0 51.5 14t37 37.5T896 203v592q0 42-29.5 71T794 895H202zm543-572V214H377q-91 0-146 41-64 49-64 145v208q0 99 55 143 46 38 138 38h296q91 0 137-38 54-44 54-143v-6q0-97-55-141-47-38-136-38H362q-33 0-62 39v-68q0-72 100-72h345v1zM616 520q47 0 70 16 28 19 28 65t-27 64q-23 16-71 16H395q-44 0-67-16-28-19-28-64t29-65q23-16 66-16h221z"/>
                   </svg>
                   Unread
-                  {unreadCount > 0 && (
-                    <Badge variant="destructive" className="ml-1 h-4 min-w-[1rem] px-1 text-[10px] leading-4">
-                      {unreadCount}
-                    </Badge>
-                  )}
+                  <Badge variant="destructive" className="ml-1 h-4 min-w-[1rem] px-1 text-[10px] leading-4">
+                    {unreadFilteredCount}
+                  </Badge>
                 </Button>
                 <Button
                   variant="outline"
