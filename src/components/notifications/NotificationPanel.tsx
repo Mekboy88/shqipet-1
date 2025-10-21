@@ -63,6 +63,13 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
   const { notifications, isLoading, markAsRead, markAllAsRead } = useNotifications();
   const { settings, isInQuietHours } = useNotificationSettings();
 
+  // Mark all as read on mount to start with 0 unread
+  useEffect(() => {
+    if (notifications && notifications.some(n => n.status === 'unread')) {
+      markAllAsRead.mutate();
+    }
+  }, []); // Only run once on mount
+
   // Simulate connection monitoring
   useEffect(() => {
     const checkConnection = setInterval(() => {
