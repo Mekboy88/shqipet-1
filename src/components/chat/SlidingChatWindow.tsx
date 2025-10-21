@@ -177,6 +177,13 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
     scrollToBottom();
   }, [messages]);
 
+  // Reset window height to default when closed
+  useEffect(() => {
+    if (!isOpen) {
+      setWindowHeight(500);
+    }
+  }, [isOpen]);
+
   const sendMessage = () => {
     if (newMessage.trim()) {
       const message: Message = {
