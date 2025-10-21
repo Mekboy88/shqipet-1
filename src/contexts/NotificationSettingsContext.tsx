@@ -19,7 +19,6 @@ export interface NotificationSettings {
     email: boolean;
     sms: boolean;
   };
-  backupChannel: boolean; // if push fails, send email
   
   // Frequency & Delivery
   frequency: NotificationFrequency;
@@ -119,7 +118,6 @@ const defaultSettings: NotificationSettings = {
     email: true,
     sms: false,
   },
-  backupChannel: true,
   
   frequency: 'realtime',
   rateLimit: 50,

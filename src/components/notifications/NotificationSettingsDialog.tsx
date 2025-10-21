@@ -153,19 +153,6 @@ const NotificationSettingsDialog: React.FC<NotificationSettingsDialogProps> = ({
                       onCheckedChange={(checked) => updateSettings({ channels: { ...settings.channels, sms: checked } })}
                     />
                   </div>
-
-                  <Separator />
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Backup Channel</Label>
-                      <p className="text-xs text-muted-foreground">If push fails, send email</p>
-                    </div>
-                    <Switch
-                      checked={settings.backupChannel}
-                      onCheckedChange={(checked) => updateSettings({ backupChannel: checked })}
-                    />
-                  </div>
                 </CardContent>
               </Card>
 
