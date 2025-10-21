@@ -69,7 +69,7 @@ const UserProfileDropdown: React.FC = () => {
   return <div className="relative my-0 py-0 mx-0 mt-1">
       <TooltipProvider delayDuration={0}>
         <Tooltip open={showTooltip}>
-          <Popover open={open} onOpenChange={(next) => { setOpen(next); if (!next) setShowQuickSettings(false); }}>
+          <Popover open={open} onOpenChange={setOpen}>
             <TooltipTrigger asChild>
               <PopoverTrigger asChild>
                 <button className="h-12 w-12 rounded-full bg-gray-300 hover:bg-gray-500 transition-colors duration-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
@@ -251,10 +251,7 @@ const UserProfileDropdown: React.FC = () => {
                           <Command className="h-4 w-4 text-gray-600 group-hover:text-red-900 transition-colors" />
                       </div>
                       <div 
-                        onClick={() => {
-                          setOpen(false);
-                          setShowQuickSettings(false);
-                        }}
+                        onClick={() => setShowQuickSettings(true)}
                         className={menuItemJustifyBetweenClasses}
                       >
                         <span className="text-sm font-medium">Settings and Privacy</span>
