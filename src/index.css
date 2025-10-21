@@ -14,9 +14,9 @@
   will-change: transform;
 }
 
-/* Thicker cursor/caret for input fields - strong black in light mode */
+/* Thicker cursor/caret for input fields - gray-600 in light mode */
 .thick-caret {
-  caret-color: #000000;
+  caret-color: #4b5563;
 }
 
 .dark .thick-caret {
