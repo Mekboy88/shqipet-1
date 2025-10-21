@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Card } from '@/components/ui/card';
+import ChatThemeWrapper from './ChatThemeWrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -280,7 +281,8 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
   const leftPosition = 20 + (windowIndex * 400);
 
   return createPortal(
-    <Card 
+    <ChatThemeWrapper>
+      <Card
       className="fixed w-[380px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto flex flex-col rounded-xl transition-all duration-150" 
       style={{ 
         left: `${leftPosition}px`, 
@@ -567,7 +569,8 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
           </Button>
         </div>
       </div>
-    </Card>,
+    </Card>
+    </ChatThemeWrapper>,
     document.body
   );
 };
