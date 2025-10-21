@@ -283,18 +283,30 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
   }, [isResizing, handleResizeMove, handleResizeEnd]);
 
   const leftPosition = 20 + (windowIndex * 400);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Minimized state - show compact version
   if (isMinimized) {
+    // Stack vertically from bottom, overlapping by half when not hovered
+    const collapsedHeight = 60; // Height of visible portion when collapsed
+    const fullHeight = 60; // Full height of minimized window
+    const hoverGap = 8; // Gap between windows when hovered
+    
+    const bottomPosition = isHovered 
+      ? 20 + (windowIndex * (fullHeight + hoverGap))
+      : 20 + (windowIndex * collapsedHeight);
+
     return createPortal(
       <ChatThemeWrapper>
         <Card 
-          className="fixed w-[300px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto rounded-xl" 
+          className="fixed w-[300px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto rounded-xl transition-all duration-300 ease-in-out" 
           style={{ 
-            left: `${leftPosition}px`, 
-            bottom: '20px', 
+            right: '20px', 
+            bottom: `${bottomPosition}px`, 
             zIndex: 9999 + windowIndex
           }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           <div className="p-3">
             <div className="flex items-center gap-2">
