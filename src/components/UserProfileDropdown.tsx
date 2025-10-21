@@ -251,7 +251,10 @@ const UserProfileDropdown: React.FC = () => {
                           <Command className="h-4 w-4 text-gray-600 group-hover:text-red-900 transition-colors" />
                       </div>
                       <div 
-                        onClick={() => setShowQuickSettings(true)}
+                        onClick={() => {
+                          setOpen(false);
+                          setShowQuickSettings(true);
+                        }}
                         className={menuItemJustifyBetweenClasses}
                       >
                         <span className="text-sm font-medium">Settings and Privacy</span>
