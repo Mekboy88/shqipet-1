@@ -1,54 +1,205 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+export type NotificationChannel = 'inApp' | 'push' | 'email' | 'sms';
+export type NotificationFrequency = 'realtime' | 'smart_digest_hourly' | 'smart_digest_daily' | 'smart_digest_weekly' | 'only_offline' | 'mentions_only';
+export type PriorityLevel = 'high' | 'normal' | 'low';
+
+export interface CategoryChannelSettings {
+  inApp: boolean;
+  push: boolean;
+  email: boolean;
+  sms: boolean;
+}
+
 export interface NotificationSettings {
-  // Notification Types
-  enableSecurityNotifications: boolean;
-  enableAccountNotifications: boolean;
-  enableSystemNotifications: boolean;
-  enableUpdateNotifications: boolean;
-  
-  // Priority Levels
-  showHighPriority: boolean;
-  showMediumPriority: boolean;
-  showLowPriority: boolean;
-  
   // Channels
-  enableInAppNotifications: boolean;
-  enableEmailNotifications: boolean;
-  enableDesktopNotifications: boolean;
+  channels: {
+    inApp: boolean;
+    push: boolean;
+    email: boolean;
+    sms: boolean;
+  };
+  backupChannel: boolean; // if push fails, send email
   
-  // Timing
-  enableQuietHours: boolean;
-  quietHoursStart: string;
-  quietHoursEnd: string;
-  autoMarkAsReadAfter: number; // minutes
+  // Frequency & Delivery
+  frequency: NotificationFrequency;
+  rateLimit: number; // max notifications per hour (0-100)
   
-  // Display
-  enableSoundAlerts: boolean;
-  enableVisualAlerts: boolean;
+  // Do Not Disturb
+  dnd: {
+    enabled: boolean;
+    startTime: string;
+    endTime: string;
+    days: boolean[]; // 7 days, Sunday=0
+    allowPriority: boolean;
+  };
   
-  // Retention
-  retentionDays: number;
+  // Priority
+  prioritySettings: {
+    showHighAtTop: boolean;
+    categories: {
+      mentions: PriorityLevel;
+      directMessages: PriorityLevel;
+      security: PriorityLevel;
+      comments: PriorityLevel;
+      requests: PriorityLevel;
+      reactions: PriorityLevel;
+      suggestions: PriorityLevel;
+    };
+  };
+  
+  // Event Categories (channel matrix)
+  categories: {
+    directMessages: CategoryChannelSettings;
+    mentions: CategoryChannelSettings;
+    comments: CategoryChannelSettings;
+    reactions: CategoryChannelSettings;
+    shares: CategoryChannelSettings;
+    follows: CategoryChannelSettings;
+    groups: CategoryChannelSettings;
+    events: CategoryChannelSettings;
+    marketplace: CategoryChannelSettings;
+    recommendations: CategoryChannelSettings;
+    security: CategoryChannelSettings;
+  };
+  
+  // Security & Reliability
+  security: {
+    newLogin: boolean;
+    passwordChange: boolean;
+    sessionExpired: boolean;
+  };
+  verifiedContactsOnly: boolean;
+  
+  // Digest & Summaries
+  digest: {
+    dailyRecap: boolean;
+    dailyTime: string;
+    weeklySummary: boolean;
+    weeklyDay: number; // 0-6
+    weeklyTime: string;
+    includeTopMentions: boolean;
+    includeTrendingPosts: boolean;
+    includeUnresolvedRequests: boolean;
+  };
+  
+  // Privacy & Read receipts
+  privacy: {
+    showReadReceipts: boolean;
+    showActiveStatus: boolean;
+  };
+  
+  // Accessibility
+  accessibility: {
+    sound: boolean;
+    soundType: string;
+    vibration: boolean;
+    vibrationIntensity: number; // 1-3
+    badgeCount: boolean;
+    largeText: boolean;
+  };
+  
+  // Data & Retention
+  retention: {
+    keepDays: number; // 30, 90, 365
+  };
+  
+  // Localization
+  localization: {
+    language: string;
+    timeFormat: '12h' | '24h';
+    timezone: string;
+  };
 }
 
 const defaultSettings: NotificationSettings = {
-  enableSecurityNotifications: true,
-  enableAccountNotifications: true,
-  enableSystemNotifications: true,
-  enableUpdateNotifications: true,
-  showHighPriority: true,
-  showMediumPriority: true,
-  showLowPriority: true,
-  enableInAppNotifications: true,
-  enableEmailNotifications: true,
-  enableDesktopNotifications: true,
-  enableQuietHours: false,
-  quietHoursStart: '22:00',
-  quietHoursEnd: '08:00',
-  autoMarkAsReadAfter: 0, // 0 means disabled
-  enableSoundAlerts: true,
-  enableVisualAlerts: true,
-  retentionDays: 30,
+  channels: {
+    inApp: true,
+    push: true,
+    email: true,
+    sms: false,
+  },
+  backupChannel: true,
+  
+  frequency: 'realtime',
+  rateLimit: 50,
+  
+  dnd: {
+    enabled: false,
+    startTime: '23:00',
+    endTime: '07:00',
+    days: [true, true, true, true, true, true, true],
+    allowPriority: true,
+  },
+  
+  prioritySettings: {
+    showHighAtTop: true,
+    categories: {
+      mentions: 'high',
+      directMessages: 'high',
+      security: 'high',
+      comments: 'normal',
+      requests: 'normal',
+      reactions: 'low',
+      suggestions: 'low',
+    },
+  },
+  
+  categories: {
+    directMessages: { inApp: true, push: true, email: true, sms: false },
+    mentions: { inApp: true, push: true, email: false, sms: false },
+    comments: { inApp: true, push: false, email: false, sms: false },
+    reactions: { inApp: true, push: false, email: false, sms: false },
+    shares: { inApp: true, push: false, email: false, sms: false },
+    follows: { inApp: true, push: false, email: false, sms: false },
+    groups: { inApp: true, push: false, email: false, sms: false },
+    events: { inApp: true, push: true, email: false, sms: false },
+    marketplace: { inApp: true, push: true, email: true, sms: false },
+    recommendations: { inApp: true, push: false, email: false, sms: false },
+    security: { inApp: true, push: true, email: true, sms: false },
+  },
+  
+  security: {
+    newLogin: true,
+    passwordChange: true,
+    sessionExpired: true,
+  },
+  verifiedContactsOnly: true,
+  
+  digest: {
+    dailyRecap: false,
+    dailyTime: '09:00',
+    weeklySummary: true,
+    weeklyDay: 1, // Monday
+    weeklyTime: '09:00',
+    includeTopMentions: true,
+    includeTrendingPosts: true,
+    includeUnresolvedRequests: true,
+  },
+  
+  privacy: {
+    showReadReceipts: false,
+    showActiveStatus: false,
+  },
+  
+  accessibility: {
+    sound: true,
+    soundType: 'default',
+    vibration: true,
+    vibrationIntensity: 2,
+    badgeCount: true,
+    largeText: false,
+  },
+  
+  retention: {
+    keepDays: 30,
+  },
+  
+  localization: {
+    language: 'en',
+    timeFormat: '12h',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  },
 };
 
 interface NotificationSettingsContextType {
@@ -99,13 +250,17 @@ export const NotificationSettingsProvider: React.FC<{ children: React.ReactNode 
   };
 
   const isInQuietHours = (): boolean => {
-    if (!settings.enableQuietHours) return false;
+    if (!settings.dnd.enabled) return false;
     
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
+    const currentDay = now.getDay();
     
-    const [startHour, startMin] = settings.quietHoursStart.split(':').map(Number);
-    const [endHour, endMin] = settings.quietHoursEnd.split(':').map(Number);
+    // Check if current day is enabled
+    if (!settings.dnd.days[currentDay]) return false;
+    
+    const [startHour, startMin] = settings.dnd.startTime.split(':').map(Number);
+    const [endHour, endMin] = settings.dnd.endTime.split(':').map(Number);
     
     const startTime = startHour * 60 + startMin;
     const endTime = endHour * 60 + endMin;

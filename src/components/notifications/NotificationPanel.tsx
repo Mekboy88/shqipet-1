@@ -61,7 +61,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
   const [showSettings, setShowSettings] = useState(false);
 
   const { notifications, isLoading, markAsRead, markAllAsRead } = useNotifications();
-  const { settings, isInQuietHours } = useNotificationSettings();
+  const { settings, updateSettings, isInQuietHours } = useNotificationSettings();
 
   // Simulate connection monitoring
   useEffect(() => {
@@ -343,9 +343,14 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
           <div className="bg-amber-50 border-b border-amber-200 p-3 flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-amber-800">
               <VolumeX className="h-4 w-4" />
-              <span>Do Not Disturb is active until {settings.quietHoursEnd}</span>
+              <span>Do Not Disturb is active until {settings.dnd.endTime}</span>
             </div>
-            <Button variant="ghost" size="sm" className="h-7 text-xs text-amber-800">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs text-amber-800"
+              onClick={() => updateSettings({ dnd: { ...settings.dnd, enabled: false } })}
+            >
               End now
             </Button>
           </div>
