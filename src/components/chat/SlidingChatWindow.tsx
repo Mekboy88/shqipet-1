@@ -83,6 +83,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   
   // View state - now manages multiple open chats
   const [openChats, setOpenChats] = useState<Conversation[]>([]);
+  const [minimizedChats, setMinimizedChats] = useState<Set<string>>(new Set());
   
   // Sample conversations data
   const [conversations, setConversations] = useState<Conversation[]>([
@@ -380,6 +381,24 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   // Handle close individual chat window
   const handleCloseChat = (conversationId: string) => {
     setOpenChats(prev => prev.filter(c => c.id !== conversationId));
+    setMinimizedChats(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(conversationId);
+      return newSet;
+    });
+  };
+
+  // Handle minimize individual chat window
+  const handleMinimizeChat = (conversationId: string) => {
+    setMinimizedChats(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(conversationId)) {
+        newSet.delete(conversationId);
+      } else {
+        newSet.add(conversationId);
+      }
+      return newSet;
+    });
   };
 
   // Handle start new chat
@@ -574,7 +593,9 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                 key={chat.id}
                 conversation={chat}
                 onClose={() => handleCloseChat(chat.id)}
+                onMinimize={() => handleMinimizeChat(chat.id)}
                 windowIndex={index}
+                isMinimized={minimizedChats.has(chat.id)}
               />
             ))}
           </ChatThemeWrapper>

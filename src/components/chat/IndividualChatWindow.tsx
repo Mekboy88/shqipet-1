@@ -57,13 +57,17 @@ interface Conversation {
 interface IndividualChatWindowProps {
   conversation: Conversation;
   onClose: () => void;
+  onMinimize: () => void;
   windowIndex: number;
+  isMinimized?: boolean;
 }
 
 const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
   conversation,
   onClose,
-  windowIndex
+  onMinimize,
+  windowIndex,
+  isMinimized = false
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -280,6 +284,55 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
 
   const leftPosition = 20 + (windowIndex * 400);
 
+  // Minimized state - show compact version
+  if (isMinimized) {
+    return createPortal(
+      <ChatThemeWrapper>
+        <Card 
+          className="fixed w-[300px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto rounded-xl" 
+          style={{ 
+            left: `${leftPosition}px`, 
+            bottom: '20px', 
+            zIndex: 9999 + windowIndex
+          }}
+        >
+          <div className="p-3">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8 ring-2 ring-primary/30">
+                <AvatarImage src={conversation.avatar || "/placeholder.svg"} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                  {getInitials(conversation.name)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium text-foreground flex-1">
+                {conversation.name}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMinimize}
+                className="h-6 w-6 p-0 hover:bg-primary/20"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-6 w-6 p-0 hover:bg-destructive/20 hover:text-destructive"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </ChatThemeWrapper>,
+      document.body
+    );
+  }
+
   return createPortal(
     <ChatThemeWrapper>
       <Card
@@ -335,6 +388,14 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
               className={`h-8 w-8 p-0 hover:bg-primary/20 ${isVoiceCall ? 'bg-primary/20 text-primary' : ''}`}
             >
               <Phone className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMinimize}
+              className="h-8 w-8 p-0 hover:bg-secondary/20"
+            >
+              <Minus className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
