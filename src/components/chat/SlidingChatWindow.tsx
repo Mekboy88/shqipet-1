@@ -607,7 +607,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                       style={{
                         left: '20px',
                         bottom: '20px',
-                        width: '320px',
+                        width: '360px',
                         height: `${expandedHeight}px`,
                         zIndex: 9998
                       }}
@@ -625,7 +625,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                         hoverTimerRef.current = window.setTimeout(() => {
                           setIsMinimizedGroupHovered(false);
                           hoverTimerRef.current = null;
-                        }, 150);
+                        }, 250);
                       }}
                     />
                   )}

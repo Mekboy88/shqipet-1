@@ -295,18 +295,19 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
     const fullHeight = 60; // Full height of minimized window
     const hoverGap = 8; // Gap between windows when hovered
     
-    // Calculate position based on group hover state
-    const bottomPosition = isMinimizedGroupHovered
-      ? 20 + (minimizedIndex * (fullHeight + hoverGap))
-      : 20 + (minimizedIndex * collapsedHeight);
+    // Calculate offset using transform for smooth animation
+    const translateY = (isMinimizedGroupHovered
+      ? minimizedIndex * (fullHeight + hoverGap)
+      : minimizedIndex * collapsedHeight);
 
     return createPortal(
       <ChatThemeWrapper>
         <Card 
-          className="fixed w-[300px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto rounded-xl transition-all duration-300 ease-in-out" 
+          className="fixed w-[300px] h-[60px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto rounded-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform" 
           style={{ 
             left: '20px', 
-            bottom: `${bottomPosition}px`, 
+            bottom: '20px', 
+            transform: `translateY(${translateY}px)`,
             zIndex: 9999 + minimizedIndex
           }}
         >
