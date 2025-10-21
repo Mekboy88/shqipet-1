@@ -84,7 +84,8 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   // View state - now manages multiple open chats
   const [openChats, setOpenChats] = useState<Conversation[]>([]);
   const [minimizedChats, setMinimizedChats] = useState<Set<string>>(new Set());
-  const [hoveredMinimizedIndex, setHoveredMinimizedIndex] = useState<number | null>(null);
+  const [isMinimizedGroupHovered, setIsMinimizedGroupHovered] = useState(false);
+  const hoverTimerRef = useRef<number | null>(null);
   
   // Sample conversations data
   const [conversations, setConversations] = useState<Conversation[]>([
@@ -589,22 +590,65 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
             </Card>
 
             {/* Individual Chat Windows - Left Side */}
-            {openChats.map((chat, index) => {
-              const minimizedIndex = Array.from(minimizedChats).indexOf(chat.id);
+            {(() => {
+              const minimizedList = openChats.filter(c => minimizedChats.has(c.id));
+              const collapsedHeight = 30;
+              const fullHeight = 60;
+              const hoverGap = 8;
+              const expandedHeight = minimizedList.length > 0
+                ? (fullHeight + hoverGap) * minimizedList.length - hoverGap
+                : 0;
+
               return (
-                <IndividualChatWindow
-                  key={chat.id}
-                  conversation={chat}
-                  onClose={() => handleCloseChat(chat.id)}
-                  onMinimize={() => handleMinimizeChat(chat.id)}
-                  windowIndex={index}
-                  isMinimized={minimizedChats.has(chat.id)}
-                  minimizedIndex={minimizedIndex}
-                  hoveredMinimizedIndex={hoveredMinimizedIndex}
-                  onMinimizedHover={setHoveredMinimizedIndex}
-                />
+                <>
+                  {minimizedList.length > 0 && (
+                    <div
+                      className="fixed pointer-events-auto"
+                      style={{
+                        left: '20px',
+                        bottom: '20px',
+                        width: '320px',
+                        height: `${expandedHeight}px`,
+                        zIndex: 9998
+                      }}
+                      onMouseEnter={() => {
+                        if (hoverTimerRef.current) {
+                          clearTimeout(hoverTimerRef.current);
+                          hoverTimerRef.current = null;
+                        }
+                        setIsMinimizedGroupHovered(true);
+                      }}
+                      onMouseLeave={() => {
+                        if (hoverTimerRef.current) {
+                          clearTimeout(hoverTimerRef.current);
+                        }
+                        hoverTimerRef.current = window.setTimeout(() => {
+                          setIsMinimizedGroupHovered(false);
+                          hoverTimerRef.current = null;
+                        }, 150);
+                      }}
+                    />
+                  )}
+
+                  {openChats.map((chat, index) => {
+                    const minimizedIndex = minimizedList.findIndex(c => c.id === chat.id);
+                    return (
+                      <IndividualChatWindow
+                        key={chat.id}
+                        conversation={chat}
+                        onClose={() => handleCloseChat(chat.id)}
+                        onMinimize={() => handleMinimizeChat(chat.id)}
+                        windowIndex={index}
+                        isMinimized={minimizedChats.has(chat.id)}
+                        minimizedIndex={minimizedIndex}
+                        isMinimizedGroupHovered={isMinimizedGroupHovered}
+                      />
+                    );
+                  })}
+                </>
               );
-            })}
+            })()}
+
           </ChatThemeWrapper>
         </div>
       </ChatThemeProvider>

@@ -61,8 +61,7 @@ interface IndividualChatWindowProps {
   windowIndex: number;
   isMinimized?: boolean;
   minimizedIndex?: number;
-  hoveredMinimizedIndex?: number | null;
-  onMinimizedHover?: (index: number | null) => void;
+  isMinimizedGroupHovered?: boolean;
 }
 
 const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
@@ -72,8 +71,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
   windowIndex,
   isMinimized = false,
   minimizedIndex = 0,
-  hoveredMinimizedIndex = null,
-  onMinimizedHover
+  isMinimizedGroupHovered = false
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -297,9 +295,8 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
     const fullHeight = 60; // Full height of minimized window
     const hoverGap = 8; // Gap between windows when hovered
     
-    // Calculate position based on whether ANY window is being hovered
-    const isAnyHovered = hoveredMinimizedIndex !== null;
-    const bottomPosition = isAnyHovered
+    // Calculate position based on group hover state
+    const bottomPosition = isMinimizedGroupHovered
       ? 20 + (minimizedIndex * (fullHeight + hoverGap))
       : 20 + (minimizedIndex * collapsedHeight);
 
@@ -312,8 +309,6 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
             bottom: `${bottomPosition}px`, 
             zIndex: 9999 + minimizedIndex
           }}
-          onMouseEnter={() => onMinimizedHover?.(minimizedIndex)}
-          onMouseLeave={() => onMinimizedHover?.(null)}
         >
           <div className="p-3">
             <div className="flex items-center gap-2">
