@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -162,6 +162,12 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Resize state
+  const [windowHeight, setWindowHeight] = useState(500);
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeStartRef = useRef({ y: 0, startHeight: 500 });
+  const rafRef = useRef<number | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -296,6 +302,55 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   };
 
   const emojis = ['😀', '😂', '😍', '🥺', '😎', '🤔', '👍', '❤️', '🔥', '💯', '🎉', '👏'];
+
+  // Smooth resize handlers
+  const handleResizeStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    resizeStartRef.current = { y: clientY, startHeight: windowHeight };
+  }, [windowHeight]);
+
+  const handleResizeMove = useCallback((clientY: number) => {
+    if (!isResizing) return;
+    
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    
+    rafRef.current = requestAnimationFrame(() => {
+      const deltaY = resizeStartRef.current.y - clientY;
+      const newHeight = Math.max(300, Math.min(800, resizeStartRef.current.startHeight + deltaY));
+      setWindowHeight(newHeight);
+    });
+  }, [isResizing]);
+
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false);
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => handleResizeMove(e.clientY);
+    const handleTouchMove = (e: TouchEvent) => handleResizeMove(e.touches[0].clientY);
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('mouseup', handleResizeEnd);
+    document.addEventListener('touchend', handleResizeEnd);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('mouseup', handleResizeEnd);
+      document.removeEventListener('touchend', handleResizeEnd);
+    };
+  }, [isResizing, handleResizeMove, handleResizeEnd]);
 
   const clearChat = () => {
     setMessages([{
@@ -435,9 +490,30 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
         <div className="fixed inset-0 z-50 pointer-events-none">
           <ChatThemeWrapper>
             {/* Chat Window */}
-            <Card className="fixed w-[380px] h-[500px] bg-background border border-border shadow-2xl animate-slide-in-right overflow-hidden pointer-events-auto flex flex-col rounded-xl" style={{ right: '20px', bottom: '20px', zIndex: 9999 }}>
+            <Card 
+              className="fixed w-[380px] bg-background border border-border shadow-2xl animate-slide-in-right overflow-hidden pointer-events-auto flex flex-col rounded-xl transition-all duration-150" 
+              style={{ 
+                right: '20px', 
+                bottom: '20px', 
+                zIndex: 9999,
+                height: `${windowHeight}px`,
+                cursor: isResizing ? 'ns-resize' : 'default'
+              }}
+            >
+        {/* Drag Handle - 2 Lines Grip */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-4 flex items-center justify-center cursor-ns-resize hover:bg-primary/5 active:bg-primary/10 transition-colors z-20 group"
+          onMouseDown={handleResizeStart}
+          onTouchStart={handleResizeStart}
+        >
+          <div className="flex flex-col gap-0.5 items-center justify-center py-1">
+            <div className="w-8 h-0.5 rounded-full bg-muted-foreground/30 group-hover:bg-primary/50 group-active:bg-primary transition-colors" />
+            <div className="w-8 h-0.5 rounded-full bg-muted-foreground/30 group-hover:bg-primary/50 group-active:bg-primary transition-colors" />
+          </div>
+        </div>
+
         {/* Header - Fixed at top */}
-        <div className="absolute top-0 left-0 right-0 bg-primary/10 border-b border-border p-4 z-10">
+        <div className="absolute top-4 left-0 right-0 bg-primary/10 border-b border-border p-4 z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {currentView === 'chat' && (
@@ -545,7 +621,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
 
         {/* Content Area */}
         {currentView === 'conversations' ? (
-          <div className="absolute top-[88px] left-0 right-0 bottom-0 overflow-hidden">
+          <div className="absolute top-[92px] left-0 right-0 bottom-0 overflow-hidden">
             <ConversationsList
               conversations={conversations}
               archivedConversations={archivedConversations}
@@ -560,7 +636,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
         ) : (
           <>
             {/* Messages - Fixed between header and input */}
-            <div className="absolute top-[88px] left-0 right-0 bottom-[120px] overflow-y-auto p-4">
+            <div className="absolute top-[92px] left-0 right-0 bottom-[120px] overflow-y-auto p-4">
               <div className="space-y-4">
                 {messages.map((message) => (
                   <div
