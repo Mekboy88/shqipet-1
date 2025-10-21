@@ -12,7 +12,7 @@ import QuickSettingsPanel from './QuickSettingsPanel';
 const UserProfileDropdown: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [showQuickSettings, setShowQuickSettings] = useState(false);
+  const [showQuickSettingsDialog, setShowQuickSettingsDialog] = useState(false);
   
   // Safe auth access with early return
   let authContext, secureRolesContext, universalUserContext;
@@ -50,19 +50,23 @@ const UserProfileDropdown: React.FC = () => {
   });
   const handleLinkClick = (path: string) => {
     setOpen(false);
-    setShowQuickSettings(false);
     navigate(path);
   };
   const handleLogout = async () => {
     console.log('🚪 Logout clicked in dropdown');
     setOpen(false);
-    setShowQuickSettings(false);
+    setShowQuickSettingsDialog(false);
     try {
       await signOut();
     } catch (error) {
       console.error('Logout failed:', error);
       console.log('Auto-navigation prevented - staying on current page');
     }
+  };
+
+  const handleSettingsClick = () => {
+    setOpen(false); // Close the dropdown
+    setShowQuickSettingsDialog(true); // Open settings in a separate dialog
   };
   const menuItemClasses = "group flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors hover:text-red-900 hover:bg-gradient-to-r hover:from-red-200 hover:via-red-400 hover:to-red-600";
   const menuItemJustifyBetweenClasses = "group flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors hover:text-red-900 hover:bg-gradient-to-r hover:from-red-200 hover:via-red-400 hover:to-red-600";
@@ -81,7 +85,7 @@ const UserProfileDropdown: React.FC = () => {
             <PopoverContent className="w-80 p-0 rounded-xl shadow-lg border-none z-[1000] bg-popover" align="end" sideOffset={12}>
               <div className="bg-popover rounded-xl overflow-hidden text-foreground relative">
                 {/* Main content */}
-                <div className={`transition-transform duration-300 ${showQuickSettings ? '-translate-x-full' : 'translate-x-0'}`}>
+                <div>
                   <div onClick={() => handleLinkClick('/profile')} className="group p-3 flex items-center justify-between cursor-pointer transition-colors rounded-t-xl hover:text-red-900 hover:bg-gradient-to-r hover:from-red-200 hover:via-red-400 hover:to-red-600">
                     <span className="text-lg font-semibold">{displayName}</span>
                     <Avatar size="sm" />
@@ -251,7 +255,7 @@ const UserProfileDropdown: React.FC = () => {
                           <Command className="h-4 w-4 text-gray-600 group-hover:text-red-900 transition-colors" />
                       </div>
                       <div 
-                        onClick={() => setShowQuickSettings(true)}
+                        onClick={handleSettingsClick}
                         className={menuItemJustifyBetweenClasses}
                       >
                         <span className="text-sm font-medium">Settings and Privacy</span>
@@ -265,11 +269,6 @@ const UserProfileDropdown: React.FC = () => {
                       </div>
                   </div>
                 </div>
-                
-                {/* Quick Settings Panel */}
-                {showQuickSettings && (
-                  <QuickSettingsPanel onBack={() => setShowQuickSettings(false)} />
-                )}
               </div>
             </PopoverContent>
           </Popover>
@@ -278,6 +277,19 @@ const UserProfileDropdown: React.FC = () => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      {/* Quick Settings Dialog - Outside of Popover */}
+      {showQuickSettingsDialog && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowQuickSettingsDialog(false)}
+          />
+          <div className="relative w-[400px] max-h-[600px] bg-popover rounded-xl shadow-2xl overflow-hidden z-[10000]">
+            <QuickSettingsPanel onBack={() => setShowQuickSettingsDialog(false)} />
+          </div>
+        </div>
+      )}
     </div>;
 };
 export default UserProfileDropdown;
