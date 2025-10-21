@@ -103,7 +103,6 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
             <Switch 
               checked={showOnlineStatus} 
               onCheckedChange={setShowOnlineStatus}
-              className="data-[state=checked]:bg-orange-500"
             />
           </div>
 
@@ -144,7 +143,6 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
             <Switch 
               checked={profileVisibility} 
               onCheckedChange={setProfileVisibility}
-              className="data-[state=checked]:bg-orange-500"
             />
           </div>
         </div>
