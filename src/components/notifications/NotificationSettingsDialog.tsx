@@ -204,7 +204,7 @@ const NotificationSettingsDialog: React.FC<NotificationSettingsDialogProps> = ({
                     </div>
 
                     {categoryInfo.map(({ key, label, icon: Icon, critical }) => (
-                      <div key={key} className="grid grid-cols-5 gap-2 items-center">
+                      <div key={key} className="grid grid-cols-4 gap-2 items-center">
                         <div className="col-span-1 flex items-center gap-2">
                           <Icon className="h-4 w-4" />
                           <span className="text-sm">{label}</span>
@@ -228,12 +228,6 @@ const NotificationSettingsDialog: React.FC<NotificationSettingsDialogProps> = ({
                             checked={settings.categories[key as keyof typeof settings.categories].email}
                             onCheckedChange={(checked) => updateCategoryChannel(key as keyof typeof settings.categories, 'email', checked)}
                             disabled={critical && !settings.categories[key as keyof typeof settings.categories].email}
-                          />
-                        </div>
-                        <div className="flex justify-center">
-                          <Switch
-                            checked={settings.categories[key as keyof typeof settings.categories].sms}
-                            onCheckedChange={(checked) => updateCategoryChannel(key as keyof typeof settings.categories, 'sms', checked)}
                           />
                         </div>
                       </div>
