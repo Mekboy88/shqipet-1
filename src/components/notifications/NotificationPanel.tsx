@@ -174,6 +174,27 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
     return filteredNotifications.filter((n: any) => n.status === 'unread').length;
   }, [filteredNotifications]);
 
+  // Priority count for current tab
+  const priorityCount = useMemo(() => {
+    return groupedNotifications.filter(notification => {
+      const isPriority = notification.priority === 'critical' || notification.priority === 'high';
+      // Apply tab filter
+      const matchesTab = activeTab === 'all' || 
+        (activeTab === 'mentions' && notification.type === 'mention') ||
+        (activeTab === 'messages' && notification.type === 'message') ||
+        (activeTab === 'follows' && (notification.type === 'follow' || notification.type === 'request')) ||
+        (activeTab === 'comments' && (notification.type === 'comment' || notification.type === 'reply')) ||
+        (activeTab === 'reactions' && (notification.type === 'like' || notification.type === 'reaction')) ||
+        (activeTab === 'shares' && notification.type === 'share') ||
+        (activeTab === 'groups' && (notification.type === 'group' || notification.type === 'page')) ||
+        (activeTab === 'events' && notification.type === 'event') ||
+        (activeTab === 'marketplace' && notification.type === 'marketplace') ||
+        (activeTab === 'system' && (notification.type === 'system' || notification.type === 'security'));
+      
+      return isPriority && matchesTab;
+    }).length;
+  }, [groupedNotifications, activeTab]);
+
   // Handle selection
   const toggleSelection = (id: string, index: number, shiftKey: boolean) => {
     if (shiftKey && lastSelectedIndex !== null) {
@@ -450,6 +471,9 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
                     <path d="M460.8 697.6c0-6.4 2.133333-12.8 4.266667-19.2 2.133333-6.4 6.4-10.666667 10.666666-14.933333 4.266667-4.266667 10.666667-8.533333 17.066667-10.666667s12.8-4.266667 21.333333-4.266667 14.933333 2.133333 21.333334 4.266667c6.4 2.133333 12.8 6.4 17.066666 10.666667 4.266667 4.266667 8.533333 8.533333 10.666667 14.933333 2.133333 6.4 4.266667 12.8 4.266667 19.2s-2.133333 12.8-4.266667 19.2-6.4 10.666667-10.666667 14.933333c-4.266667 4.266667-10.666667 8.533333-17.066666 10.666667-6.4 2.133333-12.8 4.266667-21.333334 4.266667s-14.933333-2.133333-21.333333-4.266667-10.666667-6.4-17.066667-10.666667c-4.266667-4.266667-8.533333-8.533333-10.666666-14.933333s-4.266667-10.666667-4.266667-19.2z m89.6-98.133333h-76.8L462.933333 277.333333h98.133334l-10.666667 322.133334z" fill="#FFFFFF"/>
                   </svg>
                   Priority
+                  <Badge variant="destructive" className="ml-1 h-4 min-w-[1rem] px-1 text-[10px] leading-4">
+                    {priorityCount}
+                  </Badge>
                 </Button>
               </>
             )}
