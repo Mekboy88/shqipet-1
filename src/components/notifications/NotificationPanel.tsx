@@ -130,7 +130,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
       />
 
       {/* Notification Panel */}
-      <div className="fixed top-14 right-4 w-[736px] max-h-[calc(100vh-80px)] bg-white rounded-lg shadow-2xl z-50 flex flex-col">
+      <div className="fixed top-14 right-4 w-[700px] max-h-[calc(100vh-80px)] bg-white rounded-lg shadow-2xl z-50 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-3xl font-bold text-gray-900">Notification</h2>
