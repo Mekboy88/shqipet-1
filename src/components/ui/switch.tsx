@@ -11,7 +11,7 @@ const Switch = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SwitchPrimitives.Root
     className={cn(
-      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-xl border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary/20 data-[state=checked]:!border-primary/30 data-[state=unchecked]:bg-muted data-[state=unchecked]:border-border",
+      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-xl border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-green-100 data-[state=checked]:!border-green-300 data-[state=unchecked]:bg-gradient-to-r data-[state=unchecked]:from-red-500/10 data-[state=unchecked]:to-gray-800/10 data-[state=unchecked]:border-red-200",
       className
     )}
     {...props}
@@ -20,12 +20,12 @@ const Switch = React.forwardRef<
     <SwitchPrimitives.Thumb
       className={cn(
         "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0 flex items-center justify-center",
-        "[&_svg]:data-[state=checked]:text-primary [&_svg]:data-[state=unchecked]:text-muted-foreground"
+        "[&_svg]:data-[state=checked]:text-green-400 [&_svg]:data-[state=unchecked]:text-red-400"
       )}
     >
       <Check 
         size={12} 
-        className="transition-colors text-muted-foreground"
+        className="transition-colors text-red-400"
         strokeWidth={5}
       />
     </SwitchPrimitives.Thumb>
