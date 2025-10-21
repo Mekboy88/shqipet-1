@@ -1,12 +1,9 @@
 import React from 'react';
-import { X, Bell, CheckCircle, AlertCircle, Info, Settings, User, Shield } from 'lucide-react';
+import { X, Settings, FileText, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { useNotifications } from '@/hooks/security/use-notifications';
-import { useNotificationSettings } from '@/contexts/NotificationSettingsContext';
 import NotificationSettingsDialog from './NotificationSettingsDialog';
 
 interface NotificationPanelProps {
@@ -15,367 +12,267 @@ interface NotificationPanelProps {
 }
 
 const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  const [activeTab, setActiveTab] = React.useState<'all' | 'mentions' | 'unread'>('all');
   const [showSettings, setShowSettings] = React.useState(false);
 
-  // Reset to collapsed state synchronously before paint to avoid flicker
-  React.useLayoutEffect(() => {
-    if (isOpen) {
-      setIsExpanded(false);
-    }
-  }, [isOpen]);
-  
-  // Reset to collapsed state whenever panel opens
-  React.useEffect(() => {
-    if (isOpen) {
-      setIsExpanded(false);
-    }
-  }, [isOpen]);
   
   const { 
     notifications: realNotifications, 
-    isLoading, 
     markAsRead, 
-    markAllAsRead, 
-    getUnreadCount 
+    markAllAsRead
   } = useNotifications();
-  
-  const { settings } = useNotificationSettings();
 
-  // Create mock notifications for demonstration if no real ones exist
+  // Create mock notifications matching the reference image
   const mockNotifications = [
     {
       id: '1',
-      title: 'Security Scan Complete',
-      description: 'Your security scan has completed successfully. 5 vulnerabilities found.',
-      type: 'security',
-      priority: 'high',
+      users: ['Alena King', 'Thomas Partey'],
+      avatars: ['/placeholder.svg', '/placeholder.svg'],
+      action: 'commented in',
+      subject: 'Dashboard V2',
+      date: 'Apr 14',
+      metadata: '21 comments',
       status: 'unread',
-      linked_module: 'security',
-      linked_scan_id: 'scan-123',
-      tags: ['security', 'scan'],
-      source: 'security_scanner',
-      user_id: 'user-123',
-      created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+      type: 'comment'
     },
     {
       id: '2',
-      title: 'Profile Updated',
-      description: 'Your profile information has been successfully updated',
-      type: 'account',
-      priority: 'low',
+      users: ['Thomas Partey'],
+      avatars: ['/placeholder.svg'],
+      action: 'Invited you to a project',
+      subject: 'NetNest',
+      date: 'Apr 14',
+      metadata: 'Design',
       status: 'read',
-      linked_module: 'profile',
-      linked_scan_id: '',
-      tags: ['profile', 'update'],
-      source: 'user_action',
-      user_id: 'user-123',
-      created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      type: 'invitation',
+      hasActions: true
     },
     {
       id: '3',
-      title: 'System Maintenance',
-      description: 'Scheduled maintenance will occur tonight from 2-4 AM EST',
-      type: 'system',
-      priority: 'medium',
+      users: ['Thomas Partey'],
+      avatars: ['/placeholder.svg'],
+      action: 'added new project',
+      subject: 'NetNest',
+      date: 'Apr 13',
+      metadata: 'Design',
       status: 'unread',
-      linked_module: 'system',
-      linked_scan_id: '',
-      tags: ['maintenance', 'system'],
-      source: 'system',
-      user_id: 'user-123',
-      created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+      type: 'project'
     },
     {
       id: '4',
-      title: 'New Feature Available',
-      description: 'Check out our new dashboard analytics feature',
-      type: 'update',
-      priority: 'low',
-      status: 'unread',
-      linked_module: 'features',
-      linked_scan_id: '',
-      tags: ['feature', 'update'],
-      source: 'product_team',
-      user_id: 'user-123',
-      created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+      users: ['Justin Keith'],
+      avatars: ['/placeholder.svg'],
+      action: 'added new project',
+      subject: 'Signature Spark',
+      date: 'Apr 10',
+      metadata: 'Testing',
+      status: 'read',
+      type: 'project'
     },
+    {
+      id: '5',
+      users: ['Maria Joyce'],
+      avatars: ['/placeholder.svg'],
+      action: 'mentioned you in',
+      subject: 'Pixel Pulse',
+      date: 'Apr 02',
+      metadata: '3 comments',
+      status: 'read',
+      type: 'mention'
+    },
+    {
+      id: '6',
+      users: ['Adam Maccall'],
+      avatars: ['/placeholder.svg'],
+      action: 'shared a file',
+      subject: 'Design Requirements',
+      date: 'Mar 31',
+      metadata: 'Design',
+      status: 'read',
+      type: 'file',
+      file: {
+        name: 'Design_requirements_D2361.pdf',
+        size: '4.2MB',
+        type: 'pdf'
+      }
+    }
   ];
 
-  const notifications = realNotifications && realNotifications.length > 0 ? realNotifications : mockNotifications;
+  const notifications = mockNotifications;
 
-  // Filter notifications based on selected category and user settings
+  // Filter notifications based on active tab
   const filteredNotifications = React.useMemo(() => {
-    let filtered = notifications;
-    
-    // Apply user settings filters
-    filtered = filtered.filter(n => {
-      // Filter by notification type settings
-      switch (n.type) {
-        case 'security':
-        case 'warning':
-        case 'error':
-          return settings.enableSecurityNotifications;
-        case 'account':
-        case 'profile':
-          return settings.enableAccountNotifications;
-        case 'system':
-          return settings.enableSystemNotifications;
-        case 'update':
-        case 'feature':
-          return settings.enableUpdateNotifications;
-        default:
-          return true;
-      }
-    });
-    
-    // Filter by priority settings
-    filtered = filtered.filter(n => {
-      switch (n.priority) {
-        case 'high':
-          return settings.showHighPriority;
-        case 'medium':
-          return settings.showMediumPriority;
-        case 'low':
-          return settings.showLowPriority;
-        default:
-          return true;
-      }
-    });
-    
-    // Apply category filter if selected
-    if (selectedCategory) {
-      filtered = filtered.filter(n => {
-        switch (selectedCategory) {
-          case 'updates': return n.type === 'update' || n.type === 'feature';
-          case 'alerts': return n.type === 'security' || n.type === 'warning' || n.type === 'error';
-          case 'system': return n.type === 'system';
-          case 'account': return n.type === 'account' || n.type === 'profile';
-          default: return true;
-        }
-      });
+    if (activeTab === 'mentions') {
+      return notifications.filter(n => n.type === 'mention');
     }
-    
-    return filtered;
-  }, [notifications, settings, selectedCategory]);
+    if (activeTab === 'unread') {
+      return notifications.filter(n => n.status === 'unread');
+    }
+    return notifications;
+  }, [notifications, activeTab]);
 
-  const formatTimeAgo = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
-    return `${Math.floor(diffInMinutes / 1440)} days ago`;
-  };
+  const unreadCount = notifications.filter(n => n.status === 'unread').length;
+
 
   const handleMarkAllRead = async () => {
-    try {
-      await markAllAsRead.mutateAsync();
-    } catch (error) {
-      console.error('Failed to mark all as read:', error);
-    }
+    // Mark all as read logic
+    console.log('Mark all as read');
   };
 
-  const handleNotificationClick = async (notificationId: string, status: string) => {
-    if (status === 'unread') {
-      try {
-        await markAsRead.mutateAsync(notificationId);
-      } catch (error) {
-        console.error('Failed to mark as read:', error);
-      }
-    }
-  };
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning':
-      case 'security':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      case 'account':
-      case 'profile':
-        return <User className="h-4 w-4 text-purple-500" />;
-      case 'system':
-        return <Settings className="h-4 w-4 text-gray-500" />;
-      case 'update':
-      case 'feature':
-        return <CheckCircle className="h-4 w-4 text-blue-500" />;
-      default:
-        return <Info className="h-4 w-4 text-blue-500" />;
-    }
-  };
+  if (!isOpen) return null;
 
   return (
     <>
-      {/* Invisible backdrop for closing - pointer-events-none to allow feed scrolling */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-40 pointer-events-none"
-          onClick={onClose}
-        />
-      )}
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 z-40 bg-black/5"
+        onClick={onClose}
+      />
 
       {/* Notification Panel */}
-      <div className={`
-        fixed top-14 right-0 ${isOpen && isExpanded ? 'h-[calc(100vh-3.5rem)]' : 'h-1/2'} w-80 bg-white shadow-2xl z-50 
-        transform transition-transform duration-300 ease-in-out border-l border-gray-200 pointer-events-auto
-        ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-      `}>
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-red-500/10 to-gray-800/10">
-            <div className="flex items-center space-x-2">
-              <Bell className="h-5 w-5 text-red-500" />
-              <h3 className="font-semibold text-gray-900">Notifications</h3>
-              <Badge variant="secondary" className="bg-red-500 text-white">
-                {notifications.filter(n => n.status === 'unread').length}
-              </Badge>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
+      <div className="fixed top-14 right-4 w-[920px] max-h-[calc(100vh-80px)] bg-white rounded-lg shadow-2xl z-50 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-3xl font-bold text-gray-900">Notification</h2>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Settings className="h-5 w-5 text-gray-500" />
+            </button>
+            <button
               onClick={onClose}
-              className="h-8 w-8 rounded-full hover:bg-gray-100"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Content */}
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-4">
-              {/* Quick Actions */}
-              <Card className="p-3 bg-gradient-to-r from-red-50 to-gray-50">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Quick Actions</span>
-                  <Settings className="h-4 w-4 text-gray-500" />
-                </div>
-                <div className="flex space-x-2 mt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs"
-                    onClick={handleMarkAllRead}
-                  >
-                    Mark all read
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs"
-                    onClick={() => setShowSettings(true)}
-                  >
-                    <Settings className="h-4 w-4 mr-1" />
-                    Settings
-                  </Button>
-                </div>
-              </Card>
-
-              <Separator />
-
-              {/* Notifications List */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-600">Recent Notifications</h4>
-                {filteredNotifications.map((notification) => (
-                  <Card 
-                    key={notification.id} 
-                    className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      notification.status === 'unread' ? 'border-red-200 bg-red-50/30' : 'border-gray-200'
-                    }`}
-                    onClick={() => handleNotificationClick(notification.id, notification.status)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-1">
-                        {getIcon(notification.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <h5 className="text-sm font-medium text-gray-900 truncate">
-                            {notification.title}
-                          </h5>
-                          {notification.status === 'unread' && (
-                            <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 ml-2 mt-1"></div>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                          {notification.description}
-                        </p>
-                        <span className="text-xs text-gray-400 mt-1">
-                          {formatTimeAgo(notification.created_at)}
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Categories */}
-              <Separator />
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-600">Categories</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button 
-                    variant={selectedCategory === 'updates' ? "default" : "outline"}
-                    size="sm" 
-                    className="justify-start text-xs"
-                    onClick={() => setSelectedCategory(selectedCategory === 'updates' ? null : 'updates')}
-                  >
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Updates
-                  </Button>
-                  <Button 
-                    variant={selectedCategory === 'alerts' ? "default" : "outline"}
-                    size="sm" 
-                    className="justify-start text-xs"
-                    onClick={() => setSelectedCategory(selectedCategory === 'alerts' ? null : 'alerts')}
-                  >
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Alerts
-                  </Button>
-                  <Button 
-                    variant={selectedCategory === 'system' ? "default" : "outline"}
-                    size="sm" 
-                    className="justify-start text-xs"
-                    onClick={() => setSelectedCategory(selectedCategory === 'system' ? null : 'system')}
-                  >
-                    <Info className="h-3 w-3 mr-1" />
-                    System
-                  </Button>
-                  <Button 
-                    variant={selectedCategory === 'account' ? "default" : "outline"}
-                    size="sm" 
-                    className="justify-start text-xs"
-                    onClick={() => setSelectedCategory(selectedCategory === 'account' ? null : 'account')}
-                  >
-                    <Settings className="h-3 w-3 mr-1" />
-                    Account
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </ScrollArea>
-
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <Button 
-              variant="outline" 
-              className="w-full text-sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? 'Collapse View' : 'View All Notifications'}
-            </Button>
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
           </div>
         </div>
+
+        {/* Tabs and Actions */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'all' 
+                  ? 'bg-white shadow-sm text-gray-900' 
+                  : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              View all
+            </button>
+            <button
+              onClick={() => setActiveTab('mentions')}
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'mentions' 
+                  ? 'bg-white shadow-sm text-gray-900' 
+                  : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              Mentions
+            </button>
+            <button
+              onClick={() => setActiveTab('unread')}
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'unread' 
+                  ? 'bg-white shadow-sm text-gray-900' 
+                  : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              Unread ({unreadCount})
+            </button>
+          </div>
+          <button
+            onClick={handleMarkAllRead}
+            className="text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors"
+          >
+            Mark all as read
+          </button>
+        </div>
+
+        {/* Notifications List */}
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-4">
+            {filteredNotifications.map((notification) => (
+              <div key={notification.id} className="flex items-start gap-4 p-4 hover:bg-gray-50 rounded-lg transition-colors relative">
+                {/* Unread Indicator */}
+                {notification.status === 'unread' && (
+                  <div className="absolute left-2 top-7 w-2 h-2 bg-blue-500 rounded-full" />
+                )}
+                
+                {/* Avatar(s) */}
+                <div className="relative flex-shrink-0">
+                  {notification.avatars.length === 1 ? (
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={notification.avatars[0]} />
+                      <AvatarFallback>{notification.users[0].charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div className="flex items-center">
+                      <Avatar className="h-12 w-12 border-2 border-white">
+                        <AvatarImage src={notification.avatars[0]} />
+                        <AvatarFallback>{notification.users[0].charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <Avatar className="h-12 w-12 -ml-3 border-2 border-white">
+                        <AvatarImage src={notification.avatars[1]} />
+                        <AvatarFallback>{notification.users[1].charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    </div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-900">
+                    <span className="font-semibold">{notification.users.join(' and ')}</span>
+                    {' '}{notification.action}{' '}
+                    <span className="font-semibold">{notification.subject}</span>
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {notification.date} · {notification.metadata}
+                  </p>
+
+                  {/* Action Buttons */}
+                  {notification.hasActions && (
+                    <div className="flex items-center gap-3 mt-3">
+                      <Button 
+                        variant="outline" 
+                        className="h-9 px-6 text-sm font-medium border-gray-300 hover:bg-gray-50"
+                      >
+                        Decline
+                      </Button>
+                      <Button 
+                        className="h-9 px-6 text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        Accept
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* File Attachment */}
+                  {notification.file && (
+                    <div className="flex items-center justify-between p-4 mt-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-12 bg-red-500 rounded flex items-center justify-center">
+                          <FileText className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{notification.file.name}</p>
+                          <p className="text-sm text-gray-500">{notification.file.size}</p>
+                        </div>
+                      </div>
+                      <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
+                        <Download className="h-5 w-5 text-gray-500" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
       
       <NotificationSettingsDialog 
