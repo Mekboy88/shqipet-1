@@ -12,7 +12,7 @@ const LiveSectionHeader: React.FC<LiveSectionHeaderProps> = ({
   setGridLayout
 }) => {
   return (
-    <div className="flex items-center justify-end p-0 m-0 leading-none -my-2">
+    <div className="relative z-10 flex items-center justify-end p-0 m-0 leading-none -my-2">
       <GridLayoutButtons 
         gridLayout={gridLayout} 
         setGridLayout={setGridLayout} 
