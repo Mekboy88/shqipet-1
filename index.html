@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     <meta name="format-detection" content="telephone=no" />
     <title>Shqipet - Connect with friends and the world around you</title>
     <meta name="description" content="Shqipet is a social media platform that helps you connect with friends, family and communities of people who share your interests.">
@@ -39,11 +39,15 @@
         height: 100%;
         overflow-x: hidden;
         font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       
       #root {
         width: 100%;
         height: 100%;
+        min-height: 100vh;
+        min-height: 100dvh;
       }
       
       * {
@@ -54,11 +58,20 @@
       .main-layout {
         contain: layout style;
         transform: none;
+        width: 100%;
+        max-width: 100vw;
       }
       
       .feed-content {
         contain: layout style;
         transform: none;
+        width: 100%;
+        max-width: 100vw;
+      }
+      
+      /* Ensure all containers respect viewport bounds */
+      body * {
+        max-width: 100vw;
       }
     </style>
     <!-- Preload marketplace wallpaper for instant paint -->
