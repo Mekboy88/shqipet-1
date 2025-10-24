@@ -90,6 +90,7 @@ import Information from './pages/Information';
 import Directory from './pages/Directory';
 import Events from './pages/Events';
 import Tasks from './pages/Tasks';
+import CreatePostDesktop from './pages/CreatePostDesktop';
 import './App.css';
 import DynamicAdminPortalManager from '@/components/admin/DynamicAdminPortalManager';
 import GlobalNotificationsListener from '@/components/realtime/GlobalNotificationsListener';
@@ -218,9 +219,10 @@ function App() {
                       <Route path="/terms-of-use" element={<TermsOfUse />} />
                       <Route path="/privacy-policy" element={<TermsOfUse />} />
                       
-                      {/* Protected routes - NO redundant auth checks, RootAuthRedirect handles it all */}
-                      <Route path="/" element={<Index />} />
-                      <Route path="/reels" element={<Reels />} />
+                       {/* Protected routes - NO redundant auth checks, RootAuthRedirect handles it all */}
+                       <Route path="/" element={<Index />} />
+                       <Route path="/create-post" element={<CreatePostDesktop />} />
+                       <Route path="/reels" element={<Reels />} />
                       <Route path="/interesante" element={<Reels />} />
                       <Route path="/watch" element={<Watch />} />
 <Route path="/profile" element={<Profile />} />

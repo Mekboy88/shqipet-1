@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -7,26 +8,15 @@ import { Image, Video, Plus } from 'lucide-react';
 import LiveIcon from '@/components/icons/LiveIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import Avatar from '@/components/Avatar';
-import CreatePostForm from './create-post/CreatePostForm';
 import CreatePostCardSkeleton from './CreatePostCardSkeleton';
 
 const CreatePostCard = () => {
   const { user } = useAuth();
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const navigate = useNavigate();
 
   const handleOpenCreatePost = () => {
-    setShowCreateForm(true);
+    navigate('/create-post');
   };
-
-  const handleClose = () => {
-    setShowCreateForm(false);
-  };
-
-  if (showCreateForm) {
-    return <CreatePostForm onClose={handleClose} />;
-  }
 
   return (
     <>
@@ -63,7 +53,6 @@ const CreatePostCard = () => {
           </Button>
         </div>
       </Card>
-      {isSubmitting && <CreatePostCardSkeleton />}
     </>
   );
 };
