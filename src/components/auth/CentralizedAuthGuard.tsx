@@ -16,7 +16,11 @@ const publicRoutes = [
   '/terms-of-use', 
   '/privacy-policy',
   '/auth/forgot-password',
-  '/auth/cookies-consent'
+  '/auth/cookies-consent',
+  // Public compose routes
+  '/create-post',
+  '/compose',
+  '/post/create'
 ];
 
 const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children }) => {
@@ -70,7 +74,7 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
   // Check if current route is public
   const isPublicRoute = publicRoutes.includes(location.pathname);
   // Routes where we must not flash the skeleton (render immediately)
-  const noSkeletonRoutes = ['/professional-presentation'];
+  const noSkeletonRoutes = ['/professional-presentation', '/create-post', '/compose', '/post/create'];
   
   // CRITICAL: Show loading skeleton while auth is still initializing (unless forced)
   if (loading && !forceRender) {

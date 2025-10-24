@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { GlobalRecoverBoundary } from './components/errors/GlobalRecoverBoundary';
 import { LanguageProvider } from './contexts/LanguageContext'; 
 import ViewSwitcher from './components/ViewSwitcher';
+import { HelmetProvider } from 'react-helmet-async';
 import './index.css';
 
 // Global error listeners to catch JavaScript errors  
@@ -31,10 +32,12 @@ if (!rootElement) {
 const root = createRoot(rootElement);
 root.render(
   <StrictMode>
-    <GlobalRecoverBoundary>
-      <LanguageProvider>
-        <ViewSwitcher />
-      </LanguageProvider>
-    </GlobalRecoverBoundary>
+    <HelmetProvider>
+      <GlobalRecoverBoundary>
+        <LanguageProvider>
+          <ViewSwitcher />
+        </LanguageProvider>
+      </GlobalRecoverBoundary>
+    </HelmetProvider>
   </StrictMode>
 );
