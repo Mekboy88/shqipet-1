@@ -20,7 +20,7 @@ const RootAuthRedirect: React.FC<{ children: React.ReactNode }> = ({ children })
   console.log('🔍 RootAuthRedirect - path:', location.pathname, 'user:', !!user, 'loading:', loading);
   
   // Public routes that don't need auth
-  const publicRoutes = ['/auth/login', '/auth/register', '/register', '/auth/verification', '/auth/callback', '/terms-of-use', '/privacy-policy'];
+  const publicRoutes = ['/auth/login', '/auth/register', '/register', '/auth/verification', '/auth/callback', '/terms-of-use', '/privacy-policy', '/create-post', '/compose', '/post/create'];
   const isPublicRoute = publicRoutes.includes(location.pathname);
   const isAdminRoute = location.pathname.startsWith('/admin');
   

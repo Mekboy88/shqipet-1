@@ -100,6 +100,7 @@ import LocalizationPage from '@/pages/admin/localization/LocalizationPage';
 import { TranslationEditorPage } from '@/components/admin/localization/TranslationEditorPage';
 import { ProfileSettingsProvider } from '@/contexts/ProfileSettingsContext';
 import ProfessionalPresentation from '@/pages/ProfessionalPresentation';
+import CreatePostDesktop from '@/pages/CreatePostDesktop';
 
 const DesktopApp: React.FC = () => {
   return (
@@ -122,6 +123,10 @@ const DesktopApp: React.FC = () => {
           <Route path="/profile/*" element={<><NavbarNoTooltip /><Profile /></>} />
           <Route path="/professional-presentation" element={<ProfessionalPresentation />} />
           <Route path="/photos" element={<Photos />} />
+          <Route path="/create-post" element={<><NavbarNoTooltip /><CreatePostDesktop /></>} />
+          <Route path="/create-post/*" element={<><NavbarNoTooltip /><CreatePostDesktop /></>} />
+          <Route path="/compose" element={<><NavbarNoTooltip /><CreatePostDesktop /></>} />
+          <Route path="/post/create" element={<><NavbarNoTooltip /><CreatePostDesktop /></>} />
           <Route path="/history" element={<><NavbarNoTooltip /><HistoryPage /></>} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
