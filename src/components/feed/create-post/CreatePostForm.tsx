@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { X, Globe, Lock, Users, Bold, Italic, Quote, Code, AtSign, Hash, ChevronDown, Image, Link2, BarChart3, FileUp, AudioLines, Calendar as CalendarIcon, Smile, MapPin, Video, Camera, Mic, Type, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Underline, Strikethrough, Superscript, Subscript, Indent, Outdent, MinusSquare, PlusSquare, FileText, Heading1, Heading2, Heading3, Code2, RotateCw, Square, Circle, Triangle, Star, Heart, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Sparkles, Eye } from 'lucide-react';
+import { X, Globe, Lock, Users, Bold, Italic, Quote, Code, AtSign, Hash, ChevronDown, Image, Link2, BarChart3, FileUp, AudioLines, Calendar as CalendarIcon, Smile, MapPin, Video, Camera, Mic, Type, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Underline, Strikethrough, Superscript, Subscript, Indent, Outdent, MinusSquare, PlusSquare, FileText, Heading1, Heading2, Heading3, Code2, RotateCw, Square, Circle, Triangle, Star, Heart, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Sparkles, Eye, Settings2, Lightbulb } from 'lucide-react';
 import { EmojiPicker } from '@/components/ui/emoji-picker';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePostsData } from '@/contexts/posts/usePostsData';
@@ -94,6 +94,8 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onClose }) => {
   // Sliding window states
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [showContentGuidance, setShowContentGuidance] = useState(true);
   
   // Auto-open photo preview when files are selected, but close when other windows open
   useEffect(() => {
@@ -945,10 +947,39 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onClose }) => {
                 
                 {/* Text Editor */}
                 <div className="flex-1 px-8 py-6 relative">
+                  {/* Content Guidance Tips - Dismissible */}
+                  {showContentGuidance && postContent.length === 0 && (
+                    <div className="mb-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                      <div className="flex items-start justify-between gap-3">
+                        <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 text-sm space-y-2">
+                          <p className="font-medium text-foreground">Tips for engaging posts:</p>
+                          <ul className="text-muted-foreground space-y-1 text-xs">
+                            <li>• Start with a clear hook to grab attention</li>
+                            <li>• Keep captions short and impactful (150 chars is optimal)</li>
+                            <li>• Use emojis, @mentions, and #hashtags</li>
+                            <li>• End with a call-to-action</li>
+                          </ul>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowContentGuidance(false)}
+                          className="h-6 w-6 p-0 hover:bg-primary/10"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Character Count - Moved to top */}
                   <div className="absolute top-2 right-8 z-10">
-                    <span className={`text-sm ${postContent.length > 1800 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    <span className={`text-sm font-medium ${postContent.length > 1800 ? 'text-destructive' : postContent.length > 150 ? 'text-warning' : 'text-muted-foreground'}`}>
                       {postContent.length}/2000
+                      {postContent.length > 0 && postContent.length <= 150 && (
+                        <span className="ml-2 text-xs text-primary">✓ Optimal</span>
+                      )}
                     </span>
                   </div>
                   
@@ -974,10 +1005,11 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onClose }) => {
                     
                     <textarea
                       placeholder={isAnonymous ? "What's on your mind, Anonymous?" : `What's on your mind, ${userName}?`}
-                      className="w-full h-full resize-none border-0 text-lg placeholder:text-muted-foreground focus:ring-0 focus:outline-none bg-transparent pr-16 relative z-10"
+                      className="w-full h-full resize-none border-0 text-xl placeholder:text-muted-foreground focus:ring-0 focus:outline-none bg-transparent pr-16 relative z-10"
                       value={postContent}
                       onChange={handleTextareaChange}
                       maxLength={2000}
+                      aria-label="Post content"
                     />
                   </div>
                 </div>
@@ -1158,13 +1190,13 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onClose }) => {
                   </div>
                 )}
 
-                {/* Toolbar */}
-                <div className="px-8 py-4 border-t border-border bg-muted/30">
-                  <div className="flex items-center justify-between">
+                {/* Toolbar - Simplified and grouped */}
+                <div className="px-8 py-5 border-t border-border bg-background">
+                  <div className="flex items-center justify-between gap-4">
                     
-                    {/* Formatting Tools */}
-                    <div className="flex items-center gap-1">
-                      <Button 
+                    {/* Quick Action Tools - Larger and more accessible */}
+                    <div className="flex items-center gap-2">
+                      <Button
                         variant="ghost" 
                         size="sm" 
                         onClick={() => setShowFormattingModal(true)}
@@ -1420,117 +1452,156 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onClose }) => {
               </div>
             </div>
 
-            {/* Footer Actions */}
-            <div className="px-8 py-6 bg-white border-t border-border flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Button variant="outline" disabled={isSubmitting}>
-                  Save Draft
-                </Button>
+            {/* Footer Actions - Redesigned for clarity */}
+            <div className="px-8 py-6 bg-background border-t border-border">
+              <div className="space-y-4">
                 
-                {/* Advanced Feature Buttons - 2 rows layout with enhanced styling */}
-                <div className="flex flex-col gap-2">
-                  {/* First row - 4 buttons */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openWindow('contentWarning')}
-                      className="px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 flex items-center gap-2"
+                {/* Advanced Settings - Collapsible */}
+                <div className="border border-border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                    aria-expanded={showAdvancedSettings}
+                    aria-label="Toggle advanced settings"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Settings2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">Advanced Settings</span>
+                      <span className="text-xs text-muted-foreground">
+                        (Scheduling, Cross-platform, Targeting & more)
+                      </span>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showAdvancedSettings ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {showAdvancedSettings && (
+                    <div className="px-4 py-4 bg-muted/20 border-t border-border space-y-3">
+                      {/* Row 1 */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWindow('contentWarning')}
+                          className="px-3 py-2 h-auto hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                        >
+                          <WarningIcon className="h-4 w-4 mr-2" />
+                          <span className="text-xs font-medium">Content Warning</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWindow('postExpiration')}
+                          className="px-3 py-2 h-auto hover:bg-red-50 hover:border-red-300 transition-colors"
+                        >
+                          <PostExpirationIcon className="h-4 w-4 mr-2" />
+                          <span className="text-xs font-medium">Post Expiration</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWindow('crossPlatform')}
+                          className="px-3 py-2 h-auto hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                        >
+                          <CrossPlatformIcon className="h-4 w-4 mr-2" />
+                          <span className="text-xs font-medium">Cross Platform</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWindow('audienceTargeting')}
+                          className="px-3 py-2 h-auto hover:bg-purple-50 hover:border-purple-300 transition-colors"
+                        >
+                          <AudienceTargetingIcon className="h-4 w-4 mr-2" />
+                          <span className="text-xs font-medium">Audience Targeting</span>
+                        </Button>
+                      </div>
+                      
+                      {/* Row 2 */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWindow('textFormatting')}
+                          className="px-3 py-2 h-auto hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+                        >
+                          <Type className="h-4 w-4 mr-2" />
+                          <span className="text-xs font-medium">Text Formatting</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWindow('voiceToText')}
+                          className="px-3 py-2 h-auto hover:bg-green-50 hover:border-green-300 transition-colors"
+                        >
+                          <VoiceToTextIcon className="h-4 w-4 mr-2" />
+                          <span className="text-xs font-medium">Voice to Text</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWindow('translation')}
+                          className="px-3 py-2 h-auto hover:bg-cyan-50 hover:border-cyan-300 transition-colors"
+                        >
+                          <TranslationIcon className="h-4 w-4 mr-2" />
+                          <span className="text-xs font-medium">Translation</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWindow('contentModeration')}
+                          className="px-3 py-2 h-auto hover:bg-amber-50 hover:border-amber-300 transition-colors"
+                        >
+                          <ContentModerationIcon className="h-4 w-4 mr-2" />
+                          <span className="text-xs font-medium">Content Moderation</span>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Primary Actions - Clear hierarchy */}
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      variant="outline" 
+                      disabled={isSubmitting}
+                      className="h-11"
                     >
-                      <WarningIcon className="h-4 w-4" />
-                      <span className="text-xs font-medium text-orange-700">Content Warning</span>
+                      Save Draft
                     </Button>
                     <Button
                       variant="outline"
-                      size="sm"
-                      onClick={() => openWindow('postExpiration')}
-                      className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 flex items-center gap-2"
+                      onClick={onClose}
+                      disabled={isSubmitting}
+                      className="h-11"
                     >
-                      <PostExpirationIcon className="h-4 w-4 text-red-600" />
-                      <span className="text-xs font-medium text-red-700">Post Expiration</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openWindow('crossPlatform')}
-                      className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 flex items-center gap-2"
-                    >
-                      <CrossPlatformIcon className="h-4 w-4 text-blue-600" />
-                      <span className="text-xs font-medium text-blue-700">Cross Platform</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openWindow('audienceTargeting')}
-                      className="px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 flex items-center gap-2"
-                    >
-                      <AudienceTargetingIcon className="h-4 w-4 text-purple-600" />
-                      <span className="text-xs font-medium text-purple-700">Audience Targeting</span>
+                      Cancel
                     </Button>
                   </div>
                   
-                   {/* Second row - 4 buttons */}
-                   <div className="flex items-center gap-2">
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       onClick={() => openWindow('textFormatting')}
-                       className="px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 flex items-center gap-2"
-                     >
-                       <Type className="h-4 w-4 text-indigo-600" />
-                       <span className="text-xs font-medium text-indigo-700">Text Formatting</span>
-                     </Button>
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       onClick={() => openWindow('voiceToText')}
-                       className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 flex items-center gap-2"
-                     >
-                       <VoiceToTextIcon className="h-4 w-4 text-green-600" />
-                       <span className="text-xs font-medium text-green-700">Voice to Text</span>
-                     </Button>
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       onClick={() => openWindow('translation')}
-                       className="px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 flex items-center gap-2"
-                     >
-                       <TranslationIcon className="h-4 w-4 text-cyan-600" />
-                       <span className="text-xs font-medium text-cyan-700">Translation</span>
-                     </Button>
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       onClick={() => openWindow('contentModeration')}
-                       className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 flex items-center gap-2"
-                     >
-                       <ContentModerationIcon className="h-4 w-4 text-amber-600" />
-                       <span className="text-xs font-medium text-amber-700">Content Moderation</span>
-                     </Button>
-                   </div>
+                  {/* Primary CTA - Prominent and accessible */}
+                  <Button
+                    onClick={handleCreatePost}
+                    disabled={isSubmitting || (!postContent.trim() && selectedFiles.length === 0 && !pollData && !locationData)}
+                    size="lg"
+                    className="px-8 h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all"
+                    aria-label={isSubmitting ? 'Publishing post' : 'Publish post'}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="animate-pulse">Publishing...</span>
+                      </>
+                    ) : pollData && locationData ? (
+                      'Publish Poll & Location'
+                    ) : pollData ? (
+                      'Publish Poll'
+                    ) : locationData ? (
+                      'Publish with Location'
+                    ) : (
+                      'Publish Post'
+                    )}
+                  </Button>
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  onClick={onClose}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={handleCreatePost}
-                  disabled={isSubmitting || (!postContent.trim() && selectedFiles.length === 0 && !pollData && !locationData)}
-                  className="flex-1 p-4 bg-gradient-to-r from-red-500/10 to-gray-800/10 rounded-xl border border-red-200"
-                >
-                  {isSubmitting ? 'Publishing...' : 
-                   pollData && locationData ? 'Publish Poll & Location' :
-                   pollData ? 'Publish Poll' : 
-                   locationData ? 'Publish with Location' :
-                   'Publish Post'}
-                </Button>
               </div>
             </div>
           </div>
