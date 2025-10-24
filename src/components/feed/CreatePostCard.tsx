@@ -8,7 +8,6 @@ import { Image, Video, Plus } from 'lucide-react';
 import LiveIcon from '@/components/icons/LiveIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import Avatar from '@/components/Avatar';
-import CreatePostCardSkeleton from './CreatePostCardSkeleton';
 
 const CreatePostCard = () => {
   const { user } = useAuth();
@@ -25,12 +24,17 @@ const CreatePostCard = () => {
         className="p-4 mb-4 shadow-sm bg-card rounded-2xl cursor-pointer" 
         onClick={handleOpenCreatePost}
       >
-        <div className="flex items-center space-x-3">
-          <Avatar size="md" className="h-10 w-10" />
-          <div className="flex-1 bg-secondary rounded-lg px-4 py-2.5 text-muted-foreground cursor-pointer hover:bg-secondary/80 text-left">
-            Qdo moment është një fillim i ri.......
+          <div className="flex items-center space-x-3">
+            <Avatar size="md" className="h-10 w-10" />
+            <div
+              role="button"
+              aria-label="Open create post"
+              title="Shkruaj çfarë ndjen, mendon apo dëshiron të ndash me Shqipet…"
+              className="flex-1 bg-secondary rounded-lg px-4 py-2.5 text-muted-foreground cursor-pointer hover:bg-secondary/80 text-left"
+            >
+              Shkruaj çfarë ndjen, mendon apo dëshiron të ndash me Shqipet…
+            </div>
           </div>
-        </div>
         
         <Separator className="my-3" />
         

@@ -222,8 +222,11 @@ function App() {
                        {/* Protected routes - NO redundant auth checks, RootAuthRedirect handles it all */}
                        <Route path="/" element={<Index />} />
                        <Route path="/create-post" element={<CreatePostDesktop />} />
+                       <Route path="/create-post/*" element={<CreatePostDesktop />} />
                        <Route path="/compose" element={<CreatePostDesktop />} />
+                       <Route path="/compose/*" element={<CreatePostDesktop />} />
                        <Route path="/post/create" element={<CreatePostDesktop />} />
+                       <Route path="/post/create/*" element={<CreatePostDesktop />} />
                        <Route path="/reels" element={<Reels />} />
                       <Route path="/interesante" element={<Reels />} />
                       <Route path="/watch" element={<Watch />} />
