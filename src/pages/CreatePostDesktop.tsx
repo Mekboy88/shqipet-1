@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import Avatar from '@/components/Avatar';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
 import { useToast } from '@/hooks/use-toast';
+import { Helmet } from 'react-helmet-async';
 
 const CreatePostDesktop: React.FC = () => {
   const { displayName } = useUniversalUser();
@@ -88,6 +89,12 @@ const CreatePostDesktop: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100">
+      <Helmet>
+        <title>Create Post | Shqipet</title>
+        <meta name="description" content="Compose a new Shqipet post with media, AI assistance, and privacy settings." />
+        <link rel="canonical" href="/create-post" />
+      </Helmet>
+      <h1 className="sr-only">Create Post – Shqipet</h1>
       {/* Tip Banner */}
       {showTip && (
         <motion.div

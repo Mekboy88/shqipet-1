@@ -39,19 +39,31 @@ const CreatePostCard = () => {
         <Separator className="my-3" />
         
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <Button variant="secondary" className="h-10 rounded-full font-medium text-xs sm:text-sm">
+          <Button 
+            variant="secondary" 
+            className="h-10 rounded-full font-medium text-xs sm:text-sm"
+            onClick={handleOpenCreatePost}
+          >
             <Image className="w-5 h-5 mr-2 text-blue-500" />
             Upload Images
           </Button>
-          <Button variant="secondary" className="h-10 rounded-full font-medium text-xs sm:text-sm">
+          <Button 
+            variant="secondary" 
+            className="h-10 rounded-full font-medium text-xs sm:text-sm"
+            onClick={handleOpenCreatePost}
+          >
             <Video className="w-5 h-5 mr-2 text-green-500" />
             Upload Video
           </Button>
-          <div className="flex items-center justify-center cursor-pointer">
+          <div className="flex items-center justify-center cursor-pointer" onClick={handleOpenCreatePost}>
             <LiveIcon className="w-16 h-16 mr-2 text-red-500" />
             <span className="font-medium text-xs sm:text-sm">Live</span>
           </div>
-          <Button variant="secondary" className="h-10 rounded-full font-medium text-xs sm:text-sm">
+          <Button 
+            variant="secondary" 
+            className="h-10 rounded-full font-medium text-xs sm:text-sm"
+            onClick={handleOpenCreatePost}
+          >
             <Plus className="w-5 h-5 mr-2" />
             More
           </Button>
