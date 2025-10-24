@@ -88,7 +88,7 @@ const CreatePostDesktop: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 pt-14">
       <Helmet>
         <title>Create Post | Shqipet</title>
         <meta name="description" content="Compose a new Shqipet post with media, AI assistance, and privacy settings." />
@@ -101,7 +101,7 @@ const CreatePostDesktop: React.FC = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-red-500/20 to-black/30 backdrop-blur-md border border-red-400/40 rounded-full px-6 py-3 shadow-lg"
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-red-500/20 to-black/30 backdrop-blur-md border border-red-400/40 rounded-full px-6 py-3 shadow-lg"
         >
           <p className="text-sm font-medium flex items-center gap-2">
             <Lightbulb className="w-4 h-4 text-yellow-500" />
@@ -114,7 +114,7 @@ const CreatePostDesktop: React.FC = () => {
       )}
 
       {/* Main 3-Column Layout */}
-      <div className="w-full h-screen grid grid-cols-[280px_1fr_380px] gap-4 p-4">
+      <div className="w-full min-h-[calc(100vh-56px)] grid grid-cols-[280px_1fr_380px] gap-4 p-4">
         {/* Left Sidebar - Navigation */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
