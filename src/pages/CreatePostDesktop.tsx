@@ -16,9 +16,12 @@ import Avatar from '@/components/Avatar';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
 import { useToast } from '@/hooks/use-toast';
 import { Helmet } from 'react-helmet-async';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const CreatePostDesktop: React.FC = () => {
   const { displayName } = useUniversalUser();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [postContent, setPostContent] = useState('');
   const [visibility, setVisibility] = useState('public');
@@ -35,6 +38,7 @@ const CreatePostDesktop: React.FC = () => {
   const [tone, setTone] = useState('friendly');
   const [contentWarning, setContentWarning] = useState(false);
   const [aiScan, setAiScan] = useState(true);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   useEffect(() => {
     if (showTip) {
@@ -55,11 +59,63 @@ const CreatePostDesktop: React.FC = () => {
   const charCount = postContent.length;
   const isOptimal = charCount > 0 && charCount <= 150;
 
-  const handlePublish = () => {
-    toast({
-      title: "Post Published!",
-      description: "Your post has been shared successfully.",
-    });
+  const handlePublish = async () => {
+    if (!postContent.trim()) {
+      toast({
+        title: "Error",
+        description: "Please write something before publishing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to publish posts.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsPublishing(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .insert({
+          user_id: user.id,
+          content: {
+            text: postContent,
+            tone,
+            contentWarning,
+          },
+          visibility,
+          post_type: 'regular',
+          is_sponsored: false,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Post Published!",
+        description: "Your post has been shared successfully.",
+      });
+
+      setPostContent('');
+      setShowPreview(false);
+    } catch (error) {
+      console.error('Error publishing post:', error);
+      toast({
+        title: "Error",
+        description: "Failed to publish post. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const mediaTools = [
@@ -242,11 +298,12 @@ const CreatePostDesktop: React.FC = () => {
           {/* Publish Button */}
           <Button
             onClick={handlePublish}
+            disabled={isPublishing || !postContent.trim()}
             size="lg"
-            className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold text-lg h-14 rounded-xl shadow-lg transition-all hover:shadow-xl"
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold text-lg h-14 rounded-xl shadow-lg transition-all hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-5 h-5 mr-2" />
-            Publish Post
+            {isPublishing ? 'Publishing...' : 'Publish Post'}
           </Button>
         </motion.div>
 
