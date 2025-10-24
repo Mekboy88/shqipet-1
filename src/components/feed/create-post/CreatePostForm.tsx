@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { X, Globe, Lock, Users, Bold, Italic, Quote, Code, AtSign, Hash, ChevronDown, Image, Link2, BarChart3, FileUp, AudioLines, Calendar as CalendarIcon, Smile, MapPin, Video, Camera, Mic, Type, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Underline, Strikethrough, Superscript, Subscript, Indent, Outdent, MinusSquare, PlusSquare, FileText, Heading1, Heading2, Heading3, Code2, RotateCw, Square, Circle, Triangle, Star, Heart, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Sparkles, Eye, Settings2, Lightbulb } from 'lucide-react';
+import { X, Globe, Lock, Users, Bold, Italic, Quote, Code, AtSign, Hash, ChevronDown, Image, Link2, BarChart3, FileUp, AudioLines, Calendar as CalendarIcon, Smile, MapPin, Video, Camera, Mic, Type, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Underline, Strikethrough, Superscript, Subscript, Indent, Outdent, MinusSquare, PlusSquare, FileText, Heading1, Heading2, Heading3, Code2, RotateCw, Square, Circle, Triangle, Star, Heart, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Sparkles, Eye, Settings2, Lightbulb, MessageSquare } from 'lucide-react';
 import { EmojiPicker } from '@/components/ui/emoji-picker';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePostsData } from '@/contexts/posts/usePostsData';
@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import Avatar from '@/components/Avatar';
@@ -1351,104 +1352,292 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onClose }) => {
 
               {/* Right - Settings Sidebar */}
               <div className="w-80 border-l border-border bg-muted/30">
-                <div className="p-6 h-full overflow-y-auto">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">Post Settings</h3>
+                <div className="p-4 h-full overflow-y-auto space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Post Settings</h3>
                   
-                  {/* Comments Settings */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-border">
-                      <div>
-                        <p className="font-medium text-foreground">Allow Comments</p>
-                        <p className="text-sm text-muted-foreground">Let people comment on this post</p>
+                  {/* Comments & Privacy Section */}
+                  <Collapsible defaultOpen>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center justify-between p-3 bg-white/70 backdrop-blur-sm shadow-sm rounded-xl hover:bg-white/90 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-gray-500">Comments & Privacy</span>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
                       </div>
-                       <Switch
-                         checked={allowComments}
-                         onCheckedChange={setAllowComments}
-                         className="bg-gradient-to-r from-red-500/10 to-gray-800/10 rounded-xl border border-red-200 data-[state=checked]:!bg-green-100"
-                       />
-                    </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2 space-y-3 px-1">
+                      {/* Allow Comments */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Allow Comments</p>
+                          <p className="text-xs text-muted-foreground">Let people comment</p>
+                        </div>
+                        <Switch
+                          checked={allowComments}
+                          onCheckedChange={setAllowComments}
+                          aria-label="Toggle comments"
+                        />
+                      </div>
 
-                    {allowComments && (
+                      {/* Allow Reactions */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Allow Reactions</p>
+                          <p className="text-xs text-muted-foreground">❤️ 👍 😂 etc.</p>
+                        </div>
+                        <Switch
+                          defaultChecked={true}
+                          aria-label="Toggle reactions"
+                        />
+                      </div>
+
+                      {/* Allow Sharing */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Allow Sharing</p>
+                          <p className="text-xs text-muted-foreground">Let others repost</p>
+                        </div>
+                        <Switch
+                          defaultChecked={true}
+                          aria-label="Toggle sharing"
+                        />
+                      </div>
+
+                      {/* Visible To */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">Who can comment</label>
-                        <Select value={whoCanComment} onValueChange={setWhoCanComment}>
-                          <SelectTrigger className="bg-white border-border">
+                        <label className="text-xs font-medium text-gray-500">Visible to</label>
+                        <Select defaultValue="Everyone">
+                          <SelectTrigger className="bg-white border-border h-9">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Everyone">Everyone</SelectItem>
                             <SelectItem value="Friends">Friends only</SelectItem>
+                            <SelectItem value="Followers">Followers</SelectItem>
                             <SelectItem value="Only me">Only me</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
-                    )}
 
-                    {/* Publishing Options */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-foreground">Publishing</h4>
-                      
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setPostNow(true)}
-                          className="flex-1 p-4 bg-gradient-to-r from-red-500/10 to-gray-800/10 rounded-xl border border-red-200"
-                        >
-                          Post Now
-                        </Button>
-                        <Button
-                          variant={!postNow ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPostNow(false)}
-                          className="flex-1"
-                        >
-                          Schedule
-                        </Button>
+                      {/* Tag Approval */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Tag Approval</p>
+                          <p className="text-xs text-muted-foreground">Approve before appearing</p>
+                        </div>
+                        <Switch
+                          defaultChecked={false}
+                          aria-label="Toggle tag approval"
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Publishing Options Section */}
+                  <Collapsible defaultOpen>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center justify-between p-3 bg-white/70 backdrop-blur-sm shadow-sm rounded-xl hover:bg-white/90 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-gray-500">Publishing Options</span>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2 space-y-3 px-1">
+                      {/* Post Timing */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-gray-500">Post Timing</label>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant={postNow ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setPostNow(true)}
+                            className="flex-1 h-9"
+                          >
+                            Post Now
+                          </Button>
+                          <Button
+                            variant={!postNow ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setPostNow(false)}
+                            className="flex-1 h-9"
+                          >
+                            Schedule
+                          </Button>
+                        </div>
+
+                        {!postNow && (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="w-full justify-start bg-white h-9" size="sm">
+                                <CalendarIcon className="h-4 w-4 mr-2" />
+                                <span className="text-xs">{scheduledDate ? format(scheduledDate, 'PPP') : 'Select date'}</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={scheduledDate}
+                                onSelect={setScheduledDate}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        )}
                       </div>
 
-                      {!postNow && (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start bg-white">
-                              <CalendarIcon className="h-4 w-4 mr-2" />
-                              {scheduledDate ? format(scheduledDate, 'PPP') : 'Select date'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={scheduledDate}
-                              onSelect={setScheduledDate}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                    </div>
+                      {/* Visibility Duration */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-gray-500">Visibility Duration</label>
+                        <Select defaultValue="permanent">
+                          <SelectTrigger className="bg-white border-border h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="24h">Show for 24h (Story Mode)</SelectItem>
+                            <SelectItem value="permanent">Keep permanently on profile</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    {/* AI Assistant */}
-                    <div className="p-4 bg-gradient-to-r from-red-500/10 to-gray-800/10 rounded-xl border border-red-200">
-                      <div className="flex items-center gap-3 mb-2">
+                      {/* Cross-post to */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-gray-500">Cross-post to</label>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2 p-2 bg-white rounded-lg border border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                            <input type="checkbox" className="rounded" />
+                            <span className="text-sm text-foreground">Marketplace</span>
+                          </label>
+                          <label className="flex items-center gap-2 p-2 bg-white rounded-lg border border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                            <input type="checkbox" className="rounded" />
+                            <span className="text-sm text-foreground">Groups</span>
+                          </label>
+                          <label className="flex items-center gap-2 p-2 bg-white rounded-lg border border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                            <input type="checkbox" className="rounded" />
+                            <span className="text-sm text-foreground">Pages</span>
+                          </label>
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Shqipet AI Assistance - Premium Section */}
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-red-500/20 to-black/30 border border-red-400/40 shadow-lg">
+                    <div className="text-center space-y-3">
+                      <div className="flex items-center justify-center gap-2">
                         <div className="h-8 w-8 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center">
                           <Sparkles className="h-4 w-4 text-white" />
                         </div>
-                        <p className="font-medium text-foreground">Shqipet AI</p>
+                        <h3 className="text-base font-semibold text-red-600">Shqipet AI</h3>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">Get AI help to create engaging content</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full text-xs" 
-                        onClick={() => setShowAIAssistant(true)}
-                      >
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Open AI Assistant
-                      </Button>
+                      <p className="text-xs text-gray-600">Get instant AI help to make your post more engaging</p>
+                      
+                      <div className="space-y-2">
+                        <Button 
+                          size="sm" 
+                          className="w-full bg-red-500 hover:bg-red-600 text-white rounded-full h-9 text-xs"
+                          onClick={() => setShowAIAssistant(true)}
+                        >
+                          <Sparkles className="h-3 w-3 mr-2" />
+                          ✨ Improve with Shqipet AI
+                        </Button>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button variant="outline" size="sm" className="h-8 text-xs bg-white/50 hover:bg-white">
+                            🧠 Hashtags
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs bg-white/50 hover:bg-white">
+                            🎯 Engagement
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs bg-white/50 hover:bg-white">
+                            💬 Caption
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs bg-white/50 hover:bg-white">
+                            🔍 Check
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    </div>
-
                   </div>
+
+                  {/* Additional Controls Section */}
+                  <Collapsible>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center justify-between p-3 bg-white/70 backdrop-blur-sm shadow-sm rounded-xl hover:bg-white/90 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <Settings2 className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-gray-500">Additional Controls</span>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2 space-y-3 px-1">
+                      {/* Save as Draft Automatically */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Auto-save Draft</p>
+                          <p className="text-xs text-muted-foreground">Automatically save</p>
+                        </div>
+                        <Switch
+                          defaultChecked={true}
+                          aria-label="Auto-save draft"
+                        />
+                      </div>
+
+                      {/* Preview before publishing */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Preview Mode</p>
+                          <p className="text-xs text-muted-foreground">Preview before publish</p>
+                        </div>
+                        <Switch
+                          defaultChecked={false}
+                          aria-label="Preview before publishing"
+                        />
+                      </div>
+
+                      {/* Translate automatically */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Auto-translate</p>
+                          <p className="text-xs text-muted-foreground">Multilingual feed</p>
+                        </div>
+                        <Switch
+                          defaultChecked={false}
+                          aria-label="Auto-translate"
+                        />
+                      </div>
+
+                      {/* Content warnings */}
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Content Warning</p>
+                          <p className="text-xs text-muted-foreground">Sensitive content filter</p>
+                        </div>
+                        <Switch
+                          defaultChecked={false}
+                          aria-label="Content warning"
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Smart Suggest Bar */}
+                  <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                    <div className="flex items-start gap-2">
+                      <Lightbulb className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-medium text-blue-900">Smart Suggest</p>
+                        <p className="text-xs text-blue-700 mt-1">
+                          Shqipet AI recommends publishing at 7:30 PM for higher engagement 🌙
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
               </div>
             </div>
 
