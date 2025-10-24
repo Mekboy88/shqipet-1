@@ -1,0 +1,511 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, 
+  EyeOff, MessageSquare, Heart, Share2, Shield, Clock, Globe,
+  Settings2, ChevronDown, Sparkles, Brain, Lightbulb, TrendingUp,
+  Calendar, Languages, Info, Save, Eye, Send, X, Mic2
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import Avatar from '@/components/Avatar';
+import { useUniversalUser } from '@/hooks/useUniversalUser';
+import { useToast } from '@/hooks/use-toast';
+
+const CreatePostDesktop: React.FC = () => {
+  const { displayName } = useUniversalUser();
+  const { toast } = useToast();
+  const [postContent, setPostContent] = useState('');
+  const [visibility, setVisibility] = useState('public');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [autoSave, setAutoSave] = useState(true);
+  const [allowComments, setAllowComments] = useState(true);
+  const [allowReactions, setAllowReactions] = useState(true);
+  const [allowSharing, setAllowSharing] = useState(true);
+  const [autoTranslate, setAutoTranslate] = useState(false);
+  const [autoAI, setAutoAI] = useState(false);
+  const [showTip, setShowTip] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
+  const [expiration, setExpiration] = useState('permanent');
+  const [tone, setTone] = useState('friendly');
+  const [contentWarning, setContentWarning] = useState(false);
+  const [aiScan, setAiScan] = useState(true);
+
+  useEffect(() => {
+    if (showTip) {
+      const timer = setTimeout(() => setShowTip(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [showTip]);
+
+  useEffect(() => {
+    if (autoSave && postContent) {
+      const timer = setTimeout(() => {
+        console.log('Auto-saving draft...');
+      }, 15000);
+      return () => clearTimeout(timer);
+    }
+  }, [postContent, autoSave]);
+
+  const charCount = postContent.length;
+  const isOptimal = charCount > 0 && charCount <= 150;
+
+  const handlePublish = () => {
+    toast({
+      title: "Post Published!",
+      description: "Your post has been shared successfully.",
+    });
+  };
+
+  const mediaTools = [
+    { icon: Camera, label: 'Photo', color: 'text-blue-500' },
+    { icon: Video, label: 'Video', color: 'text-purple-500' },
+    { icon: Mic, label: 'Audio', color: 'text-red-500' },
+    { icon: MapPin, label: 'Location', color: 'text-green-500' },
+    { icon: BarChart3, label: 'Poll', color: 'text-orange-500' },
+    { icon: Tag, label: 'Tag', color: 'text-pink-500' },
+    { icon: Link2, label: 'Link', color: 'text-indigo-500' },
+    { icon: Palette, label: 'Background', color: 'text-yellow-500' },
+    { icon: EyeOff, label: 'Anonymous', color: 'text-gray-500' },
+  ];
+
+  const aiFeatures = [
+    { icon: Sparkles, label: 'Improve Writing', action: () => toast({ title: "✨ Improving writing..." }) },
+    { icon: Brain, label: 'Fix Grammar & Spelling', action: () => toast({ title: "🧠 Checking grammar..." }) },
+    { icon: Lightbulb, label: 'Generate Captions', action: () => toast({ title: "💡 Generating captions..." }) },
+    { icon: Tag, label: 'Suggest Hashtags', action: () => toast({ title: "🔥 Finding hashtags..." }) },
+    { icon: TrendingUp, label: 'Optimize Engagement', action: () => toast({ title: "🎯 Analyzing engagement..." }) },
+    { icon: Clock, label: 'Best Time to Post', action: () => toast({ title: "🕓 Calculating best time..." }) },
+    { icon: Shield, label: 'Detect Sensitive/Duplicate', action: () => toast({ title: "🚫 Scanning content..." }) },
+    { icon: Globe, label: 'Translate Automatically', action: () => toast({ title: "🌍 Translating..." }) },
+    { icon: Eye, label: 'Convert to Story', action: () => toast({ title: "🧩 Converting to story..." }) },
+    { icon: Mic2, label: 'Voice-Over Preview', action: () => toast({ title: "🗣️ Generating voice-over..." }) },
+  ];
+
+  return (
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Tip Banner */}
+      {showTip && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-red-500/20 to-black/30 backdrop-blur-md border border-red-400/40 rounded-full px-6 py-3 shadow-lg"
+        >
+          <p className="text-sm font-medium flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-yellow-500" />
+            Short posts with emotion perform better!
+            <button onClick={() => setShowTip(false)} className="ml-2">
+              <X className="w-4 h-4" />
+            </button>
+          </p>
+        </motion.div>
+      )}
+
+      {/* Main 3-Column Layout */}
+      <div className="w-full h-screen grid grid-cols-[280px_1fr_380px] gap-4 p-4">
+        {/* Left Sidebar - Navigation */}
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 p-6 overflow-y-auto"
+        >
+          <h2 className="text-xl font-bold mb-6 text-gray-800">Navigation</h2>
+          <nav className="space-y-2">
+            <Button variant="ghost" className="w-full justify-start text-left">
+              🏠 Home
+            </Button>
+            <Button variant="ghost" className="w-full justify-start text-left">
+              🎬 Reels
+            </Button>
+            <Button variant="ghost" className="w-full justify-start text-left">
+              🛍️ Marketplace
+            </Button>
+            <Button variant="ghost" className="w-full justify-start text-left">
+              👥 Groups
+            </Button>
+          </nav>
+        </motion.div>
+
+        {/* Center Column - Editor */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 40 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col"
+        >
+          {/* Header with Avatar & Visibility */}
+          <div className="flex items-center gap-4 mb-6">
+            <Avatar size="lg" />
+            <div className="flex-1">
+              <p className="font-semibold text-lg">{displayName || "User"}</p>
+              <Select value={visibility} onValueChange={setVisibility}>
+                <SelectTrigger className="w-48 h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">🌐 Public</SelectItem>
+                  <SelectItem value="friends">👥 Friends</SelectItem>
+                  <SelectItem value="followers">👤 Followers</SelectItem>
+                  <SelectItem value="onlyme">🔒 Only Me</SelectItem>
+                  <SelectItem value="anonymous">🕵️ Anonymous</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={isAnonymous} onCheckedChange={setIsAnonymous} />
+              <span className="text-sm text-gray-600">🕵️ Anonymous</span>
+            </div>
+          </div>
+
+          {/* Text Editor */}
+          <div className="flex-1 mb-6">
+            <Textarea
+              value={postContent}
+              onChange={(e) => setPostContent(e.target.value)}
+              placeholder="Shkruaj çfarë ndjen, mendon apo dëshiron të ndash me Shqipet…"
+              className="min-h-[200px] text-lg border-0 focus-visible:ring-0 resize-none"
+            />
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-gray-500">
+                {charCount} characters {isOptimal && <span className="text-green-600 font-medium">✓ Optimal</span>}
+              </span>
+              <Button variant="ghost" size="sm">
+                <Mic2 className="w-4 h-4 mr-2" />
+                Voice Input
+              </Button>
+            </div>
+          </div>
+
+          {/* Media Toolbar */}
+          <div className="border-t border-gray-200 pt-4 mb-6">
+            <p className="text-sm font-medium text-gray-700 mb-3">Add to your post</p>
+            <div className="flex flex-wrap gap-3">
+              {mediaTools.map((tool, idx) => (
+                <motion.button
+                  key={idx}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-gray-100 transition-all ${tool.color}`}
+                >
+                  <tool.icon className="w-6 h-6" />
+                  <span className="text-xs text-gray-600">{tool.label}</span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Preview Button */}
+          <Dialog open={showPreview} onOpenChange={setShowPreview}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full mb-4">
+                <Eye className="w-4 h-4 mr-2" />
+                Preview Post
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Post Preview</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar size="md" />
+                  <div>
+                    <p className="font-semibold">{isAnonymous ? "Anonymous User" : displayName}</p>
+                    <p className="text-sm text-gray-500">{visibility}</p>
+                  </div>
+                </div>
+                <p className="text-lg whitespace-pre-wrap">{postContent || "No content yet..."}</p>
+                <div className="flex gap-2">
+                  <Button onClick={() => setShowPreview(false)}>Edit Again</Button>
+                  <Button variant="default" onClick={handlePublish} className="bg-red-500 hover:bg-red-600">
+                    <Send className="w-4 h-4 mr-2" />
+                    Publish Now
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Publish Button */}
+          <Button
+            onClick={handlePublish}
+            size="lg"
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold text-lg h-14 rounded-xl shadow-lg transition-all hover:shadow-xl"
+          >
+            <Send className="w-5 h-5 mr-2" />
+            Publish Post
+          </Button>
+        </motion.div>
+
+        {/* Right Sidebar - AI & Settings */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 p-6 overflow-y-auto space-y-6"
+        >
+          {/* Shqipet AI Panel */}
+          <div className="bg-gradient-to-r from-red-500/20 to-black/30 rounded-2xl p-6 border border-red-400/40">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-red-600 flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                🇦🇱 Shqipet AI
+              </h3>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Info className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Why Use Shqipet AI?</DialogTitle>
+                  </DialogHeader>
+                  <p className="text-sm text-gray-600">
+                    Shqipet AI fixes grammar, improves captions, finds hashtags, checks for sensitive/duplicate content, 
+                    and helps you publish at the right time — directly inside the app.
+                  </p>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">Your creative co-pilot for smarter posts.</p>
+            
+            <div className="space-y-2 mb-4">
+              {aiFeatures.map((feature, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start text-left hover:bg-white/50"
+                  onClick={feature.action}
+                >
+                  <feature.icon className="w-4 h-4 mr-2" />
+                  {feature.label}
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-gray-300">
+              <span className="text-sm font-medium">Auto AI Correction</span>
+              <Switch checked={autoAI} onCheckedChange={setAutoAI} />
+            </div>
+          </div>
+
+          {/* Smart Suggest */}
+          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+            <p className="text-sm text-blue-800">
+              <Clock className="w-4 h-4 inline mr-2" />
+              Shqipet AI recommends publishing at 7:30 PM for higher engagement 🌙
+            </p>
+          </div>
+
+          {/* Post Settings Accordion */}
+          <div className="space-y-3">
+            {/* Comments & Privacy */}
+            <Collapsible>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    <span className="font-medium text-sm">Comments & Privacy</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Allow Comments</span>
+                  <Switch checked={allowComments} onCheckedChange={setAllowComments} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Allow Reactions ❤️ 👍 😂 😮</span>
+                  <Switch checked={allowReactions} onCheckedChange={setAllowReactions} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Allow Sharing/Repost</span>
+                  <Switch checked={allowSharing} onCheckedChange={setAllowSharing} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Visible to</label>
+                  <Select defaultValue="everyone">
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="everyone">Everyone</SelectItem>
+                      <SelectItem value="friends">Friends Only</SelectItem>
+                      <SelectItem value="followers">Followers</SelectItem>
+                      <SelectItem value="onlyme">Only Me</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Publishing Options */}
+            <Collapsible>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    <span className="font-medium text-sm">Publishing Options</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1">Publish Now</Button>
+                  <Button size="sm" variant="outline" className="flex-1">Schedule</Button>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Expiration</label>
+                  <Select value={expiration} onValueChange={setExpiration}>
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="24h">24h (Story Mode)</SelectItem>
+                      <SelectItem value="permanent">Permanent</SelectItem>
+                      <SelectItem value="custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Cross-post to</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="rounded" />
+                      Marketplace
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="rounded" />
+                      Groups
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="rounded" />
+                      Pages
+                    </label>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Language & AI Tone */}
+            <Collapsible>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                  <div className="flex items-center gap-2">
+                    <Languages className="w-4 h-4" />
+                    <span className="font-medium text-sm">Language & AI Tone</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Auto Translate</span>
+                  <Switch checked={autoTranslate} onCheckedChange={setAutoTranslate} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Tone</label>
+                  <Select value={tone} onValueChange={setTone}>
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="professional">Professional</SelectItem>
+                      <SelectItem value="friendly">Friendly</SelectItem>
+                      <SelectItem value="creative">Creative</SelectItem>
+                      <SelectItem value="informative">Informative</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Moderation & Security */}
+            <Collapsible>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    <span className="font-medium text-sm">Moderation & Security</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Content Warning</span>
+                  <Switch checked={contentWarning} onCheckedChange={setContentWarning} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">AI Content Scan</span>
+                  <Switch checked={aiScan} onCheckedChange={setAiScan} />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Draft & Auto-Save */}
+            <Collapsible>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                  <div className="flex items-center gap-2">
+                    <Save className="w-4 h-4" />
+                    <span className="font-medium text-sm">Draft & Auto-Save</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Auto Save</span>
+                  <Switch checked={autoSave} onCheckedChange={setAutoSave} />
+                </div>
+                <Button variant="outline" size="sm" className="w-full">
+                  Restore Draft
+                </Button>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Engagement Analytics */}
+            <Collapsible>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
+                    <span className="font-medium text-sm">Engagement Analytics</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Predicted Reach</p>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 w-3/4"></div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Hashtag Effectiveness</p>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 w-2/3"></div>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default CreatePostDesktop;
