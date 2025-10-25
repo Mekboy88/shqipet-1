@@ -376,14 +376,6 @@ const CreatePostDesktop: React.FC = () => {
               </CollapsibleContent>
             </Collapsible>
           </div>
-          
-          {/* Smart Suggest */}
-          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mt-6">
-            <p className="text-sm text-blue-800">
-              <Clock className="w-4 h-4 inline mr-2" />
-              Shqipet AI recommends publishing at 7:30 PM for higher engagement 🌙
-            </p>
-          </div>
         </motion.div>
 
         {/* Center Column - Editor */}
