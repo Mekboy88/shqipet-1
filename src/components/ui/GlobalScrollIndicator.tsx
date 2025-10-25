@@ -228,14 +228,14 @@ const GlobalScrollIndicator: React.FC = () => {
       />
       {/* Progress bar - only visible when scrolling main content and no modals */}
       <div
-        className={`fixed right-0.5 top-0 w-1.5 bg-muted-foreground/50 shadow-sm transition-all duration-300 ease-out pointer-events-none rounded ${
+        className={`fixed right-0 top-0 w-1 bg-primary/60 shadow-md transition-all duration-200 ease-out pointer-events-none rounded-full ${
           isScrolling && !hasBlockingModal ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
           height: `${thumbSizePct}%`,
           top: `${thumbTopPct}%`,
-          zIndex: 10001,
-          minHeight: '16px',
+          zIndex: 2147483645,
+          minHeight: '20px',
         }}
         aria-hidden="true"
       />
