@@ -34,7 +34,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, onUseText }) =
               : 'bg-gradient-to-br from-red-50 to-white border border-red-100'
           }`}
         >
-          <p className="text-sm whitespace-pre-wrap">{content}</p>
+          <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{content}</p>
         </div>
 
         {!isUser && onUseText && (
