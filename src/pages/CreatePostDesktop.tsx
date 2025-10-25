@@ -551,7 +551,7 @@ const CreatePostDesktop: React.FC = () => {
             onClick={handlePublish}
             disabled={isPublishing || !postContent.trim()}
             size="lg"
-            className="w-full bg-red-200 hover:bg-red-300 text-white font-semibold text-lg h-14 rounded-xl shadow-lg transition-all hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/30 hover:border-red-500/50 text-foreground font-semibold text-lg h-14 rounded-xl shadow-md transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-xl"
           >
             <Send className="w-5 h-5 mr-2" />
             {isPublishing ? 'Publishing...' : 'Publish Post'}
