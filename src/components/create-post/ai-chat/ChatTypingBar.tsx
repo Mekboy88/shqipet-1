@@ -45,13 +45,13 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
 
         /* Red phase (red-500/10) */
         .smoke-wrap::before {
-          background-color: rgba(239, 68, 68, 0.1);
+          background-color: rgba(239, 68, 68, 0.35);
           animation: glow-red 10s steps(1, end) infinite;
         }
 
         /* Gray phase (gray-800/10) */
         .smoke-wrap::after {
-          background-color: rgba(31, 41, 55, 0.1);
+          background-color: rgba(31, 41, 55, 0.35);
           animation: glow-gray 10s steps(1, end) infinite;
         }
 
@@ -59,7 +59,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         @keyframes glow-red {
           0%, 49.9% {
             opacity: 1;
-            box-shadow: 0 0 24px 8px rgba(239, 68, 68, 0.6);
+            box-shadow: 0 0 32px 10px rgba(239, 68, 68, 0.8);
           }
           50%, 100% {
             opacity: 0;
@@ -73,7 +73,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           }
           50%, 100% {
             opacity: 1;
-            box-shadow: 0 0 24px 8px rgba(31, 41, 55, 0.6);
+            box-shadow: 0 0 32px 10px rgba(31, 41, 55, 0.8);
           }
         }
 
