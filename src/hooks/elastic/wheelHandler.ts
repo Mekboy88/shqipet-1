@@ -2,6 +2,7 @@
 import { ElasticState } from './types';
 import { findScrollableParent, getNearestScrollContainer, getTransformTarget } from './domUtils';
 import { applyElasticTransform } from './elasticTransform';
+import { updateIndicator, hideIndicator } from './indicator';
 
 export const createWheelHandler = (state: ElasticState) => {
   let resetTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -64,6 +65,7 @@ export const createWheelHandler = (state: ElasticState) => {
 
     const container = getTransformTarget(scrollEl) as HTMLElement | null;
     state.lastTransformEl = container;
+    state.lastScrollEl = scrollEl as HTMLElement;
     if (container) {
       container.style.setProperty('will-change', 'transform', 'important');
       container.style.setProperty('backface-visibility', 'hidden', 'important');
@@ -73,6 +75,9 @@ export const createWheelHandler = (state: ElasticState) => {
       container.style.setProperty('transition', 'none', 'important');
       container.style.setProperty('transform-origin', 'center top', 'important');
     }
+
+    // Update elastic indicator based on pull distance
+    updateIndicator(state.lastScrollEl || (scrollEl as HTMLElement), Math.max(0, state.currentStretchY));
 
     // Idle-based snap-back (prevents flicker)
     if (resetTimeout) clearTimeout(resetTimeout);
@@ -89,10 +94,15 @@ export const createWheelHandler = (state: ElasticState) => {
           element.style.removeProperty('contain');
         }, 460);
       }
+
+      // Hide indicator smoothly
+      if (state.lastScrollEl) hideIndicator(state.lastScrollEl);
+
       state.isElasticActive = false;
       state.currentStretchX = 0;
       state.currentStretchY = 0;
       state.lastTransformEl = null;
+      state.lastScrollEl = null;
       resetTimeout = null;
     }, 220);
 

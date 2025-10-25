@@ -3,6 +3,7 @@ import { ElasticState } from './types';
 import { createElasticHandler } from './elasticHandler';
 import { createTouchScrollHandler } from './touchScrollHandler';
 import { getNearestScrollContainer, getTransformTarget } from './domUtils';
+import { updateIndicator, hideIndicator } from './indicator';
 
 export const createTouchHandlers = (state: ElasticState) => {
   const elasticHandler = createElasticHandler(state);
@@ -126,6 +127,7 @@ export const createTouchHandlers = (state: ElasticState) => {
         const element = getTransformTarget(scrollEl || document.documentElement) as HTMLElement | null;
         if (element) {
           state.lastTransformEl = element;
+          state.lastScrollEl = scrollEl || document.documentElement;
           element.style.setProperty('will-change', 'transform', 'important');
           element.style.setProperty('backface-visibility', 'hidden', 'important');
           element.style.setProperty('transform-style', 'preserve-3d', 'important');
@@ -134,6 +136,9 @@ export const createTouchHandlers = (state: ElasticState) => {
           element.style.setProperty('transition', 'none', 'important');
           element.style.setProperty('transform-origin', 'center top', 'important');
         }
+
+        // Update elastic indicator visual
+        updateIndicator(state.lastScrollEl || scrollEl || document.documentElement, Math.max(0, targetStretchY));
 
         e.preventDefault();
       }
@@ -165,12 +170,16 @@ export const createTouchHandlers = (state: ElasticState) => {
         }, 460);
       }
       
+      // Hide indicator smoothly
+      if (state.lastScrollEl) hideIndicator(state.lastScrollEl as HTMLElement);
+      
       // Reset state with Facebook-like timing
       setTimeout(() => {
         state.isElasticActive = false;
         state.currentStretchX = 0;
         state.currentStretchY = 0;
         state.lastTransformEl = null;
+        state.lastScrollEl = null;
       }, 120); // Slightly longer for smoother feel
     }
   };
