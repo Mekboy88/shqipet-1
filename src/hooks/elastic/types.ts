@@ -12,7 +12,7 @@ export interface ElasticState {
   startY: number;
   currentStretchX: number;
   currentStretchY: number;
-  animationFrame: number;
+  animationFrame: number | null;
   isScrolling: boolean;
   scrollTimeout: ReturnType<typeof setTimeout> | null;
 }

@@ -129,10 +129,13 @@ export const createTouchHandlers = (state: ElasticState) => {
         const container = document.querySelector('[data-elastic-container="true"]');
         if (container) {
           const element = container as HTMLElement;
+          element.style.setProperty('will-change', 'transform', 'important');
           element.style.setProperty('transform', `translate3d(0, ${targetStretchY}px, 0)`, 'important');
           element.style.setProperty('transition', 'none', 'important');
           element.style.setProperty('transform-origin', 'center top', 'important');
         }
+        
+        e.preventDefault();
         
         console.log('EASIER TOUCH ELASTIC (60% less resistance) - Stretch:', targetStretchY.toFixed(1), 'Resistance:', (1 - combinedDamping).toFixed(2), 'Distance:', pullDistance.toFixed(1));
       } else {
@@ -156,6 +159,12 @@ export const createTouchHandlers = (state: ElasticState) => {
         const element = container as HTMLElement;
         element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
         element.style.setProperty('transition', 'transform 0.35s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important'); // Facebook-like bounce
+        
+        // Remove will-change after animation completes
+        setTimeout(() => {
+          element.style.removeProperty('will-change');
+          element.style.removeProperty('transition');
+        }, 400);
       }
       
       // Reset state with Facebook-like timing
@@ -163,7 +172,7 @@ export const createTouchHandlers = (state: ElasticState) => {
         state.isElasticActive = false;
         state.currentStretchX = 0;
         state.currentStretchY = 0;
-      }, 100); // Facebook-style timing
+      }, 120); // Slightly longer for smoother feel
     }
   };
 
