@@ -34,33 +34,46 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           50% { transform: rotate(180deg); }
           100% { transform: rotate(360deg); }
         }
+        @keyframes smokeBreath {
+          0% { opacity: 0.16; filter: blur(8px); }
+          50% { opacity: 0.28; filter: blur(12px); }
+          100% { opacity: 0.16; filter: blur(8px); }
+        }
         .typing-container {
           position: relative;
           border: 1px solid transparent;
           border-radius: 1.25rem;
           background:
             linear-gradient(white, white) padding-box,
-            linear-gradient(120deg, rgba(0,0,0,0.15), rgba(230,0,0,0.25), rgba(0,0,0,0.2), rgba(230,0,0,0.2)) border-box;
+            linear-gradient(120deg, rgba(0,0,0,0.18), rgba(230,0,0,0.28), rgba(0,0,0,0.2), rgba(230,0,0,0.24)) border-box;
           background-size: 400% 400%;
-          animation: smokeFlow 12s ease-in-out infinite;
-          box-shadow: 0 0 25px rgba(230,0,0,0.05);
+          animation: smokeFlow 14s ease-in-out infinite;
+          box-shadow: 0 0 20px rgba(230,0,0,0.04);
           z-index: 1;
         }
         .smoke-aura {
           position: absolute;
           inset: -10px;
-          border-radius: 1.5rem;
+          border-radius: 1.6rem;
           pointer-events: none;
-          background: conic-gradient(from 0deg at 50% 50%, rgba(230,0,0,0.35), rgba(0,0,0,0.35), rgba(230,0,0,0.35));
-          filter: blur(10px);
-          opacity: 0.5;
-          animation: smokeOrbit 16s linear infinite;
+          background: conic-gradient(from 0deg at 50% 50%, rgba(230,0,0,0.28), rgba(0,0,0,0.24), rgba(230,0,0,0.28));
+          animation: smokeOrbit 18s linear infinite, smokeBreath 7s ease-in-out infinite;
+          z-index: 0;
+        }
+        .smoke-aura-2 {
+          position: absolute;
+          inset: -16px;
+          border-radius: 1.9rem;
+          pointer-events: none;
+          background: conic-gradient(from 90deg at 50% 50%, rgba(0,0,0,0.2), rgba(230,0,0,0.18), rgba(0,0,0,0.2));
+          animation: smokeOrbit 22s linear infinite reverse, smokeBreath 9s ease-in-out infinite;
           z-index: 0;
         }
       `}</style>
       
       <div className="relative">
         <div className="smoke-aura" aria-hidden="true" />
+        <div className="smoke-aura-2" aria-hidden="true" />
         <div className="typing-container">
           <div className="bg-white rounded-[1.15rem] px-4 py-3 space-y-2">
             {/* Textarea field */}
