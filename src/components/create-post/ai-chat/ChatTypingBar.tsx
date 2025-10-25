@@ -29,13 +29,18 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           75% { background-position: 50% 0%; }
           100% { background-position: 0% 50%; }
         }
+        @keyframes smokeOrbit {
+          0% { transform: rotate(0deg); }
+          50% { transform: rotate(180deg); }
+          100% { transform: rotate(360deg); }
+        }
         .typing-container {
           position: relative;
           border: 1px solid transparent;
           border-radius: 1.25rem;
           background:
             linear-gradient(white, white) padding-box,
-            linear-gradient(120deg, rgba(0,0,0,0.2), rgba(230,0,0,0.35), rgba(0,0,0,0.25), rgba(230,0,0,0.3)) border-box;
+            linear-gradient(120deg, rgba(0,0,0,0.15), rgba(230,0,0,0.25), rgba(0,0,0,0.2), rgba(230,0,0,0.2)) border-box;
           background-size: 400% 400%;
           animation: smokeFlow 12s ease-in-out infinite;
           box-shadow: 0 0 25px rgba(230,0,0,0.05);
@@ -43,17 +48,13 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         }
         .smoke-aura {
           position: absolute;
-          inset: -8px;
+          inset: -10px;
           border-radius: 1.5rem;
           pointer-events: none;
-          background:
-            radial-gradient(40% 60% at 30% 30%, rgba(230,0,0,0.25), transparent 70%),
-            radial-gradient(50% 70% at 70% 70%, rgba(0,0,0,0.25), transparent 70%),
-            linear-gradient(120deg, #000000, #e60000, #000000);
-          background-size: 400% 400%;
-          animation: smokeFlow 12s ease-in-out infinite;
-          opacity: 0.35;
-          filter: blur(8px);
+          background: conic-gradient(from 0deg at 50% 50%, rgba(230,0,0,0.35), rgba(0,0,0,0.35), rgba(230,0,0,0.35));
+          filter: blur(10px);
+          opacity: 0.5;
+          animation: smokeOrbit 16s linear infinite;
           z-index: 0;
         }
       `}</style>
