@@ -8,16 +8,17 @@ export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
     indicator.style.top = '0';
     indicator.style.left = '0';
     indicator.style.width = '100%';
-    indicator.style.height = '4px';
+    indicator.style.height = '6px'; // Increased from 4px for better visibility
     indicator.style.transformOrigin = 'top center';
     indicator.style.transform = 'scaleY(1)';
     indicator.style.opacity = '0';
     indicator.style.zIndex = '9999';
     indicator.style.pointerEvents = 'none';
     indicator.style.willChange = 'transform, opacity';
-    indicator.style.background = 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary) / 0.4))';
-    indicator.style.borderRadius = '2px';
-    indicator.style.transition = 'opacity 0.3s ease';
+    indicator.style.background = 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary) / 0.6))';
+    indicator.style.borderRadius = '3px';
+    indicator.style.boxShadow = '0 2px 8px hsl(var(--primary) / 0.3)';
+    indicator.style.transition = 'opacity 0.2s ease';
 
     // Insert at very top
     if (scrollEl.firstElementChild) {
@@ -33,9 +34,9 @@ export const updateIndicator = (scrollEl: HTMLElement, distance: number) => {
   if (!scrollEl) return;
   const indicator = getOrCreateIndicator(scrollEl);
   
-  // Scale proportionally: grows when pulling harder
-  const scale = 1 + Math.max(0, distance) / 150;
-  const opacity = Math.min(1, Math.max(0, distance) / 120);
+  // More aggressive elastic scaling: grows much faster when pulling
+  const scale = 1 + Math.max(0, distance) / 40; // Changed from 150 to 40 for more visible stretch
+  const opacity = Math.min(1, Math.max(0, distance) / 60); // Changed from 120 to 60 for faster fade-in
   
   indicator.style.opacity = `${opacity}`;
   indicator.style.transition = 'none';
