@@ -27,30 +27,27 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           border-radius: 1.25rem;
           overflow: visible;
           z-index: 1;
-          isolation: isolate;
         }
 
-        /* Single glow layer (hard swap, no mixing) */
+        /* Neon glow around border */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -8px; /* extend further out so it's clearly visible around the border */
+          inset: -4px;
           border-radius: 1.25rem;
-          filter: url(#smoke-turbulence) blur(16px);
+          background: rgba(239, 68, 68, 0.3);
+          filter: url(#smoke-turbulence) blur(12px);
+          animation: smoke-color-shift 12s ease-in-out infinite alternate; animation-fill-mode: both;
           pointer-events: none;
-          z-index: -1; /* place behind the inner box but within this isolated context */
-          will-change: background-color, box-shadow;
-          animation: glow-swap 10s steps(1, end) infinite;
+          z-index: -1;
         }
 
-        @keyframes glow-swap {
-          0%, 49.9% {
-            background-color: rgba(239, 68, 68, 0.35); /* red-500/35 for stronger glow */
-            box-shadow: 0 0 36px 14px rgba(239, 68, 68, 0.8);
+        @keyframes smoke-color-shift {
+          0% {
+            background-color: rgba(239, 68, 68, 0.35);
           }
-          50%, 100% {
-            background-color: rgba(31, 41, 55, 0.35); /* gray-800/35 for stronger glow */
-            box-shadow: 0 0 36px 14px rgba(31, 41, 55, 0.8);
+          100% {
+            background-color: rgba(31, 41, 55, 0.1);
           }
         }
 
