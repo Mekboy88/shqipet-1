@@ -13,11 +13,7 @@ const GlobalScrollIndicator: React.FC = () => {
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkForModals = useCallback(() => {
-    const modalExists =
-      document.body.style.overflow === 'hidden' ||
-      document.documentElement.classList.contains('overflow-hidden') ||
-      !!document.querySelector('[aria-modal="true"], [role="dialog"][data-state="open"], .radix-dialog-content[data-state="open"], .fixed.inset-0, [data-radix-dialog-overlay], [data-radix-popover-content]');
-    
+    const modalExists = !!document.querySelector('[aria-modal="true"], [role="dialog"][data-state="open"], [data-radix-dialog-content][data-state="open"], [data-radix-dialog-overlay][data-state="open"]');
     setHasBlockingModal(modalExists);
     return modalExists;
   }, []);
@@ -109,18 +105,7 @@ const GlobalScrollIndicator: React.FC = () => {
   }, [computeAndSet, checkForModals]);
 
   const findBestScrollContainer = useCallback(() => {
-    const docEl = document.documentElement;
-    const body = document.body;
-    const hasWindowScroll =
-      (docEl.scrollHeight - window.innerHeight) > 1 ||
-      ((body?.scrollHeight || 0) - window.innerHeight) > 1;
-
-    if (hasWindowScroll) {
-      scrollElRef.current = null;
-      isWindowRef.current = true;
-      return;
-    }
-
+    // Prefer the largest inner scrollable container; fallback to window if none
     const selectors = [
       '[data-scroll-container]',
       '[data-radix-scroll-area-viewport]',
