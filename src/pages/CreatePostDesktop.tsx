@@ -171,205 +171,15 @@ const CreatePostDesktop: React.FC = () => {
 
       {/* Main 3-Column Layout */}
       <div className="w-full min-h-[calc(100vh-56px)] grid grid-cols-[280px_1fr_380px] gap-4 p-4">
-        {/* Left Sidebar - Navigation */}
+        {/* Left Sidebar - Post Settings */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
           className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 p-6 overflow-y-auto"
         >
-          <h2 className="text-xl font-bold mb-6 text-gray-800">Navigation</h2>
-          <nav className="space-y-2">
-            <Button variant="ghost" className="w-full justify-start text-left">
-              🏠 Home
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-left">
-              🎬 Reels
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-left">
-              🛍️ Marketplace
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-left">
-              👥 Groups
-            </Button>
-          </nav>
-        </motion.div>
-
-        {/* Center Column - Editor */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 40 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col"
-        >
-          {/* Header with Avatar & Visibility */}
-          <div className="flex items-center gap-4 mb-6">
-            <Avatar size="lg" />
-            <div className="flex-1">
-              <p className="font-semibold text-lg">{displayName || "User"}</p>
-              <Select value={visibility} onValueChange={setVisibility}>
-                <SelectTrigger className="w-48 h-8 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="public">🌐 Public</SelectItem>
-                  <SelectItem value="friends">👥 Friends</SelectItem>
-                  <SelectItem value="followers">👤 Followers</SelectItem>
-                  <SelectItem value="onlyme">🔒 Only Me</SelectItem>
-                  <SelectItem value="anonymous">🕵️ Anonymous</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch checked={isAnonymous} onCheckedChange={setIsAnonymous} />
-              <span className="text-sm text-gray-600">🕵️ Anonymous</span>
-            </div>
-          </div>
-
-          {/* Text Editor */}
-          <div className="flex-1 mb-6">
-            <Textarea
-              value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
-              placeholder="Shkruaj çfarë ndjen, mendon apo dëshiron të ndash me Shqipet…"
-              className="min-h-[200px] text-lg border-0 focus-visible:ring-0 resize-none"
-            />
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-sm text-gray-500">
-                {charCount} characters {isOptimal && <span className="text-green-600 font-medium">✓ Optimal</span>}
-              </span>
-              <Button variant="ghost" size="sm">
-                <Mic2 className="w-4 h-4 mr-2" />
-                Voice Input
-              </Button>
-            </div>
-          </div>
-
-          {/* Media Toolbar */}
-          <div className="border-t border-gray-200 pt-4 mb-6">
-            <p className="text-sm font-medium text-gray-700 mb-3">Add to your post</p>
-            <div className="flex flex-wrap gap-3">
-              {mediaTools.map((tool, idx) => (
-                <motion.button
-                  key={idx}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-gray-100 transition-all ${tool.color}`}
-                >
-                  <tool.icon className="w-6 h-6" />
-                  <span className="text-xs text-gray-600">{tool.label}</span>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
-          {/* Preview Button */}
-          <Dialog open={showPreview} onOpenChange={setShowPreview}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mb-4">
-                <Eye className="w-4 h-4 mr-2" />
-                Preview Post
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Post Preview</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Avatar size="md" />
-                  <div>
-                    <p className="font-semibold">{isAnonymous ? "Anonymous User" : displayName}</p>
-                    <p className="text-sm text-gray-500">{visibility}</p>
-                  </div>
-                </div>
-                <p className="text-lg whitespace-pre-wrap">{postContent || "No content yet..."}</p>
-                <div className="flex gap-2">
-                  <Button onClick={() => setShowPreview(false)}>Edit Again</Button>
-                  <Button variant="default" onClick={handlePublish} className="bg-red-500 hover:bg-red-600">
-                    <Send className="w-4 h-4 mr-2" />
-                    Publish Now
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Publish Button */}
-          <Button
-            onClick={handlePublish}
-            disabled={isPublishing || !postContent.trim()}
-            size="lg"
-            className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold text-lg h-14 rounded-xl shadow-lg transition-all hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Send className="w-5 h-5 mr-2" />
-            {isPublishing ? 'Publishing...' : 'Publish Post'}
-          </Button>
-        </motion.div>
-
-        {/* Right Sidebar - AI & Settings */}
-        <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 p-6 overflow-y-auto space-y-6"
-        >
-          {/* Shqipet AI Panel */}
-          <div className="bg-gradient-to-r from-red-500/20 to-black/30 rounded-2xl p-6 border border-red-400/40">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-red-600 flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                🇦🇱 Shqipet AI
-              </h3>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Info className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Why Use Shqipet AI?</DialogTitle>
-                  </DialogHeader>
-                  <p className="text-sm text-gray-600">
-                    Shqipet AI fixes grammar, improves captions, finds hashtags, checks for sensitive/duplicate content, 
-                    and helps you publish at the right time — directly inside the app.
-                  </p>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">Your creative co-pilot for smarter posts.</p>
-            
-            <div className="space-y-2 mb-4">
-              {aiFeatures.map((feature, idx) => (
-                <Button
-                  key={idx}
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start text-left hover:bg-white/50"
-                  onClick={feature.action}
-                >
-                  <feature.icon className="w-4 h-4 mr-2" />
-                  {feature.label}
-                </Button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-gray-300">
-              <span className="text-sm font-medium">Auto AI Correction</span>
-              <Switch checked={autoAI} onCheckedChange={setAutoAI} />
-            </div>
-          </div>
-
-          {/* Smart Suggest */}
-          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-            <p className="text-sm text-blue-800">
-              <Clock className="w-4 h-4 inline mr-2" />
-              Shqipet AI recommends publishing at 7:30 PM for higher engagement 🌙
-            </p>
-          </div>
-
-          {/* Post Settings Accordion */}
+          <h2 className="text-xl font-bold mb-6 text-gray-800">Post Settings</h2>
+          
           <div className="space-y-3">
             {/* Comments & Privacy */}
             <Collapsible>
@@ -565,6 +375,181 @@ const CreatePostDesktop: React.FC = () => {
                 </div>
               </CollapsibleContent>
             </Collapsible>
+          </div>
+        </motion.div>
+
+        {/* Center Column - Editor */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 40 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col"
+        >
+          {/* Header with Avatar & Visibility */}
+          <div className="flex items-center gap-4 mb-6">
+            <Avatar size="lg" />
+            <div className="flex-1">
+              <p className="font-semibold text-lg">{displayName || "User"}</p>
+              <Select value={visibility} onValueChange={setVisibility}>
+                <SelectTrigger className="w-48 h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">🌐 Public</SelectItem>
+                  <SelectItem value="friends">👥 Friends</SelectItem>
+                  <SelectItem value="followers">👤 Followers</SelectItem>
+                  <SelectItem value="onlyme">🔒 Only Me</SelectItem>
+                  <SelectItem value="anonymous">🕵️ Anonymous</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={isAnonymous} onCheckedChange={setIsAnonymous} />
+              <span className="text-sm text-gray-600">🕵️ Anonymous</span>
+            </div>
+          </div>
+
+          {/* Text Editor */}
+          <div className="flex-1 mb-6">
+            <Textarea
+              value={postContent}
+              onChange={(e) => setPostContent(e.target.value)}
+              placeholder="Shkruaj çfarë ndjen, mendon apo dëshiron të ndash me Shqipet…"
+              className="min-h-[200px] text-lg border-0 focus-visible:ring-0 resize-none"
+            />
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-gray-500">
+                {charCount} characters {isOptimal && <span className="text-green-600 font-medium">✓ Optimal</span>}
+              </span>
+              <Button variant="ghost" size="sm">
+                <Mic2 className="w-4 h-4 mr-2" />
+                Voice Input
+              </Button>
+            </div>
+          </div>
+
+          {/* Media Toolbar */}
+          <div className="border-t border-gray-200 pt-4 mb-6">
+            <p className="text-sm font-medium text-gray-700 mb-3">Add to your post</p>
+            <div className="flex flex-wrap gap-3">
+              {mediaTools.map((tool, idx) => (
+                <motion.button
+                  key={idx}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-gray-100 transition-all ${tool.color}`}
+                >
+                  <tool.icon className="w-6 h-6" />
+                  <span className="text-xs text-gray-600">{tool.label}</span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Preview Button */}
+          <Dialog open={showPreview} onOpenChange={setShowPreview}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full mb-4">
+                <Eye className="w-4 h-4 mr-2" />
+                Preview Post
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Post Preview</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar size="md" />
+                  <div>
+                    <p className="font-semibold">{isAnonymous ? "Anonymous User" : displayName}</p>
+                    <p className="text-sm text-gray-500">{visibility}</p>
+                  </div>
+                </div>
+                <p className="text-lg whitespace-pre-wrap">{postContent || "No content yet..."}</p>
+                <div className="flex gap-2">
+                  <Button onClick={() => setShowPreview(false)}>Edit Again</Button>
+                  <Button variant="default" onClick={handlePublish} className="bg-red-500 hover:bg-red-600">
+                    <Send className="w-4 h-4 mr-2" />
+                    Publish Now
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Publish Button */}
+          <Button
+            onClick={handlePublish}
+            disabled={isPublishing || !postContent.trim()}
+            size="lg"
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold text-lg h-14 rounded-xl shadow-lg transition-all hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Send className="w-5 h-5 mr-2" />
+            {isPublishing ? 'Publishing...' : 'Publish Post'}
+          </Button>
+        </motion.div>
+
+        {/* Right Sidebar - AI & Settings */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 p-6 overflow-y-auto space-y-6"
+        >
+          {/* Shqipet AI Panel */}
+          <div className="bg-gradient-to-r from-red-500/20 to-black/30 rounded-2xl p-6 border border-red-400/40">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-red-600 flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                🇦🇱 Shqipet AI
+              </h3>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Info className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Why Use Shqipet AI?</DialogTitle>
+                  </DialogHeader>
+                  <p className="text-sm text-gray-600">
+                    Shqipet AI fixes grammar, improves captions, finds hashtags, checks for sensitive/duplicate content, 
+                    and helps you publish at the right time — directly inside the app.
+                  </p>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">Your creative co-pilot for smarter posts.</p>
+            
+            <div className="space-y-2 mb-4">
+              {aiFeatures.map((feature, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start text-left hover:bg-white/50"
+                  onClick={feature.action}
+                >
+                  <feature.icon className="w-4 h-4 mr-2" />
+                  {feature.label}
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-gray-300">
+              <span className="text-sm font-medium">Auto AI Correction</span>
+              <Switch checked={autoAI} onCheckedChange={setAutoAI} />
+            </div>
+          </div>
+
+          {/* Smart Suggest */}
+          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+            <p className="text-sm text-blue-800">
+              <Clock className="w-4 h-4 inline mr-2" />
+              Shqipet AI recommends publishing at 7:30 PM for higher engagement 🌙
+            </p>
           </div>
         </motion.div>
       </div>
