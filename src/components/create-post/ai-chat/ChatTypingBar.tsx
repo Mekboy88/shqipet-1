@@ -1,14 +1,57 @@
-It’s likely that the error appeared because the CSS pseudo-elements (`::before` / `::after`) or the embedded `<style>` tag inside your React component broke the JSX syntax or exceeded build parsing limits.  
+import React, { useState } from 'react';
+import { Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import './ChatTypingBar.css';
 
-Here’s how to **fix it cleanly without errors**:  
-1. Move the `<style>` block content into a **CSS file** (for example, `ChatTypingBar.css`).  
-2. Import it at the top:  
-   ```tsx
-   import './ChatTypingBar.css';
-   ```  
-3. Remove the `<style>` tag entirely from the component.  
-4. Keep only the JSX and class names (`smoke-container`, etc.).  
+interface ChatTypingBarProps {
+  onSendMessage: (content: string) => void;
+  disabled?: boolean;
+}
 
-This ensures React doesn’t misinterpret embedded CSS, and the animation will compile normally.  
+const ChatTypingBar: React.FC<ChatTypingBarProps> = ({
+  onSendMessage,
+  disabled = false,
+}) => {
+  const [input, setInput] = useState('');
 
-If you want, I can rewrite the full corrected version of your `ChatTypingBar.tsx` that compiles successfully with the same smoke animation — should I do that?
+  const handleSend = () => {
+    if (input.trim() && !disabled) {
+      onSendMessage(input.trim());
+      setInput('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="smoke-wrap">
+      <div className="typing-box">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Ask Shqipet AI for suggestions..."
+          className="flex-1 resize-none bg-transparent outline-none text-sm min-h-[40px] max-h-[120px]"
+          rows={1}
+          disabled={disabled}
+        />
+        <Button
+          onClick={handleSend}
+          size="icon"
+          variant="ghost"
+          className="shrink-0"
+          disabled={!input.trim() || disabled}
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default ChatTypingBar;
