@@ -29,49 +29,60 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Neon glow around border */
+        /* Pink neon layer */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -3px;
+          inset: -2px;
           border-radius: 1.25rem;
-          background: transparent;
-          box-shadow: 
-            0 0 5px #ff005e, 
-            0 0 10px #ff005e, 
-            0 0 20px #ff005e, 
-            0 0 40px #ff005e, 
-            0 0 80px #ff005e;
-          animation: neon-glow 1.5s infinite alternate;
+          background: #ff005e;
+          -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          padding: 1.5px;
+          filter: blur(1px) drop-shadow(0 0 5px #ff005e) drop-shadow(0 0 10px #ff005e) drop-shadow(0 0 20px #ff005e) drop-shadow(0 0 40px #ff005e);
+          animation: neon-fade-out 1.5s infinite alternate;
           pointer-events: none;
           z-index: -1;
         }
 
-        @keyframes neon-glow {
-          0% {
-            box-shadow: 
-              0 0 5px #ff005e, 
-              0 0 10px #ff005e, 
-              0 0 20px #ff005e, 
-              0 0 40px #ff005e, 
-              0 0 80px #ff005e;
-          }
-          100% {
-            box-shadow: 
-              0 0 10px #00d4ff, 
-              0 0 20px #00d4ff, 
-              0 0 40px #00d4ff, 
-              0 0 80px #00d4ff, 
-              0 0 160px #00d4ff;
-          }
+        /* Cyan neon layer */
+        .smoke-wrap::after {
+          content: "";
+          position: absolute;
+          inset: -2px;
+          border-radius: 1.25rem;
+          background: #00d4ff;
+          -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          padding: 1.5px;
+          filter: blur(1px) drop-shadow(0 0 10px #00d4ff) drop-shadow(0 0 20px #00d4ff) drop-shadow(0 0 40px #00d4ff) drop-shadow(0 0 80px #00d4ff);
+          animation: neon-fade-in 1.5s infinite alternate;
+          pointer-events: none;
+          z-index: -1;
         }
 
-        /* Base typing box with very thin neon border */
+        @keyframes neon-fade-out {
+          0% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+
+        @keyframes neon-fade-in {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+
+        /* Base typing box */
         .smoke-inner {
           position: relative;
           border-radius: 1.25rem;
           background: white;
-          border: 0.5px solid rgba(255, 255, 255, 0.3);
+          border: none;
           z-index: 2;
         }
       `}</style>
