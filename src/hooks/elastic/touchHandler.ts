@@ -89,6 +89,7 @@ export const createTouchHandlers = (state: ElasticState) => {
       }
 
       if (state.config.indicatorEnabled && state.lastScrollEl) {
+        console.debug('[elastic-indicator] touch', { atTop, atBottom, distance: state.currentStretchY });
         updateIndicator(state.lastScrollEl, state.currentStretchY);
       }
 

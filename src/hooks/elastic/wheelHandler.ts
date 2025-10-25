@@ -67,9 +67,10 @@ export const createWheelHandler = (state: ElasticState) => {
     container.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
 
     // Update indicator (use negative distance for bottom to compress)
-    if (state.config.indicatorEnabled && state.lastScrollEl) {
-      updateIndicator(state.lastScrollEl, state.currentStretchY);
-    }
+  if (state.config.indicatorEnabled && state.lastScrollEl) {
+    console.debug('[elastic-indicator] wheel', { atTop, atBottom, distance: state.currentStretchY });
+    updateIndicator(state.lastScrollEl, state.currentStretchY);
+  }
 
     // Snap-back after 180ms idle
     if (resetTimeout) clearTimeout(resetTimeout);
