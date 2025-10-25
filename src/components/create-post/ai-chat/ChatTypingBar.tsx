@@ -29,63 +29,58 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Thin animated gradient ring around edges */
+        /* Smoke effect beneath the border */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: 0;
-          padding: 2px; /* ring thickness */
+          inset: -8px;
           border-radius: inherit;
           z-index: -1;
           background: conic-gradient(
             from 0deg,
-            hsl(var(--destructive) / 0.7) 0%,
-            hsl(var(--primary) / 0.7) 50%,
-            hsl(var(--destructive) / 0.7) 100%
-          ) border-box;
-          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          animation: ring-spin 10s linear infinite;
-          opacity: 1;
+            hsl(var(--destructive) / 0.3) 0%,
+            hsl(var(--primary) / 0.3) 50%,
+            hsl(var(--destructive) / 0.3) 100%
+          );
+          filter: blur(12px);
+          animation: smoke-rotate 8s linear infinite;
+          opacity: 0.6;
         }
 
-        .smoke-wrap::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          padding: 2px; /* subtle second layer */
-          border-radius: inherit;
-          z-index: -1;
-          background: conic-gradient(
-            from 180deg,
-            hsl(var(--primary) / 0.5) 0%,
-            hsl(var(--destructive) / 0.5) 50%,
-            hsl(var(--primary) / 0.5) 100%
-          ) border-box;
-          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          animation: ring-spin 14s linear infinite reverse;
-          opacity: 1;
-        }
-
-        @keyframes ring-spin {
+        @keyframes smoke-rotate {
           to { transform: rotate(360deg); }
         }
 
-        /* Base typing box */
+        /* Base typing box with animated thin border */
         .smoke-inner {
           position: relative;
-          border: 1px solid transparent;
           border-radius: 1.25rem;
           background: transparent;
           z-index: 2;
         }
+        
+        /* Animated thin border on top */
+        .smoke-inner::before {
+          content: "";
+          position: absolute;
+          inset: -1px;
+          border-radius: inherit;
+          padding: 1px;
+          background: conic-gradient(
+            from 0deg,
+            hsl(var(--destructive) / 0.25) 0%,
+            hsl(var(--primary) / 0.25) 50%,
+            hsl(var(--destructive) / 0.25) 100%
+          );
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          animation: smoke-rotate 8s linear infinite;
+        }
       `}</style>
 
       <div className="smoke-wrap">
-        <div className="smoke-inner flex-1 p-4 space-y-2 bg-gradient-to-r from-[hsl(var(--destructive)/0.1)] to-[hsl(var(--primary)/0.1)] border border-[hsl(var(--destructive)/0.2)] rounded-xl">
+        <div className="smoke-inner flex-1 p-4 space-y-2 bg-gradient-to-r from-[hsl(var(--destructive)/0.1)] to-[hsl(var(--primary)/0.1)] rounded-xl">
           {/* Textarea field */}
           <Textarea
             value={message}
