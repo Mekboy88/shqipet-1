@@ -103,6 +103,11 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({
 
   return (
     <>
+      <style>{`
+        .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        .no-scrollbar::-webkit-scrollbar { width: 0; height: 0; display: none; }
+        .scroll-isolated { overscroll-behavior: contain; touch-action: pan-y; }
+      `}</style>
       {/* Toggle Button (visible when collapsed) */}
       {!hideToggleButton && (
         <AnimatePresence>
@@ -155,7 +160,7 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto no-scrollbar scroll-isolated p-6 space-y-4" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
               {messages.map(message => (
                 <ChatMessage
                   key={message.id}

@@ -366,6 +366,11 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
           height: 0;
           display: none;
         }
+        /* Prevent scroll chaining to the page */
+        .scroll-isolated {
+          overscroll-behavior: contain;
+          touch-action: pan-y;
+        }
       `}</style>
       <Card
       className="fixed w-[380px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto flex flex-col rounded-xl transition-all duration-150" 
@@ -477,7 +482,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
       )}
 
       {/* Messages */}
-      <div className="absolute top-[92px] left-0 right-0 bottom-[120px] overflow-y-auto no-scrollbar p-4">
+      <div className="absolute top-[92px] left-0 right-0 bottom-[120px] overflow-y-auto no-scrollbar scroll-isolated p-4" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
         <div className="space-y-4">
           {messages.map((message) => (
             <div
@@ -626,8 +631,10 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
             placeholder="Type your message..."
-            className="flex-1 border border-input bg-background/50 focus:ring-2 focus:ring-primary/5 focus:outline-none focus:border-primary/8 rounded-lg resize-none no-scrollbar overflow-y-auto px-3 text-sm thick-caret flex items-center text-base"
+            className="flex-1 border border-input bg-background/50 focus:ring-2 focus:ring-primary/5 focus:outline-none focus:border-primary/8 rounded-lg resize-none no-scrollbar scroll-isolated px-3 text-sm thick-caret flex items-center text-base"
             style={{
               height: '40px',
               minHeight: '40px',

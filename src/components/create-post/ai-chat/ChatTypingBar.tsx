@@ -71,6 +71,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           height: 0;
           display: none; /* Safari and Chrome */
         }
+        .scroll-isolated { overscroll-behavior: contain; touch-action: pan-y; }
       `}</style>
       {/* SVG filter for organic smoke turbulence */}
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
@@ -94,6 +95,8 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
             disabled={disabled}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -106,7 +109,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               caretColor: "hsl(var(--destructive))",
               height: (isFocused || message.trim().length > 0) ? "60px" : "20px",
             }}
-            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base no-scrollbar ${isFocused || message.trim().length > 0 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[3500ms] ease-in-out`}
+            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base no-scrollbar scroll-isolated ${isFocused || message.trim().length > 0 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[3500ms] ease-in-out`}
           />
 
           {/* Icons row */}
