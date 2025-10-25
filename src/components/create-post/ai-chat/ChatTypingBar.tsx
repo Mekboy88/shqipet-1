@@ -33,15 +33,15 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -1px;
+          inset: -4px;
           border-radius: 1.25rem;
           background: transparent;
           box-shadow: 
-            0 0 2px rgba(255, 0, 94, 0.35), 
-            0 0 4px rgba(255, 0, 94, 0.24), 
-            0 0 8px rgba(255, 0, 94, 0.16), 
-            0 0 12px rgba(255, 0, 94, 0.10), 
-            0 0 16px rgba(255, 0, 94, 0.08);
+            0 0 8px rgba(239, 68, 68, 0.5), 
+            0 0 16px rgba(239, 68, 68, 0.35), 
+            0 0 32px rgba(239, 68, 68, 0.22), 
+            0 0 60px rgba(239, 68, 68, 0.14), 
+            0 0 100px rgba(239, 68, 68, 0.06);
           animation: neon-glow-typing 3s ease-in-out infinite;
           pointer-events: none;
           z-index: -1;
@@ -50,19 +50,19 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         @keyframes neon-glow-typing {
           0%, 100% {
             box-shadow:
-              0 0 2px rgba(255, 0, 94, 0.40),
-              0 0 4px rgba(255, 0, 94, 0.28),
-              0 0 6px rgba(255, 0, 94, 0.18),
-              0 0 9px rgba(255, 0, 94, 0.12),
-              0 0 12px rgba(255, 0, 94, 0.08);
+              0 0 10px rgba(239, 68, 68, 0.55),
+              0 0 20px rgba(239, 68, 68, 0.40),
+              0 0 40px rgba(239, 68, 68, 0.26),
+              0 0 70px rgba(239, 68, 68, 0.16),
+              0 0 120px rgba(239, 68, 68, 0.08);
           }
           50% {
             box-shadow:
-              0 0 3px rgba(0, 212, 255, 0.40),
-              0 0 6px rgba(0, 212, 255, 0.28),
-              0 0 9px rgba(0, 212, 255, 0.18),
-              0 0 12px rgba(0, 212, 255, 0.12),
-              0 0 16px rgba(0, 212, 255, 0.08);
+              0 0 6px rgba(31, 41, 55, 0.12),
+              0 0 12px rgba(31, 41, 55, 0.08),
+              0 0 24px rgba(31, 41, 55, 0.05),
+              0 0 48px rgba(31, 41, 55, 0.03),
+              0 0 90px rgba(31, 41, 55, 0.01);
           }
         }
 
