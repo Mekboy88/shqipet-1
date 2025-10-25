@@ -509,7 +509,7 @@ const CreatePostDesktop: React.FC = () => {
           <Dialog open={showPreview} onOpenChange={setShowPreview}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full mb-4">
-                <svg className="w-48 h-48" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-64 h-64" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path className="fill-muted-foreground/20" d="M417.3,259.1c0.2,0.3,0.2,0.8,0,1.1c-36.1,60.3-95,99.6-161.5,99.6c-66.2,0-124.5-38.3-160.7-98.2l0,0 c-0.7-1.2-0.7-2.8,0-3.9c36.2-59.5,94.7-98.2,160.7-98.2c66,0,123.8,37.2,160,96.7L417.3,259.1z"/>
                   <path className="fill-background stroke-foreground" strokeWidth="6" strokeLinecap="round" strokeMiterlimit="10" d="M397.2,259.3c0.2,0.2,0.2,0.6,0,0.8c-31.6,44.3-83.2,73.1-141.4,73.1 c-58,0-109-28.1-140.7-72l0,0c-0.6-0.9-0.6-2,0-2.9c31.7-43.7,82.9-72,140.7-72c57.8,0,108.4,27.3,140.1,70.9L397.2,259.3z"/>
                   <circle className="fill-primary stroke-foreground" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" cx="256" cy="259.7" r="73.5"/>
