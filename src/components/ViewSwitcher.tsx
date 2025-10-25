@@ -18,7 +18,7 @@ import RootLoadingWrapper from '@/components/RootLoadingWrapper';
 import CentralizedAuthGuard from '@/components/auth/CentralizedAuthGuard';
 import GlobeLoader from '@/components/ui/GlobeLoader';
 import RoutePersistence from '@/components/routing/RoutePersistence';
-
+import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
 import { isPrimaryDomain, isMobileSubdomain, buildUrlFor, isAdminPath, MOBILE_SUBDOMAIN, PRIMARY_DOMAINS } from '@/utils/domainConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { DesktopMobileToggle } from './DesktopMobileToggle';
@@ -234,6 +234,7 @@ const ViewSwitcher: React.FC = () => {
                 <div className="min-h-screen bg-gray-50">
                   <RoutePersistence />
                   <TermsOfUse />
+                  <GlobalScrollIndicator />
                   {/* Removed toast system - using notification system */}
                 </div>
               </BrowserRouter>
@@ -318,7 +319,7 @@ const ViewSwitcher: React.FC = () => {
                                <AppComponent />
                                <DesktopMobileToggle />
                              </div>
-                             
+                             <GlobalScrollIndicator />
                              {/* Removed toast system - using notification system */}
                            </PublishingProgressProvider>
                         </PostsProvider>

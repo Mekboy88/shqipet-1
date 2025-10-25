@@ -13,7 +13,11 @@ const GlobalScrollIndicator: React.FC = () => {
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkForModals = useCallback(() => {
-    const modalExists = !!document.querySelector('[aria-modal="true"], [role="dialog"][data-state="open"], [data-radix-dialog-content][data-state="open"], [data-radix-dialog-overlay][data-state="open"]');
+    const modalExists =
+      document.body.style.overflow === 'hidden' ||
+      document.documentElement.classList.contains('overflow-hidden') ||
+      !!document.querySelector('[aria-modal="true"], [role="dialog"][data-state="open"], .radix-dialog-content[data-state="open"], .fixed.inset-0, [data-radix-dialog-overlay], [data-radix-popover-content]');
+    
     setHasBlockingModal(modalExists);
     return modalExists;
   }, []);
@@ -105,7 +109,18 @@ const GlobalScrollIndicator: React.FC = () => {
   }, [computeAndSet, checkForModals]);
 
   const findBestScrollContainer = useCallback(() => {
-    // Prefer the largest inner scrollable container; fallback to window if none
+    const docEl = document.documentElement;
+    const body = document.body;
+    const hasWindowScroll =
+      (docEl.scrollHeight - window.innerHeight) > 1 ||
+      ((body?.scrollHeight || 0) - window.innerHeight) > 1;
+
+    if (hasWindowScroll) {
+      scrollElRef.current = null;
+      isWindowRef.current = true;
+      return;
+    }
+
     const selectors = [
       '[data-scroll-container]',
       '[data-radix-scroll-area-viewport]',
@@ -213,14 +228,14 @@ const GlobalScrollIndicator: React.FC = () => {
       />
       {/* Progress bar - only visible when scrolling main content and no modals */}
       <div
-        className={`fixed right-0 top-0 w-1 bg-primary/60 shadow-md transition-all duration-200 ease-out pointer-events-none rounded-full ${
+        className={`fixed right-0.5 top-0 w-1.5 bg-muted-foreground/50 shadow-sm transition-all duration-300 ease-out pointer-events-none rounded ${
           isScrolling && !hasBlockingModal ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
           height: `${thumbSizePct}%`,
           top: `${thumbTopPct}%`,
-          zIndex: 2147483645,
-          minHeight: '20px',
+          zIndex: 10001,
+          minHeight: '16px',
         }}
         aria-hidden="true"
       />
