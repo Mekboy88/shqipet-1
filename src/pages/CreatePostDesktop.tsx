@@ -151,7 +151,7 @@ const CreatePostDesktop: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 pt-14">
+    <div className="min-h-screen w-full bg-background pt-14">
       <Helmet>
         <title>Create Post | Shqipet</title>
         <meta name="description" content="Compose a new Shqipet post with media, AI assistance, and privacy settings." />
@@ -166,15 +166,15 @@ const CreatePostDesktop: React.FC = () => {
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
-          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 p-6 overflow-y-auto"
+          className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border p-6 overflow-y-auto"
         >
-          <h2 className="text-xl font-bold mb-6 text-gray-800">Post Settings</h2>
+          <h2 className="text-xl font-bold mb-6 text-foreground">Post Settings</h2>
           
           <div className="space-y-3">
             {/* Comments & Privacy */}
             <Collapsible>
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
                   <div className="flex items-center gap-2">
                     <svg 
                       className="w-4 h-4" 
@@ -194,7 +194,7 @@ const CreatePostDesktop: React.FC = () => {
                   <ChevronDown className="w-4 h-4" />
                 </div>
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Allow Comments</span>
                   <Switch checked={allowComments} onCheckedChange={setAllowComments} />
@@ -227,7 +227,7 @@ const CreatePostDesktop: React.FC = () => {
             {/* Publishing Options */}
             <Collapsible>
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     <span className="font-medium text-sm">Publishing Options</span>
@@ -235,7 +235,7 @@ const CreatePostDesktop: React.FC = () => {
                   <ChevronDown className="w-4 h-4" />
                 </div>
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-muted/30 rounded-lg">
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" className="flex-1">Publish Now</Button>
                   <Button size="sm" variant="outline" className="flex-1">Schedule</Button>
@@ -276,7 +276,7 @@ const CreatePostDesktop: React.FC = () => {
             {/* Language & AI Tone */}
             <Collapsible>
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
                   <div className="flex items-center gap-2">
                     <Languages className="w-4 h-4" />
                     <span className="font-medium text-sm">Language & AI Tone</span>
@@ -284,7 +284,7 @@ const CreatePostDesktop: React.FC = () => {
                   <ChevronDown className="w-4 h-4" />
                 </div>
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Auto Translate</span>
                   <Switch checked={autoTranslate} onCheckedChange={setAutoTranslate} />
@@ -309,7 +309,7 @@ const CreatePostDesktop: React.FC = () => {
             {/* Moderation & Security */}
             <Collapsible>
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4" />
                     <span className="font-medium text-sm">Moderation & Security</span>
@@ -317,7 +317,7 @@ const CreatePostDesktop: React.FC = () => {
                   <ChevronDown className="w-4 h-4" />
                 </div>
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Content Warning</span>
                   <Switch checked={contentWarning} onCheckedChange={setContentWarning} />
@@ -332,7 +332,7 @@ const CreatePostDesktop: React.FC = () => {
             {/* Draft & Auto-Save */}
             <Collapsible>
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
                   <div className="flex items-center gap-2">
                     <Save className="w-4 h-4" />
                     <span className="font-medium text-sm">Draft & Auto-Save</span>
@@ -340,7 +340,7 @@ const CreatePostDesktop: React.FC = () => {
                   <ChevronDown className="w-4 h-4" />
                 </div>
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Auto Save</span>
                   <Switch checked={autoSave} onCheckedChange={setAutoSave} />
@@ -354,7 +354,7 @@ const CreatePostDesktop: React.FC = () => {
             {/* Engagement Analytics */}
             <Collapsible>
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" />
                     <span className="font-medium text-sm">Engagement Analytics</span>
@@ -362,16 +362,16 @@ const CreatePostDesktop: React.FC = () => {
                   <ChevronDown className="w-4 h-4" />
                 </div>
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-white/30 rounded-lg">
+              <CollapsibleContent className="mt-2 space-y-3 p-3 bg-muted/30 rounded-lg">
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Predicted Reach</p>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <p className="text-xs text-muted-foreground mb-1">Predicted Reach</p>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div className="h-full bg-green-500 w-3/4"></div>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Hashtag Effectiveness</p>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <p className="text-xs text-muted-foreground mb-1">Hashtag Effectiveness</p>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div className="h-full bg-blue-500 w-2/3"></div>
                   </div>
                 </div>
@@ -385,7 +385,7 @@ const CreatePostDesktop: React.FC = () => {
           initial={{ opacity: 0, scale: 0.96, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col"
+          className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col"
         >
           {/* Header with Avatar & Visibility */}
           <div className="flex items-center gap-4 mb-6">
@@ -407,7 +407,7 @@ const CreatePostDesktop: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={isAnonymous} onCheckedChange={setIsAnonymous} />
-              <span className="text-sm text-gray-600">🕵️ Anonymous</span>
+              <span className="text-sm text-muted-foreground">🕵️ Anonymous</span>
             </div>
           </div>
 
@@ -420,7 +420,7 @@ const CreatePostDesktop: React.FC = () => {
                   fill="currentColor" 
                   viewBox="0 0 24 24" 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className="w-5 h-5 text-gray-600 flex-shrink-0"
+                  className="w-5 h-5 text-muted-foreground flex-shrink-0"
                 >
                   <path d="M12 18c4 0 5-4 5-4H7s1 4 5 4z"></path>
                   <path d="M12 22c5.514 0 10-4.486 10-10S17.514 2 12 2 2 6.486 2 12s4.486 10 10 10zm0-18c4.411 0 8 3.589 8 8s-3.589 8-8 8-8-3.589-8-8 3.589-8 8-8z"></path>
@@ -449,7 +449,7 @@ const CreatePostDesktop: React.FC = () => {
               }}
             />
             <div className="flex justify-between items-center mt-2">
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-muted-foreground">
                 {charCount} characters {isOptimal && <span className="text-green-600 font-medium">✓ Optimal</span>}
               </span>
               <Button variant="ghost" size="sm">
@@ -477,8 +477,8 @@ const CreatePostDesktop: React.FC = () => {
                 
                 {/* Main Button */}
                 <div className="relative flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-200 to-purple-300 rounded-full shadow-lg">
-                  <MessageSquare className="w-5 h-5 text-gray-700 animate-pulse" />
-                  <span className="font-semibold text-gray-700 text-sm">Shqipet AI</span>
+                  <MessageSquare className="w-5 h-5 text-foreground animate-pulse" />
+                  <span className="font-semibold text-foreground text-sm">Shqipet AI</span>
                 </div>
               </motion.button>
             )}
@@ -488,18 +488,18 @@ const CreatePostDesktop: React.FC = () => {
           <AISmartSummary content={postContent} />
 
           {/* Media Toolbar */}
-          <div className="border-t border-gray-200 pt-4 mb-6">
-            <p className="text-sm font-medium text-gray-700 mb-3">Add to your post</p>
+          <div className="border-t border-border pt-4 mb-6">
+            <p className="text-sm font-medium text-foreground mb-3">Add to your post</p>
             <div className="flex flex-wrap gap-3">
               {mediaTools.map((tool, idx) => (
                 <motion.button
                   key={idx}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-gray-100 transition-all ${tool.color}`}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-accent transition-all ${tool.color}`}
                 >
                   <tool.icon className="w-6 h-6" />
-                  <span className="text-xs text-gray-600">{tool.label}</span>
+                  <span className="text-xs text-muted-foreground">{tool.label}</span>
                 </motion.button>
               ))}
             </div>
@@ -531,13 +531,13 @@ const CreatePostDesktop: React.FC = () => {
                   <Avatar size="md" />
                   <div>
                     <p className="font-semibold">{isAnonymous ? "Anonymous User" : displayName}</p>
-                    <p className="text-sm text-gray-500">{visibility}</p>
+                    <p className="text-sm text-muted-foreground">{visibility}</p>
                   </div>
                 </div>
                 <p className="text-lg whitespace-pre-wrap">{postContent || "No content yet..."}</p>
                 <div className="flex gap-2">
                   <Button onClick={() => setShowPreview(false)}>Edit Again</Button>
-                  <Button variant="default" onClick={handlePublish} className="bg-red-500 hover:bg-red-600">
+                  <Button variant="default" onClick={handlePublish} className="bg-primary hover:bg-primary/90">
                     <Send className="w-4 h-4 mr-2" />
                     Publish Now
                   </Button>
