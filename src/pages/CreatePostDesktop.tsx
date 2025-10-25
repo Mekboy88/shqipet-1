@@ -445,7 +445,7 @@ const CreatePostDesktop: React.FC = () => {
           </div>
 
           {/* AI Buttons Row */}
-          <div className="flex justify-center gap-4 -mt-4 mb-4">
+          <div className="flex items-center justify-center gap-4 -mt-4 mb-4">
             <FloatingAIButton />
             <PostIntentSection selectedIntent={postIntent} onSelectIntent={setPostIntent} />
             
