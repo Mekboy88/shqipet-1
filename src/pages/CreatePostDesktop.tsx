@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import CollapsibleAIChat from '@/components/create-post/ai-chat/CollapsibleAIChat';
 import FloatingAIButton from '@/components/create-post/FloatingAIButton';
 import PostIntentSection from '@/components/create-post/PostIntentSection';
-import EngagementBoostSection from '@/components/create-post/EngagementBoostSection';
+
 import AISmartSummary from '@/components/create-post/AISmartSummary';
 import { 
   Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, 
@@ -451,9 +451,6 @@ const CreatePostDesktop: React.FC = () => {
 
           {/* Post Intent Section */}
           <PostIntentSection selectedIntent={postIntent} onSelectIntent={setPostIntent} />
-
-          {/* Engagement Boost Section */}
-          <EngagementBoostSection />
 
           {/* Media Toolbar */}
           <div className="border-t border-gray-200 pt-4 mb-6">
