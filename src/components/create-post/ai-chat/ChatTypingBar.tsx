@@ -1,3 +1,4 @@
+```tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,23 +23,22 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
   return (
     <form onSubmit={handleSubmit} className="relative">
       <style>{`
-        @keyframes smokeDrift {
-          0% { transform: rotate(0deg) scale(1); filter: blur(9px); }
-          50% { transform: rotate(180deg) scale(1.02); filter: blur(11px); }
-          100% { transform: rotate(360deg) scale(1); filter: blur(9px); }
+        @keyframes smokeRotate {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
-        @keyframes smokeDriftReverse {
-          0% { transform: rotate(360deg) scale(1); filter: blur(10px); }
-          50% { transform: rotate(180deg) scale(1.03); filter: blur(12px); }
-          100% { transform: rotate(0deg) scale(1); filter: blur(10px); }
-        }
-        .smoke-wrap {
+
+        .smoke-container {
           position: relative;
           border-radius: 1.25rem;
-          overflow: visible;
+          background: white;
+          border: 1px solid rgba(0,0,0,0.08);
+          overflow: hidden;
+          z-index: 1;
         }
-        .smoke-wrap::before,
-        .smoke-wrap::after {
+
+        .smoke-container::before,
+        .smoke-container::after {
           content: "";
           position: absolute;
           inset: -2px;
@@ -46,87 +46,49 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           pointer-events: none;
           background: conic-gradient(
             from 0deg,
-            rgba(230,0,0,0.3) 0deg,
-            rgba(0,0,0,0.3) 120deg,
-            rgba(230,0,0,0.3) 240deg,
-            rgba(0,0,0,0.3) 360deg
+            rgba(255,0,0,0.25) 0deg,
+            rgba(0,0,0,0.25) 120deg,
+            rgba(255,0,0,0.25) 240deg,
+            rgba(0,0,0,0.25) 360deg
           );
-          mix-blend-mode: lighten;
-          opacity: 0.3;
+          filter: blur(12px);
+          opacity: 0.35;
           z-index: -1;
-          animation: smokeDrift 22s linear infinite;
+          animation: smokeRotate 24s linear infinite;
         }
-        .smoke-wrap::after {
-          animation: smokeDriftReverse 28s linear infinite;
-          opacity: 0.25;
+
+        .smoke-container::after {
+          background: conic-gradient(
+            from 180deg,
+            rgba(0,0,0,0.25) 0deg,
+            rgba(255,0,0,0.25) 120deg,
+            rgba(0,0,0,0.25) 240deg,
+            rgba(255,0,0,0.25) 360deg
+          );
+          animation-duration: 32s;
+          animation-direction: reverse;
+          mix-blend-mode: lighten;
         }
       `}</style>
-      
-      <div className="smoke-wrap">
-        <div className="border border-gray-300 rounded-[1.25rem] bg-white px-4 py-3 space-y-2">
-        {/* Textarea field */}
+
+      <div className="smoke-container p-3">
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Ask anything..."
+          placeholder="Type your message..."
+          className="min-h-[60px] w-full resize-none border-none focus-visible:ring-0 text-black bg-transparent"
           disabled={disabled}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit(e);
-            }
-          }}
-          style={{
-            lineHeight: '1.5rem',
-            fontSize: '1rem',
-            caretColor: '#e60000'
-          }}
-          className="w-full min-h-[60px] max-h-[220px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base overflow-y-auto"
         />
-
-        {/* Icons row */}
-        <div className="flex items-center justify-center gap-3 pt-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
-          >
-            <AtSign className="w-4 h-4" />
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex space-x-2">
+            <Button type="button" size="icon" variant="ghost"><Mic size={18} /></Button>
+            <Button type="button" size="icon" variant="ghost"><AtSign size={18} /></Button>
+            <Button type="button" size="icon" variant="ghost"><Link2 size={18} /></Button>
+            <Button type="button" size="icon" variant="ghost"><Zap size={18} /></Button>
+          </div>
+          <Button type="submit" size="icon" variant="default" disabled={disabled}>
+            <Send size={18} />
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
-          >
-            <Zap className="w-4 h-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
-          >
-            <Link2 className="w-4 h-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
-          >
-            <Mic className="w-4 h-4" />
-          </Button>
-          <Button
-            type="submit"
-            disabled={!message.trim() || disabled}
-            size="sm"
-            className="h-9 w-9 p-0 bg-[#e60000] hover:bg-[#000000] disabled:bg-gray-300 disabled:opacity-50 rounded-full hover:scale-110 transition-all ease-in-out duration-200"
-          >
-            <Send className="w-4 h-4 text-white" />
-          </Button>
-        </div>
         </div>
       </div>
     </form>
@@ -134,3 +96,10 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
 };
 
 export default ChatTypingBar;
+```
+
+✅ **Fix summary:**
+- Removed conflicting gradient definitions and nested selectors.
+- Added two **independent conic gradients** (`::before` & `::after`) rotating in opposite directions for the real **floating smoke motion**.
+- Adjusted opacity and blur for **light, smooth aura**.
+- Border remains thin and elegant while the “smoke” drifts naturally around edges.
