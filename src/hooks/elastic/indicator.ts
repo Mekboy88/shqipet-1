@@ -1,25 +1,32 @@
 
 export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
-  // Ensure the scroll container can anchor absolute children
+  // Anchor to a safe container (viewport for document, container otherwise)
+  const anchorEl = (scrollEl === document.documentElement || scrollEl === document.body)
+    ? document.body
+    : scrollEl;
+
+  // Ensure the anchor can position absolute children (not needed for body/fixed)
   try {
-    const cs = getComputedStyle(scrollEl);
-    if (cs.position === 'static') {
-      scrollEl.style.position = 'relative';
+    const cs = getComputedStyle(anchorEl);
+    if (cs.position === 'static' && anchorEl !== document.body) {
+      (anchorEl as HTMLElement).style.position = 'relative';
     }
   } catch {}
 
-  let indicator = scrollEl.querySelector<HTMLElement>(`:scope > [data-elastic-indicator="true"]`);
+  let indicator = anchorEl.querySelector<HTMLElement>(`:scope > [data-elastic-indicator="true"]`);
   if (!indicator) {
     indicator = document.createElement('div');
     indicator.setAttribute('data-elastic-indicator', 'true');
-    indicator.style.position = 'absolute';
+    // Use fixed for viewport, absolute for containers
+    indicator.style.position = anchorEl === document.body ? 'fixed' : 'absolute';
     indicator.style.top = '0';
     indicator.style.left = '0';
-    indicator.style.width = '100%';
-    indicator.style.height = '6px'; // Increased from 4px for better visibility
+    indicator.style.width = anchorEl === document.body ? '100vw' : '100%';
+    indicator.style.height = '6px'; // Visible yet subtle
     indicator.style.transformOrigin = 'top center';
     indicator.style.transform = 'scaleY(1)';
     indicator.style.opacity = '0';
+    indicator.style.display = 'block';
     indicator.style.zIndex = '9999';
     indicator.style.pointerEvents = 'none';
     indicator.style.willChange = 'transform, opacity';
@@ -28,11 +35,11 @@ export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
     indicator.style.boxShadow = '0 2px 8px hsl(var(--primary) / 0.3)';
     indicator.style.transition = 'opacity 0.2s ease';
 
-    // Insert at very top (but don't become the transform target)
-    if (scrollEl.firstElementChild) {
-      scrollEl.insertBefore(indicator, scrollEl.firstElementChild);
+    // Insert at very top of the anchor element
+    if (anchorEl.firstElementChild) {
+      anchorEl.insertBefore(indicator, anchorEl.firstElementChild);
     } else {
-      scrollEl.appendChild(indicator);
+      anchorEl.appendChild(indicator);
     }
   }
   return indicator;
@@ -45,20 +52,25 @@ export const updateIndicator = (scrollEl: HTMLElement, distance: number) => {
   const d = Number.isFinite(distance) ? distance : 0;
   const abs = Math.abs(d);
 
-  // Top pull (d >= 0): grow; Bottom push (d < 0): compress
-  const growScale = 1 + abs / 40; // fast growth
-  const compressScale = Math.max(0.5, 1 - abs / 60); // don't collapse completely
-  const scale = d >= 0 ? growScale : compressScale;
+  // Top pull (d >= 0): compress; Bottom push (d < 0): grow
+  const compressScale = Math.max(0.3, 1 - abs / 60);
+  const growScale = Math.min(2.5, 1 + abs / 40);
+  const scale = d >= 0 ? compressScale : growScale;
 
-  const opacity = Math.min(1, abs / 40); // show quickly on small pulls
+  // Make it visible quickly
+  const opacity = Math.min(1, 0.2 + abs / 30);
 
   indicator.style.opacity = `${opacity}`;
   indicator.style.transition = 'none';
+  indicator.style.transformOrigin = d >= 0 ? 'top center' : 'top center';
   indicator.style.transform = `scaleY(${scale})`;
 };
 
 export const hideIndicator = (scrollEl: HTMLElement) => {
-  const indicator = scrollEl?.querySelector<HTMLElement>(':scope > [data-elastic-indicator="true"]');
+  const anchorEl = (scrollEl === document.documentElement || scrollEl === document.body)
+    ? document.body
+    : scrollEl;
+  const indicator = anchorEl?.querySelector<HTMLElement>(':scope > [data-elastic-indicator="true"]');
   if (!indicator) return;
   indicator.style.transition = 'transform 0.4s cubic-bezier(0.25, 1.6, 0.45, 0.94), opacity 0.3s ease';
   indicator.style.transform = 'scaleY(1)';
