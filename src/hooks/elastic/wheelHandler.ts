@@ -25,22 +25,23 @@ export const createWheelHandler = (state: ElasticState) => {
     const deltaY = -e.deltaY;
     const atTop = scrollEl.scrollTop <= 0;
     const atBottom = Math.ceil(scrollEl.scrollTop + scrollEl.clientHeight) >= scrollEl.scrollHeight;
-    const fastUpward = deltaY > 10;
-    const fastDownward = e.deltaY > 10; // original deltaY positive means scrolling down
 
-    if (!(fastUpward && atTop) && !(fastDownward && atBottom)) {
+    // Engage elastic when attempting to scroll past boundaries (no fast threshold)
+    const pullingDownAtTop = deltaY > 0 && atTop;
+    const pushingUpAtBottom = e.deltaY > 0 && atBottom;
+
+    if (!pullingDownAtTop && !pushingUpAtBottom) {
       return; // allow natural scrolling
     }
 
     e.preventDefault();
 
     const { maxElasticDistance, elasticityMultiplier } = state.config;
-    let elasticDelta = 0;
 
-    if (fastUpward && atTop) {
-      elasticDelta = deltaY * elasticityMultiplier * 0.2; // positive
+    if (pullingDownAtTop) {
+      const elasticDelta = deltaY * elasticityMultiplier * 0.2; // positive
       state.currentStretchY = Math.min(state.currentStretchY + elasticDelta, maxElasticDistance);
-    } else if (fastDownward && atBottom) {
+    } else if (pushingUpAtBottom) {
       const downwardDelta = e.deltaY * elasticityMultiplier * 0.2; // positive
       state.currentStretchY = Math.max(state.currentStretchY - downwardDelta, -maxElasticDistance); // negative stretch
     }

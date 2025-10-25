@@ -27,7 +27,7 @@ export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
     indicator.style.transform = 'scaleY(1)';
     indicator.style.opacity = '0';
     indicator.style.display = 'block';
-    indicator.style.zIndex = '9999';
+    indicator.style.zIndex = '110001';
     indicator.style.pointerEvents = 'none';
     indicator.style.willChange = 'transform, opacity';
     indicator.style.background = 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary) / 0.6))';
