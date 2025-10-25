@@ -36,7 +36,7 @@ const LeftSidebarContainer: React.FC<LeftSidebarContainerProps> = ({
       pointerEvents: 'auto',
       overflow: 'hidden' // Prevent internal scrolling
     }}>
-        <div className="h-full w-full my-0 mx-0 px-0 py-0">
+        <div className="h-full w-full overflow-y-auto my-0 mx-0 px-0 py-0">
           <LeftSidebarContent />
         </div>
       </div>
