@@ -35,9 +35,9 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           100% { transform: rotate(360deg); }
         }
         @keyframes smokeBreath {
-          0% { opacity: 0.16; filter: blur(8px); }
-          50% { opacity: 0.28; filter: blur(12px); }
-          100% { opacity: 0.16; filter: blur(8px); }
+          0% { opacity: 0.14; filter: blur(6px); }
+          50% { opacity: 0.22; filter: blur(10px); }
+          100% { opacity: 0.14; filter: blur(6px); }
         }
         .typing-container {
           position: relative;
@@ -45,10 +45,10 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           border-radius: 1.25rem;
           background:
             linear-gradient(white, white) padding-box,
-            linear-gradient(120deg, rgba(0,0,0,0.18), rgba(230,0,0,0.28), rgba(0,0,0,0.2), rgba(230,0,0,0.24)) border-box;
-          background-size: 400% 400%;
-          animation: smokeFlow 14s ease-in-out infinite;
-          box-shadow: 0 0 20px rgba(230,0,0,0.04);
+            linear-gradient(120deg, rgba(0,0,0,0.12), rgba(230,0,0,0.22), rgba(0,0,0,0.14), rgba(230,0,0,0.2)) border-box;
+          background-size: 500% 500%;
+          animation: smokeFlow 12s ease-in-out infinite;
+          box-shadow: 0 0 20px rgba(230,0,0,0.035);
           z-index: 1;
         }
         .smoke-aura {
@@ -56,8 +56,10 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           inset: -10px;
           border-radius: 1.6rem;
           pointer-events: none;
-          background: conic-gradient(from 0deg at 50% 50%, rgba(230,0,0,0.28), rgba(0,0,0,0.24), rgba(230,0,0,0.28));
-          animation: smokeOrbit 18s linear infinite, smokeBreath 7s ease-in-out infinite;
+          background: conic-gradient(from 0deg at 50% 50%, rgba(230,0,0,0.22), rgba(0,0,0,0.16), rgba(230,0,0,0.22));
+          animation: smokeOrbit 18s linear infinite, smokeBreath 8s ease-in-out infinite;
+          -webkit-mask: radial-gradient(120% 140% at 50% 50%, transparent calc(100% - 6px), #000 calc(100% - 2px));
+          mask: radial-gradient(120% 140% at 50% 50%, transparent calc(100% - 6px), #000 calc(100% - 2px));
           z-index: 0;
         }
         .smoke-aura-2 {
