@@ -5,12 +5,9 @@ export const applyElasticTransform = (
   currentStretchX: number,
   currentStretchY: number
 ) => {
-  // Subtle elastic effect with smooth interpolation
-  const smoothness = 0.25; // Higher = smoother, more subtle
-  const newStretchX = currentStretchX + (targetX - currentStretchX) * smoothness;
-  const newStretchY = currentStretchY + (targetY - currentStretchY) * smoothness;
-  
-  return { currentStretchX: newStretchX, currentStretchY: newStretchY };
+  // COMPLETELY DISABLED - NO TRANSFORMS AT ALL
+  console.log('🚫 Elastic transform completely disabled');
+  return { currentStretchX: 0, currentStretchY: 0 };
 };
 
 export const resetElastic = () => {

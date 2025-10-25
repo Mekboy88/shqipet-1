@@ -2,8 +2,6 @@
 import { ElasticState } from './types';
 import { createElasticHandler } from './elasticHandler';
 import { createTouchScrollHandler } from './touchScrollHandler';
-import { getNearestScrollContainer, getTransformTarget } from './domUtils';
-import { updateIndicator, hideIndicator } from './indicator';
 
 export const createTouchHandlers = (state: ElasticState) => {
   const elasticHandler = createElasticHandler(state);
@@ -11,6 +9,22 @@ export const createTouchHandlers = (state: ElasticState) => {
   let lastTouchTime = 0;
 
   const handleTouchStart = (e: TouchEvent) => {
+    // ABSOLUTE SCROLL PROTECTION - Zero tolerance for interference
+    if (state.isScrolling || window.pageYOffset > 0 || document.documentElement.scrollTop > 0) {
+      console.log('SCROLL PROTECTION - Touch start blocked, prioritizing scroll');
+      return;
+    }
+    
+    // Additional protection - check for any scrollable content
+    const target = e.target as Element;
+    if (target && target.closest('[data-scroll-container="true"]')) {
+      const scrollContainer = target.closest('[data-scroll-container="true"]') as HTMLElement;
+      if (scrollContainer && scrollContainer.scrollTop > 0) {
+        console.log('SCROLL PROTECTION - Content scroll detected, blocking elastic');
+        return;
+      }
+    }
+    
     state.startX = e.touches[0].clientX;
     state.startY = e.touches[0].clientY;
     
@@ -21,16 +35,16 @@ export const createTouchHandlers = (state: ElasticState) => {
       clearTimeout(state.scrollTimeout);
       state.scrollTimeout = null;
     }
+
+    console.log('FACEBOOK-STYLE TOUCH START - Absolute scroll protection active');
   };
 
   const handleTouchMove = (e: TouchEvent) => {
     if (!e.touches[0]) return;
     
-    const target = e.target as Element;
-    if (target?.closest('[data-elastic-disabled="true"]')) return;
-    
+    // Ultra-smooth throttling for Facebook-like feel
     const now = Date.now();
-    if (now - lastTouchTime < 16) return; // ~60fps throttle
+    if (now - lastTouchTime < 4) return;
     lastTouchTime = now;
     
     const currentX = e.touches[0].clientX;
@@ -38,113 +52,118 @@ export const createTouchHandlers = (state: ElasticState) => {
     const deltaX = currentX - state.startX;
     const deltaY = currentY - state.startY;
     
-    if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return;
+    if (Math.abs(deltaX) < 0.2 && Math.abs(deltaY) < 0.2) return;
     
-    // Block horizontal movement
+    // ABSOLUTE SCROLL PROTECTION
+    if (state.isScrolling || window.pageYOffset > 0 || document.documentElement.scrollTop > 0) {
+      console.log('SCROLL PROTECTION - Elastic completely blocked during scroll');
+      state.isElasticActive = false;
+      state.currentStretchX = 0;
+      state.currentStretchY = 0;
+      
+      const container = document.querySelector('[data-elastic-container="true"]');
+      if (container) {
+        const element = container as HTMLElement;
+        element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
+        element.style.setProperty('transition', 'none', 'important');
+      }
+      return;
+    }
+    
+    // Block horizontal movement for scroll protection
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      console.log('SCROLL PROTECTION - Horizontal movement blocked');
       state.isScrolling = true;
       return;
     }
     
-    // Elastic at boundaries: top pull-down or bottom push-up
-    if (deltaY > 1 || deltaY < -1) {
-      if ((target as HTMLElement).closest('[data-horizontal-scroll="true"]')) return;
-
-      let scrollEl = getNearestScrollContainer(target) as HTMLElement | null;
-      if (!scrollEl) scrollEl = document.documentElement as unknown as HTMLElement;
-      if ((scrollEl.scrollHeight - scrollEl.clientHeight) <= 2) {
-        scrollEl = document.documentElement as unknown as HTMLElement;
-      }
-
-      // Ensure indicator can attach to correct scroll context
-      state.lastScrollEl = scrollEl;
-
-      const atTop = scrollEl.scrollTop <= 0;
-      const atBottom = Math.ceil(scrollEl.scrollTop + scrollEl.clientHeight) >= scrollEl.scrollHeight;
-
-      const { maxElasticDistance, elasticityMultiplier } = state.config;
-
-      if (deltaY > 1 && atTop) {
-        // Pulling down at top -> positive stretch
-        const elasticDelta = deltaY * elasticityMultiplier * 0.25;
-        state.currentStretchY = Math.min(elasticDelta, maxElasticDistance);
-      } else if (deltaY < -1 && atBottom) {
-        // Pushing up at bottom -> negative stretch
-        const elasticDelta = deltaY * elasticityMultiplier * 0.25; // negative
-        state.currentStretchY = Math.max(elasticDelta, -maxElasticDistance);
-      } else {
-        // Not at a boundary; still ensure indicator hides if it was shown
-        if (state.config.indicatorEnabled && state.lastScrollEl) {
-          hideIndicator(state.lastScrollEl as HTMLElement);
+    // EASIER ELASTIC: REDUCED RESISTANCE BY 60% for pull-down at absolute top
+    if (deltaY > 0.2) {
+      const isAtAbsoluteTop = window.pageYOffset === 0 && document.documentElement.scrollTop === 0;
+      
+      const target = e.target as Element;
+      let hasContentScroll = false;
+      if (target) {
+        const scrollContainer = target.closest('[data-scroll-container="true"]') as HTMLElement;
+        if (scrollContainer && scrollContainer.scrollTop > 0) {
+          hasContentScroll = true;
         }
-        return;
       }
-
-      let element = getTransformTarget(scrollEl) as HTMLElement | null;
-      // If transform target is body, use real content (skip indicator)
-      if (element === document.body) {
-        let candidate = document.body.firstElementChild as HTMLElement | null;
-        if (candidate && candidate.getAttribute('data-elastic-indicator') === 'true') {
-          candidate = candidate.nextElementSibling as HTMLElement | null;
+      
+      if (isAtAbsoluteTop && !hasContentScroll) {
+        // EASIER ELASTIC for touch - reduced resistance by 60%
+        const pullDistance = Math.abs(deltaY);
+        const elasticMultiplier = 5.8; // Keep same multiplier
+        const maxDistance = 280; // Keep same max distance
+        
+        // MUCH EASIER resistance curve - reduced by 60%
+        const normalizedDistance = Math.min(pullDistance / maxDistance, 1);
+        
+        // Reduced resistance values by 60%
+        const baseResistance = 0.27; // Was 0.68, now 60% easier
+        const midResistance = 0.15; // Was 0.38, now 60% easier  
+        const maxResistance = 0.04; // Was 0.10, now 60% easier
+        
+        // EASIER progressive damping
+        let progressiveResistance;
+        if (normalizedDistance < 0.3) {
+          const lightCurve = normalizedDistance / 0.3;
+          progressiveResistance = baseResistance - (baseResistance - midResistance) * Math.pow(lightCurve, 0.6);
+        } else {
+          const strongCurve = (normalizedDistance - 0.3) / 0.7;
+          progressiveResistance = midResistance - (midResistance - maxResistance) * Math.pow(strongCurve, 3.2);
         }
-        if (candidate) element = candidate;
-      }
-      const indicatorEl = scrollEl.querySelector(':scope > [data-elastic-indicator="true"]') as HTMLElement | null;
-      if (indicatorEl && element === indicatorEl) {
-        element = (indicatorEl.nextElementSibling as HTMLElement) || element;
-      }
-      if (element) {
-        state.lastTransformEl = element;
-        state.lastScrollEl = scrollEl;
-
-        if (!state.isElasticActive) {
-          element.style.willChange = 'transform';
-          element.style.transition = 'none';
-        }
-
+        
+        // EASIER distance resistance for touch - reduced by 60%
+        const distanceBasedResistance = Math.max(0.05, 1 - (pullDistance / 20)); // Was 0.12 and /50, now much easier
+        
+        // Combine for much easier touch elasticity
+        const combinedDamping = progressiveResistance * distanceBasedResistance;
+        const elasticDeltaY = deltaY * elasticMultiplier * combinedDamping;
+        
+        const targetStretchY = Math.min(elasticDeltaY, maxDistance);
+        
         state.isElasticActive = true;
-
-        // Schedule transform and indicator update for next frame
-        if (state.animationFrame) cancelAnimationFrame(state.animationFrame);
-        state.animationFrame = requestAnimationFrame(() => {
-          element.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
-          if (state.config.indicatorEnabled && state.lastScrollEl) {
-            updateIndicator(state.lastScrollEl, state.currentStretchY);
-          }
-        });
+        state.currentStretchY = targetStretchY;
+        
+        const container = document.querySelector('[data-elastic-container="true"]');
+        if (container) {
+          const element = container as HTMLElement;
+          element.style.setProperty('transform', `translate3d(0, ${targetStretchY}px, 0)`, 'important');
+          element.style.setProperty('transition', 'none', 'important');
+          element.style.setProperty('transform-origin', 'center top', 'important');
+        }
+        
+        console.log('EASIER TOUCH ELASTIC (60% less resistance) - Stretch:', targetStretchY.toFixed(1), 'Resistance:', (1 - combinedDamping).toFixed(2), 'Distance:', pullDistance.toFixed(1));
+      } else {
+        console.log('SCROLL PROTECTION - Not at absolute top or content has scroll');
       }
-      e.preventDefault();
     }
   };
 
   const handleTouchEnd = () => {
+    console.log('FACEBOOK-STYLE TOUCH END - Elastic active:', state.isElasticActive);
+    
     if (state.isScrolling) {
       state.isScrolling = false;
     }
     
+    // FACEBOOK-STYLE elastic snap-back
     if (state.isElasticActive) {
-      const element = state.lastTransformEl as HTMLElement | null;
+      const container = document.querySelector('[data-elastic-container="true"]');
       
-      if (element) {
-        element.style.transition = 'transform 0.42s cubic-bezier(0.25, 1.6, 0.45, 0.94)';
-        element.style.transform = 'translate3d(0, 0, 0)';
-
-        setTimeout(() => {
-          element.style.transition = '';
-          element.style.willChange = '';
-        }, 460);
+      if (container) {
+        const element = container as HTMLElement;
+        element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
+        element.style.setProperty('transition', 'transform 0.35s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important'); // Facebook-like bounce
       }
       
-      if (state.config.indicatorEnabled && state.lastScrollEl) {
-        hideIndicator(state.lastScrollEl as HTMLElement);
-      }
-      
+      // Reset state with Facebook-like timing
       setTimeout(() => {
         state.isElasticActive = false;
+        state.currentStretchX = 0;
         state.currentStretchY = 0;
-        state.lastTransformEl = null;
-        state.lastScrollEl = null;
-      }, 120);
+      }, 100); // Facebook-style timing
     }
   };
 

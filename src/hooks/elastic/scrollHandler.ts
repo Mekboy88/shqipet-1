@@ -1,38 +1,45 @@
 
 import { ElasticState } from './types';
-import { updateIndicator, hideIndicator } from './indicator';
-import { getMainContainer } from './domUtils';
 
 export const createScrollHandler = (state: ElasticState) => {
   const handleScroll = () => {
-    // Relaxed scroll protection: don't interrupt active elastic bounce
+    // ABSOLUTE SCROLL PROTECTION - Instant disable elastic on ANY scroll with zero tolerance
     if (state.isElasticActive) {
-      // Let elastic finish; ignore this scroll event
-      return;
+      console.log('SCROLL PROTECTION - INSTANT elastic disable for absolute scroll protection');
+      state.isElasticActive = false;
+      state.currentStretchX = 0;
+      state.currentStretchY = 0;
+      
+      // Instant reset transforms for absolute scroll protection
+      const containers = [
+        document.querySelector('[data-elastic-container="true"]'),
+        document.querySelector('.flex.w-full.h-\\[calc\\(100vh-56px\\)\\]'),
+        document.querySelector('[data-scroll-container="true"]'),
+        document.querySelector('.profile-scroll-container')
+      ];
+      
+      containers.forEach(container => {
+        if (container) {
+          const element = container as HTMLElement;
+          element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
+          element.style.setProperty('transition', 'none', 'important');
+        }
+      });
     }
-
-    // Mark scrolling active with gentle debounce
+    
+    // Instant scroll protection activation with zero delay
     state.isScrolling = true;
-
-    // Show indicator subtly during normal scroll as well
-    const scrollEl = (state.lastScrollEl as HTMLElement) || (getMainContainer() as HTMLElement) || document.documentElement;
-    try {
-      if (state.animationFrame) cancelAnimationFrame(state.animationFrame);
-      state.animationFrame = requestAnimationFrame(() => updateIndicator(scrollEl, 0));
-    } catch {}
-
+    
     // Clear any existing timeout
     if (state.scrollTimeout) {
       clearTimeout(state.scrollTimeout);
     }
-
-    // Slightly longer debounce for smoother behavior (prevents flicker)
+    
+    // Ultra-fast scroll protection reset - reduced from 100ms to 50ms
     state.scrollTimeout = setTimeout(() => {
+      console.log('SCROLL PROTECTION - Ultra-fast scroll protection reset');
       state.isScrolling = false;
-      try {
-        requestAnimationFrame(() => hideIndicator(scrollEl));
-      } catch {}
-    }, 150);
+    }, 50); // 2x faster timing for better protection
   };
 
   return { handleScroll };

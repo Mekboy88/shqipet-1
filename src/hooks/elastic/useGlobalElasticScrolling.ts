@@ -1,83 +1,13 @@
 
 import { useEffect } from 'react';
 import { GlobalElasticOptions } from './types';
-import { ElasticState } from './types';
-import { createTouchHandlers } from './touchHandler';
-import { createWheelHandler } from './wheelHandler';
-import { createScrollHandler } from './scrollHandler';
 
 export const useGlobalElasticScrolling = ({
-  enabled = true,
-  maxElasticDistance = 280,
-  elasticityMultiplier = 9.5,
-  indicatorEnabled = true,
-  resistanceCurve = 'soft'
+  enabled = false, // DISABLED BY DEFAULT
 }: GlobalElasticOptions = {}) => {
   useEffect(() => {
-    if (!enabled) return;
-
-    // Only enable on touch devices to prevent desktop scroll blocking
-    const isTouchDevice = ('ontouchstart' in window) || 
-                          (navigator.maxTouchPoints > 0) || 
-                          window.matchMedia('(pointer: coarse)').matches;
-    
-    if (!isTouchDevice) {
-      console.log('✅ Elastic bounce skipped: desktop device detected');
-      return;
-    }
-
-    console.log('✅ Elastic bounce active: maxDistance=' + maxElasticDistance + 'px, multiplier=' + elasticityMultiplier);
-
-    // Create elastic state with config
-    const state: ElasticState = {
-      startX: 0,
-      startY: 0,
-      currentStretchX: 0,
-      currentStretchY: 0,
-      isElasticActive: false,
-      isScrolling: false,
-      animationFrame: null,
-      scrollTimeout: null,
-      lastTransformEl: null,
-      lastScrollEl: null,
-      scrollSpeed: 0,
-      lastScrollTime: 0,
-      config: {
-        enabled,
-        maxElasticDistance,
-        elasticityMultiplier,
-        indicatorEnabled,
-        resistanceCurve
-      }
-    };
-
-    // Create handlers
-    const touchHandlers = createTouchHandlers(state);
-    const scrollHandler = createScrollHandler(state);
-
-    // Attach event listeners (touch only - no wheel listener)
-    document.addEventListener('touchstart', touchHandlers.handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', touchHandlers.handleTouchMove, { passive: false });
-    document.addEventListener('touchend', touchHandlers.handleTouchEnd, { passive: true });
-    window.addEventListener('scroll', scrollHandler.handleScroll, { passive: true });
-
-    console.log('✅ Elastic bounce handlers attached (touch only)');
-
-    // Cleanup
-    return () => {
-      document.removeEventListener('touchstart', touchHandlers.handleTouchStart);
-      document.removeEventListener('touchmove', touchHandlers.handleTouchMove);
-      document.removeEventListener('touchend', touchHandlers.handleTouchEnd);
-      window.removeEventListener('scroll', scrollHandler.handleScroll);
-      
-      if (state.animationFrame) {
-        cancelAnimationFrame(state.animationFrame);
-      }
-      if (state.scrollTimeout) {
-        clearTimeout(state.scrollTimeout);
-      }
-      
-      console.log('✅ Elastic bounce handlers removed');
-    };
-  }, [enabled, maxElasticDistance, elasticityMultiplier, indicatorEnabled, resistanceCurve]);
+    // COMPLETELY DISABLED - DO NOTHING
+    console.log('🚫 Elastic scrolling COMPLETELY DISABLED');
+    return;
+  }, [enabled]);
 };

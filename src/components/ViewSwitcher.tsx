@@ -54,16 +54,6 @@ const isPublicPage = (pathname: string): boolean => {
 const ViewSwitcher: React.FC = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Safety: clear any stale body/HTML overflow locks on mount
-  useEffect(() => {
-    try {
-      document.body.style.overflow = '';
-      document.documentElement.classList.remove('overflow-hidden');
-    } catch (e) {
-      console.warn('Overflow reset failed:', e);
-    }
-  }, []);
-
   // Mobile redirect logic - runs once on mount
   useEffect(() => {
     // Skip if already redirected in this session
