@@ -25,41 +25,44 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         .smoke-wrap {
           position: relative;
           border-radius: 1.25rem;
-          overflow: hidden;
+          overflow: visible;
           z-index: 1;
         }
 
-        /* Neon glow around border - clipped inside edges */
+        /* Neon glow around border */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: 0;
+          inset: -3px;
           border-radius: 1.25rem;
           background: transparent;
-          box-shadow:
-            inset 0 0 5px #ff005e,
-            inset 0 0 10px #ff005e,
-            inset 0 0 20px #ff005e,
-            inset 0 0 40px #ff005e;
+          box-shadow: 
+            0 0 5px #ff005e, 
+            0 0 10px #ff005e, 
+            0 0 20px #ff005e, 
+            0 0 40px #ff005e, 
+            0 0 80px #ff005e;
           animation: neon-glow 1.5s infinite alternate;
           pointer-events: none;
-          z-index: 0;
+          z-index: -1;
         }
 
         @keyframes neon-glow {
           0% {
-            box-shadow:
-              inset 0 0 5px #ff005e,
-              inset 0 0 10px #ff005e,
-              inset 0 0 20px #ff005e,
-              inset 0 0 40px #ff005e;
+            box-shadow: 
+              0 0 5px #ff005e, 
+              0 0 10px #ff005e, 
+              0 0 20px #ff005e, 
+              0 0 40px #ff005e, 
+              0 0 80px #ff005e;
           }
           100% {
-            box-shadow:
-              inset 0 0 8px #00d4ff,
-              inset 0 0 16px #00d4ff,
-              inset 0 0 32px #00d4ff,
-              inset 0 0 64px #00d4ff;
+            box-shadow: 
+              0 0 10px #00d4ff, 
+              0 0 20px #00d4ff, 
+              0 0 40px #00d4ff, 
+              0 0 80px #00d4ff, 
+              0 0 160px #00d4ff;
           }
         }
 
