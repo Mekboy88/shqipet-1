@@ -29,42 +29,34 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Actual smoke effect around border - single layer */
+        /* Soft smoke clouds floating around - no thick border */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -10px;
+          inset: -20px;
           border-radius: 1.25rem;
           background: 
-            radial-gradient(circle at 0% 50%, hsl(var(--destructive) / var(--smoke-intensity)), transparent 40%),
-            radial-gradient(circle at 25% 0%, hsl(var(--primary) / var(--smoke-intensity)), transparent 40%),
-            radial-gradient(circle at 50% 0%, hsl(var(--destructive) / var(--smoke-intensity)), transparent 40%),
-            radial-gradient(circle at 75% 0%, hsl(var(--primary) / var(--smoke-intensity)), transparent 40%),
-            radial-gradient(circle at 100% 50%, hsl(var(--destructive) / var(--smoke-intensity)), transparent 40%),
-            radial-gradient(circle at 75% 100%, hsl(var(--primary) / var(--smoke-intensity)), transparent 40%),
-            radial-gradient(circle at 50% 100%, hsl(var(--destructive) / var(--smoke-intensity)), transparent 40%),
-            radial-gradient(circle at 25% 100%, hsl(var(--primary) / var(--smoke-intensity)), transparent 40%);
-          -webkit-mask: 
-            linear-gradient(#fff 0 0) content-box, 
-            linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          padding: 3px;
-          filter: blur(18px) url(#smoke-turbulence);
+            radial-gradient(ellipse 60px 40px at 10% 20%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 50px 35px at 30% 5%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 55px 38px at 70% 8%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 50px 35px at 90% 30%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 55px 40px at 95% 70%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 50px 35px at 70% 95%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 60px 40px at 30% 92%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 50px 35px at 5% 60%, hsl(var(--primary) / var(--smoke-intensity)), transparent);
+          filter: blur(20px) url(#smoke-turbulence);
           animation: smoke-pulse 4s ease-in-out infinite;
           pointer-events: none;
           z-index: -1;
-          --smoke-intensity: 0.15;
+          --smoke-intensity: 0.12;
         }
 
         @keyframes smoke-pulse {
           0%, 100% { 
-            --smoke-intensity: 0.15;
-            opacity: 1;
+            --smoke-intensity: 0.12;
           }
           50% { 
-            --smoke-intensity: 0.28;
-            opacity: 1;
+            --smoke-intensity: 0.22;
           }
         }
 
