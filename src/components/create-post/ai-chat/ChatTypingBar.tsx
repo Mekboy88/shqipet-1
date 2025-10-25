@@ -12,12 +12,23 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
   const [message, setMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
+  // Calculate number of lines in the message
+  const lineCount = message.split('\n').length;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
       onSendMessage(message);
       setMessage("");
     }
+  };
+
+  // Calculate height based on line count
+  const getHeight = () => {
+    if (!isFocused && message.trim().length === 0) return "20px";
+    if (lineCount <= 3) return "72px"; // Fixed height for first 3 lines
+    if (lineCount <= 8) return `${72 + (lineCount - 3) * 24}px`; // Extend for lines 4-8
+    return "192px"; // Max height at 8 lines, then scroll
   };
 
   return (
@@ -93,9 +104,9 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               lineHeight: "1.5rem",
               fontSize: "1rem",
               caretColor: "hsl(var(--destructive))",
-              height: (isFocused || message.trim().length > 0) ? "60px" : "20px",
+              height: getHeight(),
             }}
-            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base ${isFocused || message.trim().length > 0 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[3500ms] ease-in-out`}
+            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base ${lineCount > 8 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[600ms] ease-in-out`}
           />
 
           {/* Icons row */}
