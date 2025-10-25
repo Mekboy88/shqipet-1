@@ -38,7 +38,35 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const lastTouchYRef = useRef<number | null>(null);
   const { toast } = useToast();
+
+  const handleWheelCapture = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    e.stopPropagation();
+    e.preventDefault();
+    el.scrollTop += e.deltaY;
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    lastTouchYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMoveCapture = (e: React.TouchEvent<HTMLDivElement>) => {
+    const el = messagesContainerRef.current;
+    const lastY = lastTouchYRef.current;
+    if (!el || lastY == null) return;
+    const currentY = e.touches[0].clientY;
+    const delta = lastY - currentY;
+    e.stopPropagation();
+    e.preventDefault();
+    el.scrollTop += delta;
+    lastTouchYRef.current = currentY;
+  };
+
+  const handleTouchEnd = () => { lastTouchYRef.current = null; };
 
   const toggleExpanded = (value: boolean) => {
     if (controlledIsExpanded === undefined) {
@@ -107,6 +135,8 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({
         .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
         .no-scrollbar::-webkit-scrollbar { width: 0; height: 0; display: none; }
         .scroll-isolated { overscroll-behavior: contain; touch-action: pan-y; }
+        .scroll-lock { overscroll-behavior: none; }
+        .scroll-capture { touch-action: none; }
       `}</style>
       {/* Toggle Button (visible when collapsed) */}
       {!hideToggleButton && (
@@ -138,7 +168,7 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.96, x: 40 }}
             transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed right-4 top-[72px] h-[calc(100vh-88px)] w-[400px] bg-white/70 backdrop-blur-xl shadow-lg border border-gray-200/60 z-50 flex flex-col rounded-3xl"
+            className="fixed right-4 top-[72px] h-[calc(100vh-88px)] w-[400px] bg-white/70 backdrop-blur-xl shadow-lg border border-gray-200/60 z-50 flex flex-col rounded-3xl scroll-lock"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200/60">
@@ -160,7 +190,14 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto no-scrollbar scroll-isolated p-6 space-y-4" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto no-scrollbar scroll-isolated scroll-lock scroll-capture p-6 space-y-4"
+              onWheelCapture={handleWheelCapture}
+              onTouchStart={handleTouchStart}
+              onTouchMoveCapture={handleTouchMoveCapture}
+              onTouchEnd={handleTouchEnd}
+            >
               {messages.map(message => (
                 <ChatMessage
                   key={message.id}
