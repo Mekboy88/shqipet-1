@@ -55,8 +55,9 @@ export const getNearestScrollContainer = (target: Element): HTMLElement | null =
   ];
   for (const sel of candidates) {
     const el = (target as HTMLElement).closest(sel) as HTMLElement | null;
-    if (el) return el;
+    if (el && (el.scrollHeight - el.clientHeight) > 2) return el;
   }
+  // Fallback to the first truly vertically scrollable ancestor
   return findScrollableParent(target) as HTMLElement | null;
 };
 

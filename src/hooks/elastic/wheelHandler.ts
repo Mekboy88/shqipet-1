@@ -21,6 +21,10 @@ export const createWheelHandler = (state: ElasticState) => {
     const scrollEl = (getNearestScrollContainer(target) as HTMLElement) || document.documentElement;
     if (!scrollEl) return;
 
+    // Ensure the element is actually vertically scrollable; otherwise, let native scroll proceed
+    const scrollable = (scrollEl.scrollHeight - scrollEl.clientHeight) > 2;
+    if (!scrollable) return;
+
     // Direction and boundaries
     const deltaY = -e.deltaY;
     const atTop = scrollEl.scrollTop <= 0;

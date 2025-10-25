@@ -52,6 +52,9 @@ export const createTouchHandlers = (state: ElasticState) => {
 
       let scrollEl = getNearestScrollContainer(target) as HTMLElement | null;
       if (!scrollEl) scrollEl = document.documentElement as unknown as HTMLElement;
+      if ((scrollEl.scrollHeight - scrollEl.clientHeight) <= 2) {
+        scrollEl = document.documentElement as unknown as HTMLElement;
+      }
 
       // Ensure indicator can attach to correct scroll context
       state.lastScrollEl = scrollEl;
