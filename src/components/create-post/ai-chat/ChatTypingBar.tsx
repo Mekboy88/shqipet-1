@@ -60,6 +60,30 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           border: 0.5px solid rgba(255, 255, 255, 0.3);
           z-index: 2;
         }
+
+        /* Hide platform scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(239, 68, 68, 0.4);
+          border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(239, 68, 68, 0.6);
+        }
+
+        /* Firefox */
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(239, 68, 68, 0.4) transparent;
+        }
       `}</style>
       {/* SVG filter for organic smoke turbulence */}
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
@@ -95,7 +119,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               caretColor: "hsl(var(--destructive))",
               height: (isFocused || message.trim().length > 0) ? "60px" : "20px",
             }}
-            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base ${isFocused || message.trim().length > 0 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[3500ms] ease-in-out`}
+            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base custom-scrollbar ${isFocused || message.trim().length > 0 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[3500ms] ease-in-out`}
           />
 
           {/* Icons row */}
