@@ -22,35 +22,42 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
   return (
     <form onSubmit={handleSubmit} className="relative">
       <style>{`
-        @keyframes smokeShift {
-          0% { 
-            background-position: 0% 50%; 
-            filter: blur(0px); 
+        @keyframes smokeFlow {
+          0% {
+            background-position: 0% 50%;
+            filter: blur(0.4px);
           }
-          50% { 
-            background-position: 100% 50%; 
-            filter: blur(1px); 
+          25% {
+            background-position: 50% 100%;
+            filter: blur(0.8px);
           }
-          100% { 
-            background-position: 0% 50%; 
-            filter: blur(0px); 
+          50% {
+            background-position: 100% 50%;
+            filter: blur(0.4px);
+          }
+          75% {
+            background-position: 50% 0%;
+            filter: blur(0.7px);
+          }
+          100% {
+            background-position: 0% 50%;
+            filter: blur(0.4px);
           }
         }
-        .smoke-border {
+        .smoke-border-flow {
+          border: 1.5px solid transparent;
+          border-radius: 1rem;
           background: 
             linear-gradient(white, white) padding-box,
-            radial-gradient(circle at 30% 30%, rgba(230, 0, 0, 0.4), transparent 60%),
-            radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.4), transparent 60%),
-            linear-gradient(120deg, #000000, #e60000, #000000) border-box;
-          border: 2px solid transparent;
-          border-radius: 1.5rem;
+            linear-gradient(120deg, rgba(255,255,255,0.1), #000000, #e60000, #000000, rgba(255,255,255,0.1)) border-box;
           background-size: 400% 400%;
-          animation: smokeShift 8s ease-in-out infinite;
+          animation: smokeFlow 10s ease-in-out infinite;
+          box-shadow: 0 0 20px rgba(230,0,0,0.04);
         }
       `}</style>
       
-      <div className="smoke-border shadow-[0_0_20px_rgba(230,0,0,0.08)]">
-        <div className="bg-white/90 backdrop-blur-md rounded-[1.4rem] p-4 space-y-2">
+      <div className="smoke-border-flow">
+        <div className="bg-white rounded-[0.9rem] p-4 space-y-2">
           {/* Textarea field */}
           <Textarea
             value={message}
