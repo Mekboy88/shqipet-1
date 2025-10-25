@@ -45,18 +45,27 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
             radial-gradient(ellipse 60px 40px at 30% 92%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
             radial-gradient(ellipse 50px 35px at 5% 60%, hsl(var(--primary) / var(--smoke-intensity)), transparent);
           filter: blur(20px) url(#smoke-turbulence);
-          animation: smoke-pulse 4s ease-in-out infinite;
+          animation: smoke-float 8s linear infinite, smoke-pulse 4s ease-in-out infinite;
           pointer-events: none;
           z-index: -1;
-          --smoke-intensity: 0.12;
+          --smoke-intensity: 0.2;
+        }
+
+        @keyframes smoke-float {
+          0% { 
+            transform: rotate(0deg);
+          }
+          100% { 
+            transform: rotate(360deg);
+          }
         }
 
         @keyframes smoke-pulse {
           0%, 100% { 
-            --smoke-intensity: 0.12;
+            --smoke-intensity: 0.2;
           }
           50% { 
-            --smoke-intensity: 0.22;
+            --smoke-intensity: 0.35;
           }
         }
 
