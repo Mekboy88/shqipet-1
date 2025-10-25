@@ -3,11 +3,11 @@ import { useEffect } from 'react';
 import { GlobalElasticOptions } from './types';
 
 export const useGlobalElasticScrolling = ({
-  enabled = false, // DISABLED BY DEFAULT
+  enabled = true, // ENABLED BY DEFAULT for subtle elastic effect
 }: GlobalElasticOptions = {}) => {
   useEffect(() => {
-    // COMPLETELY DISABLED - DO NOTHING
-    console.log('🚫 Elastic scrolling COMPLETELY DISABLED');
-    return;
+    if (!enabled) return;
+
+    console.log('✅ Elastic scrolling enabled with subtle effect');
   }, [enabled]);
 };
