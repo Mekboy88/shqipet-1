@@ -37,7 +37,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           border-radius: 1.25rem;
           background: rgba(239, 68, 68, 0.3);
           filter: url(#smoke-turbulence) blur(12px);
-          animation: smoke-color-shift 6s ease-in-out infinite;
+          animation: smoke-color-shift 12s ease-in-out infinite alternate;
           pointer-events: none;
           z-index: -1;
         }
@@ -46,11 +46,8 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           0% {
             background: rgba(239, 68, 68, 0.35);
           }
-          50% {
-            background: rgba(31, 41, 55, 0.35);
-          }
           100% {
-            background: rgba(239, 68, 68, 0.35);
+            background: rgba(31, 41, 55, 0.1);
           }
         }
 
