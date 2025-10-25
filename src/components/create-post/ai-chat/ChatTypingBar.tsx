@@ -25,7 +25,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         .smoke-wrap {
           position: relative;
           border-radius: 1.25rem;
-          overflow: visible;
+          overflow: hidden;
           z-index: 1;
         }
 
