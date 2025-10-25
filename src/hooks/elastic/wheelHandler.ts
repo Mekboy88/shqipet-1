@@ -105,18 +105,37 @@ export const createWheelHandler = (state: ElasticState) => {
       state.currentStretchX = result.currentStretchX;
       state.currentStretchY = result.currentStretchY;
       
+      // Apply visual transform to container
+      const container = document.querySelector('[data-elastic-container="true"]') || 
+                       document.querySelector('main') ||
+                       document.body;
+      if (container) {
+        const element = container as HTMLElement;
+        element.style.setProperty('transform', `translate3d(0, ${state.currentStretchY}px, 0)`, 'important');
+        element.style.setProperty('transition', 'none', 'important');
+        element.style.setProperty('transform-origin', 'center top', 'important');
+      }
+      
       console.log('EASIER WHEEL ELASTIC (60% less resistance) - Delta:', deltaY, 'Target:', targetStretch.toFixed(1), 'Resistance:', (1 - combinedResistance).toFixed(2));
       
-      // Facebook-style reset timing
+      // Smooth snap-back timing
       resetTimeout = setTimeout(() => {
         if (state.isElasticActive) {
-          resetElastic();
+          const container = document.querySelector('[data-elastic-container="true"]') || 
+                           document.querySelector('main') ||
+                           document.body;
+          if (container) {
+            const element = container as HTMLElement;
+            element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
+            element.style.setProperty('transition', 'transform 0.35s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important');
+          }
+          
           state.isElasticActive = false;
           state.currentStretchX = 0;
           state.currentStretchY = 0;
         }
         resetTimeout = null;
-      }, 100); // Slightly longer for Facebook feel
+      }, 150); // Smooth snap-back delay
       
       e.preventDefault();
     }
