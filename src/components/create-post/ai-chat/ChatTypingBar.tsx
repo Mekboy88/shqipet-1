@@ -29,51 +29,38 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Soft smoke clouds floating ONLY outside border */
+        /* Outside floating smoke clouds - no border ring */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -20px;
+          inset: -28px;
           border-radius: 1.25rem;
-          background: 
-            radial-gradient(ellipse 60px 40px at 10% 20%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 50px 35px at 30% 5%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 55px 38px at 70% 8%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 50px 35px at 90% 30%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 55px 40px at 95% 70%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 50px 35px at 70% 95%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 60px 40px at 30% 92%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 50px 35px at 5% 60%, hsl(var(--primary) / var(--smoke-intensity)), transparent);
-          -webkit-mask: 
-            linear-gradient(#fff 0 0) content-box, 
-            linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          padding: 20px;
-          filter: blur(20px) url(#smoke-turbulence);
-          animation: smoke-float 10s linear infinite, smoke-pulse 4s ease-in-out infinite;
+          background:
+            radial-gradient(ellipse 90px 60px at -10% 30%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 70px 50px at 20% -10%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 80px 55px at 60% -15%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 70px 50px at 110% 20%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 90px 60px at 110% 70%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 70px 50px at 80% 110%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 90px 60px at 40% 115%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 70px 50px at -10% 70%, hsl(var(--primary) / var(--smoke-intensity)), transparent);
+          filter: blur(24px) url(#smoke-turbulence);
+          animation: smoke-float 12s linear infinite, smoke-pulse 5s ease-in-out infinite;
           transform-origin: center center;
           pointer-events: none;
           z-index: -1;
-          --smoke-intensity: 0.25;
+          --smoke-intensity: 0.22;
         }
 
         @keyframes smoke-float {
-          0% { 
-            transform: rotate(0deg);
-          }
-          100% { 
-            transform: rotate(360deg);
-          }
+          0% { transform: rotate(0deg) translateY(0); }
+          50% { transform: rotate(180deg) translateY(4px); }
+          100% { transform: rotate(360deg) translateY(0); }
         }
 
         @keyframes smoke-pulse {
-          0%, 100% { 
-            --smoke-intensity: 0.25;
-          }
-          50% { 
-            --smoke-intensity: 0.42;
-          }
+          0%, 100% { --smoke-intensity: 0.22; }
+          50% { --smoke-intensity: 0.32; }
         }
 
         /* Base typing box with subtle border */
@@ -81,7 +68,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           position: relative;
           border-radius: 1.25rem;
           background: white;
-          border: 1px solid hsl(var(--border) / 0.3);
+          border: 1px solid hsl(var(--border) / 0.18);
           z-index: 2;
         }
       `}</style>
