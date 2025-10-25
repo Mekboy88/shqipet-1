@@ -78,70 +78,64 @@ export const createTouchHandlers = (state: ElasticState) => {
       return;
     }
     
-    // EASIER ELASTIC: REDUCED RESISTANCE BY 60% for pull-down at absolute top
+    // EASIER ELASTIC: allow pull-down only when ACTIVE container is at top
     if (deltaY > 0.2) {
-      const isAtAbsoluteTop = window.pageYOffset === 0 && document.documentElement.scrollTop === 0;
-      
       const target = e.target as Element;
+
+      // Ignore if inside a horizontal scroller
+      if ((target as HTMLElement).closest('[data-horizontal-scroll="true"]')) return;
+
+      const scrollEl = getNearestScrollContainer(target) as HTMLElement;
+      const atTop = scrollEl ? scrollEl.scrollTop <= 0 : (window.pageYOffset === 0 && document.documentElement.scrollTop === 0);
+
+      // If any content above is scrolled, block
       let hasContentScroll = false;
-      if (target) {
-        const scrollContainer = target.closest('[data-scroll-container="true"]') as HTMLElement;
-        if (scrollContainer && scrollContainer.scrollTop > 0) {
-          hasContentScroll = true;
-        }
+      if (scrollEl && scrollEl.scrollTop > 0) {
+        hasContentScroll = true;
       }
-      
-      if (isAtAbsoluteTop && !hasContentScroll) {
-        // EASIER ELASTIC for touch - reduced resistance by 60%
+
+      if (atTop && !hasContentScroll) {
+        // More elastic (easier) resistance curve for touch
         const pullDistance = Math.abs(deltaY);
-        const elasticMultiplier = 5.8; // Keep same multiplier
-        const maxDistance = 280; // Keep same max distance
-        
-        // MUCH EASIER resistance curve - reduced by 60%
+        const elasticMultiplier = 6.4;
+        const maxDistance = 280;
+
         const normalizedDistance = Math.min(pullDistance / maxDistance, 1);
-        
-        // Reduced resistance values by 60%
-        const baseResistance = 0.27; // Was 0.68, now 60% easier
-        const midResistance = 0.15; // Was 0.38, now 60% easier  
-        const maxResistance = 0.04; // Was 0.10, now 60% easier
-        
-        // EASIER progressive damping
+        const baseResistance = 0.23;
+        const midResistance = 0.12;
+        const maxResistance = 0.04;
+
         let progressiveResistance;
         if (normalizedDistance < 0.3) {
           const lightCurve = normalizedDistance / 0.3;
           progressiveResistance = baseResistance - (baseResistance - midResistance) * Math.pow(lightCurve, 0.6);
         } else {
           const strongCurve = (normalizedDistance - 0.3) / 0.7;
-          progressiveResistance = midResistance - (midResistance - maxResistance) * Math.pow(strongCurve, 3.2);
+          progressiveResistance = midResistance - (midResistance - maxResistance) * Math.pow(strongCurve, 3.0);
         }
-        
-        // EASIER distance resistance for touch - reduced by 60%
-        const distanceBasedResistance = Math.max(0.05, 1 - (pullDistance / 20)); // Was 0.12 and /50, now much easier
-        
-        // Combine for much easier touch elasticity
+
+        const distanceBasedResistance = Math.max(0.05, 1 - (pullDistance / 24));
         const combinedDamping = progressiveResistance * distanceBasedResistance;
         const elasticDeltaY = deltaY * elasticMultiplier * combinedDamping;
-        
+
         const targetStretchY = Math.min(elasticDeltaY, maxDistance);
-        
+
         state.isElasticActive = true;
         state.currentStretchY = targetStretchY;
-        
-        const scrollEl = getNearestScrollContainer(target as Element) as HTMLElement;
-        const element = getTransformTarget(scrollEl) as HTMLElement | null;
+
+        const element = getTransformTarget(scrollEl || document.documentElement) as HTMLElement | null;
         if (element) {
           state.lastTransformEl = element;
           element.style.setProperty('will-change', 'transform', 'important');
+          element.style.setProperty('backface-visibility', 'hidden', 'important');
+          element.style.setProperty('transform-style', 'preserve-3d', 'important');
+          element.style.setProperty('contain', 'paint layout style size', 'important');
           element.style.setProperty('transform', `translate3d(0, ${targetStretchY}px, 0)`, 'important');
           element.style.setProperty('transition', 'none', 'important');
           element.style.setProperty('transform-origin', 'center top', 'important');
         }
-        
+
         e.preventDefault();
-        
-        console.log('EASIER TOUCH ELASTIC (60% less resistance) - Stretch:', targetStretchY.toFixed(1), 'Resistance:', (1 - combinedDamping).toFixed(2), 'Distance:', pullDistance.toFixed(1));
-      } else {
-        console.log('SCROLL PROTECTION - Not at absolute top or content has scroll');
       }
     }
   };
@@ -159,13 +153,16 @@ export const createTouchHandlers = (state: ElasticState) => {
       
       if (element) {
         element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
-        element.style.setProperty('transition', 'transform 0.35s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important'); // Facebook-like bounce
-        
+        element.style.setProperty('transition', 'transform 0.42s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important'); // Facebook-like bounce
+
         // Remove will-change after animation completes
         setTimeout(() => {
           element.style.removeProperty('will-change');
           element.style.removeProperty('transition');
-        }, 400);
+          element.style.removeProperty('backface-visibility');
+          element.style.removeProperty('transform-style');
+          element.style.removeProperty('contain');
+        }, 460);
       }
       
       // Reset state with Facebook-like timing

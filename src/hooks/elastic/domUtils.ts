@@ -25,15 +25,23 @@ export const isAtBoundary = (element: Element, direction: 'top' | 'left' | 'righ
 
 export const findScrollableParent = (element: Element): Element | null => {
   if (!element || element === document.body) return document.documentElement;
-  
-  const { overflow, overflowY, overflowX } = window.getComputedStyle(element);
-  const isScrollable = /(auto|scroll)/.test(overflow + overflowY + overflowX);
-  
-  if (isScrollable && (element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth)) {
+
+  const style = window.getComputedStyle(element);
+  const overflow = style.overflow;
+  const overflowY = style.overflowY;
+  const overflowX = style.overflowX;
+
+  // Prefer vertical scroll containers only
+  const hasVerticalScroll = /(auto|scroll)/.test(overflowY || overflow);
+  const hasHorizontalScroll = /(auto|scroll)/.test(overflowX);
+
+  const isVerticallyScrollable = hasVerticalScroll && (element.scrollHeight > (element as HTMLElement).clientHeight);
+
+  if (isVerticallyScrollable) {
     return element;
   }
-  
-  return findScrollableParent(element.parentElement!);
+
+  return findScrollableParent((element as HTMLElement).parentElement!);
 };
 
 export const getNearestScrollContainer = (target: Element): HTMLElement | null => {
