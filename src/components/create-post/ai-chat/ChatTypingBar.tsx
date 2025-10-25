@@ -47,7 +47,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
             background: rgba(239, 68, 68, 0.35);
           }
           50% {
-            background: rgba(31, 41, 55, 0.35);
+            background: rgba(31, 41, 55, 0.1);
           }
           100% {
             background: rgba(239, 68, 68, 0.35);
