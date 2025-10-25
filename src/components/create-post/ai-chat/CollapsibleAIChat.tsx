@@ -83,6 +83,41 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({
     scrollToBottom();
   }, [messages, isTyping]);
 
+  // Lock background scroll when chat is open and prevent scroll chaining to the page
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    if (isExpanded) {
+      const sbw = window.innerWidth - document.documentElement.clientWidth;
+
+      const prevHtmlOverflow = html.style.overflow;
+      const prevBodyOverflow = body.style.overflow;
+      const prevHtmlOSB = html.style.overscrollBehavior as string;
+      const prevBodyOSB = body.style.overscrollBehavior as string;
+      const prevBodyPaddingRight = body.style.paddingRight;
+
+      html.style.overscrollBehavior = 'none';
+      body.style.overscrollBehavior = 'none';
+      html.style.overflow = 'hidden';
+      body.style.overflow = 'hidden';
+      if (sbw > 0) body.style.paddingRight = `${sbw}px`;
+
+      return () => {
+        html.style.overscrollBehavior = prevHtmlOSB;
+        body.style.overscrollBehavior = prevBodyOSB;
+        html.style.overflow = prevHtmlOverflow;
+        body.style.overflow = prevBodyOverflow;
+        body.style.paddingRight = prevBodyPaddingRight;
+      };
+    } else {
+      html.style.overscrollBehavior = '';
+      body.style.overscrollBehavior = '';
+      html.style.overflow = '';
+      body.style.overflow = '';
+      body.style.paddingRight = '';
+    }
+  }, [isExpanded]);
   const handleSendMessage = async (content: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
