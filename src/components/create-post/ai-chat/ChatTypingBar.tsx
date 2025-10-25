@@ -22,57 +22,49 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
   return (
     <form onSubmit={handleSubmit} className="relative">
       <style>{`
-        @keyframes smokeDrift {
-          0% { transform: rotate(0deg); filter: blur(10px); opacity: 0.4; }
-          50% { transform: rotate(180deg); filter: blur(12px); opacity: 0.5; }
-          100% { transform: rotate(360deg); filter: blur(10px); opacity: 0.4; }
-        }
-
-        @keyframes smokeDriftReverse {
-          0% { transform: rotate(360deg); filter: blur(11px); opacity: 0.35; }
-          50% { transform: rotate(180deg); filter: blur(13px); opacity: 0.45; }
-          100% { transform: rotate(0deg); filter: blur(11px); opacity: 0.35; }
-        }
-
         .smoke-wrap {
           position: relative;
           border-radius: 1.25rem;
           overflow: visible;
+          z-index: 1;
         }
 
+        /* Outer animated smoke layer using SVG turbulence */
         .smoke-wrap::before,
         .smoke-wrap::after {
           content: "";
           position: absolute;
-          inset: -8px;
+          inset: -12px;
           border-radius: inherit;
-          pointer-events: none;
           z-index: -1;
+          filter: url(#smoke-filter) blur(8px);
+          opacity: 0.7;
           mix-blend-mode: lighten;
         }
 
         .smoke-wrap::before {
-          background: conic-gradient(
-            from 0deg,
-            rgba(230,0,0,0.4),
-            rgba(0,0,0,0.4),
-            rgba(230,0,0,0.4),
-            rgba(0,0,0,0.4)
-          );
-          animation: smokeDrift 24s linear infinite;
+          background: radial-gradient(circle, rgba(230,0,0,0.4), rgba(0,0,0,0.4));
+          animation: smokeFlow 30s linear infinite;
         }
 
         .smoke-wrap::after {
-          background: conic-gradient(
-            from 180deg,
-            rgba(0,0,0,0.35),
-            rgba(230,0,0,0.35),
-            rgba(0,0,0,0.35),
-            rgba(230,0,0,0.35)
-          );
-          animation: smokeDriftReverse 32s linear infinite;
+          background: radial-gradient(circle, rgba(0,0,0,0.35), rgba(230,0,0,0.35));
+          animation: smokeFlowReverse 40s linear infinite;
         }
 
+        @keyframes smokeFlow {
+          0% { transform: rotate(0deg); }
+          50% { transform: rotate(180deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @keyframes smokeFlowReverse {
+          0% { transform: rotate(360deg); }
+          50% { transform: rotate(180deg); }
+          100% { transform: rotate(0deg); }
+        }
+
+        /* Base typing box */
         .smoke-inner {
           position: relative;
           border: 1px solid rgba(0,0,0,0.15);
@@ -81,6 +73,21 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 2;
         }
       `}</style>
+
+      {/* SVG Filter for real smoke motion */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <filter id="smoke-filter">
+          <feTurbulence id="turb" baseFrequency="0.012 0.022" numOctaves="3" seed="8">
+            <animate
+              attributeName="baseFrequency"
+              dur="30s"
+              values="0.012 0.022; 0.018 0.028; 0.012 0.022"
+              repeatCount="indefinite"
+            />
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" scale="20" />
+        </filter>
+      </svg>
 
       <div className="smoke-wrap">
         <div className="smoke-inner px-4 py-3 space-y-2">
