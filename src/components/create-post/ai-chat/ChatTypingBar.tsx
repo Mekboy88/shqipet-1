@@ -29,52 +29,43 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Spread out wispy smoke around the border */
-        .smoke-wrap::before,
-        .smoke-wrap::after {
+        /* Actual smoke effect around border - single layer */
+        .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -8px;
+          inset: -10px;
           border-radius: 1.25rem;
-          background: conic-gradient(
-            from var(--angle),
-            transparent 0%,
-            hsl(var(--destructive) / 0.2) 10%,
-            hsl(var(--primary) / 0.25) 25%,
-            transparent 35%,
-            transparent 65%,
-            hsl(var(--primary) / 0.2) 75%,
-            hsl(var(--destructive) / 0.25) 90%,
-            transparent 100%
-          );
+          background: 
+            radial-gradient(circle at 0% 50%, hsl(var(--destructive) / var(--smoke-intensity)), transparent 40%),
+            radial-gradient(circle at 25% 0%, hsl(var(--primary) / var(--smoke-intensity)), transparent 40%),
+            radial-gradient(circle at 50% 0%, hsl(var(--destructive) / var(--smoke-intensity)), transparent 40%),
+            radial-gradient(circle at 75% 0%, hsl(var(--primary) / var(--smoke-intensity)), transparent 40%),
+            radial-gradient(circle at 100% 50%, hsl(var(--destructive) / var(--smoke-intensity)), transparent 40%),
+            radial-gradient(circle at 75% 100%, hsl(var(--primary) / var(--smoke-intensity)), transparent 40%),
+            radial-gradient(circle at 50% 100%, hsl(var(--destructive) / var(--smoke-intensity)), transparent 40%),
+            radial-gradient(circle at 25% 100%, hsl(var(--primary) / var(--smoke-intensity)), transparent 40%);
           -webkit-mask: 
             linear-gradient(#fff 0 0) content-box, 
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
-          padding: 2px;
-          filter: blur(10px) url(#smoke-turbulence);
-          animation: smoke-flow 8s linear infinite;
+          padding: 3px;
+          filter: blur(18px) url(#smoke-turbulence);
+          animation: smoke-pulse 4s ease-in-out infinite;
           pointer-events: none;
           z-index: -1;
+          --smoke-intensity: 0.15;
         }
 
-        .smoke-wrap::after {
-          inset: -12px;
-          animation: smoke-flow 10s linear infinite reverse;
-          filter: blur(14px) url(#smoke-turbulence);
-          opacity: 0.5;
-        }
-
-        @property --angle {
-          syntax: '<angle>';
-          initial-value: 0deg;
-          inherits: false;
-        }
-
-        @keyframes smoke-flow {
-          0% { --angle: 0deg; transform: rotate(0deg); }
-          100% { --angle: 360deg; transform: rotate(360deg); }
+        @keyframes smoke-pulse {
+          0%, 100% { 
+            --smoke-intensity: 0.15;
+            opacity: 1;
+          }
+          50% { 
+            --smoke-intensity: 0.28;
+            opacity: 1;
+          }
         }
 
         /* Base typing box with subtle border */
