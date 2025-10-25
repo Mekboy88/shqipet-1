@@ -414,7 +414,7 @@ const CreatePostDesktop: React.FC = () => {
           {/* Text Editor */}
           <div className="flex-1 mb-6 relative">
             {!postContent && (
-              <div className="absolute left-4 top-2.5 flex items-center gap-2 pointer-events-none text-lg text-muted-foreground leading-[1.8]">
+              <div className="absolute left-4 top-2 flex items-center gap-2 pointer-events-none text-lg text-muted-foreground leading-tight">
                 <span>Çdo moment është një fillim i ri</span>
                 <svg 
                   fill="currentColor" 
