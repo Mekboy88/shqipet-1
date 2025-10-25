@@ -43,12 +43,12 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         }
 
         .smoke-wrap::before {
-          background: radial-gradient(circle, hsl(var(--destructive) / 0.4), hsl(var(--primary) / 0.4));
+          background: radial-gradient(circle, rgba(239, 68, 68, 0.1), rgba(31, 41, 55, 0.1));
           animation: smokeFlow 30s linear infinite;
         }
 
         .smoke-wrap::after {
-          background: radial-gradient(circle, hsl(var(--primary) / 0.35), hsl(var(--destructive) / 0.35));
+          background: radial-gradient(circle, rgba(31, 41, 55, 0.1), rgba(239, 68, 68, 0.1));
           animation: smokeFlowReverse 40s linear infinite;
         }
 
@@ -67,7 +67,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         /* Base typing box */
         .smoke-inner {
           position: relative;
-          border: 1px solid rgba(0,0,0,0.15);
+          border: 1px solid rgb(254, 202, 202);
           border-radius: 1.25rem;
           background: white;
           z-index: 2;
