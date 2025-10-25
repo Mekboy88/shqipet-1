@@ -52,6 +52,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
             rgba(0,0,0,0.3) 360deg
           );
           mix-blend-mode: lighten;
+          filter: blur(10px);
           opacity: 0.3;
           z-index: -1;
           animation: smokeDrift 22s linear infinite;
