@@ -15,4 +15,5 @@ export interface ElasticState {
   animationFrame: number | null;
   isScrolling: boolean;
   scrollTimeout: ReturnType<typeof setTimeout> | null;
+  lastTransformEl?: HTMLElement | null;
 }

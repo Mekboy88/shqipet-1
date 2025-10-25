@@ -1,8 +1,7 @@
 
 import { ElasticState } from './types';
-import { findScrollableParent, isAtBoundary } from './domUtils';
+import { findScrollableParent, isAtBoundary, getNearestScrollContainer, getTransformTarget } from './domUtils';
 import { applyElasticTransform } from './elasticTransform';
-import { getMainContainer } from './domUtils';
 
 export const createWheelHandler = (state: ElasticState) => {
   let resetTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -59,7 +58,9 @@ export const createWheelHandler = (state: ElasticState) => {
     state.currentStretchX = result.currentStretchX;
     state.currentStretchY = result.currentStretchY;
     
-    const container = (getMainContainer() as HTMLElement) || document.body;
+    const activeScroll = (getNearestScrollContainer(target) as HTMLElement) || (findScrollableParent(target) as HTMLElement) || document.documentElement;
+    const container = getTransformTarget(activeScroll) as HTMLElement;
+    state.lastTransformEl = container;
     if (container) {
       container.style.setProperty('will-change', 'transform', 'important');
       container.style.setProperty('transform', `translate3d(0, ${state.currentStretchY}px, 0)`, 'important');
@@ -71,17 +72,19 @@ export const createWheelHandler = (state: ElasticState) => {
     if (resetTimeout) clearTimeout(resetTimeout);
     resetTimeout = setTimeout(() => {
       if (state.isElasticActive) {
-        if (container) {
-          container.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
-          container.style.setProperty('transition', 'transform 0.35s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important');
+        const element = state.lastTransformEl as HTMLElement | null;
+        if (element) {
+          element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
+          element.style.setProperty('transition', 'transform 0.35s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important');
           setTimeout(() => {
-            container.style.removeProperty('will-change');
-            container.style.removeProperty('transition');
+            element.style.removeProperty('will-change');
+            element.style.removeProperty('transition');
           }, 400);
         }
         state.isElasticActive = false;
         state.currentStretchX = 0;
         state.currentStretchY = 0;
+        state.lastTransformEl = null;
       }
       resetTimeout = null;
     }, 150);

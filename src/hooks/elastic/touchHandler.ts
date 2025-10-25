@@ -2,6 +2,7 @@
 import { ElasticState } from './types';
 import { createElasticHandler } from './elasticHandler';
 import { createTouchScrollHandler } from './touchScrollHandler';
+import { getNearestScrollContainer, getTransformTarget } from './domUtils';
 
 export const createTouchHandlers = (state: ElasticState) => {
   const elasticHandler = createElasticHandler(state);
@@ -126,9 +127,10 @@ export const createTouchHandlers = (state: ElasticState) => {
         state.isElasticActive = true;
         state.currentStretchY = targetStretchY;
         
-        const container = document.querySelector('[data-elastic-container="true"]');
-        if (container) {
-          const element = container as HTMLElement;
+        const scrollEl = getNearestScrollContainer(target as Element) as HTMLElement;
+        const element = getTransformTarget(scrollEl) as HTMLElement | null;
+        if (element) {
+          state.lastTransformEl = element;
           element.style.setProperty('will-change', 'transform', 'important');
           element.style.setProperty('transform', `translate3d(0, ${targetStretchY}px, 0)`, 'important');
           element.style.setProperty('transition', 'none', 'important');
@@ -153,10 +155,9 @@ export const createTouchHandlers = (state: ElasticState) => {
     
     // FACEBOOK-STYLE elastic snap-back
     if (state.isElasticActive) {
-      const container = document.querySelector('[data-elastic-container="true"]');
+      const element = state.lastTransformEl as HTMLElement | null;
       
-      if (container) {
-        const element = container as HTMLElement;
+      if (element) {
         element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
         element.style.setProperty('transition', 'transform 0.35s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important'); // Facebook-like bounce
         
@@ -172,6 +173,7 @@ export const createTouchHandlers = (state: ElasticState) => {
         state.isElasticActive = false;
         state.currentStretchX = 0;
         state.currentStretchY = 0;
+        state.lastTransformEl = null;
       }, 120); // Slightly longer for smoother feel
     }
   };

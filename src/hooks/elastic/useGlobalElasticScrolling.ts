@@ -24,6 +24,7 @@ export const useGlobalElasticScrolling = ({
       isScrolling: false,
       animationFrame: null,
       scrollTimeout: null,
+      lastTransformEl: null,
     };
 
     // Create handlers
