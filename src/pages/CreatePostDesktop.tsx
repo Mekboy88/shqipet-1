@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CollapsibleAIChat from '@/components/create-post/ai-chat/CollapsibleAIChat';
+import FloatingAIButton from '@/components/create-post/FloatingAIButton';
+import PostIntentSection from '@/components/create-post/PostIntentSection';
+import EngagementBoostSection from '@/components/create-post/EngagementBoostSection';
+import AISmartSummary from '@/components/create-post/AISmartSummary';
 import { 
   Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, 
   EyeOff, MessageSquare, Heart, Share2, Shield, Clock, Globe,
@@ -40,6 +44,7 @@ const CreatePostDesktop: React.FC = () => {
   const [contentWarning, setContentWarning] = useState(false);
   const [aiScan, setAiScan] = useState(true);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [postIntent, setPostIntent] = useState('emotion');
 
   useEffect(() => {
     if (showTip) {
@@ -454,6 +459,18 @@ const CreatePostDesktop: React.FC = () => {
               </Button>
             </div>
           </div>
+
+          {/* Floating AI Button */}
+          <FloatingAIButton />
+
+          {/* AI Smart Summary */}
+          <AISmartSummary content={postContent} />
+
+          {/* Post Intent Section */}
+          <PostIntentSection selectedIntent={postIntent} onSelectIntent={setPostIntent} />
+
+          {/* Engagement Boost Section */}
+          <EngagementBoostSection />
 
           {/* Media Toolbar */}
           <div className="border-t border-gray-200 pt-4 mb-6">
