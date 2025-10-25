@@ -356,6 +356,17 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
 
   return createPortal(
     <ChatThemeWrapper>
+      <style>{`
+        .no-scrollbar {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+          display: none;
+        }
+      `}</style>
       <Card
       className="fixed w-[380px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto flex flex-col rounded-xl transition-all duration-150" 
       style={{ 
@@ -466,7 +477,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
       )}
 
       {/* Messages */}
-      <div className="absolute top-[92px] left-0 right-0 bottom-[120px] overflow-y-auto p-4">
+      <div className="absolute top-[92px] left-0 right-0 bottom-[120px] overflow-y-auto no-scrollbar p-4">
         <div className="space-y-4">
           {messages.map((message) => (
             <div
@@ -616,7 +627,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
-            className="flex-1 border border-input bg-background/50 focus:ring-2 focus:ring-primary/5 focus:outline-none focus:border-primary/8 rounded-lg resize-none overflow-hidden px-3 text-sm thick-caret flex items-center text-base"
+            className="flex-1 border border-input bg-background/50 focus:ring-2 focus:ring-primary/5 focus:outline-none focus:border-primary/8 rounded-lg resize-none no-scrollbar overflow-y-auto px-3 text-sm thick-caret flex items-center text-base"
             style={{
               height: '40px',
               minHeight: '40px',
