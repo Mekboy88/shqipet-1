@@ -35,42 +35,22 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           position: absolute;
           inset: -4px;
           border-radius: 1.25rem;
-          background: transparent;
-          box-shadow: 
-            0 0 8px rgba(239, 68, 68, 0.5), 
-            0 0 16px rgba(239, 68, 68, 0.35), 
-            0 0 32px rgba(239, 68, 68, 0.22), 
-            0 0 60px rgba(239, 68, 68, 0.14), 
-            0 0 100px rgba(239, 68, 68, 0.06);
-          animation: neon-glow-typing 6s ease-in-out infinite;
+          background: rgba(239, 68, 68, 0.3);
+          filter: url(#smoke-turbulence) blur(12px);
+          animation: smoke-color-shift 6s ease-in-out infinite;
           pointer-events: none;
           z-index: -1;
         }
 
-        @keyframes neon-glow-typing {
+        @keyframes smoke-color-shift {
           0% {
-            box-shadow:
-              0 0 10px rgba(239, 68, 68, 0.55),
-              0 0 20px rgba(239, 68, 68, 0.40),
-              0 0 40px rgba(239, 68, 68, 0.26),
-              0 0 70px rgba(239, 68, 68, 0.16),
-              0 0 120px rgba(239, 68, 68, 0.08);
+            background: rgba(239, 68, 68, 0.35);
           }
           50% {
-            box-shadow:
-              0 0 10px rgba(31, 41, 55, 0.18),
-              0 0 20px rgba(31, 41, 55, 0.14),
-              0 0 40px rgba(31, 41, 55, 0.10),
-              0 0 70px rgba(31, 41, 55, 0.06),
-              0 0 120px rgba(31, 41, 55, 0.03);
+            background: rgba(31, 41, 55, 0.35);
           }
           100% {
-            box-shadow:
-              0 0 10px rgba(239, 68, 68, 0.55),
-              0 0 20px rgba(239, 68, 68, 0.40),
-              0 0 40px rgba(239, 68, 68, 0.26),
-              0 0 70px rgba(239, 68, 68, 0.16),
-              0 0 120px rgba(239, 68, 68, 0.08);
+            background: rgba(239, 68, 68, 0.35);
           }
         }
 
