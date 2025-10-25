@@ -43,12 +43,12 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         }
 
         .smoke-wrap::before {
-          background: radial-gradient(circle, rgba(230,0,0,0.4), rgba(0,0,0,0.4));
+          background: radial-gradient(circle, hsl(var(--destructive) / 0.4), hsl(var(--primary) / 0.4));
           animation: smokeFlow 30s linear infinite;
         }
 
         .smoke-wrap::after {
-          background: radial-gradient(circle, rgba(0,0,0,0.35), rgba(230,0,0,0.35));
+          background: radial-gradient(circle, hsl(var(--primary) / 0.35), hsl(var(--destructive) / 0.35));
           animation: smokeFlowReverse 40s linear infinite;
         }
 
@@ -106,7 +106,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
             style={{
               lineHeight: "1.5rem",
               fontSize: "1rem",
-              caretColor: "#e60000",
+              caretColor: "hsl(var(--destructive))",
             }}
             className="w-full min-h-[60px] max-h-[220px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base overflow-y-auto"
           />
@@ -119,7 +119,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:scale-110 transition-all ease-in-out duration-200"
               >
                 <Icon className="w-4 h-4" />
               </Button>
@@ -128,7 +128,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               type="submit"
               disabled={!message.trim() || disabled}
               size="sm"
-              className="h-9 w-9 p-0 bg-[#e60000] hover:bg-[#000000] disabled:bg-gray-300 disabled:opacity-50 rounded-full hover:scale-110 transition-all ease-in-out duration-200"
+              className="h-9 w-9 p-0 bg-destructive hover:bg-primary disabled:bg-gray-300 disabled:opacity-50 rounded-full hover:scale-110 transition-all ease-in-out duration-200"
             >
               <Send className="w-4 h-4 text-white" />
             </Button>
