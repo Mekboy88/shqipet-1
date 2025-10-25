@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import CollapsibleAIChat from '@/components/create-post/ai-chat/CollapsibleAIChat';
 import FloatingAIButton from '@/components/create-post/FloatingAIButton';
 import PostIntentSection from '@/components/create-post/PostIntentSection';
-
+import PostInsightsPanel from '@/components/create-post/PostInsightsPanel';
 import AISmartSummary from '@/components/create-post/AISmartSummary';
 import { 
   Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, 
@@ -557,6 +557,9 @@ const CreatePostDesktop: React.FC = () => {
         isExpanded={showAIChat}
         onToggleChange={setShowAIChat}
       />
+
+      {/* Post Insights Panel - Shows when AI is closed */}
+      <PostInsightsPanel isVisible={!showAIChat} />
     </div>
   );
 };
