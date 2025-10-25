@@ -23,41 +23,42 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
     <form onSubmit={handleSubmit} className="relative">
       <style>{`
         @keyframes smokeFlow {
-          0% {
-            background-position: 0% 50%;
-            filter: blur(0.4px);
+          0% { 
+            background-position: 0% 50%; 
+            filter: blur(0.3px); 
           }
-          25% {
-            background-position: 50% 100%;
-            filter: blur(0.8px);
+          25% { 
+            background-position: 50% 100%; 
+            filter: blur(0.7px); 
           }
-          50% {
-            background-position: 100% 50%;
-            filter: blur(0.4px);
+          50% { 
+            background-position: 100% 50%; 
+            filter: blur(0.4px); 
           }
-          75% {
-            background-position: 50% 0%;
-            filter: blur(0.7px);
+          75% { 
+            background-position: 50% 0%; 
+            filter: blur(0.6px); 
           }
-          100% {
-            background-position: 0% 50%;
-            filter: blur(0.4px);
+          100% { 
+            background-position: 0% 50%; 
+            filter: blur(0.3px); 
           }
         }
-        .smoke-border-flow {
+        .typing-container {
+          position: relative;
           border: 1.5px solid transparent;
-          border-radius: 1rem;
+          border-radius: 1.25rem;
           background: 
             linear-gradient(white, white) padding-box,
-            linear-gradient(120deg, rgba(255,255,255,0.1), #000000, #e60000, #000000, rgba(255,255,255,0.1)) border-box;
+            linear-gradient(120deg, #000000, #e60000, #000000, transparent, #e60000) border-box;
           background-size: 400% 400%;
-          animation: smokeFlow 10s ease-in-out infinite;
-          box-shadow: 0 0 20px rgba(230,0,0,0.04);
+          animation: smokeFlow 12s ease-in-out infinite;
+          box-shadow: 0 0 25px rgba(230, 0, 0, 0.04);
         }
       `}</style>
       
-      <div className="smoke-border-flow">
-        <div className="bg-white rounded-[0.9rem] p-4 space-y-2">
+      <div className="typing-container">
+        <div className="bg-white rounded-[1.15rem] px-4 py-3 space-y-2">
           {/* Textarea field */}
           <Textarea
             value={message}
@@ -71,19 +72,20 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               }
             }}
             style={{
-              lineHeight: '24px',
+              lineHeight: '1.5rem',
+              fontSize: '1rem',
               caretColor: '#e60000'
             }}
-            className="w-full min-h-[60px] max-h-40 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#777] text-[#111] px-0 py-0 leading-[24px]"
+            className="w-full min-h-[60px] max-h-[220px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base overflow-y-auto"
           />
 
           {/* Icons row */}
-          <div className="flex items-center justify-center gap-3 pt-2">
+          <div className="flex items-center justify-center gap-3 pt-1">
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:scale-110 transition-all duration-200"
+              className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
             >
               <AtSign className="w-4 h-4" />
             </Button>
@@ -91,7 +93,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:scale-110 transition-all duration-200"
+              className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
             >
               <Zap className="w-4 h-4" />
             </Button>
@@ -99,7 +101,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:scale-110 transition-all duration-200"
+              className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
             >
               <Link2 className="w-4 h-4" />
             </Button>
@@ -107,7 +109,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:scale-110 transition-all duration-200"
+              className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
             >
               <Mic className="w-4 h-4" />
             </Button>
@@ -115,7 +117,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               type="submit"
               disabled={!message.trim() || disabled}
               size="sm"
-              className="h-9 w-9 p-0 bg-[#e60000] hover:bg-black disabled:bg-gray-300 disabled:opacity-50 rounded-full hover:scale-110 transition-all duration-200"
+              className="h-9 w-9 p-0 bg-[#e60000] hover:bg-[#000000] disabled:bg-gray-300 disabled:opacity-50 rounded-full hover:scale-110 transition-all ease-in-out duration-200"
             >
               <Send className="w-4 h-4 text-white" />
             </Button>
