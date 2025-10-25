@@ -25,50 +25,63 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         .smoke-wrap {
           position: relative;
           border-radius: 1.25rem;
-          overflow: hidden;
+          overflow: visible;
           z-index: 1;
         }
 
-        /* Inside floating smoke clouds - contained within typing section */
+        /* Neon glow smoke around border edge only */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: 0;
+          inset: -6px;
           border-radius: 1.25rem;
           background:
-            radial-gradient(ellipse 90px 60px at -10% 30%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 70px 50px at 20% -10%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 80px 55px at 60% -15%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 70px 50px at 110% 20%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 90px 60px at 110% 70%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 70px 50px at 80% 110%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 90px 60px at 40% 115%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
-            radial-gradient(ellipse 70px 50px at -10% 70%, hsl(var(--primary) / var(--smoke-intensity)), transparent);
-          filter: blur(24px) url(#smoke-turbulence);
+            radial-gradient(ellipse 70px 45px at 10% 20%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 60px 40px at 30% 0%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 70px 45px at 70% 0%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 60px 40px at 100% 30%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 70px 45px at 100% 70%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 60px 40px at 70% 100%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 70px 45px at 30% 100%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
+            radial-gradient(ellipse 60px 40px at 0% 70%, hsl(var(--primary) / var(--smoke-intensity)), transparent);
+          -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          padding: 6px;
+          filter: blur(16px) url(#smoke-turbulence);
+          box-shadow: 
+            0 0 20px hsl(var(--primary) / 0.4),
+            0 0 40px hsl(var(--destructive) / 0.3),
+            inset 0 0 20px hsl(var(--primary) / 0.2);
           animation: smoke-float 12s linear infinite, smoke-pulse 5s ease-in-out infinite;
           transform-origin: center center;
           pointer-events: none;
           z-index: -1;
-          --smoke-intensity: 0.48;
+          --smoke-intensity: 0.5;
         }
 
         @keyframes smoke-float {
           0% { transform: rotate(0deg) translateY(0); }
-          50% { transform: rotate(180deg) translateY(4px); }
+          50% { transform: rotate(180deg) translateY(3px); }
           100% { transform: rotate(360deg) translateY(0); }
         }
 
         @keyframes smoke-pulse {
-          0%, 100% { --smoke-intensity: 0.48; }
-          50% { --smoke-intensity: 0.65; }
+          0%, 100% { --smoke-intensity: 0.5; }
+          50% { --smoke-intensity: 0.7; }
         }
 
-        /* Base typing box with subtle border */
+        /* Base typing box with very thin neon border */
         .smoke-inner {
           position: relative;
           border-radius: 1.25rem;
           background: white;
-          border: 1px solid hsl(var(--border) / 0.18);
+          border: 0.5px solid hsl(var(--primary) / 0.3);
+          box-shadow: 
+            0 0 8px hsl(var(--primary) / 0.15),
+            0 0 12px hsl(var(--destructive) / 0.1);
           z-index: 2;
         }
       `}</style>
