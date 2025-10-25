@@ -52,25 +52,28 @@ export const createWheelHandler = (state: ElasticState) => {
     if (indicatorEl && container === indicatorEl) {
       container = (indicatorEl.nextElementSibling as HTMLElement) || container;
     }
-    if (!container) return;
 
-    state.lastTransformEl = container;
+    // Always set lastScrollEl so indicator can update/hide even if no container
     state.lastScrollEl = scrollEl;
 
-    // Apply transform immediately - transition:none only set once at stretch start
-    if (!state.isElasticActive) {
-      container.style.willChange = 'transform';
-      container.style.transition = 'none';
+    // Update indicator immediately during pull
+    if (state.config.indicatorEnabled && state.lastScrollEl) {
+      console.debug('[elastic-indicator] wheel', { atTop, atBottom, distance: state.currentStretchY });
+      updateIndicator(state.lastScrollEl, state.currentStretchY);
     }
 
-    state.isElasticActive = true;
-    container.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
+    if (container) {
+      state.lastTransformEl = container;
 
-    // Update indicator (use negative distance for bottom to compress)
-  if (state.config.indicatorEnabled && state.lastScrollEl) {
-    console.debug('[elastic-indicator] wheel', { atTop, atBottom, distance: state.currentStretchY });
-    updateIndicator(state.lastScrollEl, state.currentStretchY);
-  }
+      // Apply transform immediately - transition:none only set once at stretch start
+      if (!state.isElasticActive) {
+        container.style.willChange = 'transform';
+        container.style.transition = 'none';
+      }
+
+      state.isElasticActive = true;
+      container.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
+    }
 
     // Snap-back after 180ms idle
     if (resetTimeout) clearTimeout(resetTimeout);
