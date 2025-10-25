@@ -27,63 +27,25 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           border-radius: 1.25rem;
           overflow: visible;
           z-index: 1;
-          --smoke-speed: 10s;
-          --smoke-near-opacity: 0.28;
-          --smoke-far-opacity: 0.14;
-          --smoke-radius: 1.25rem;
-          --smoke-arc-alpha-1: 0.18;
-          --smoke-arc-alpha-2: 0.14;
         }
 
-        /* Near-edge smoke wisps */
-        .smoke-wrap::before {
-          content: "";
-          position: absolute;
-          inset: -6px;
-          border-radius: var(--smoke-radius);
-          background: conic-gradient(
-            from var(--angle),
-            transparent 0% 6%,
-            hsl(var(--destructive) / var(--smoke-arc-alpha-1)) 8% 10%,
-            transparent 12% 20%,
-            hsl(var(--primary) / var(--smoke-arc-alpha-1)) 24% 26%,
-            transparent 28% 40%,
-            hsl(var(--destructive) / var(--smoke-arc-alpha-1)) 44% 46%,
-            transparent 48% 60%,
-            hsl(var(--primary) / var(--smoke-arc-alpha-1)) 64% 66%,
-            transparent 68% 100%
-          );
-          -webkit-mask: 
-            linear-gradient(#fff 0 0) content-box, 
-            linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          padding: 2px;
-          filter: url(#smoke-turbulence) blur(6px) drop-shadow(0 0 20px hsl(var(--primary) / 0.18)) drop-shadow(0 0 28px hsl(var(--destructive) / 0.12));
-          opacity: var(--smoke-near-opacity);
-          animation: smoke-flow var(--smoke-speed) linear infinite;
-          will-change: transform, filter;
-          pointer-events: none;
-          z-index: -1;
-        }
-
-        /* Wide smoke halo */
+        /* Spread out wispy smoke around the border */
+        .smoke-wrap::before,
         .smoke-wrap::after {
           content: "";
           position: absolute;
-          inset: -14px;
-          border-radius: var(--smoke-radius);
+          inset: -8px;
+          border-radius: 1.25rem;
           background: conic-gradient(
             from var(--angle),
-            transparent 0% 6%,
-            hsl(var(--destructive) / var(--smoke-arc-alpha-2)) 8% 10%,
-            transparent 12% 20%,
-            hsl(var(--primary) / var(--smoke-arc-alpha-2)) 24% 26%,
-            transparent 28% 40%,
-            hsl(var(--destructive) / var(--smoke-arc-alpha-2)) 44% 46%,
-            transparent 48% 60%,
-            hsl(var(--primary) / var(--smoke-arc-alpha-2)) 64% 66%,
-            transparent 68% 100%
+            transparent 0%,
+            hsl(var(--destructive) / 0.2) 10%,
+            hsl(var(--primary) / 0.25) 25%,
+            transparent 35%,
+            transparent 65%,
+            hsl(var(--primary) / 0.2) 75%,
+            hsl(var(--destructive) / 0.25) 90%,
+            transparent 100%
           );
           -webkit-mask: 
             linear-gradient(#fff 0 0) content-box, 
@@ -91,12 +53,17 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           -webkit-mask-composite: xor;
           mask-composite: exclude;
           padding: 2px;
-          filter: url(#smoke-turbulence) blur(14px) drop-shadow(0 0 36px hsl(var(--primary) / 0.14)) drop-shadow(0 0 48px hsl(var(--destructive) / 0.10));
-          opacity: var(--smoke-far-opacity);
-          animation: smoke-flow calc(var(--smoke-speed) * 1.2) linear infinite reverse;
-          will-change: transform, filter;
+          filter: blur(10px) url(#smoke-turbulence);
+          animation: smoke-flow 8s linear infinite;
           pointer-events: none;
           z-index: -1;
+        }
+
+        .smoke-wrap::after {
+          inset: -12px;
+          animation: smoke-flow 10s linear infinite reverse;
+          filter: blur(14px) url(#smoke-turbulence);
+          opacity: 0.5;
         }
 
         @property --angle {
@@ -110,39 +77,13 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           100% { --angle: 360deg; transform: rotate(360deg); }
         }
 
-        /* Base typing box with ultra-thin border */
+        /* Base typing box with subtle border */
         .smoke-inner {
           position: relative;
           border-radius: 1.25rem;
           background: white;
-          border: 1px solid hsl(var(--border) / 0.12);
+          border: 1px solid hsl(var(--border) / 0.3);
           z-index: 2;
-        }
-
-        /* Ultra-thin animated gradient ring */
-        .smoke-inner::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          padding: 1px;
-          background: conic-gradient(
-            from var(--angle),
-            hsl(var(--destructive) / 0.35) 0% 15%,
-            hsl(var(--primary) / 0.35) 50%,
-            hsl(var(--destructive) / 0.35) 85%,
-            transparent 100%
-          );
-          -webkit-mask: 
-            linear-gradient(#fff 0 0) content-box, 
-            linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          opacity: 0.25;
-          animation: smoke-flow var(--smoke-speed) linear infinite;
-          filter: blur(0.5px);
-          pointer-events: none;
-          z-index: -1;
         }
       `}</style>
       {/* SVG filter for organic smoke turbulence */}
