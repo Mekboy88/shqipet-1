@@ -33,15 +33,15 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -3px;
+          inset: -1px;
           border-radius: 1.25rem;
           background: transparent;
           box-shadow: 
-            0 0 5px #ff005e, 
-            0 0 10px #ff005e, 
-            0 0 20px #ff005e, 
-            0 0 40px #ff005e, 
-            0 0 80px #ff005e;
+            0 0 2px rgba(255, 0, 94, 0.35), 
+            0 0 4px rgba(255, 0, 94, 0.24), 
+            0 0 8px rgba(255, 0, 94, 0.16), 
+            0 0 12px rgba(255, 0, 94, 0.10), 
+            0 0 16px rgba(255, 0, 94, 0.08);
           animation: neon-glow-typing 3s ease-in-out infinite;
           pointer-events: none;
           z-index: -1;
@@ -50,19 +50,19 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         @keyframes neon-glow-typing {
           0%, 100% {
             box-shadow:
-              0 0 3px rgba(255, 0, 94, 0.4),
-              0 0 6px rgba(255, 0, 94, 0.3),
-              0 0 10px rgba(255, 0, 94, 0.2),
-              0 0 15px rgba(255, 0, 94, 0.15),
-              0 0 22px rgba(255, 0, 94, 0.1);
+              0 0 2px rgba(255, 0, 94, 0.40),
+              0 0 4px rgba(255, 0, 94, 0.28),
+              0 0 6px rgba(255, 0, 94, 0.18),
+              0 0 9px rgba(255, 0, 94, 0.12),
+              0 0 12px rgba(255, 0, 94, 0.08);
           }
           50% {
             box-shadow:
-              0 0 4px rgba(0, 212, 255, 0.4),
-              0 0 8px rgba(0, 212, 255, 0.3),
-              0 0 12px rgba(0, 212, 255, 0.2),
-              0 0 18px rgba(0, 212, 255, 0.15),
-              0 0 26px rgba(0, 212, 255, 0.1);
+              0 0 3px rgba(0, 212, 255, 0.40),
+              0 0 6px rgba(0, 212, 255, 0.28),
+              0 0 9px rgba(0, 212, 255, 0.18),
+              0 0 12px rgba(0, 212, 255, 0.12),
+              0 0 16px rgba(0, 212, 255, 0.08);
           }
         }
 
