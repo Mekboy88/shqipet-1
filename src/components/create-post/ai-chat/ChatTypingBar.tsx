@@ -29,11 +29,11 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Pink neon layer */
+        /* Pink neon smoky layer */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -2px;
+          inset: -6px;
           border-radius: 1.25rem;
           background: #ff005e;
           -webkit-mask: 
@@ -41,18 +41,18 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
-          padding: 1.5px;
-          filter: blur(1px) drop-shadow(0 0 5px #ff005e) drop-shadow(0 0 10px #ff005e) drop-shadow(0 0 20px #ff005e) drop-shadow(0 0 40px #ff005e);
-          animation: neon-fade-out 1.5s infinite alternate;
+          padding: 3px;
+          filter: url(#smoke-turbulence) blur(14px) drop-shadow(0 0 10px #ff005e) drop-shadow(0 0 20px #ff005e) drop-shadow(0 0 40px #ff005e);
+          animation: neon-fade-out 1.6s ease-in-out infinite alternate;
           pointer-events: none;
           z-index: -1;
         }
 
-        /* Cyan neon layer */
+        /* Cyan neon smoky layer */
         .smoke-wrap::after {
           content: "";
           position: absolute;
-          inset: -2px;
+          inset: -6px;
           border-radius: 1.25rem;
           background: #00d4ff;
           -webkit-mask: 
@@ -60,9 +60,9 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
-          padding: 1.5px;
-          filter: blur(1px) drop-shadow(0 0 10px #00d4ff) drop-shadow(0 0 20px #00d4ff) drop-shadow(0 0 40px #00d4ff) drop-shadow(0 0 80px #00d4ff);
-          animation: neon-fade-in 1.5s infinite alternate;
+          padding: 3px;
+          filter: url(#smoke-turbulence) blur(16px) drop-shadow(0 0 12px #00d4ff) drop-shadow(0 0 24px #00d4ff) drop-shadow(0 0 48px #00d4ff);
+          animation: neon-fade-in 1.6s ease-in-out infinite alternate;
           pointer-events: none;
           z-index: -1;
         }
@@ -77,13 +77,47 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           100% { opacity: 1; }
         }
 
-        /* Base typing box */
+        /* Base typing box with thin neon border line */
         .smoke-inner {
           position: relative;
           border-radius: 1.25rem;
           background: white;
-          border: none;
+          border: 0.5px solid transparent;
           z-index: 2;
+        }
+        .smoke-inner::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          padding: 0.5px;
+          background: #ff005e;
+          -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          filter: blur(0.4px);
+          opacity: 0.6;
+          animation: neon-fade-out 1.6s ease-in-out infinite alternate;
+          pointer-events: none;
+        }
+        .smoke-inner::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          padding: 0.5px;
+          background: #00d4ff;
+          -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          filter: blur(0.4px);
+          opacity: 0.6;
+          animation: neon-fade-in 1.6s ease-in-out infinite alternate;
+          pointer-events: none;
         }
       `}</style>
       {/* SVG filter for organic smoke turbulence */}
