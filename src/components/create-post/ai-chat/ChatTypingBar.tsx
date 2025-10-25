@@ -29,72 +29,71 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Smoke effect only around the edges (extra thin, clear) */
-        .smoke-wrap::before {
+        /* Wispy smoke particles flowing around the border */
+        .smoke-wrap::before,
+        .smoke-wrap::after {
           content: "";
           position: absolute;
-          inset: -2px;
+          inset: -4px;
           border-radius: 1.25rem;
-          z-index: -1;
           background: conic-gradient(
-            from 0deg,
-            hsl(var(--destructive) / 0.3) 0%,
-            hsl(var(--primary) / 0.3) 50%,
-            hsl(var(--destructive) / 0.3) 100%
+            from var(--angle),
+            transparent 0%,
+            hsl(var(--destructive) / 0.15) 10%,
+            hsl(var(--primary) / 0.2) 25%,
+            transparent 35%,
+            transparent 65%,
+            hsl(var(--primary) / 0.15) 75%,
+            hsl(var(--destructive) / 0.2) 90%,
+            transparent 100%
           );
           -webkit-mask: 
             linear-gradient(#fff 0 0) content-box, 
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
-          padding: 1.5px; /* ultra-thin ring */
-          filter: url(#smoke-noise);
-          animation: smoke-rotate 8s linear infinite;
-          opacity: 0.3;
+          padding: 2px;
+          filter: blur(4px) url(#smoke-turbulence);
+          animation: smoke-flow 6s linear infinite;
           pointer-events: none;
+          z-index: -1;
         }
 
-        @keyframes smoke-rotate {
-          to { transform: rotate(360deg); }
+        .smoke-wrap::after {
+          animation: smoke-flow 8s linear infinite reverse;
+          filter: blur(6px) url(#smoke-turbulence);
+          opacity: 0.6;
         }
 
-        /* Base typing box with animated thin border */
+        @property --angle {
+          syntax: '<angle>';
+          initial-value: 0deg;
+          inherits: false;
+        }
+
+        @keyframes smoke-flow {
+          0% { --angle: 0deg; transform: rotate(0deg); }
+          100% { --angle: 360deg; transform: rotate(360deg); }
+        }
+
+        /* Base typing box with subtle border */
         .smoke-inner {
           position: relative;
           border-radius: 1.25rem;
           background: white;
+          border: 1px solid hsl(var(--border) / 0.3);
           z-index: 2;
         }
-        
-        /* Animated thin border on top */
-        .smoke-inner::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          padding: 1px;
-          background: conic-gradient(
-            from 0deg,
-            hsl(var(--destructive) / 0.2) 0%,
-            hsl(var(--primary) / 0.2) 50%,
-            hsl(var(--destructive) / 0.2) 100%
-          );
-          -webkit-mask: 
-            linear-gradient(#fff 0 0) content-box, 
-            linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          animation: smoke-rotate 8s linear infinite;
-          z-index: -1;
-        }
       `}</style>
-      {/* Smoke noise filter for thin wisps around border */}
+      {/* SVG filter for organic smoke turbulence */}
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
-        <filter id="smoke-noise" x="-20%" y="-20%" width="140%" height="140%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="11">
-            <animate attributeName="baseFrequency" values="0.65;0.85;0.65" dur="8s" repeatCount="indefinite" />
+        <filter id="smoke-turbulence" x="-50%" y="-50%" width="200%" height="200%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="2">
+            <animate attributeName="baseFrequency" values="0.02;0.04;0.02" dur="10s" repeatCount="indefinite" />
           </feTurbulence>
-          <feDisplacementMap in="SourceGraphic" scale="3" />
+          <feDisplacementMap in="SourceGraphic" scale="15">
+            <animate attributeName="scale" values="10;20;10" dur="8s" repeatCount="indefinite" />
+          </feDisplacementMap>
         </filter>
       </svg>
 
