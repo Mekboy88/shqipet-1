@@ -1,0 +1,163 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, MessageSquare } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import ChatMessage from './ChatMessage';
+import ChatTypingBar from './ChatTypingBar';
+import TypingIndicator from './TypingIndicator';
+import { useToast } from '@/hooks/use-toast';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface CollapsibleAIChatProps {
+  onUseText?: (text: string) => void;
+}
+
+const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: 'Hi! I\'m Shqipet AI, your creative assistant. I can help you improve your writing, generate captions, suggest hashtags, and more. How can I help you today?'
+    }
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  const handleSendMessage = async (content: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsTyping(true);
+
+    // Simulate AI response
+    setTimeout(() => {
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: getAIResponse(content)
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      setIsTyping(false);
+    }, 1500);
+  };
+
+  const getAIResponse = (userMessage: string): string => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    if (lowerMessage.includes('improve') || lowerMessage.includes('better')) {
+      return 'Here\'s an improved version of your text:\n\n"Experience the extraordinary journey through life\'s most meaningful moments. Share your story with authenticity and passion."\n\nThis version is more engaging and emotionally resonant.';
+    } else if (lowerMessage.includes('hashtag')) {
+      return 'Here are some trending hashtags for your post:\n\n#Inspiration #LifeGoals #Motivation #Success #DailyVibes #AuthenticLiving #ShareYourStory';
+    } else if (lowerMessage.includes('caption') || lowerMessage.includes('generate')) {
+      return 'Here\'s a creative caption for you:\n\n"Every moment is a story waiting to be told. Today, I\'m sharing mine. 🌟 What\'s yours?"';
+    } else {
+      return 'I\'m here to help! You can ask me to:\n\n• Improve your writing\n• Generate captions\n• Suggest hashtags\n• Check grammar\n• Translate text\n• Optimize engagement\n\nWhat would you like me to help you with?';
+    }
+  };
+
+  const handleUseText = (text: string) => {
+    if (onUseText) {
+      onUseText(text);
+      toast({
+        title: 'Text Applied',
+        description: 'The text has been added to your post.',
+      });
+    }
+  };
+
+  return (
+    <>
+      {/* Toggle Button (visible when collapsed) */}
+      <AnimatePresence>
+        {!isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+            className="fixed right-4 top-24 z-50"
+          >
+            <Button
+              onClick={() => setIsExpanded(true)}
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg rounded-full px-4 py-2 flex items-center gap-2"
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span className="font-medium">💬 Shqipet AI</span>
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chat Sidebar */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, x: 400 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 400 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed right-0 top-0 h-screen w-[400px] bg-white/70 backdrop-blur-xl border-l border-gray-200/60 shadow-2xl z-50 flex flex-col"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200/60 bg-gradient-to-r from-red-50/50 to-white/50">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🇦🇱</span>
+                <div>
+                  <h3 className="font-bold text-gray-800">Shqipet AI</h3>
+                  <p className="text-xs text-gray-600">Creative Assistant</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setIsExpanded(false)}
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-red-50"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.map(message => (
+                <ChatMessage
+                  key={message.id}
+                  role={message.role}
+                  content={message.content}
+                  onUseText={message.role === 'assistant' ? handleUseText : undefined}
+                />
+              ))}
+              {isTyping && <TypingIndicator />}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Typing Bar */}
+            <div className="p-4 border-t border-gray-200/60 bg-white/50">
+              <ChatTypingBar onSendMessage={handleSendMessage} disabled={isTyping} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+export default CollapsibleAIChat;

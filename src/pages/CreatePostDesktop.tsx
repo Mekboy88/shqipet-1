@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import CollapsibleAIChat from '@/components/create-post/ai-chat/CollapsibleAIChat';
 import { 
   Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, 
   EyeOff, MessageSquare, Heart, Share2, Shield, Clock, Globe,
@@ -169,8 +170,8 @@ const CreatePostDesktop: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Main 3-Column Layout */}
-      <div className="w-full min-h-[calc(100vh-56px)] grid grid-cols-[280px_1fr_380px] gap-4 p-4">
+      {/* Main 2-Column Layout (Left Sidebar + Center) */}
+      <div className="w-full min-h-[calc(100vh-56px)] grid grid-cols-[280px_1fr] gap-4 p-4 pr-[420px]">
         {/* Left Sidebar - Post Settings */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
@@ -503,62 +504,10 @@ const CreatePostDesktop: React.FC = () => {
             {isPublishing ? 'Publishing...' : 'Publish Post'}
           </Button>
         </motion.div>
-
-        {/* Right Sidebar - AI & Settings */}
-        <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="bg-white/70 backdrop-blur-xl shadow-md rounded-3xl border border-gray-200/60 p-6 overflow-y-auto space-y-6"
-        >
-          {/* Shqipet AI Panel */}
-          <div className="bg-gradient-to-r from-red-500/20 to-black/30 rounded-2xl p-6 border border-red-400/40">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-red-600 flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                🇦🇱 Shqipet AI
-              </h3>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Info className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Why Use Shqipet AI?</DialogTitle>
-                  </DialogHeader>
-                  <p className="text-sm text-gray-600">
-                    Shqipet AI fixes grammar, improves captions, finds hashtags, checks for sensitive/duplicate content, 
-                    and helps you publish at the right time — directly inside the app.
-                  </p>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">Your creative co-pilot for smarter posts.</p>
-            
-            <div className="space-y-2 mb-4">
-              {aiFeatures.map((feature, idx) => (
-                <Button
-                  key={idx}
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start text-left hover:bg-white/50"
-                  onClick={feature.action}
-                >
-                  <feature.icon className="w-4 h-4 mr-2" />
-                  {feature.label}
-                </Button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-gray-300">
-              <span className="text-sm font-medium">Auto AI Correction</span>
-              <Switch checked={autoAI} onCheckedChange={setAutoAI} />
-            </div>
-          </div>
-        </motion.div>
       </div>
+
+      {/* Collapsible AI Chat Sidebar */}
+      <CollapsibleAIChat onUseText={(text) => setPostContent(prev => prev + '\n\n' + text)} />
     </div>
   );
 };
