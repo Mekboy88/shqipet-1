@@ -1,7 +1,6 @@
 
 import { ElasticState } from './types';
 import { findScrollableParent, getNearestScrollContainer, getTransformTarget } from './domUtils';
-import { applyElasticTransform } from './elasticTransform';
 import { updateIndicator, hideIndicator } from './indicator';
 
 export const createWheelHandler = (state: ElasticState) => {
@@ -71,23 +70,21 @@ export const createWheelHandler = (state: ElasticState) => {
     const combinedResistance = progressiveResistance * distanceResistance;
     const elasticDelta = deltaY * elasticityMultiplier * combinedResistance;
 
-    const targetStretch = Math.min(state.currentStretchY + elasticDelta, maxElasticDistance);
-    const result = applyElasticTransform(0, targetStretch, state.currentStretchX, state.currentStretchY);
-    state.currentStretchX = result.currentStretchX;
-    state.currentStretchY = result.currentStretchY;
+    // Directly apply the calculated stretch - no dampening
+    state.currentStretchY = Math.min(state.currentStretchY + elasticDelta, maxElasticDistance);
 
+    // Apply transform to the correct element immediately
     const container = getTransformTarget(scrollEl) as HTMLElement | null;
     state.lastTransformEl = container;
     state.lastScrollEl = scrollEl as HTMLElement;
     
     if (container) {
-      container.style.setProperty('will-change', 'transform', 'important');
-      container.style.setProperty('backface-visibility', 'hidden', 'important');
-      container.style.setProperty('transform-style', 'preserve-3d', 'important');
-      container.style.setProperty('contain', 'paint layout style size', 'important');
-      container.style.setProperty('transform', `translate3d(0, ${state.currentStretchY}px, 0)`, 'important');
-      container.style.setProperty('transition', 'none', 'important');
-      container.style.setProperty('transform-origin', 'center top', 'important');
+      container.style.willChange = 'transform';
+      container.style.backfaceVisibility = 'hidden';
+      container.style.transformStyle = 'preserve-3d';
+      container.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
+      container.style.transition = 'none';
+      container.style.transformOrigin = 'center top';
     }
 
     // Update elastic indicator if enabled
@@ -100,16 +97,15 @@ export const createWheelHandler = (state: ElasticState) => {
     resetTimeout = setTimeout(() => {
       const element = state.lastTransformEl as HTMLElement | null;
       if (element) {
-        element.style.setProperty('transition', 'transform 0.4s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important');
-        element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
+        element.style.transition = 'transform 0.4s cubic-bezier(0.25, 1.6, 0.45, 0.94)';
+        element.style.transform = 'translate3d(0, 0, 0)';
         
         setTimeout(() => {
-          element.style.removeProperty('will-change');
-          element.style.removeProperty('transition');
-          element.style.removeProperty('backface-visibility');
-          element.style.removeProperty('transform-style');
-          element.style.removeProperty('contain');
-          element.style.removeProperty('transform');
+          element.style.willChange = '';
+          element.style.transition = '';
+          element.style.backfaceVisibility = '';
+          element.style.transformStyle = '';
+          element.style.transform = '';
         }, 440);
       }
 

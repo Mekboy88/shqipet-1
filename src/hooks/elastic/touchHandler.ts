@@ -133,27 +133,26 @@ export const createTouchHandlers = (state: ElasticState) => {
         const combinedDamping = progressiveResistance * distanceBasedResistance;
         const elasticDeltaY = deltaY * elasticityMultiplier * combinedDamping;
 
-        const targetStretchY = Math.min(elasticDeltaY, maxElasticDistance);
-
+        // Directly apply calculated stretch without dampening
         state.isElasticActive = true;
-        state.currentStretchY = targetStretchY;
+        state.currentStretchY = Math.min(elasticDeltaY, maxElasticDistance);
 
+        // Apply transform immediately to create visible bounce
         const element = getTransformTarget(scrollEl || document.documentElement) as HTMLElement | null;
         if (element) {
           state.lastTransformEl = element;
           state.lastScrollEl = scrollEl || document.documentElement;
-          element.style.setProperty('will-change', 'transform', 'important');
-          element.style.setProperty('backface-visibility', 'hidden', 'important');
-          element.style.setProperty('transform-style', 'preserve-3d', 'important');
-          element.style.setProperty('contain', 'paint layout style size', 'important');
-          element.style.setProperty('transform', `translate3d(0, ${targetStretchY}px, 0)`, 'important');
-          element.style.setProperty('transition', 'none', 'important');
-          element.style.setProperty('transform-origin', 'center top', 'important');
+          element.style.willChange = 'transform';
+          element.style.backfaceVisibility = 'hidden';
+          element.style.transformStyle = 'preserve-3d';
+          element.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
+          element.style.transition = 'none';
+          element.style.transformOrigin = 'center top';
         }
 
         // Update elastic indicator if enabled
         if (state.config.indicatorEnabled && state.lastScrollEl) {
-          updateIndicator(state.lastScrollEl, Math.max(0, targetStretchY));
+          updateIndicator(state.lastScrollEl, Math.max(0, state.currentStretchY));
         }
 
         e.preventDefault();
@@ -171,17 +170,16 @@ export const createTouchHandlers = (state: ElasticState) => {
       const element = state.lastTransformEl as HTMLElement | null;
       
       if (element) {
-        element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
-        element.style.setProperty('transition', 'transform 0.4s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important');
+        element.style.transition = 'transform 0.4s cubic-bezier(0.25, 1.6, 0.45, 0.94)';
+        element.style.transform = 'translate3d(0, 0, 0)';
 
         // Clean up all temporary styles after animation
         setTimeout(() => {
-          element.style.removeProperty('will-change');
-          element.style.removeProperty('transition');
-          element.style.removeProperty('backface-visibility');
-          element.style.removeProperty('transform-style');
-          element.style.removeProperty('contain');
-          element.style.removeProperty('transform');
+          element.style.willChange = '';
+          element.style.transition = '';
+          element.style.backfaceVisibility = '';
+          element.style.transformStyle = '';
+          element.style.transform = '';
         }, 440);
       }
       
