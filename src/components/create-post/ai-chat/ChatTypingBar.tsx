@@ -25,46 +25,46 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         @keyframes smokeFlow {
           0% { 
             background-position: 0% 50%; 
-            filter: blur(0.5px); 
+            filter: blur(1px); 
           }
           20% { 
             background-position: 30% 80%; 
-            filter: blur(0.8px); 
+            filter: blur(1.5px); 
           }
           40% { 
             background-position: 70% 90%; 
-            filter: blur(0.6px); 
+            filter: blur(1.2px); 
           }
           60% { 
             background-position: 100% 50%; 
-            filter: blur(0.7px); 
+            filter: blur(1.4px); 
           }
           80% { 
             background-position: 60% 10%; 
-            filter: blur(0.5px); 
+            filter: blur(1px); 
           }
           100% { 
             background-position: 0% 50%; 
-            filter: blur(0.5px); 
+            filter: blur(1px); 
           }
         }
         .typing-container {
           position: relative;
-          border: 1px solid transparent;
+          border: 2px solid transparent;
           border-radius: 1.25rem;
           background: 
             linear-gradient(white, white) padding-box,
             linear-gradient(135deg, 
-              rgba(0,0,0,0.15), 
-              rgba(230,0,0,0.25), 
-              rgba(0,0,0,0.2), 
-              transparent, 
-              rgba(230,0,0,0.2), 
-              rgba(0,0,0,0.15)
+              rgba(0,0,0,0.5), 
+              rgba(230,0,0,0.7), 
+              rgba(0,0,0,0.6), 
+              rgba(230,0,0,0.5), 
+              rgba(0,0,0,0.4), 
+              rgba(230,0,0,0.6)
             ) border-box;
-          background-size: 400% 400%;
-          animation: smokeFlow 14s ease-in-out infinite;
-          box-shadow: 0 0 30px rgba(230, 0, 0, 0.03);
+          background-size: 300% 300%;
+          animation: smokeFlow 10s ease-in-out infinite;
+          box-shadow: 0 0 35px rgba(230, 0, 0, 0.12);
         }
       `}</style>
       
