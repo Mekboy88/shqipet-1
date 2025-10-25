@@ -131,7 +131,7 @@ const AppBackground: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   }, [isMarketplace]);
 
   return (
-    <div className={`min-h-screen ${isMarketplace ? 'bg-transparent' : 'bg-background'}`}>
+    <div data-elastic-container="true" className={`min-h-screen ${isMarketplace ? 'bg-transparent' : 'bg-background'}`}>
       {children}
     </div>
   );
