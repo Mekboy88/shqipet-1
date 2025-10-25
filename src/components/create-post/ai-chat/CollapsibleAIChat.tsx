@@ -114,10 +114,10 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 400 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-screen w-[400px] bg-white/70 backdrop-blur-xl border-l border-gray-200/60 shadow-2xl z-50 flex flex-col"
+            className="fixed right-0 top-0 h-screen w-[400px] bg-white backdrop-blur-md border-l border-gray-200 shadow-2xl z-50 flex flex-col rounded-l-xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200/60 bg-gradient-to-r from-red-50/50 to-white/50">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white rounded-tl-xl">
               <div className="flex items-center gap-2">
                 <span className="text-xl">🇦🇱</span>
                 <div>
@@ -150,7 +150,7 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
             </div>
 
             {/* Typing Bar */}
-            <div className="p-4 border-t border-gray-200/60 bg-white/50">
+            <div className="p-4 border-t border-gray-200 bg-white">
               <ChatTypingBar onSendMessage={handleSendMessage} disabled={isTyping} />
             </div>
           </motion.div>
