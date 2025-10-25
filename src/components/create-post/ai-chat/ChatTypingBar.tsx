@@ -29,22 +29,28 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Smoke effect beneath the border */
+        /* Smoke effect only around the edges */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -8px;
-          border-radius: inherit;
+          inset: -6px;
+          border-radius: 1.25rem;
           z-index: -1;
           background: conic-gradient(
             from 0deg,
-            hsl(var(--destructive) / 0.3) 0%,
-            hsl(var(--primary) / 0.3) 50%,
-            hsl(var(--destructive) / 0.3) 100%
+            hsl(var(--destructive) / 0.4) 0%,
+            hsl(var(--primary) / 0.4) 50%,
+            hsl(var(--destructive) / 0.4) 100%
           );
-          filter: blur(12px);
+          -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          padding: 6px;
+          filter: blur(8px);
           animation: smoke-rotate 8s linear infinite;
-          opacity: 0.6;
+          opacity: 0.5;
         }
 
         @keyframes smoke-rotate {
@@ -55,7 +61,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         .smoke-inner {
           position: relative;
           border-radius: 1.25rem;
-          background: transparent;
+          background: white;
           z-index: 2;
         }
         
@@ -63,24 +69,27 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         .smoke-inner::before {
           content: "";
           position: absolute;
-          inset: -1px;
+          inset: 0;
           border-radius: inherit;
           padding: 1px;
           background: conic-gradient(
             from 0deg,
-            hsl(var(--destructive) / 0.25) 0%,
-            hsl(var(--primary) / 0.25) 50%,
-            hsl(var(--destructive) / 0.25) 100%
+            hsl(var(--destructive) / 0.2) 0%,
+            hsl(var(--primary) / 0.2) 50%,
+            hsl(var(--destructive) / 0.2) 100%
           );
-          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
           animation: smoke-rotate 8s linear infinite;
+          z-index: -1;
         }
       `}</style>
 
       <div className="smoke-wrap">
-        <div className="smoke-inner flex-1 p-4 space-y-2 bg-gradient-to-r from-[hsl(var(--destructive)/0.1)] to-[hsl(var(--primary)/0.1)] rounded-xl">
+        <div className="smoke-inner px-4 py-3 space-y-2">
           {/* Textarea field */}
           <Textarea
             value={message}
