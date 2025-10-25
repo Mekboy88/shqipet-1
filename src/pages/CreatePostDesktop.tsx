@@ -463,7 +463,7 @@ const CreatePostDesktop: React.FC = () => {
                 {/* Main Button */}
                 <div className="relative flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-purple-600 rounded-full shadow-lg">
                   <MessageSquare className="w-5 h-5 text-white animate-pulse" />
-                  <span className="font-semibold text-white text-sm">AI Chat</span>
+                  <span className="font-semibold text-white text-sm">Shqipet AI</span>
                 </div>
               </motion.button>
             )}
