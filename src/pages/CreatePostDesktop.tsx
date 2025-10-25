@@ -187,7 +187,19 @@ const CreatePostDesktop: React.FC = () => {
               <CollapsibleTrigger className="w-full">
                 <div className="flex items-center justify-between w-full p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-all">
                   <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4" />
+                    <svg 
+                      className="w-4 h-4" 
+                      viewBox="0 0 32 32" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <line x1="10" y1="12" x2="19" y2="12"></line>
+                      <line x1="10" y1="16" x2="14" y2="16"></line>
+                      <path d="M11,4c-4.4,0-8,3.6-8,8v12v5l0,0c3.7-3.2,8.4-5,13.3-5H21c4.4,0,8-3.6,8-8v-4c0-4.4-3.6-8-8-8H11z"></path>
+                    </svg>
                     <span className="font-medium text-sm">Comments & Privacy</span>
                   </div>
                   <ChevronDown className="w-4 h-4" />
