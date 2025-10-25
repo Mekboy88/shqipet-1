@@ -30,9 +30,8 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           isolation: isolate;
         }
 
-        /* Glow layers */
-        .smoke-wrap::before,
-        .smoke-wrap::after {
+        /* Single glow layer (hard swap, no mixing) */
+        .smoke-wrap::before {
           content: "";
           position: absolute;
           inset: -4px;
@@ -40,39 +39,17 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           filter: url(#smoke-turbulence) blur(14px);
           pointer-events: none;
           z-index: 0;
-          will-change: opacity, box-shadow, filter;
+          will-change: background-color, box-shadow;
+          animation: glow-swap 10s steps(1, end) infinite;
         }
 
-        /* Red phase (red-500/10) */
-        .smoke-wrap::before {
-          background-color: rgba(239, 68, 68, 0.35);
-          animation: glow-red 10s steps(1, end) infinite;
-        }
-
-        /* Gray phase (gray-800/10) */
-        .smoke-wrap::after {
-          background-color: rgba(31, 41, 55, 0.35);
-          animation: glow-gray 10s steps(1, end) infinite;
-        }
-
-        /* Hard swap at 50% + neon glow on active layer */
-        @keyframes glow-red {
+        @keyframes glow-swap {
           0%, 49.9% {
-            opacity: 1;
+            background-color: rgba(239, 68, 68, 0.1);
             box-shadow: 0 0 32px 10px rgba(239, 68, 68, 0.8);
           }
           50%, 100% {
-            opacity: 0;
-            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-          }
-        }
-        @keyframes glow-gray {
-          0%, 49.9% {
-            opacity: 0;
-            box-shadow: 0 0 0 0 rgba(31, 41, 55, 0);
-          }
-          50%, 100% {
-            opacity: 1;
+            background-color: rgba(31, 41, 55, 0.1);
             box-shadow: 0 0 32px 10px rgba(31, 41, 55, 0.8);
           }
         }
