@@ -32,10 +32,10 @@ const AISmartSummary: React.FC<AISmartSummaryProps> = ({ content }) => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
-          className="mb-4 p-4 bg-accent/10 rounded-2xl border-2 border-accent/30 shadow-sm backdrop-blur-xl"
+          className="mb-4 p-4 bg-accent/15 dark:bg-accent/25 rounded-2xl border border-accent/40 dark:border-accent/60 shadow-md ring-1 ring-accent/20 dark:ring-accent/30 backdrop-blur-xl"
         >
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-accent/20 rounded-xl shadow-sm border border-accent/40">
+            <div className="p-2 bg-accent/30 dark:bg-accent/35 rounded-xl shadow-sm border border-accent/50 dark:border-accent/60">
               <Sparkles className="w-4 h-4 text-accent animate-pulse" />
             </div>
             <div className="flex-1">
