@@ -143,7 +143,7 @@ function App() {
   useInstantUpdates();
   
   // Enable global elastic scrolling with momentum on all pages
-  useGlobalElasticScrolling({ enabled: true });
+  useGlobalElasticScrolling({ enabled: true, maxElasticDistance: 340, elasticityMultiplier: 11 });
   
   // SECURITY: Clear any insecure admin portal data on app startup
   React.useEffect(() => {
