@@ -27,6 +27,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           border-radius: 1.25rem;
           overflow: visible;
           z-index: 1;
+          isolation: isolate;
         }
 
         /* Neon glow around border */
@@ -35,20 +36,31 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           position: absolute;
           inset: -4px;
           border-radius: 1.25rem;
-          background: rgba(239, 68, 68, 0.3);
+          background-color: rgba(239, 68, 68, 0.35);
           filter: url(#smoke-turbulence) blur(12px);
-          animation: smoke-color-shift 12s ease-in-out infinite alternate; animation-fill-mode: both;
+          animation: glow-red 10s ease-in-out infinite;
+          pointer-events: none;
+          z-index: -1;
+        }
+        .smoke-wrap::after {
+          content: "";
+          position: absolute;
+          inset: -4px;
+          border-radius: 1.25rem;
+          background-color: rgba(31, 41, 55, 0.1);
+          filter: url(#smoke-turbulence) blur(12px);
+          animation: glow-gray 10s ease-in-out infinite;
           pointer-events: none;
           z-index: -1;
         }
 
-        @keyframes smoke-color-shift {
-          0% {
-            background-color: rgba(239, 68, 68, 0.35);
-          }
-          100% {
-            background-color: rgba(31, 41, 55, 0.1);
-          }
+        @keyframes glow-red {
+          0%, 49% { opacity: 1; }
+          51%, 100% { opacity: 0; }
+        }
+        @keyframes glow-gray {
+          0%, 49% { opacity: 0; }
+          51%, 100% { opacity: 1; }
         }
 
         /* Base typing box with very thin neon border */
