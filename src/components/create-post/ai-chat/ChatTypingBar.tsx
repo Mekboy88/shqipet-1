@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Mic, AtSign, Zap, Link2 } from "lucide-react";
@@ -11,14 +11,6 @@ interface ChatTypingBarProps {
 const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [heightPx, setHeightPx] = useState<number>(20);
-  const [isScrollable, setIsScrollable] = useState(false);
-  const previousHeightRef = useRef<number>(20);
-
-  const lineHeightPx = 24; // matches leading-6 (1.5rem)
-  const baseHeight = 3 * lineHeightPx; // first 3 lines
-  const maxHeight = 8 * lineHeightPx; // 3 + 5 extra lines
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,36 +19,6 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
       setMessage("");
     }
   };
-
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-
-    // Collapsed when not focused and empty
-    const minHeight = (!isFocused && message.trim().length === 0) ? 20 : baseHeight;
-
-    // Create a hidden clone to measure without affecting layout
-    const clone = el.cloneNode(true) as HTMLTextAreaElement;
-    clone.style.position = 'absolute';
-    clone.style.visibility = 'hidden';
-    clone.style.height = 'auto';
-    clone.style.overflow = 'hidden';
-    clone.value = el.value;
-    document.body.appendChild(clone);
-    
-    const measured = clone.scrollHeight;
-    document.body.removeChild(clone);
-    
-    const target = Math.max(minHeight, Math.min(measured, maxHeight));
-    
-    // Only update if height actually changed to prevent jumping
-    if (Math.abs(target - previousHeightRef.current) > 1) {
-      setHeightPx(target);
-      previousHeightRef.current = target;
-    }
-    
-    setIsScrollable(measured > maxHeight);
-  }, [message, isFocused]);
 
   return (
     <form onSubmit={handleSubmit} className="relative">
@@ -98,33 +60,6 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           border: 0.5px solid rgba(255, 255, 255, 0.3);
           z-index: 2;
         }
-
-        /* Custom scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(239, 68, 68, 0.05);
-          border-radius: 10px;
-          margin: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(239, 68, 68, 0.4);
-          border-radius: 10px;
-          transition: background 0.2s;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(239, 68, 68, 0.6);
-        }
-
-        /* Firefox */
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(239, 68, 68, 0.4) rgba(239, 68, 68, 0.05);
-        }
       `}</style>
       {/* SVG filter for organic smoke turbulence */}
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
@@ -142,7 +77,6 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         <div className="smoke-inner px-4 py-3 space-y-2">
           {/* Textarea field */}
           <Textarea
-            ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Ask anything..."
@@ -159,9 +93,9 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               lineHeight: "1.5rem",
               fontSize: "1rem",
               caretColor: "hsl(var(--destructive))",
-              height: `${heightPx}px`,
+              height: (isFocused || message.trim().length > 0) ? "60px" : "20px",
             }}
-            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base custom-scrollbar ${isScrollable ? 'overflow-y-auto pr-2' : 'overflow-hidden'} transition-all duration-[600ms] ease-in-out`}
+            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base ${isFocused || message.trim().length > 0 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[3500ms] ease-in-out`}
           />
 
           {/* Icons row */}
