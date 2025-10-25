@@ -157,23 +157,6 @@ const CreatePostDesktop: React.FC = () => {
         <link rel="canonical" href="/create-post" />
       </Helmet>
       <h1 className="sr-only">Create Post – Shqipet</h1>
-      {/* Tip Banner */}
-      {showTip && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-red-500/20 to-black/30 backdrop-blur-md border border-red-400/40 rounded-full px-6 py-3 shadow-lg"
-        >
-          <p className="text-sm font-medium flex items-center gap-2">
-            <Lightbulb className="w-4 h-4 text-yellow-500" />
-            Short posts with emotion perform better!
-            <button onClick={() => setShowTip(false)} className="ml-2">
-              <X className="w-4 h-4" />
-            </button>
-          </p>
-        </motion.div>
-      )}
 
       {/* Main 2-Column Layout (Left Sidebar + Center) */}
       <div className="w-full min-h-[calc(100vh-56px)] grid grid-cols-[280px_1fr] gap-4 p-4 pr-[420px]">
