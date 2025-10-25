@@ -47,9 +47,10 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
-          padding: 2px; /* ring thickness */
+          padding: 1.5px; /* ultra-thin ring */
+          filter: url(#smoke-noise);
           animation: smoke-rotate 8s linear infinite;
-          opacity: 0.35;
+          opacity: 0.3;
           pointer-events: none;
         }
 
@@ -87,6 +88,15 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: -1;
         }
       `}</style>
+      {/* Smoke noise filter for thin wisps around border */}
+      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+        <filter id="smoke-noise" x="-20%" y="-20%" width="140%" height="140%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="11">
+            <animate attributeName="baseFrequency" values="0.65;0.85;0.65" dur="8s" repeatCount="indefinite" />
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" scale="3" />
+        </filter>
+      </svg>
 
       <div className="smoke-wrap">
         <div className="smoke-inner px-4 py-3 space-y-2">
