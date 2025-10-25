@@ -30,23 +30,38 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         }
 
         /* Outer animated smoke layer using SVG turbulence */
-        .smoke-wrap::before {
+        .smoke-wrap::before,
+        .smoke-wrap::after {
           content: "";
           position: absolute;
-          inset: -4px;
+          inset: -12px;
           border-radius: inherit;
           z-index: -1;
-          background: radial-gradient(circle, rgba(230,0,0,0.25), rgba(0,0,0,0.35));
-          filter: url(#smoke-filter);
-          animation: smokeFlow 30s linear infinite;
-          opacity: 0.6;
+          filter: url(#smoke-filter) blur(8px);
+          opacity: 0.7;
           mix-blend-mode: lighten;
+        }
+
+        .smoke-wrap::before {
+          background: radial-gradient(circle, rgba(230,0,0,0.4), rgba(0,0,0,0.4));
+          animation: smokeFlow 30s linear infinite;
+        }
+
+        .smoke-wrap::after {
+          background: radial-gradient(circle, rgba(0,0,0,0.35), rgba(230,0,0,0.35));
+          animation: smokeFlowReverse 40s linear infinite;
         }
 
         @keyframes smokeFlow {
           0% { transform: rotate(0deg); }
           50% { transform: rotate(180deg); }
           100% { transform: rotate(360deg); }
+        }
+
+        @keyframes smokeFlowReverse {
+          0% { transform: rotate(360deg); }
+          50% { transform: rotate(180deg); }
+          100% { transform: rotate(0deg); }
         }
 
         /* Base typing box */
