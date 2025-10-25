@@ -29,28 +29,28 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Smoke effect only around the edges */
+        /* Smoke effect only around the edges (extra thin, clear) */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -6px;
+          inset: -2px;
           border-radius: 1.25rem;
           z-index: -1;
           background: conic-gradient(
             from 0deg,
-            hsl(var(--destructive) / 0.4) 0%,
-            hsl(var(--primary) / 0.4) 50%,
-            hsl(var(--destructive) / 0.4) 100%
+            hsl(var(--destructive) / 0.3) 0%,
+            hsl(var(--primary) / 0.3) 50%,
+            hsl(var(--destructive) / 0.3) 100%
           );
           -webkit-mask: 
             linear-gradient(#fff 0 0) content-box, 
             linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
-          padding: 6px;
-          filter: blur(8px);
+          padding: 2px; /* ring thickness */
           animation: smoke-rotate 8s linear infinite;
-          opacity: 0.5;
+          opacity: 0.35;
+          pointer-events: none;
         }
 
         @keyframes smoke-rotate {
