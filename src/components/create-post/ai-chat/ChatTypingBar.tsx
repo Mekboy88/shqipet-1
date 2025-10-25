@@ -30,37 +30,51 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           isolation: isolate;
         }
 
-        /* Neon glow around border */
-        .smoke-wrap::before {
-          content: "";
-          position: absolute;
-          inset: -4px;
-          border-radius: 1.25rem;
-          background-color: rgba(239, 68, 68, 0.35);
-          filter: url(#smoke-turbulence) blur(12px);
-          animation: glow-red 10s ease-in-out infinite;
-          pointer-events: none;
-          z-index: -1;
-        }
+        /* Glow layers */
+        .smoke-wrap::before,
         .smoke-wrap::after {
           content: "";
           position: absolute;
           inset: -4px;
           border-radius: 1.25rem;
-          background-color: rgba(31, 41, 55, 0.1);
-          filter: url(#smoke-turbulence) blur(12px);
-          animation: glow-gray 10s ease-in-out infinite;
+          filter: url(#smoke-turbulence) blur(14px);
           pointer-events: none;
-          z-index: -1;
+          z-index: 0;
+          will-change: opacity, box-shadow, filter;
         }
 
+        /* Red phase (red-500/10) */
+        .smoke-wrap::before {
+          background-color: rgba(239, 68, 68, 0.1);
+          animation: glow-red 10s steps(1, end) infinite;
+        }
+
+        /* Gray phase (gray-800/10) */
+        .smoke-wrap::after {
+          background-color: rgba(31, 41, 55, 0.1);
+          animation: glow-gray 10s steps(1, end) infinite;
+        }
+
+        /* Hard swap at 50% + neon glow on active layer */
         @keyframes glow-red {
-          0%, 49% { opacity: 1; }
-          51%, 100% { opacity: 0; }
+          0%, 49.9% {
+            opacity: 1;
+            box-shadow: 0 0 24px 8px rgba(239, 68, 68, 0.6);
+          }
+          50%, 100% {
+            opacity: 0;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+          }
         }
         @keyframes glow-gray {
-          0%, 49% { opacity: 0; }
-          51%, 100% { opacity: 1; }
+          0%, 49.9% {
+            opacity: 0;
+            box-shadow: 0 0 0 0 rgba(31, 41, 55, 0);
+          }
+          50%, 100% {
+            opacity: 1;
+            box-shadow: 0 0 24px 8px rgba(31, 41, 55, 0.6);
+          }
         }
 
         /* Base typing box with very thin neon border */
