@@ -110,14 +110,14 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            initial={{ opacity: 0, x: 400 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 400 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-screen w-[400px] bg-white backdrop-blur-md border-l border-gray-200 shadow-2xl z-50 flex flex-col rounded-l-xl"
+            initial={{ opacity: 0, scale: 0.96, x: 40 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.96, x: 40 }}
+            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            className="fixed right-4 top-[72px] h-[calc(100vh-88px)] w-[400px] bg-white/70 backdrop-blur-xl shadow-lg border border-gray-200/60 z-50 flex flex-col rounded-3xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white rounded-tl-xl">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200/60">
               <div className="flex items-center gap-2">
                 <span className="text-xl">🇦🇱</span>
                 <div>
@@ -129,14 +129,14 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
                 onClick={() => setIsExpanded(false)}
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 hover:bg-red-50"
+                className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:bg-gray-100 transition-colors"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {messages.map(message => (
                 <ChatMessage
                   key={message.id}
@@ -150,7 +150,7 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
             </div>
 
             {/* Typing Bar */}
-            <div className="p-4 border-t border-gray-200 bg-white">
+            <div className="p-6 border-t border-gray-200/60">
               <ChatTypingBar onSendMessage={handleSendMessage} disabled={isTyping} />
             </div>
           </motion.div>
