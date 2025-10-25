@@ -60,7 +60,11 @@ export const createTouchHandlers = (state: ElasticState) => {
       const elasticDelta = deltaY * elasticityMultiplier * 0.25;
       state.currentStretchY = Math.min(elasticDelta, maxElasticDistance);
 
-      const element = getTransformTarget(scrollEl) as HTMLElement | null;
+      let element = getTransformTarget(scrollEl) as HTMLElement | null;
+      const indicatorEl = scrollEl.querySelector(':scope > [data-elastic-indicator="true"]') as HTMLElement | null;
+      if (indicatorEl && element === indicatorEl) {
+        element = (indicatorEl.nextElementSibling as HTMLElement) || element;
+      }
       if (element) {
         state.lastTransformEl = element;
         state.lastScrollEl = scrollEl;

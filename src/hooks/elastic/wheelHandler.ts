@@ -37,8 +37,12 @@ export const createWheelHandler = (state: ElasticState) => {
     const elasticDelta = deltaY * elasticityMultiplier * 0.2;
     state.currentStretchY = Math.min(state.currentStretchY + elasticDelta, maxElasticDistance);
 
-    // Get transform target
-    const container = getTransformTarget(scrollEl) as HTMLElement | null;
+    // Get transform target (ensure we don't pick the indicator itself)
+    let container = getTransformTarget(scrollEl) as HTMLElement | null;
+    const indicatorEl = scrollEl.querySelector(':scope > [data-elastic-indicator="true"]') as HTMLElement | null;
+    if (indicatorEl && container === indicatorEl) {
+      container = (indicatorEl.nextElementSibling as HTMLElement) || container;
+    }
     if (!container) return;
 
     state.lastTransformEl = container;

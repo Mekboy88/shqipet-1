@@ -1,5 +1,13 @@
 
 export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
+  // Ensure the scroll container can anchor absolute children
+  try {
+    const cs = getComputedStyle(scrollEl);
+    if (cs.position === 'static') {
+      scrollEl.style.position = 'relative';
+    }
+  } catch {}
+
   let indicator = scrollEl.querySelector<HTMLElement>(`:scope > [data-elastic-indicator="true"]`);
   if (!indicator) {
     indicator = document.createElement('div');
@@ -20,7 +28,7 @@ export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
     indicator.style.boxShadow = '0 2px 8px hsl(var(--primary) / 0.3)';
     indicator.style.transition = 'opacity 0.2s ease';
 
-    // Insert at very top
+    // Insert at very top (but don't become the transform target)
     if (scrollEl.firstElementChild) {
       scrollEl.insertBefore(indicator, scrollEl.firstElementChild);
     } else {
