@@ -22,126 +22,119 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
   return (
     <form onSubmit={handleSubmit} className="relative">
       <style>{`
-        @keyframes smokeFlow {
-          0% { background-position: 0% 50%; }
-          25% { background-position: 50% 100%; }
-          50% { background-position: 100% 50%; }
-          75% { background-position: 50% 0%; }
-          100% { background-position: 0% 50%; }
+        @keyframes rotateSmoke {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
-        @keyframes smokeOrbit {
-          0% { transform: rotate(0deg); }
-          50% { transform: rotate(180deg); }
-          100% { transform: rotate(360deg); }
+        @keyframes rotateSmokeReverse {
+          from { transform: rotate(360deg); }
+          to { transform: rotate(0deg); }
         }
-        @keyframes smokeBreath {
-          0% { opacity: 0.14; filter: blur(6px); }
-          50% { opacity: 0.22; filter: blur(10px); }
-          100% { opacity: 0.14; filter: blur(6px); }
-        }
-        .typing-container {
+        .typing-box {
           position: relative;
-          border: 1px solid transparent;
           border-radius: 1.25rem;
-          background:
-            linear-gradient(white, white) padding-box,
-            linear-gradient(120deg, rgba(0,0,0,0.12), rgba(230,0,0,0.22), rgba(0,0,0,0.14), rgba(230,0,0,0.2)) border-box;
-          background-size: 500% 500%;
-          animation: smokeFlow 12s ease-in-out infinite;
-          box-shadow: 0 0 20px rgba(230,0,0,0.035);
+          background: white;
+          border: 1px solid rgba(0,0,0,0.1);
+          overflow: visible;
           z-index: 1;
         }
-        .smoke-aura {
+        .typing-box::before {
+          content: "";
           position: absolute;
-          inset: -10px;
-          border-radius: 1.6rem;
-          pointer-events: none;
-          background: conic-gradient(from 0deg at 50% 50%, rgba(230,0,0,0.22), rgba(0,0,0,0.16), rgba(230,0,0,0.22));
-          animation: smokeOrbit 18s linear infinite, smokeBreath 8s ease-in-out infinite;
-          -webkit-mask: radial-gradient(120% 140% at 50% 50%, transparent calc(100% - 6px), #000 calc(100% - 2px));
-          mask: radial-gradient(120% 140% at 50% 50%, transparent calc(100% - 6px), #000 calc(100% - 2px));
-          z-index: 0;
+          inset: -2px;
+          border-radius: inherit;
+          background: conic-gradient(
+            from 0deg,
+            rgba(230,0,0,0.35),
+            rgba(0,0,0,0.35),
+            rgba(230,0,0,0.35)
+          );
+          filter: blur(8px);
+          opacity: 0.4;
+          z-index: -1;
+          animation: rotateSmoke 18s linear infinite;
         }
-        .smoke-aura-2 {
+        .typing-box::after {
+          content: "";
           position: absolute;
-          inset: -16px;
-          border-radius: 1.9rem;
-          pointer-events: none;
-          background: conic-gradient(from 90deg at 50% 50%, rgba(0,0,0,0.2), rgba(230,0,0,0.18), rgba(0,0,0,0.2));
-          animation: smokeOrbit 22s linear infinite reverse, smokeBreath 9s ease-in-out infinite;
-          z-index: 0;
+          inset: -2px;
+          border-radius: inherit;
+          background: conic-gradient(
+            from 90deg,
+            rgba(0,0,0,0.35),
+            rgba(230,0,0,0.35),
+            rgba(0,0,0,0.35)
+          );
+          filter: blur(8px);
+          opacity: 0.3;
+          z-index: -1;
+          animation: rotateSmokeReverse 24s linear infinite;
         }
       `}</style>
       
-      <div className="relative">
-        <div className="smoke-aura" aria-hidden="true" />
-        <div className="smoke-aura-2" aria-hidden="true" />
-        <div className="typing-container">
-          <div className="bg-white rounded-[1.15rem] px-4 py-3 space-y-2">
-            {/* Textarea field */}
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Ask anything..."
-              disabled={disabled}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
-              style={{
-                lineHeight: '1.5rem',
-                fontSize: '1rem',
-                caretColor: '#e60000'
-              }}
-              className="w-full min-h-[60px] max-h-[220px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base overflow-y-auto"
-            />
+      <div className="typing-box px-4 py-3 space-y-2">
+        {/* Textarea field */}
+        <Textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Ask anything..."
+          disabled={disabled}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(e);
+            }
+          }}
+          style={{
+            lineHeight: '1.5rem',
+            fontSize: '1rem',
+            caretColor: '#e60000'
+          }}
+          className="w-full min-h-[60px] max-h-[220px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base overflow-y-auto"
+        />
 
-            {/* Icons row */}
-            <div className="flex items-center justify-center gap-3 pt-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
-              >
-                <AtSign className="w-4 h-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
-              >
-                <Zap className="w-4 h-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
-              >
-                <Link2 className="w-4 h-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
-              >
-                <Mic className="w-4 h-4" />
-              </Button>
-              <Button
-                type="submit"
-                disabled={!message.trim() || disabled}
-                size="sm"
-                className="h-9 w-9 p-0 bg-[#e60000] hover:bg-[#000000] disabled:bg-gray-300 disabled:opacity-50 rounded-full hover:scale-110 transition-all ease-in-out duration-200"
-              >
-                <Send className="w-4 h-4 text-white" />
-              </Button>
-            </div>
-          </div>
+        {/* Icons row */}
+        <div className="flex items-center justify-center gap-3 pt-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
+          >
+            <AtSign className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
+          >
+            <Zap className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
+          >
+            <Link2 className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-[#666] hover:text-[#e60000] hover:scale-110 transition-all ease-in-out duration-200"
+          >
+            <Mic className="w-4 h-4" />
+          </Button>
+          <Button
+            type="submit"
+            disabled={!message.trim() || disabled}
+            size="sm"
+            className="h-9 w-9 p-0 bg-[#e60000] hover:bg-[#000000] disabled:bg-gray-300 disabled:opacity-50 rounded-full hover:scale-110 transition-all ease-in-out duration-200"
+          >
+            <Send className="w-4 h-4 text-white" />
+          </Button>
         </div>
       </div>
     </form>
