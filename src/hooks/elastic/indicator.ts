@@ -1,23 +1,23 @@
 
 export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
-  const id = 'elastic-indicator';
   let indicator = scrollEl.querySelector<HTMLElement>(`:scope > [data-elastic-indicator="true"]`);
   if (!indicator) {
     indicator = document.createElement('div');
     indicator.setAttribute('data-elastic-indicator', 'true');
-    indicator.style.position = 'sticky';
+    indicator.style.position = 'absolute';
     indicator.style.top = '0';
     indicator.style.left = '0';
-    indicator.style.right = '0';
+    indicator.style.width = '100%';
     indicator.style.height = '4px';
     indicator.style.transformOrigin = 'top center';
     indicator.style.transform = 'scaleY(1)';
     indicator.style.opacity = '0';
-    indicator.style.zIndex = '5';
+    indicator.style.zIndex = '9999';
     indicator.style.pointerEvents = 'none';
     indicator.style.willChange = 'transform, opacity';
-    indicator.style.background = 'hsl(var(--primary) / 0.18)';
-    indicator.style.borderBottom = '1px solid hsl(var(--primary) / 0.3)';
+    indicator.style.background = 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary) / 0.4))';
+    indicator.style.borderRadius = '2px';
+    indicator.style.transition = 'opacity 0.3s ease';
 
     // Insert at very top
     if (scrollEl.firstElementChild) {
@@ -32,18 +32,20 @@ export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
 export const updateIndicator = (scrollEl: HTMLElement, distance: number) => {
   if (!scrollEl) return;
   const indicator = getOrCreateIndicator(scrollEl);
-  const clamped = Math.max(0, Math.min(distance, 120));
-  const scale = 1 + clamped / 20; // stronger visual elasticity
-  const opacity = Math.min(1, clamped / 24);
+  
+  // Scale proportionally: grows when pulling harder
+  const scale = 1 + Math.max(0, distance) / 150;
+  const opacity = Math.min(1, Math.max(0, distance) / 120);
+  
   indicator.style.opacity = `${opacity}`;
-  indicator.style.transition = 'transform 0.04s linear, opacity 0.12s ease-out';
+  indicator.style.transition = 'none';
   indicator.style.transform = `scaleY(${scale})`;
 };
 
 export const hideIndicator = (scrollEl: HTMLElement) => {
   const indicator = scrollEl?.querySelector<HTMLElement>(':scope > [data-elastic-indicator="true"]');
   if (!indicator) return;
-  indicator.style.transition = 'transform 0.42s cubic-bezier(0.25, 1.6, 0.45, 0.94), opacity 0.2s ease-out';
+  indicator.style.transition = 'transform 0.4s cubic-bezier(0.25, 1.6, 0.45, 0.94), opacity 0.3s ease';
   indicator.style.transform = 'scaleY(1)';
   indicator.style.opacity = '0';
 };

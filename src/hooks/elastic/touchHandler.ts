@@ -44,9 +44,13 @@ export const createTouchHandlers = (state: ElasticState) => {
   const handleTouchMove = (e: TouchEvent) => {
     if (!e.touches[0]) return;
     
-    // Ultra-smooth throttling for Facebook-like feel
+    // Check for disabled elastic
+    const target = e.target as Element;
+    if (target?.closest('[data-elastic-disabled="true"]')) return;
+    
+    // Frame-based throttling using requestAnimationFrame
     const now = Date.now();
-    if (now - lastTouchTime < 4) return;
+    if (now - lastTouchTime < 16) return; // ~60fps
     lastTouchTime = now;
     
     const currentX = e.touches[0].clientX;
@@ -96,17 +100,27 @@ export const createTouchHandlers = (state: ElasticState) => {
       }
 
       if (atTop && !hasContentScroll) {
-        // More elastic (easier) resistance curve for touch
         const pullDistance = Math.abs(deltaY);
-        const elasticMultiplier = 6.4;
-        const maxDistance = 280;
+        const { maxElasticDistance, elasticityMultiplier, resistanceCurve } = state.config;
 
-        const normalizedDistance = Math.min(pullDistance / maxDistance, 1);
-        const baseResistance = 0.23;
-        const midResistance = 0.12;
-        const maxResistance = 0.04;
+        // Resistance curve based on config
+        let baseResistance = 0.23;
+        let midResistance = 0.12;
+        let maxResistance = 0.04;
 
+        if (resistanceCurve === 'soft') {
+          baseResistance = 0.28;
+          midResistance = 0.16;
+          maxResistance = 0.06;
+        } else if (resistanceCurve === 'firm') {
+          baseResistance = 0.20;
+          midResistance = 0.09;
+          maxResistance = 0.02;
+        }
+
+        const normalizedDistance = Math.min(pullDistance / maxElasticDistance, 1);
         let progressiveResistance;
+        
         if (normalizedDistance < 0.3) {
           const lightCurve = normalizedDistance / 0.3;
           progressiveResistance = baseResistance - (baseResistance - midResistance) * Math.pow(lightCurve, 0.6);
@@ -117,9 +131,9 @@ export const createTouchHandlers = (state: ElasticState) => {
 
         const distanceBasedResistance = Math.max(0.05, 1 - (pullDistance / 24));
         const combinedDamping = progressiveResistance * distanceBasedResistance;
-        const elasticDeltaY = deltaY * elasticMultiplier * combinedDamping;
+        const elasticDeltaY = deltaY * elasticityMultiplier * combinedDamping;
 
-        const targetStretchY = Math.min(elasticDeltaY, maxDistance);
+        const targetStretchY = Math.min(elasticDeltaY, maxElasticDistance);
 
         state.isElasticActive = true;
         state.currentStretchY = targetStretchY;
@@ -137,8 +151,10 @@ export const createTouchHandlers = (state: ElasticState) => {
           element.style.setProperty('transform-origin', 'center top', 'important');
         }
 
-        // Update elastic indicator visual
-        updateIndicator(state.lastScrollEl || scrollEl || document.documentElement, Math.max(0, targetStretchY));
+        // Update elastic indicator if enabled
+        if (state.config.indicatorEnabled && state.lastScrollEl) {
+          updateIndicator(state.lastScrollEl, Math.max(0, targetStretchY));
+        }
 
         e.preventDefault();
       }
@@ -146,41 +162,43 @@ export const createTouchHandlers = (state: ElasticState) => {
   };
 
   const handleTouchEnd = () => {
-    console.log('FACEBOOK-STYLE TOUCH END - Elastic active:', state.isElasticActive);
-    
     if (state.isScrolling) {
       state.isScrolling = false;
     }
     
-    // FACEBOOK-STYLE elastic snap-back
+    // Elastic snap-back with smooth bounce
     if (state.isElasticActive) {
       const element = state.lastTransformEl as HTMLElement | null;
       
       if (element) {
         element.style.setProperty('transform', 'translate3d(0, 0, 0)', 'important');
-        element.style.setProperty('transition', 'transform 0.42s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important'); // Facebook-like bounce
+        element.style.setProperty('transition', 'transform 0.4s cubic-bezier(0.25, 1.6, 0.45, 0.94)', 'important');
 
-        // Remove will-change after animation completes
+        // Clean up all temporary styles after animation
         setTimeout(() => {
           element.style.removeProperty('will-change');
           element.style.removeProperty('transition');
           element.style.removeProperty('backface-visibility');
           element.style.removeProperty('transform-style');
           element.style.removeProperty('contain');
-        }, 460);
+          element.style.removeProperty('transform');
+        }, 440);
       }
       
-      // Hide indicator smoothly
-      if (state.lastScrollEl) hideIndicator(state.lastScrollEl as HTMLElement);
+      // Hide indicator smoothly if enabled
+      if (state.config.indicatorEnabled && state.lastScrollEl) {
+        hideIndicator(state.lastScrollEl as HTMLElement);
+      }
       
-      // Reset state with Facebook-like timing
+      // Reset state
       setTimeout(() => {
         state.isElasticActive = false;
         state.currentStretchX = 0;
         state.currentStretchY = 0;
+        state.scrollSpeed = 0;
         state.lastTransformEl = null;
         state.lastScrollEl = null;
-      }, 120); // Slightly longer for smoother feel
+      }, 120);
     }
   };
 

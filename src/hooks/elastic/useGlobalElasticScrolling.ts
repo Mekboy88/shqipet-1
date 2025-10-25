@@ -7,14 +7,18 @@ import { createWheelHandler } from './wheelHandler';
 import { createScrollHandler } from './scrollHandler';
 
 export const useGlobalElasticScrolling = ({
-  enabled = true, // ENABLED BY DEFAULT for elastic bounce effect
+  enabled = true,
+  maxElasticDistance = 280,
+  elasticityMultiplier = 9.5,
+  indicatorEnabled = true,
+  resistanceCurve = 'soft'
 }: GlobalElasticOptions = {}) => {
   useEffect(() => {
     if (!enabled) return;
 
-    console.log('✅ Global elastic scrolling enabled - bounce at top boundary');
+    console.log('✅ Elastic bounce active: maxDistance=' + maxElasticDistance + 'px, multiplier=' + elasticityMultiplier);
 
-    // Create elastic state
+    // Create elastic state with config
     const state: ElasticState = {
       startX: 0,
       startY: 0,
@@ -25,6 +29,16 @@ export const useGlobalElasticScrolling = ({
       animationFrame: null,
       scrollTimeout: null,
       lastTransformEl: null,
+      lastScrollEl: null,
+      scrollSpeed: 0,
+      lastScrollTime: 0,
+      config: {
+        enabled,
+        maxElasticDistance,
+        elasticityMultiplier,
+        indicatorEnabled,
+        resistanceCurve
+      }
     };
 
     // Create handlers
@@ -58,5 +72,5 @@ export const useGlobalElasticScrolling = ({
       
       console.log('✅ Elastic bounce handlers removed');
     };
-  }, [enabled]);
+  }, [enabled, maxElasticDistance, elasticityMultiplier, indicatorEnabled, resistanceCurve]);
 };
