@@ -11,27 +11,6 @@ interface ChatTypingBarProps {
 const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-  const [textareaHeight, setTextareaHeight] = useState(24); // 1 line height
-  
-  const LINE_HEIGHT = 24; // pixels per line
-  const MIN_LINES = 1;
-  const MAX_LINES = 8; // grows to 8 lines before scrolling
-
-  React.useEffect(() => {
-    if (textareaRef.current) {
-      // Reset height to measure scrollHeight accurately
-      textareaRef.current.style.height = 'auto';
-      const scrollHeight = textareaRef.current.scrollHeight;
-      const lines = Math.floor(scrollHeight / LINE_HEIGHT);
-      
-      // Calculate height: min 1 line, max 8 lines
-      const clampedLines = Math.max(MIN_LINES, Math.min(lines, MAX_LINES));
-      const newHeight = clampedLines * LINE_HEIGHT;
-      
-      setTextareaHeight(newHeight);
-    }
-  }, [message, isFocused]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,30 +60,6 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           border: 0.5px solid rgba(255, 255, 255, 0.3);
           z-index: 2;
         }
-
-        /* Hide platform scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(239, 68, 68, 0.4);
-          border-radius: 3px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(239, 68, 68, 0.6);
-        }
-
-        /* Firefox */
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(239, 68, 68, 0.4) transparent;
-        }
       `}</style>
       {/* SVG filter for organic smoke turbulence */}
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
@@ -122,7 +77,6 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         <div className="smoke-inner px-4 py-3 space-y-2">
           {/* Textarea field */}
           <Textarea
-            ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Ask anything..."
@@ -136,13 +90,12 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               }
             }}
             style={{
-              lineHeight: `${LINE_HEIGHT}px`,
+              lineHeight: "1.5rem",
               fontSize: "1rem",
               caretColor: "hsl(var(--destructive))",
-              height: `${textareaHeight}px`,
-              maxHeight: `${MAX_LINES * LINE_HEIGHT}px`,
+              height: (isFocused || message.trim().length > 0) ? "60px" : "20px",
             }}
-            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 text-base custom-scrollbar overflow-y-auto transition-[height] duration-200 ease-out`}
+            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base ${isFocused || message.trim().length > 0 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[3500ms] ease-in-out`}
           />
 
           {/* Icons row */}
