@@ -443,14 +443,14 @@ const CreatePostDesktop: React.FC = () => {
             </div>
           </div>
 
-          {/* Floating AI Button */}
-          <FloatingAIButton />
+          {/* AI Buttons Row */}
+          <div className="flex justify-center gap-4 -mt-4 mb-4">
+            <FloatingAIButton />
+            <PostIntentSection selectedIntent={postIntent} onSelectIntent={setPostIntent} />
+          </div>
 
           {/* AI Smart Summary */}
           <AISmartSummary content={postContent} />
-
-          {/* Post Intent Section */}
-          <PostIntentSection selectedIntent={postIntent} onSelectIntent={setPostIntent} />
 
           {/* Media Toolbar */}
           <div className="border-t border-gray-200 pt-4 mb-6">
