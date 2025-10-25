@@ -48,6 +48,16 @@ export const createWheelHandler = (state: ElasticState) => {
 
     // Get transform target (ensure we don't pick the indicator itself)
     let container = getTransformTarget(scrollEl) as HTMLElement | null;
+
+    // If transform target is body, prefer its first real content child (skip indicator)
+    if (container === document.body) {
+      let candidate = document.body.firstElementChild as HTMLElement | null;
+      if (candidate && candidate.getAttribute('data-elastic-indicator') === 'true') {
+        candidate = candidate.nextElementSibling as HTMLElement | null;
+      }
+      if (candidate) container = candidate;
+    }
+
     const indicatorEl = scrollEl.querySelector(':scope > [data-elastic-indicator="true"]') as HTMLElement | null;
     if (indicatorEl && container === indicatorEl) {
       container = (indicatorEl.nextElementSibling as HTMLElement) || container;

@@ -50,8 +50,8 @@ export const createTouchHandlers = (state: ElasticState) => {
     if (deltaY > 1 || deltaY < -1) {
       if ((target as HTMLElement).closest('[data-horizontal-scroll="true"]')) return;
 
-      const scrollEl = getNearestScrollContainer(target) as HTMLElement;
-      if (!scrollEl) return;
+      let scrollEl = getNearestScrollContainer(target) as HTMLElement | null;
+      if (!scrollEl) scrollEl = document.documentElement as unknown as HTMLElement;
 
       // Ensure indicator can attach to correct scroll context
       state.lastScrollEl = scrollEl;
@@ -70,10 +70,22 @@ export const createTouchHandlers = (state: ElasticState) => {
         const elasticDelta = deltaY * elasticityMultiplier * 0.25; // negative
         state.currentStretchY = Math.max(elasticDelta, -maxElasticDistance);
       } else {
-        return; // Not at a boundary
+        // Not at a boundary; still ensure indicator hides if it was shown
+        if (state.config.indicatorEnabled && state.lastScrollEl) {
+          hideIndicator(state.lastScrollEl as HTMLElement);
+        }
+        return;
       }
 
       let element = getTransformTarget(scrollEl) as HTMLElement | null;
+      // If transform target is body, use real content (skip indicator)
+      if (element === document.body) {
+        let candidate = document.body.firstElementChild as HTMLElement | null;
+        if (candidate && candidate.getAttribute('data-elastic-indicator') === 'true') {
+          candidate = candidate.nextElementSibling as HTMLElement | null;
+        }
+        if (candidate) element = candidate;
+      }
       const indicatorEl = scrollEl.querySelector(':scope > [data-elastic-indicator="true"]') as HTMLElement | null;
       if (indicatorEl && element === indicatorEl) {
         element = (indicatorEl.nextElementSibling as HTMLElement) || element;
