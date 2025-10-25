@@ -21,21 +21,29 @@ export const createWheelHandler = (state: ElasticState) => {
     const scrollEl = (getNearestScrollContainer(target) as HTMLElement) || document.documentElement;
     if (!scrollEl) return;
 
-    // Must be at the very top and scrolling upward fast
+    // Direction and boundaries
     const deltaY = -e.deltaY;
     const atTop = scrollEl.scrollTop <= 0;
+    const atBottom = Math.ceil(scrollEl.scrollTop + scrollEl.clientHeight) >= scrollEl.scrollHeight;
     const fastUpward = deltaY > 10;
+    const fastDownward = e.deltaY > 10; // original deltaY positive means scrolling down
 
-    if (!(fastUpward && atTop)) {
+    if (!(fastUpward && atTop) && !(fastDownward && atBottom)) {
       return; // allow natural scrolling
     }
 
     e.preventDefault();
 
-    // Calculate elastic stretch with resistance
     const { maxElasticDistance, elasticityMultiplier } = state.config;
-    const elasticDelta = deltaY * elasticityMultiplier * 0.2;
-    state.currentStretchY = Math.min(state.currentStretchY + elasticDelta, maxElasticDistance);
+    let elasticDelta = 0;
+
+    if (fastUpward && atTop) {
+      elasticDelta = deltaY * elasticityMultiplier * 0.2; // positive
+      state.currentStretchY = Math.min(state.currentStretchY + elasticDelta, maxElasticDistance);
+    } else if (fastDownward && atBottom) {
+      const downwardDelta = e.deltaY * elasticityMultiplier * 0.2; // positive
+      state.currentStretchY = Math.max(state.currentStretchY - downwardDelta, -maxElasticDistance); // negative stretch
+    }
 
     // Get transform target (ensure we don't pick the indicator itself)
     let container = getTransformTarget(scrollEl) as HTMLElement | null;
@@ -53,11 +61,11 @@ export const createWheelHandler = (state: ElasticState) => {
       container.style.willChange = 'transform';
       container.style.transition = 'none';
     }
-    
+
     state.isElasticActive = true;
     container.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
 
-    // Update indicator if enabled
+    // Update indicator (use negative distance for bottom to compress)
     if (state.config.indicatorEnabled && state.lastScrollEl) {
       updateIndicator(state.lastScrollEl, state.currentStretchY);
     }
@@ -68,7 +76,7 @@ export const createWheelHandler = (state: ElasticState) => {
       if (container) {
         container.style.transition = 'transform 0.42s cubic-bezier(0.25, 1.6, 0.45, 0.94)';
         container.style.transform = 'translate3d(0, 0, 0)';
-        
+
         setTimeout(() => {
           container.style.transition = '';
           container.style.willChange = '';

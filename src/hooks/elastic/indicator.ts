@@ -41,11 +41,17 @@ export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
 export const updateIndicator = (scrollEl: HTMLElement, distance: number) => {
   if (!scrollEl) return;
   const indicator = getOrCreateIndicator(scrollEl);
-  
-  // More aggressive elastic scaling: grows much faster when pulling
-  const scale = 1 + Math.max(0, distance) / 40; // Changed from 150 to 40 for more visible stretch
-  const opacity = Math.min(1, Math.max(0, distance) / 60); // Changed from 120 to 60 for faster fade-in
-  
+
+  const d = Number.isFinite(distance) ? distance : 0;
+  const abs = Math.abs(d);
+
+  // Top pull (d >= 0): grow; Bottom push (d < 0): compress
+  const growScale = 1 + abs / 40; // fast growth
+  const compressScale = Math.max(0.5, 1 - abs / 60); // don't collapse completely
+  const scale = d >= 0 ? growScale : compressScale;
+
+  const opacity = Math.min(1, abs / 40); // show quickly on small pulls
+
   indicator.style.opacity = `${opacity}`;
   indicator.style.transition = 'none';
   indicator.style.transform = `scaleY(${scale})`;

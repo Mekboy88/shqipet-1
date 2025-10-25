@@ -46,19 +46,29 @@ export const createTouchHandlers = (state: ElasticState) => {
       return;
     }
     
-    // Only allow pull-down when at top
-    if (deltaY > 1) {
+    // Elastic at boundaries: top pull-down or bottom push-up
+    if (deltaY > 1 || deltaY < -1) {
       if ((target as HTMLElement).closest('[data-horizontal-scroll="true"]')) return;
 
       const scrollEl = getNearestScrollContainer(target) as HTMLElement;
       if (!scrollEl) return;
-      
+
       const atTop = scrollEl.scrollTop <= 0;
-      if (!atTop) return;
+      const atBottom = Math.ceil(scrollEl.scrollTop + scrollEl.clientHeight) >= scrollEl.scrollHeight;
 
       const { maxElasticDistance, elasticityMultiplier } = state.config;
-      const elasticDelta = deltaY * elasticityMultiplier * 0.25;
-      state.currentStretchY = Math.min(elasticDelta, maxElasticDistance);
+
+      if (deltaY > 1 && atTop) {
+        // Pulling down at top -> positive stretch
+        const elasticDelta = deltaY * elasticityMultiplier * 0.25;
+        state.currentStretchY = Math.min(elasticDelta, maxElasticDistance);
+      } else if (deltaY < -1 && atBottom) {
+        // Pushing up at bottom -> negative stretch
+        const elasticDelta = deltaY * elasticityMultiplier * 0.25; // negative
+        state.currentStretchY = Math.max(elasticDelta, -maxElasticDistance);
+      } else {
+        return; // Not at a boundary
+      }
 
       let element = getTransformTarget(scrollEl) as HTMLElement | null;
       const indicatorEl = scrollEl.querySelector(':scope > [data-elastic-indicator="true"]') as HTMLElement | null;
@@ -68,12 +78,12 @@ export const createTouchHandlers = (state: ElasticState) => {
       if (element) {
         state.lastTransformEl = element;
         state.lastScrollEl = scrollEl;
-        
+
         if (!state.isElasticActive) {
           element.style.willChange = 'transform';
           element.style.transition = 'none';
         }
-        
+
         state.isElasticActive = true;
         element.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
       }
