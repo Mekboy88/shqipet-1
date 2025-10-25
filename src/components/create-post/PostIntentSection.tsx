@@ -30,12 +30,12 @@ const PostIntentSection: React.FC<PostIntentSectionProps> = ({ selectedIntent, o
         whileTap={{ scale: 0.95 }}
       >
         {/* Pulsing Glow Ring */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 opacity-75 blur-md animate-pulse" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-200 to-purple-300 opacity-75 blur-md animate-pulse" />
         
         {/* Main Button */}
-        <div className="relative flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg">
-          <Folder className="w-5 h-5 text-white animate-pulse" />
-          <span className="font-semibold text-white text-sm">Category</span>
+        <div className="relative flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-200 to-purple-300 rounded-full shadow-lg">
+          <Folder className="w-5 h-5 text-gray-700 animate-pulse" />
+          <span className="font-semibold text-gray-700 text-sm">Category</span>
         </div>
       </motion.button>
 
