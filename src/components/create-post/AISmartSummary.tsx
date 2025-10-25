@@ -35,7 +35,7 @@ const AISmartSummary: React.FC<AISmartSummaryProps> = ({ content }) => {
           className="mb-4 p-4 bg-accent/10 rounded-2xl border-2 border-accent/30 shadow-sm backdrop-blur-xl"
         >
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-card rounded-xl shadow-sm border border-border">
+            <div className="p-2 bg-accent/20 rounded-xl shadow-sm border border-accent/40">
               <Sparkles className="w-4 h-4 text-accent animate-pulse" />
             </div>
             <div className="flex-1">
