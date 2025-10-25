@@ -29,40 +29,37 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Neon glow around border */
+        /* Neon glow around border - clipped inside edges */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -3px;
+          inset: 0;
           border-radius: 1.25rem;
           background: transparent;
-          box-shadow: 
-            0 0 5px #ff005e, 
-            0 0 10px #ff005e, 
-            0 0 20px #ff005e, 
-            0 0 40px #ff005e, 
-            0 0 80px #ff005e;
+          box-shadow:
+            inset 0 0 5px #ff005e,
+            inset 0 0 10px #ff005e,
+            inset 0 0 20px #ff005e,
+            inset 0 0 40px #ff005e;
           animation: neon-glow 1.5s infinite alternate;
           pointer-events: none;
-          z-index: -1;
+          z-index: 0;
         }
 
         @keyframes neon-glow {
           0% {
-            box-shadow: 
-              0 0 5px #ff005e, 
-              0 0 10px #ff005e, 
-              0 0 20px #ff005e, 
-              0 0 40px #ff005e, 
-              0 0 80px #ff005e;
+            box-shadow:
+              inset 0 0 5px #ff005e,
+              inset 0 0 10px #ff005e,
+              inset 0 0 20px #ff005e,
+              inset 0 0 40px #ff005e;
           }
           100% {
-            box-shadow: 
-              0 0 10px #00d4ff, 
-              0 0 20px #00d4ff, 
-              0 0 40px #00d4ff, 
-              0 0 80px #00d4ff, 
-              0 0 160px #00d4ff;
+            box-shadow:
+              inset 0 0 8px #00d4ff,
+              inset 0 0 16px #00d4ff,
+              inset 0 0 32px #00d4ff,
+              inset 0 0 64px #00d4ff;
           }
         }
 
