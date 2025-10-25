@@ -11,7 +11,7 @@ const FeedScrollContainer: React.FC<FeedScrollContainerProps> = ({
   className
 }) => {
   return <div ref={feedContainerRef} style={{
-    scrollBehavior: 'smooth',
+    scrollBehavior: 'auto',
     WebkitOverflowScrolling: 'touch',
     width: '100%',
     height: '100%',

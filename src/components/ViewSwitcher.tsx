@@ -234,7 +234,6 @@ const ViewSwitcher: React.FC = () => {
                 <div className="min-h-screen bg-gray-50">
                   <RoutePersistence />
                   <TermsOfUse />
-                  <GlobalScrollIndicator />
                   {/* Removed toast system - using notification system */}
                 </div>
               </BrowserRouter>
@@ -319,7 +318,6 @@ const ViewSwitcher: React.FC = () => {
                                <AppComponent />
                                <DesktopMobileToggle />
                              </div>
-                             <GlobalScrollIndicator />
                              {/* Removed toast system - using notification system */}
                            </PublishingProgressProvider>
                         </PostsProvider>

@@ -16,6 +16,16 @@ export const useGlobalElasticScrolling = ({
   useEffect(() => {
     if (!enabled) return;
 
+    // Only enable on touch devices to prevent desktop scroll blocking
+    const isTouchDevice = ('ontouchstart' in window) || 
+                          (navigator.maxTouchPoints > 0) || 
+                          window.matchMedia('(pointer: coarse)').matches;
+    
+    if (!isTouchDevice) {
+      console.log('✅ Elastic bounce skipped: desktop device detected');
+      return;
+    }
+
     console.log('✅ Elastic bounce active: maxDistance=' + maxElasticDistance + 'px, multiplier=' + elasticityMultiplier);
 
     // Create elastic state with config
@@ -43,24 +53,21 @@ export const useGlobalElasticScrolling = ({
 
     // Create handlers
     const touchHandlers = createTouchHandlers(state);
-    const wheelHandler = createWheelHandler(state);
     const scrollHandler = createScrollHandler(state);
 
-    // Attach event listeners
+    // Attach event listeners (touch only - no wheel listener)
     document.addEventListener('touchstart', touchHandlers.handleTouchStart, { passive: true });
     document.addEventListener('touchmove', touchHandlers.handleTouchMove, { passive: false });
     document.addEventListener('touchend', touchHandlers.handleTouchEnd, { passive: true });
-    document.addEventListener('wheel', wheelHandler.handleWheel, { passive: false });
     window.addEventListener('scroll', scrollHandler.handleScroll, { passive: true });
 
-    console.log('✅ Elastic bounce handlers attached globally');
+    console.log('✅ Elastic bounce handlers attached (touch only)');
 
     // Cleanup
     return () => {
       document.removeEventListener('touchstart', touchHandlers.handleTouchStart);
       document.removeEventListener('touchmove', touchHandlers.handleTouchMove);
       document.removeEventListener('touchend', touchHandlers.handleTouchEnd);
-      document.removeEventListener('wheel', wheelHandler.handleWheel);
       window.removeEventListener('scroll', scrollHandler.handleScroll);
       
       if (state.animationFrame) {
