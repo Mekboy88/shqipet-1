@@ -15,10 +15,20 @@ interface Message {
 
 interface CollapsibleAIChatProps {
   onUseText?: (text: string) => void;
+  hideToggleButton?: boolean;
+  isExpanded?: boolean;
+  onToggleChange?: (isExpanded: boolean) => void;
 }
 
-const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ 
+  onUseText, 
+  hideToggleButton = false, 
+  isExpanded: controlledIsExpanded,
+  onToggleChange 
+}) => {
+  const [internalIsExpanded, setInternalIsExpanded] = useState(false);
+  const isExpanded = controlledIsExpanded !== undefined ? controlledIsExpanded : internalIsExpanded;
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -29,6 +39,13 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  const toggleExpanded = (value: boolean) => {
+    if (controlledIsExpanded === undefined) {
+      setInternalIsExpanded(value);
+    }
+    onToggleChange?.(value);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -87,24 +104,26 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
   return (
     <>
       {/* Toggle Button (visible when collapsed) */}
-      <AnimatePresence>
-        {!isExpanded && (
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            className="fixed right-4 top-24 z-50"
-          >
-            <Button
-              onClick={() => setIsExpanded(true)}
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg rounded-full px-4 py-2 flex items-center gap-2"
+      {!hideToggleButton && (
+        <AnimatePresence>
+          {!isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              className="fixed right-4 top-24 z-50"
             >
-              <MessageSquare className="w-5 h-5" />
-              <span className="font-medium">💬 Shqipet AI</span>
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <Button
+                onClick={() => toggleExpanded(true)}
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg rounded-full px-4 py-2 flex items-center gap-2"
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span className="font-medium">💬 Shqipet AI</span>
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Chat Sidebar */}
       <AnimatePresence>
@@ -126,7 +145,7 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({ onUseText }) => {
                 </div>
               </div>
               <Button
-                onClick={() => setIsExpanded(false)}
+                onClick={() => toggleExpanded(false)}
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:bg-gray-100 transition-colors"

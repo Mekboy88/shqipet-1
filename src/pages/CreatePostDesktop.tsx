@@ -7,9 +7,9 @@ import PostIntentSection from '@/components/create-post/PostIntentSection';
 import AISmartSummary from '@/components/create-post/AISmartSummary';
 import { 
   Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, 
-  EyeOff, MessageSquare, Heart, Share2, Shield, Clock, Globe,
+  EyeOff, Heart, Share2, Shield, Clock, Globe,
   Settings2, ChevronDown, Sparkles, Brain, Lightbulb, TrendingUp,
-  Calendar, Languages, Info, Save, Eye, Send, X, Mic2
+  Calendar, Languages, Info, Save, Eye, Send, X, Mic2, MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -45,6 +45,7 @@ const CreatePostDesktop: React.FC = () => {
   const [aiScan, setAiScan] = useState(true);
   const [isPublishing, setIsPublishing] = useState(false);
   const [postIntent, setPostIntent] = useState('emotion');
+  const [showAIChat, setShowAIChat] = useState(false);
 
   useEffect(() => {
     if (showTip) {
@@ -447,6 +448,25 @@ const CreatePostDesktop: React.FC = () => {
           <div className="flex justify-center gap-4 -mt-4 mb-4">
             <FloatingAIButton />
             <PostIntentSection selectedIntent={postIntent} onSelectIntent={setPostIntent} />
+            
+            {/* AI Chat Toggle Button */}
+            {!showAIChat && (
+              <motion.button
+                onClick={() => setShowAIChat(true)}
+                className="relative group"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {/* Pulsing Glow Ring */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-teal-600 opacity-75 blur-md animate-pulse" />
+                
+                {/* Main Button */}
+                <div className="relative flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-teal-600 rounded-full shadow-lg">
+                  <MessageSquare className="w-5 h-5 text-white animate-pulse" />
+                  <span className="font-semibold text-white text-sm">AI Chat</span>
+                </div>
+              </motion.button>
+            )}
           </div>
 
           {/* AI Smart Summary */}
@@ -516,7 +536,12 @@ const CreatePostDesktop: React.FC = () => {
       </div>
 
       {/* Collapsible AI Chat Sidebar */}
-      <CollapsibleAIChat onUseText={(text) => setPostContent(prev => prev + '\n\n' + text)} />
+      <CollapsibleAIChat 
+        onUseText={(text) => setPostContent(prev => prev + '\n\n' + text)} 
+        hideToggleButton={true}
+        isExpanded={showAIChat}
+        onToggleChange={setShowAIChat}
+      />
     </div>
   );
 };
