@@ -50,19 +50,19 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         @keyframes neon-glow-typing {
           0%, 100% {
             box-shadow:
-              0 0 6px rgba(255, 0, 94, 0.35),
-              0 0 12px rgba(255, 0, 94, 0.25),
-              0 0 24px rgba(255, 0, 94, 0.18),
-              0 0 40px rgba(255, 0, 94, 0.12),
-              0 0 64px rgba(255, 0, 94, 0.08);
+              0 0 3px rgba(255, 0, 94, 0.4),
+              0 0 6px rgba(255, 0, 94, 0.3),
+              0 0 10px rgba(255, 0, 94, 0.2),
+              0 0 15px rgba(255, 0, 94, 0.15),
+              0 0 22px rgba(255, 0, 94, 0.1);
           }
           50% {
             box-shadow:
-              0 0 8px rgba(0, 212, 255, 0.35),
-              0 0 16px rgba(0, 212, 255, 0.25),
-              0 0 28px rgba(0, 212, 255, 0.18),
-              0 0 44px rgba(0, 212, 255, 0.12),
-              0 0 72px rgba(0, 212, 255, 0.08);
+              0 0 4px rgba(0, 212, 255, 0.4),
+              0 0 8px rgba(0, 212, 255, 0.3),
+              0 0 12px rgba(0, 212, 255, 0.2),
+              0 0 18px rgba(0, 212, 255, 0.15),
+              0 0 26px rgba(0, 212, 255, 0.1);
           }
         }
 
