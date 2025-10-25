@@ -161,7 +161,10 @@ const Feed: React.FC = () => {
   }
 
   // Desktop/Laptop layout with right sidebar scrolling with feed
-  return <div ref={mainScrollRef} className="min-h-screen bg-muted w-full overflow-x-hidden">
+  return <div ref={mainScrollRef} className="min-h-screen bg-muted w-full overflow-y-auto overflow-x-hidden" style={{
+    height: '100vh',
+    scrollBehavior: 'auto'
+  }}>
       {/* Publishing Progress Indicator */}
       <PublishingProgressIndicator isVisible={isPublishing} onComplete={stopPublishing} postContent={publishingData?.content || ''} hasFiles={publishingData?.hasFiles || false} files={publishingData?.files || []} />
       
@@ -172,14 +175,14 @@ const Feed: React.FC = () => {
             
             {/* Left Sidebar - Fixed positioning, doesn't scroll with content */}
             <div className="w-64 flex-shrink-0 mr-4">
-              <div className="sticky top-16 h-[calc(100vh-4rem)]">
+              <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
                 <LeftSidebarContainer showReelsViewer={false} onCloseReelsViewer={() => {}} reels={reels} />
               </div>
             </div>
             
             {/* Main Feed Content - Aligned with sidebars */}
             <div className="w-full max-w-[650px] flex-shrink-0 mr-4">
-              <FeedContent showPiP={showPiP} />
+              <FeedContent showPiP={showPiP} scrollContainerRef={mainScrollRef} />
             </div>
             
             {/* Right Sidebar - Scrolls with the feed content */}

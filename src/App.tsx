@@ -99,6 +99,7 @@ import { setVideoSecurityNotificationCallback } from '@/utils/videoSecurity';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
 import { sessionPersistenceService } from '@/services/sessionPersistence';
 import GlobalAvatarBootstrap from '@/components/avatar/GlobalAvatarBootstrap';
+import { useGlobalElasticScrolling } from '@/hooks/useGlobalElasticScrolling';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -130,7 +131,7 @@ const AppBackground: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   }, [isMarketplace]);
 
   return (
-    <div className={`min-h-screen ${isMarketplace ? 'bg-transparent' : 'bg-background'}`}>
+    <div data-elastic-container="true" className={`min-h-screen ${isMarketplace ? 'bg-transparent' : 'bg-background'}`}>
       {children}
     </div>
   );
@@ -140,6 +141,9 @@ const AppBackground: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 function App() {
   // Enable instant updates and cache clearing
   useInstantUpdates();
+  
+  // Enable global elastic scrolling with momentum on all pages
+  useGlobalElasticScrolling({ enabled: true, maxElasticDistance: 400, elasticityMultiplier: 13 });
   
   // SECURITY: Clear any insecure admin portal data on app startup
   React.useEffect(() => {
@@ -167,13 +171,6 @@ function App() {
     };
   }, []);
   
-  // Ensure no stale scroll locks on initial load
-  React.useEffect(() => {
-    document.body.style.overflow = '';
-    document.documentElement.classList.remove('overflow-hidden');
-    document.documentElement.style.overflow = '';
-  }, []);
-
   // Video security notification system
   const { blockedCount, showBanner, reportBlockedVideo, dismissBanner } = useVideoSecurityNotification();
   

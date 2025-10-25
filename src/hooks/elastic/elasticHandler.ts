@@ -5,30 +5,37 @@ import { applyElasticTransform } from './elasticTransform';
 
 export const createElasticHandler = (state: ElasticState) => {
   const canStartElastic = (startX: number, startY: number): boolean => {
-    // COMPLETELY block if any scrolling is active
+    // Allow elastic only when not actively scrolling
     if (state.isScrolling) {
-      console.log('ELASTIC BLOCKED - Scrolling is active');
       return false;
     }
     
-    // COMPLETELY block elastic - prioritize scrolling always
-    console.log('ELASTIC BLOCKED - Scrolling prioritized over elastic');
-    return false;
+    return true;
   };
 
   const handleElasticMove = (deltaY: number, e: TouchEvent): boolean => {
-    // INSTANTLY block elastic during any activity
-    console.log('ELASTIC MOVE BLOCKED - Preventing all elastic behavior');
-    state.isElasticActive = false;
-    state.currentStretchX = 0;
-    state.currentStretchY = 0;
-    return false;
+    // Allow subtle elastic movement
+    if (!state.isElasticActive) {
+      return false;
+    }
+    
+    const resistance = 0.35; // Lower = more elastic (reduced from default)
+    const targetStretchY = deltaY * resistance;
+    
+    const { currentStretchY } = applyElasticTransform(
+      0,
+      targetStretchY,
+      state.currentStretchX,
+      state.currentStretchY
+    );
+    
+    state.currentStretchY = currentStretchY;
+    return true;
   };
 
   const startElastic = (deltaY: number, e: TouchEvent): boolean => {
-    // COMPLETELY disable elastic functionality to prevent conflicts
-    console.log('ELASTIC START BLOCKED - Elastic completely disabled');
-    return false;
+    state.isElasticActive = true;
+    return true;
   };
 
   return {
