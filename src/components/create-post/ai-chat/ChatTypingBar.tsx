@@ -29,7 +29,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           z-index: 1;
         }
 
-        /* Soft smoke clouds floating around - no thick border */
+        /* Soft smoke clouds floating ONLY outside border */
         .smoke-wrap::before {
           content: "";
           position: absolute;
@@ -44,11 +44,18 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
             radial-gradient(ellipse 50px 35px at 70% 95%, hsl(var(--primary) / var(--smoke-intensity)), transparent),
             radial-gradient(ellipse 60px 40px at 30% 92%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
             radial-gradient(ellipse 50px 35px at 5% 60%, hsl(var(--primary) / var(--smoke-intensity)), transparent);
+          -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box, 
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          padding: 20px;
           filter: blur(20px) url(#smoke-turbulence);
-          animation: smoke-float 8s linear infinite, smoke-pulse 4s ease-in-out infinite;
+          animation: smoke-float 10s linear infinite, smoke-pulse 4s ease-in-out infinite;
+          transform-origin: center center;
           pointer-events: none;
           z-index: -1;
-          --smoke-intensity: 0.2;
+          --smoke-intensity: 0.25;
         }
 
         @keyframes smoke-float {
@@ -62,10 +69,10 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
 
         @keyframes smoke-pulse {
           0%, 100% { 
-            --smoke-intensity: 0.2;
+            --smoke-intensity: 0.25;
           }
           50% { 
-            --smoke-intensity: 0.35;
+            --smoke-intensity: 0.42;
           }
         }
 
