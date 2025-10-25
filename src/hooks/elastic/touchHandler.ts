@@ -60,11 +60,11 @@ export const createTouchHandlers = (state: ElasticState) => {
 
       if (deltaY > 1 && atTop) {
         // Pulling down at top -> positive stretch
-        const elasticDelta = deltaY * elasticityMultiplier * 0.25;
+        const elasticDelta = deltaY * elasticityMultiplier * 0.45;
         state.currentStretchY = Math.min(elasticDelta, maxElasticDistance);
       } else if (deltaY < -1 && atBottom) {
         // Pushing up at bottom -> negative stretch
-        const elasticDelta = deltaY * elasticityMultiplier * 0.25; // negative
+        const elasticDelta = deltaY * elasticityMultiplier * 0.45; // negative
         state.currentStretchY = Math.max(elasticDelta, -maxElasticDistance);
       } else {
         return; // Not at a boundary

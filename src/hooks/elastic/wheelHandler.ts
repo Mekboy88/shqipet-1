@@ -39,10 +39,10 @@ export const createWheelHandler = (state: ElasticState) => {
     const { maxElasticDistance, elasticityMultiplier } = state.config;
 
     if (pullingDownAtTop) {
-      const elasticDelta = deltaY * elasticityMultiplier * 0.2; // positive
+      const elasticDelta = deltaY * elasticityMultiplier * 0.4; // positive
       state.currentStretchY = Math.min(state.currentStretchY + elasticDelta, maxElasticDistance);
     } else if (pushingUpAtBottom) {
-      const downwardDelta = e.deltaY * elasticityMultiplier * 0.2; // positive
+      const downwardDelta = e.deltaY * elasticityMultiplier * 0.4; // positive
       state.currentStretchY = Math.max(state.currentStretchY - downwardDelta, -maxElasticDistance); // negative stretch
     }
 

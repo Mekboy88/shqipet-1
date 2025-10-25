@@ -8,8 +8,8 @@ import { createScrollHandler } from './scrollHandler';
 
 export const useGlobalElasticScrolling = ({
   enabled = true,
-  maxElasticDistance = 280,
-  elasticityMultiplier = 9.5,
+  maxElasticDistance = 450,
+  elasticityMultiplier = 16,
   indicatorEnabled = true,
   resistanceCurve = 'soft'
 }: GlobalElasticOptions = {}) => {
