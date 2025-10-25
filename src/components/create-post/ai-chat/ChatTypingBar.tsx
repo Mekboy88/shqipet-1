@@ -22,57 +22,48 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
   return (
     <form onSubmit={handleSubmit} className="relative">
       <style>{`
-        @keyframes rotateSmoke {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes smokeDrift {
+          0% { transform: rotate(0deg) scale(1); filter: blur(9px); }
+          50% { transform: rotate(180deg) scale(1.02); filter: blur(11px); }
+          100% { transform: rotate(360deg) scale(1); filter: blur(9px); }
         }
-        @keyframes rotateSmokeReverse {
-          from { transform: rotate(360deg); }
-          to { transform: rotate(0deg); }
+        @keyframes smokeDriftReverse {
+          0% { transform: rotate(360deg) scale(1); filter: blur(10px); }
+          50% { transform: rotate(180deg) scale(1.03); filter: blur(12px); }
+          100% { transform: rotate(0deg) scale(1); filter: blur(10px); }
         }
-        .typing-box {
+        .smoke-wrap {
           position: relative;
           border-radius: 1.25rem;
-          background: white;
-          border: 1px solid rgba(0,0,0,0.1);
           overflow: visible;
-          z-index: 1;
         }
-        .typing-box::before {
+        .smoke-wrap::before,
+        .smoke-wrap::after {
           content: "";
           position: absolute;
           inset: -2px;
           border-radius: inherit;
+          pointer-events: none;
           background: conic-gradient(
             from 0deg,
-            rgba(230,0,0,0.35),
-            rgba(0,0,0,0.35),
-            rgba(230,0,0,0.35)
+            rgba(230,0,0,0.3) 0deg,
+            rgba(0,0,0,0.3) 120deg,
+            rgba(230,0,0,0.3) 240deg,
+            rgba(0,0,0,0.3) 360deg
           );
-          filter: blur(8px);
-          opacity: 0.4;
-          z-index: -1;
-          animation: rotateSmoke 18s linear infinite;
-        }
-        .typing-box::after {
-          content: "";
-          position: absolute;
-          inset: -2px;
-          border-radius: inherit;
-          background: conic-gradient(
-            from 90deg,
-            rgba(0,0,0,0.35),
-            rgba(230,0,0,0.35),
-            rgba(0,0,0,0.35)
-          );
-          filter: blur(8px);
+          mix-blend-mode: lighten;
           opacity: 0.3;
           z-index: -1;
-          animation: rotateSmokeReverse 24s linear infinite;
+          animation: smokeDrift 22s linear infinite;
+        }
+        .smoke-wrap::after {
+          animation: smokeDriftReverse 28s linear infinite;
+          opacity: 0.25;
         }
       `}</style>
       
-      <div className="typing-box px-4 py-3 space-y-2">
+      <div className="smoke-wrap">
+        <div className="border border-gray-300 rounded-[1.25rem] bg-white px-4 py-3 space-y-2">
         {/* Textarea field */}
         <Textarea
           value={message}
@@ -135,6 +126,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           >
             <Send className="w-4 h-4 text-white" />
           </Button>
+        </div>
         </div>
       </div>
     </form>
