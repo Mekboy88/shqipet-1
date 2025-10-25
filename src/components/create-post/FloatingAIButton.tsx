@@ -55,7 +55,7 @@ const FloatingAIButton: React.FC<FloatingAIButtonProps> = ({
   ];
 
   return (
-    <div className="relative flex justify-center -mt-4 mb-4">
+    <div className="relative">
       {/* Floating AI Button */}
       <motion.button
         onClick={() => setShowPopup(!showPopup)}
