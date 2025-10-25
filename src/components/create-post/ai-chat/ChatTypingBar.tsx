@@ -22,57 +22,40 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
   return (
     <form onSubmit={handleSubmit} className="relative">
       <style>{`
-        @keyframes shift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+        @keyframes smokeShift {
+          0% { 
+            background-position: 0% 50%; 
+            filter: blur(0px); 
+          }
+          50% { 
+            background-position: 100% 50%; 
+            filter: blur(1px); 
+          }
+          100% { 
+            background-position: 0% 50%; 
+            filter: blur(0px); 
+          }
         }
-        .animated-border-glow {
-          border: 1px solid transparent;
-          border-radius: 1rem;
+        .smoke-border {
           background: 
             linear-gradient(white, white) padding-box,
-            linear-gradient(120deg, #000, #e60000, #000) border-box;
-          background-size: 300% 300%;
-          animation: shift 6s ease infinite;
+            radial-gradient(circle at 30% 30%, rgba(230, 0, 0, 0.4), transparent 60%),
+            radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.4), transparent 60%),
+            linear-gradient(120deg, #000000, #e60000, #000000) border-box;
+          border: 2px solid transparent;
+          border-radius: 1.5rem;
+          background-size: 400% 400%;
+          animation: smokeShift 8s ease-in-out infinite;
         }
       `}</style>
       
-      <div className="animated-border-glow">
-        <div className="flex items-start gap-2 px-4 py-3 bg-white rounded-[15px]">
-          {/* Left action buttons */}
-          <div className="flex items-center gap-1 pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 text-gray-600 hover:text-[#e60000] transition-colors duration-200"
-            >
-              <AtSign className="w-4 h-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 text-gray-600 hover:text-[#e60000] transition-colors duration-200"
-            >
-              <Zap className="w-4 h-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 text-gray-600 hover:text-[#e60000] transition-colors duration-200"
-            >
-              <Link2 className="w-4 h-4" />
-            </Button>
-          </div>
-
+      <div className="smoke-border shadow-[0_0_20px_rgba(230,0,0,0.08)]">
+        <div className="bg-white/90 backdrop-blur-md rounded-[1.4rem] p-4 space-y-2">
           {/* Textarea field */}
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Ask anything…"
+            placeholder="Ask anything..."
             disabled={disabled}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -81,19 +64,43 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               }
             }}
             style={{
-              lineHeight: '26px',
+              lineHeight: '24px',
               caretColor: '#e60000'
             }}
-            className="flex-1 min-h-[40px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400 text-gray-800 py-2 leading-[26px]"
+            className="w-full min-h-[60px] max-h-40 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#777] text-[#111] px-0 py-0 leading-[24px]"
           />
 
-          {/* Right action buttons */}
-          <div className="flex items-center gap-2 pt-2">
+          {/* Icons row */}
+          <div className="flex items-center justify-center gap-3 pt-2">
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 text-gray-600 hover:text-[#e60000] transition-colors duration-200"
+              className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:scale-110 transition-all duration-200"
+            >
+              <AtSign className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:scale-110 transition-all duration-200"
+            >
+              <Zap className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:scale-110 transition-all duration-200"
+            >
+              <Link2 className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-gray-600 hover:text-[#e60000] hover:scale-110 transition-all duration-200"
             >
               <Mic className="w-4 h-4" />
             </Button>
@@ -101,7 +108,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               type="submit"
               disabled={!message.trim() || disabled}
               size="sm"
-              className="h-8 w-8 p-0 bg-[#e60000] hover:bg-black disabled:bg-gray-300 disabled:opacity-50 rounded-full transition-all duration-200"
+              className="h-9 w-9 p-0 bg-[#e60000] hover:bg-black disabled:bg-gray-300 disabled:opacity-50 rounded-full hover:scale-110 transition-all duration-200"
             >
               <Send className="w-4 h-4 text-white" />
             </Button>
