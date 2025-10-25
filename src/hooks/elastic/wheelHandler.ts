@@ -38,87 +38,10 @@ export const createWheelHandler = (state: ElasticState) => {
       return; // allow natural scrolling
     }
 
-    e.preventDefault();
-
-    const { maxElasticDistance, elasticityMultiplier } = state.config;
-
-    if (pullingDownAtTop) {
-      const elasticDelta = deltaY * elasticityMultiplier * 0.2; // positive
-      state.currentStretchY = Math.min(state.currentStretchY + elasticDelta, maxElasticDistance);
-    } else if (pushingUpAtBottom) {
-      const downwardDelta = e.deltaY * elasticityMultiplier * 0.2; // positive
-      state.currentStretchY = Math.max(state.currentStretchY - downwardDelta, -maxElasticDistance); // negative stretch
-    }
-
-    // Get transform target (ensure we don't pick the indicator itself)
-    let container = getTransformTarget(scrollEl) as HTMLElement | null;
-
-    // If transform target is body, prefer its first real content child (skip indicator)
-    if (container === document.body) {
-      let candidate = document.body.firstElementChild as HTMLElement | null;
-      if (candidate && candidate.getAttribute('data-elastic-indicator') === 'true') {
-        candidate = candidate.nextElementSibling as HTMLElement | null;
-      }
-      if (candidate) container = candidate;
-    }
-
-    const indicatorEl = scrollEl.querySelector(':scope > [data-elastic-indicator="true"]') as HTMLElement | null;
-    if (indicatorEl && container === indicatorEl) {
-      container = (indicatorEl.nextElementSibling as HTMLElement) || container;
-    }
-
-    // Always set lastScrollEl so indicator can update/hide even if no container
+    // Disable wheel-based elastic to prevent any jank or jumps on desktop
     state.lastScrollEl = scrollEl;
+    return;
 
-    // Update indicator immediately during pull
-    if (container) {
-      state.lastTransformEl = container;
-
-      if (!state.isElasticActive) {
-        container.style.willChange = 'transform';
-        container.style.transition = 'none';
-      }
-
-      state.isElasticActive = true;
-    }
-
-    // Schedule transform and indicator update for next frame
-    if (state.animationFrame) cancelAnimationFrame(state.animationFrame);
-    state.animationFrame = requestAnimationFrame(() => {
-      if (container) {
-        container.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
-      }
-      if (state.config.indicatorEnabled && state.lastScrollEl) {
-        updateIndicator(state.lastScrollEl, state.currentStretchY);
-      }
-    });
-
-
-    // Snap-back after 180ms idle
-    if (resetTimeout) clearTimeout(resetTimeout);
-    resetTimeout = setTimeout(() => {
-      if (container) {
-        container.style.transition = 'transform 0.42s cubic-bezier(0.25, 1.6, 0.45, 0.94)';
-        container.style.transform = 'translate3d(0, 0, 0)';
-
-        setTimeout(() => {
-          container.style.transition = '';
-          container.style.willChange = '';
-        }, 460);
-      }
-
-      // Hide indicator
-      if (state.config.indicatorEnabled && state.lastScrollEl) {
-        hideIndicator(state.lastScrollEl);
-      }
-
-      state.isElasticActive = false;
-      state.currentStretchY = 0;
-      state.scrollSpeed = 0;
-      state.lastTransformEl = null;
-      state.lastScrollEl = null;
-      resetTimeout = null;
-    }, 180);
   };
 
   return { handleWheel };
