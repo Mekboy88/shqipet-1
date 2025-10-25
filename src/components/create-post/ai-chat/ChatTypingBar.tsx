@@ -25,15 +25,15 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         .smoke-wrap {
           position: relative;
           border-radius: 1.25rem;
-          overflow: visible;
+          overflow: hidden;
           z-index: 1;
         }
 
-        /* Outside floating smoke clouds - no border ring */
+        /* Inside floating smoke clouds - contained within typing section */
         .smoke-wrap::before {
           content: "";
           position: absolute;
-          inset: -28px;
+          inset: 0;
           border-radius: 1.25rem;
           background:
             radial-gradient(ellipse 90px 60px at -10% 30%, hsl(var(--destructive) / var(--smoke-intensity)), transparent),
