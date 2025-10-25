@@ -17,7 +17,8 @@ export const createScrollHandler = (state: ElasticState) => {
     // Show indicator subtly during normal scroll as well
     const scrollEl = (state.lastScrollEl as HTMLElement) || (getMainContainer() as HTMLElement) || document.documentElement;
     try {
-      updateIndicator(scrollEl, 0);
+      if (state.animationFrame) cancelAnimationFrame(state.animationFrame);
+      state.animationFrame = requestAnimationFrame(() => updateIndicator(scrollEl, 0));
     } catch {}
 
     // Clear any existing timeout
@@ -29,7 +30,7 @@ export const createScrollHandler = (state: ElasticState) => {
     state.scrollTimeout = setTimeout(() => {
       state.isScrolling = false;
       try {
-        hideIndicator(scrollEl);
+        requestAnimationFrame(() => hideIndicator(scrollEl));
       } catch {}
     }, 150);
   };

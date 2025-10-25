@@ -15,7 +15,7 @@ export const getOrCreateIndicator = (scrollEl: HTMLElement): HTMLElement => {
   if (!indicator) {
     indicator = document.createElement('div');
     indicator.setAttribute('data-elastic-indicator', 'true');
-    console.debug('[elastic-indicator] create', { anchor: 'viewport' });
+    // debug removed
     // Use fixed for viewport, absolute for containers
     indicator.style.position = 'fixed';
     indicator.style.top = '0';
@@ -60,19 +60,18 @@ export const updateIndicator = (scrollEl: HTMLElement, distance: number) => {
   // Make it visible quickly
   const opacity = Math.min(1, 0.2 + abs / 30);
 
-  console.debug('[elastic-indicator] update', { distance: d, scale, opacity });
-
+  
   indicator.style.opacity = `${opacity}`;
-  indicator.style.transition = 'none';
   indicator.style.transformOrigin = 'top center';
   indicator.style.transform = `scaleY(${scale})`;
+
 };
 
 export const hideIndicator = (scrollEl: HTMLElement) => {
   const anchorEl = document.body;
   const indicator = anchorEl?.querySelector<HTMLElement>(':scope > [data-elastic-indicator="true"]');
   if (!indicator) return;
-  console.debug('[elastic-indicator] hide');
+  // debug removed
   indicator.style.transition = 'transform 0.4s cubic-bezier(0.25, 1.6, 0.45, 0.94), opacity 0.3s ease';
   indicator.style.transform = 'scaleY(1)';
   indicator.style.opacity = '0';

@@ -100,14 +100,16 @@ export const createTouchHandlers = (state: ElasticState) => {
         }
 
         state.isElasticActive = true;
-        element.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
-      }
 
-      if (state.config.indicatorEnabled && state.lastScrollEl) {
-        console.debug('[elastic-indicator] touch', { atTop, atBottom, distance: state.currentStretchY });
-        updateIndicator(state.lastScrollEl, state.currentStretchY);
+        // Schedule transform and indicator update for next frame
+        if (state.animationFrame) cancelAnimationFrame(state.animationFrame);
+        state.animationFrame = requestAnimationFrame(() => {
+          element.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
+          if (state.config.indicatorEnabled && state.lastScrollEl) {
+            updateIndicator(state.lastScrollEl, state.currentStretchY);
+          }
+        });
       }
-
       e.preventDefault();
     }
   };
