@@ -37,7 +37,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           inset: -12px;
           border-radius: inherit;
           z-index: -1;
-          filter: url(#smoke-filter) blur(8px);
+          filter: url(#smoke-filter);
           opacity: 0.7;
           mix-blend-mode: lighten;
         }
