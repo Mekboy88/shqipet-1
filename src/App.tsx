@@ -167,6 +167,13 @@ function App() {
     };
   }, []);
   
+  // Ensure no stale scroll locks on initial load
+  React.useEffect(() => {
+    document.body.style.overflow = '';
+    document.documentElement.classList.remove('overflow-hidden');
+    document.documentElement.style.overflow = '';
+  }, []);
+
   // Video security notification system
   const { blockedCount, showBanner, reportBlockedVideo, dismissBanner } = useVideoSecurityNotification();
   
