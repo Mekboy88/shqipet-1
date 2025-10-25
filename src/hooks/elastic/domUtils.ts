@@ -1,12 +1,12 @@
 
 export const getMainContainer = () => {
-  // Priority order for finding the elastic container - target the main content area
+  // Priority order for finding the elastic container - target the main content area (avoid fixed headers)
   return (
-    document.querySelector('[data-elastic-container="true"]') ||
     document.querySelector('.flex.w-full.h-\\[calc\\(100vh-56px\\)\\]') ||
     document.querySelector('[data-scroll-container="true"]') ||
     document.querySelector('.profile-scroll-container') ||
     document.querySelector('main') ||
+    document.querySelector('[data-elastic-container="true"]') ||
     document.body
   );
 };

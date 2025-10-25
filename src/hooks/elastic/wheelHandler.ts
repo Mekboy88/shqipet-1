@@ -16,10 +16,12 @@ export const createWheelHandler = (state: ElasticState) => {
     if (!scrollableElement) return;
     
     const deltaY = -e.deltaY;
+    const atAbsoluteTop = (window.pageYOffset === 0 && document.documentElement.scrollTop === 0);
+    const fastUpward = deltaY > 8; // require speed to avoid premature bounce
     
-    // Apply only when scrolling up at top boundary of the active scroll container
-    if (!(deltaY > 0 && isAtBoundary(scrollableElement, 'top'))) {
-      return;
+    // Only when scrolling up, at container top AND absolute page top
+    if (!(fastUpward && isAtBoundary(scrollableElement, 'top') && atAbsoluteTop)) {
+      return; // allow natural scrolling
     }
     
     // Throttle for smoothness
