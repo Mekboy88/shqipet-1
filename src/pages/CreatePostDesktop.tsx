@@ -415,7 +415,16 @@ const CreatePostDesktop: React.FC = () => {
               value={postContent}
               onChange={(e) => setPostContent(e.target.value)}
               placeholder="Shkruaj çfarë ndjen, mendon apo dëshiron të ndash me Shqipet…"
-              className="min-h-[200px] text-lg border-0 focus-visible:ring-0 resize-none"
+              className="min-h-[200px] text-lg resize-none border border-red-200/40 rounded-[14px] p-4 transition-all duration-200 ease-out hover:border-red-300/50 focus-visible:border-red-300/60 focus-visible:ring-0 focus-visible:shadow-[0_0_20px_rgba(239,68,68,0.08)]"
+              style={{
+                backgroundImage: `repeating-linear-gradient(
+                  to bottom,
+                  rgba(239, 68, 68, 0.04),
+                  rgba(239, 68, 68, 0.04) 1px,
+                  transparent 1px,
+                  transparent 26px
+                )`
+              }}
             />
             <div className="flex justify-between items-center mt-2">
               <span className="text-sm text-gray-500">
