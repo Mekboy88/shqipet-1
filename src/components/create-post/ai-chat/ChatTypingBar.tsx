@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Mic, AtSign, Zap, Link2 } from "lucide-react";
@@ -11,9 +11,13 @@ interface ChatTypingBarProps {
 const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [heightPx, setHeightPx] = useState<number>(20);
+  const [isScrollable, setIsScrollable] = useState(false);
 
-  // Calculate number of lines in the message
-  const lineCount = message.split('\n').length;
+  const lineHeightPx = 24; // matches leading-6 (1.5rem)
+  const baseHeight = 3 * lineHeightPx; // first 3 lines
+  const maxHeight = 8 * lineHeightPx; // 3 + 5 extra lines
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +27,20 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
     }
   };
 
-  // Calculate height based on line count
-  const getHeight = () => {
-    if (!isFocused && message.trim().length === 0) return "20px";
-    if (lineCount <= 3) return "72px"; // Fixed height for first 3 lines
-    if (lineCount <= 8) return `${72 + (lineCount - 3) * 24}px`; // Extend for lines 4-8
-    return "192px"; // Max height at 8 lines, then scroll
-  };
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    // Collapsed when not focused and empty
+    const minHeight = (!isFocused && message.trim().length === 0) ? 20 : baseHeight;
+
+    // Measure scroll height to account for wrapping
+    el.style.height = 'auto';
+    const measured = el.scrollHeight;
+    const target = Math.max(minHeight, Math.min(measured, maxHeight));
+    setHeightPx(target);
+    setIsScrollable(measured > maxHeight);
+  }, [message, isFocused]);
 
   return (
     <form onSubmit={handleSubmit} className="relative">
@@ -88,6 +99,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         <div className="smoke-inner px-4 py-3 space-y-2">
           {/* Textarea field */}
           <Textarea
+            ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Ask anything..."
@@ -104,9 +116,9 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               lineHeight: "1.5rem",
               fontSize: "1rem",
               caretColor: "hsl(var(--destructive))",
-              height: getHeight(),
+              height: `${heightPx}px`,
             }}
-            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base ${lineCount > 8 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[600ms] ease-in-out`}
+            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base ${isScrollable ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-[600ms] ease-in-out`}
           />
 
           {/* Icons row */}
