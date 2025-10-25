@@ -93,9 +93,9 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
               lineHeight: "1.5rem",
               fontSize: "1rem",
               caretColor: "hsl(var(--destructive))",
-              height: (isFocused || message.trim().length > 0) ? "120px" : "28px",
+              height: (isFocused || message.trim().length > 0) ? "120px" : "20px",
             }}
-            className={`w-full resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base ${isFocused || message.trim().length > 0 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-700 ease-in-out`}
+            className={`w-full min-h-0 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#888] text-[#111] px-0 py-0 leading-6 text-base ${isFocused || message.trim().length > 0 ? 'overflow-y-auto' : 'overflow-hidden'} transition-all duration-900 ease-in-out`}
           />
 
           {/* Icons row */}
