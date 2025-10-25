@@ -509,12 +509,15 @@ const CreatePostDesktop: React.FC = () => {
           <Dialog open={showPreview} onOpenChange={setShowPreview}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full mb-4">
-                <svg className="w-64 h-64" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path className="fill-muted-foreground/20" d="M417.3,259.1c0.2,0.3,0.2,0.8,0,1.1c-36.1,60.3-95,99.6-161.5,99.6c-66.2,0-124.5-38.3-160.7-98.2l0,0 c-0.7-1.2-0.7-2.8,0-3.9c36.2-59.5,94.7-98.2,160.7-98.2c66,0,123.8,37.2,160,96.7L417.3,259.1z"/>
-                  <path className="fill-background stroke-foreground" strokeWidth="6" strokeLinecap="round" strokeMiterlimit="10" d="M397.2,259.3c0.2,0.2,0.2,0.6,0,0.8c-31.6,44.3-83.2,73.1-141.4,73.1 c-58,0-109-28.1-140.7-72l0,0c-0.6-0.9-0.6-2,0-2.9c31.7-43.7,82.9-72,140.7-72c57.8,0,108.4,27.3,140.1,70.9L397.2,259.3z"/>
-                  <circle className="fill-primary stroke-foreground" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" cx="256" cy="259.7" r="73.5"/>
-                  <circle className="fill-foreground stroke-foreground" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" cx="256" cy="259.7" r="27"/>
-                  <circle className="fill-background" cx="274.3" cy="232.7" r="18.3"/>
+                <svg className="w-64 h-64" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <path d="M64.32 103.32c-34.03 0-53.56-33.13-56.94-39.38c3.07-6.27 20.91-39.26 56.94-39.26s53.87 32.98 56.94 39.26c-3.38 6.25-22.92 39.38-56.94 39.38z" fill="currentColor" opacity="0.1"/>
+                  <path d="M64.32 27.12c15.81 0 29.84 6.42 41.7 19.09c6.63 7.08 10.73 14.26 12.49 17.67c-4.51 7.99-23.05 36.99-54.19 36.99c-14.88 0-28.63-6.45-40.89-19.17c-6.89-7.15-11.37-14.41-13.3-17.82c1.75-3.41 5.86-10.6 12.49-17.67c11.86-12.67 25.89-19.09 41.7-19.09m0-4.88C22.56 22.24 4.66 64 4.66 64s20.25 41.76 59.66 41.76S123.97 64 123.97 64s-17.9-41.76-59.65-41.76z" fill="currentColor" opacity="0.3"/>
+                  <path d="M64.32 37c26.97 0 45.47 16.51 53.66 27.71c.96 1.31 1.99-4.99 1.12-6.36c-7.84-12.26-25.41-32.91-54.77-32.91S17.38 46.1 9.54 58.36c-.88 1.37.3 6.83 1.41 5.64c8.54-9.17 26.39-27 53.37-27z" fill="currentColor" opacity="0.3"/>
+                  <circle cx="64.32" cy="60.79" r="33.15" fill="hsl(var(--primary))"/>
+                  <path d="M64.32 37c10.87 0 20.36 2.68 28.36 6.62c-5.81-9.58-16.34-15.97-28.36-15.97c-12.28 0-23 6.69-28.72 16.61C43.61 40.04 53.18 37 64.32 37z" fill="hsl(var(--primary))" opacity="0.7"/>
+                  <circle cx="64.32" cy="60.79" r="15.43" fill="currentColor"/>
+                  <circle cx="88.86" cy="59.37" r="7.72" fill="hsl(var(--background))"/>
+                  <path d="M7.21 67.21c-.52 0-1.05-.13-1.54-.4a3.207 3.207 0 0 1-1.27-4.35c.85-1.55 21.28-40.21 59.92-40.21s58.47 37.89 59.29 39.41c.84 1.56.27 3.5-1.29 4.35c-1.56.84-3.5.27-4.35-1.29c-.18-.34-18.88-33.86-53.66-33.86c-34.79 0-54.11 34.34-54.3 34.69a3.185 3.185 0 0 1-2.8 1.66z" fill="currentColor" opacity="0.4"/>
                 </svg>
                 Preview Post
               </Button>
