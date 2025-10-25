@@ -17,113 +17,72 @@ export const createWheelHandler = (state: ElasticState) => {
     if (target.closest('[data-horizontal-scroll="true"]')) return;
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
 
-    const scrollEl = (getNearestScrollContainer(target) as HTMLElement) || (findScrollableParent(target) as HTMLElement) || document.documentElement;
+    // Prefer data-scroll-container, fallback to nearest scrollable
+    const scrollEl = (getNearestScrollContainer(target) as HTMLElement) || document.documentElement;
     if (!scrollEl) return;
 
-    // Calculate scroll speed
-    const now = Date.now();
-    const timeDelta = now - state.lastScrollTime;
-    state.scrollSpeed = timeDelta > 0 ? Math.abs(e.deltaY) / timeDelta : 0;
-    state.lastScrollTime = now;
-
-    // Must be at the very top of the ACTIVE scroll container and moving upward fast
+    // Must be at the very top and scrolling upward fast
     const deltaY = -e.deltaY;
-    const atTop = (scrollEl as HTMLElement).scrollTop <= 0;
-    const fastUpward = deltaY > 10 && state.scrollSpeed > 0.5;
+    const atTop = scrollEl.scrollTop <= 0;
+    const fastUpward = deltaY > 10;
 
     if (!(fastUpward && atTop)) {
       return; // allow natural scrolling
     }
 
-    state.isElasticActive = true;
+    e.preventDefault();
 
-    const currentDistance = Math.abs(state.currentStretchY);
-    const { maxElasticDistance, elasticityMultiplier, resistanceCurve } = state.config;
-
-    // Resistance curve based on config
-    let baseResistance = 0.21;
-    let midResistance = 0.11;
-    let maxResistance = 0.02;
-
-    if (resistanceCurve === 'soft') {
-      baseResistance = 0.25;
-      midResistance = 0.15;
-      maxResistance = 0.05;
-    } else if (resistanceCurve === 'firm') {
-      baseResistance = 0.18;
-      midResistance = 0.08;
-      maxResistance = 0.01;
-    }
-
-    const normalizedDistance = Math.min(currentDistance / maxElasticDistance, 1);
-    let progressiveResistance;
-    
-    if (normalizedDistance < 0.3) {
-      const lightCurve = normalizedDistance / 0.3;
-      progressiveResistance = baseResistance - (baseResistance - midResistance) * Math.pow(lightCurve, 0.8);
-    } else {
-      const strongCurve = (normalizedDistance - 0.3) / 0.7;
-      progressiveResistance = midResistance - (midResistance - maxResistance) * Math.pow(strongCurve, 3.0);
-    }
-
-    const distanceResistance = Math.max(0.06, 1 - (currentDistance / 26));
-    const combinedResistance = progressiveResistance * distanceResistance;
-    const elasticDelta = deltaY * elasticityMultiplier * combinedResistance;
-
-    // Directly apply the calculated stretch - no dampening
+    // Calculate elastic stretch with resistance
+    const { maxElasticDistance, elasticityMultiplier } = state.config;
+    const elasticDelta = deltaY * elasticityMultiplier * 0.2;
     state.currentStretchY = Math.min(state.currentStretchY + elasticDelta, maxElasticDistance);
 
-    // Apply transform to the correct element immediately
+    // Get transform target
     const container = getTransformTarget(scrollEl) as HTMLElement | null;
+    if (!container) return;
+
     state.lastTransformEl = container;
-    state.lastScrollEl = scrollEl as HTMLElement;
-    
-    if (container) {
+    state.lastScrollEl = scrollEl;
+
+    // Apply transform immediately - transition:none only set once at stretch start
+    if (!state.isElasticActive) {
       container.style.willChange = 'transform';
-      container.style.backfaceVisibility = 'hidden';
-      container.style.transformStyle = 'preserve-3d';
-      container.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
       container.style.transition = 'none';
-      container.style.transformOrigin = 'center top';
     }
+    
+    state.isElasticActive = true;
+    container.style.transform = `translate3d(0, ${state.currentStretchY}px, 0)`;
 
-    // Update elastic indicator if enabled
+    // Update indicator if enabled
     if (state.config.indicatorEnabled && state.lastScrollEl) {
-      updateIndicator(state.lastScrollEl, Math.max(0, state.currentStretchY));
+      updateIndicator(state.lastScrollEl, state.currentStretchY);
     }
 
-    // Idle-based snap-back with 200ms debounce
+    // Snap-back after 180ms idle
     if (resetTimeout) clearTimeout(resetTimeout);
     resetTimeout = setTimeout(() => {
-      const element = state.lastTransformEl as HTMLElement | null;
-      if (element) {
-        element.style.transition = 'transform 0.4s cubic-bezier(0.25, 1.6, 0.45, 0.94)';
-        element.style.transform = 'translate3d(0, 0, 0)';
+      if (container) {
+        container.style.transition = 'transform 0.42s cubic-bezier(0.25, 1.6, 0.45, 0.94)';
+        container.style.transform = 'translate3d(0, 0, 0)';
         
         setTimeout(() => {
-          element.style.willChange = '';
-          element.style.transition = '';
-          element.style.backfaceVisibility = '';
-          element.style.transformStyle = '';
-          element.style.transform = '';
-        }, 440);
+          container.style.transition = '';
+          container.style.willChange = '';
+        }, 460);
       }
 
-      // Hide indicator smoothly
+      // Hide indicator
       if (state.config.indicatorEnabled && state.lastScrollEl) {
         hideIndicator(state.lastScrollEl);
       }
 
       state.isElasticActive = false;
-      state.currentStretchX = 0;
       state.currentStretchY = 0;
       state.scrollSpeed = 0;
       state.lastTransformEl = null;
       state.lastScrollEl = null;
       resetTimeout = null;
-    }, 200);
-
-    e.preventDefault();
+    }, 180);
   };
 
   return { handleWheel };
