@@ -49,7 +49,7 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
           transform-origin: center center;
           pointer-events: none;
           z-index: -1;
-          --smoke-intensity: 0.22;
+          --smoke-intensity: 0.35;
         }
 
         @keyframes smoke-float {
@@ -59,8 +59,8 @@ const ChatTypingBar: React.FC<ChatTypingBarProps> = ({ onSendMessage, disabled }
         }
 
         @keyframes smoke-pulse {
-          0%, 100% { --smoke-intensity: 0.22; }
-          50% { --smoke-intensity: 0.32; }
+          0%, 100% { --smoke-intensity: 0.35; }
+          50% { --smoke-intensity: 0.5; }
         }
 
         /* Base typing box with subtle border */
