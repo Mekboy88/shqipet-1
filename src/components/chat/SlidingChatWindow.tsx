@@ -525,7 +525,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => window.open('/messages', '_blank')}
+                  onClick={() => window.open(`${window.location.origin}/messages`, '_blank', 'noopener')}
                   className="flex flex-col items-center gap-0 h-auto py-1 px-1 hover:bg-primary/10 transition-colors"
                   title="Open in new page"
                 >
