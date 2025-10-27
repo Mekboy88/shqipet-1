@@ -532,9 +532,9 @@ const Messages: React.FC = () => {
       <div className="w-[100px] bg-[#f0f2f5] flex flex-col items-center flex-shrink-0 border-l border-gray-200 relative">
         {/* Contact Avatar - Square */}
         <div className="px-6 py-6 flex flex-col items-center justify-center border-b border-gray-200 w-full">
-          <div className="w-10 h-10 rounded-lg overflow-hidden shadow-md">
+          <div className="w-14 h-14 rounded-lg overflow-hidden shadow-md">
             <img 
-              src={selectedContact.avatar} 
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedContact.name)}&size=128&background=00a884&color=fff&bold=true`}
               alt={selectedContact.name}
               className="w-full h-full object-cover"
             />
