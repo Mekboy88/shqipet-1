@@ -540,7 +540,7 @@ const Messages: React.FC = () => {
         </div>
         
         {/* Border line below avatar */}
-        <div className="w-12 h-px bg-gray-300"></div>
+        <div className="w-12 h-px bg-gray-300 mt-6"></div>
         
         {/* Small Toggle Button - Half outside on border */}
         <button className="absolute top-1/2 -left-[10px] transform -translate-y-1/2 w-5 h-5 rounded-full bg-[#00a884] hover:bg-[#00a884]/90 flex items-center justify-center transition-colors shadow-lg z-10">
