@@ -531,8 +531,8 @@ const Messages: React.FC = () => {
       {/* Right Navigation Bar */}
       <div className="w-[70px] bg-[#f0f2f5] flex flex-col items-center flex-shrink-0 border-l border-gray-200 relative">
         {/* Contact Avatar - Square */}
-        <div className="pt-3 pb-3 flex flex-col items-center border-b border-gray-200 w-full">
-          <div className="w-12 h-12 rounded-lg overflow-hidden shadow-md">
+        <div className="px-4 py-3 flex flex-col items-center justify-center border-b border-gray-200 w-full">
+          <div className="w-10 h-10 rounded-lg overflow-hidden shadow-md">
             <img 
               src={selectedContact.avatar} 
               alt={selectedContact.name}
