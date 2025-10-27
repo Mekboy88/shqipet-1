@@ -15,7 +15,9 @@ import {
   Send,
   Check,
   CheckCheck,
-  Download
+  Download,
+  Plus,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -475,31 +477,30 @@ const Messages: React.FC = () => {
 
         {/* Message Input */}
         <div className="bg-[#f0f2f5] px-4 py-3 flex items-center gap-3 flex-shrink-0">
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
-            <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
-            </svg>
-          </Button>
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
-            <Paperclip className="h-5 w-5 text-gray-600" />
-          </Button>
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
-            <Smile className="h-5 w-5 text-gray-600" />
-          </Button>
-          
-          <Input
-            type="text"
-            placeholder="Write your message..."
-            value={messageInput}
-            onChange={(e) => setMessageInput(e.target.value)}
-            className="flex-1 bg-white border-gray-300 rounded-full"
-          />
-          
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
-            <Mic className="h-5 w-5 text-gray-600" />
-          </Button>
-          <Button size="sm" className="h-9 w-9 p-0 bg-[#4a9b7f] hover:bg-[#3d8269] text-white rounded-full">
+          <div className="flex items-center gap-2 bg-white rounded-full px-3 py-2 flex-1">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-transparent">
+              <Plus className="h-5 w-5 text-gray-600" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-transparent">
+              <ImageIcon className="h-5 w-5 text-gray-600" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-transparent">
+              <Smile className="h-5 w-5 text-gray-600" />
+            </Button>
+            
+            <input
+              type="text"
+              placeholder="Write your message..."
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              className="flex-1 bg-transparent border-0 outline-none text-sm px-2"
+            />
+            
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-transparent">
+              <Mic className="h-5 w-5 text-gray-600" />
+            </Button>
+          </div>
+          <Button size="sm" className="h-10 w-10 p-0 bg-[#00a884] hover:bg-[#008f6d] text-white rounded-full flex-shrink-0">
             <Send className="h-4 w-4" />
           </Button>
         </div>
