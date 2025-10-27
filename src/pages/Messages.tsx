@@ -74,7 +74,7 @@ const Messages: React.FC = () => {
   const [selectedContact, setSelectedContact] = useState<Contact>({
     id: '1',
     name: 'Lea',
-    avatar: '/placeholder.svg',
+    avatar: 'https://ui-avatars.com/api/?name=Lea&background=f59e0b&color=fff&size=128',
     lastMessage: 'What are you doing',
     timestamp: '22/10/23',
     online: true
@@ -85,18 +85,18 @@ const Messages: React.FC = () => {
 
   // Mock data
   const statuses: Status[] = [
-    { id: '1', name: 'My Status', avatar: '/placeholder.svg' },
-    { id: '2', name: 'Jesus ...', avatar: '/placeholder.svg' },
-    { id: '3', name: 'Mari', avatar: '/placeholder.svg' },
-    { id: '4', name: 'Kristin ...', avatar: '/placeholder.svg' },
-    { id: '5', name: 'Lea', avatar: '/placeholder.svg' }
+    { id: '1', name: 'My Status', avatar: 'https://ui-avatars.com/api/?name=My+Status&background=00a884&color=fff&size=128' },
+    { id: '2', name: 'Jesus ...', avatar: 'https://ui-avatars.com/api/?name=Jesus&background=3b82f6&color=fff&size=128' },
+    { id: '3', name: 'Mari', avatar: 'https://ui-avatars.com/api/?name=Mari&background=10b981&color=fff&size=128' },
+    { id: '4', name: 'Kristin ...', avatar: 'https://ui-avatars.com/api/?name=Kristin&background=8b5cf6&color=fff&size=128' },
+    { id: '5', name: 'Lea', avatar: 'https://ui-avatars.com/api/?name=Lea&background=f59e0b&color=fff&size=128' }
   ];
 
   const contacts: Contact[] = [
     { 
       id: '1', 
       name: 'Josephin water', 
-      avatar: '/placeholder.svg', 
+      avatar: 'https://ui-avatars.com/api/?name=Josephin+Water&background=6b7280&color=fff&size=128', 
       lastMessage: 'Typing...', 
       timestamp: '22/10/23',
       typing: true
@@ -104,7 +104,7 @@ const Messages: React.FC = () => {
     { 
       id: '2', 
       name: 'Mari', 
-      avatar: '/placeholder.svg', 
+      avatar: 'https://ui-avatars.com/api/?name=Mari&background=10b981&color=fff&size=128', 
       lastMessage: 'This is nice, I love it ❤️', 
       timestamp: 'JUST NOW',
       online: true
@@ -112,7 +112,7 @@ const Messages: React.FC = () => {
     { 
       id: '3', 
       name: 'Lea', 
-      avatar: '/placeholder.svg', 
+      avatar: 'https://ui-avatars.com/api/?name=Lea&background=f59e0b&color=fff&size=128', 
       lastMessage: 'What are you doing', 
       timestamp: '22/10/23',
       online: true
@@ -120,21 +120,21 @@ const Messages: React.FC = () => {
     { 
       id: '4', 
       name: 'Kristin Watson', 
-      avatar: '/placeholder.svg', 
+      avatar: 'https://ui-avatars.com/api/?name=Kristin+Watson&background=8b5cf6&color=fff&size=128', 
       lastMessage: 'Okay I will try it 😊', 
       timestamp: 'Yesterday'
     },
     { 
       id: '5', 
       name: '15 Rocks', 
-      avatar: '/placeholder.svg', 
+      avatar: 'https://ui-avatars.com/api/?name=15+Rocks&background=ec4899&color=fff&size=128', 
       lastMessage: 'You : This is COOL', 
       timestamp: '18/08/2024'
     },
     { 
       id: '6', 
       name: 'Jesus Watson', 
-      avatar: '/placeholder.svg', 
+      avatar: 'https://ui-avatars.com/api/?name=Jesus+Watson&background=3b82f6&color=fff&size=128', 
       lastMessage: 'Sent you image', 
       timestamp: '14/12/24'
     }
