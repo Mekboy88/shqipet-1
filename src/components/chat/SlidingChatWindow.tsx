@@ -581,7 +581,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                     {/* Options Popup */}
                     {showOptionsPopup && (
                       <div 
-                        className="absolute left-0 top-full mt-2 w-48 bg-background border border-border rounded-lg shadow-lg overflow-hidden animate-scale-in z-[9999]"
+                        className="absolute right-0 top-full mt-2 w-48 bg-background border border-border rounded-lg shadow-lg overflow-hidden animate-scale-in z-[9999]"
                         style={{
                           animation: 'scale-in 0.2s ease-out'
                         }}
