@@ -237,19 +237,6 @@ const Messages: React.FC = () => {
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
           </button>
-          
-          {/* Avatar with back arrow */}
-          <div className="flex items-center gap-2 mt-2">
-            <button className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <Avatar className="h-10 w-10 border-2 border-white/20">
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback className="bg-white/20 text-white">RS</AvatarFallback>
-            </Avatar>
-          </div>
         </div>
       </div>
 
@@ -487,28 +474,17 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Message Input */}
-        <div className="bg-[#f0f2f5] px-4 py-3 flex items-center gap-2 flex-shrink-0">
-          <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-full hover:bg-gray-200">
-            <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="bg-[#f0f2f5] px-4 py-3 flex items-center gap-3 flex-shrink-0">
+          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
+            <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="8" y1="12" x2="16" y2="12" />
+              <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
             </svg>
           </Button>
-          
-          <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-full hover:bg-gray-200">
-            <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-          </Button>
-          
-          <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-full hover:bg-gray-200">
+          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
             <Paperclip className="h-5 w-5 text-gray-600" />
           </Button>
-          
-          <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-full hover:bg-gray-200">
+          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
             <Smile className="h-5 w-5 text-gray-600" />
           </Button>
           
@@ -517,15 +493,14 @@ const Messages: React.FC = () => {
             placeholder="Write your message..."
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
-            className="flex-1 bg-white border-gray-300 rounded-full h-10 px-4"
+            className="flex-1 bg-white border-gray-300 rounded-full"
           />
           
-          <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-full hover:bg-gray-200">
+          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
             <Mic className="h-5 w-5 text-gray-600" />
           </Button>
-          
-          <Button size="sm" className="h-10 w-10 p-0 bg-[#00a884] hover:bg-[#008c6f] text-white rounded-full">
-            <Send className="h-5 w-5" />
+          <Button size="sm" className="h-9 w-9 p-0 bg-[#4a9b7f] hover:bg-[#3d8269] text-white rounded-full">
+            <Send className="h-4 w-4" />
           </Button>
         </div>
 
