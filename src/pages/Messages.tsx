@@ -52,19 +52,10 @@ interface Status {
 const Messages: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isStandalone, setIsStandalone] = useState(false);
-  
-  useEffect(() => {
-    // Check if opened as standalone (new page/tab) or inside the app
-    const checkStandalone = () => {
-      // If there's no referrer or referrer is from a different origin, it's standalone
-      const isNewTab = !document.referrer || new URL(document.referrer).origin !== window.location.origin;
-      setIsStandalone(isNewTab);
-    };
-    
-    checkStandalone();
-  }, []);
-  
+  const params = new URLSearchParams(location.search);
+  const standaloneParam = params.get('standalone');
+  const isStandalone = standaloneParam === '1' || standaloneParam === 'true' || standaloneParam === 'yes';
+
   const [selectedContact, setSelectedContact] = useState<Contact>({
     id: '1',
     name: 'Lea',
