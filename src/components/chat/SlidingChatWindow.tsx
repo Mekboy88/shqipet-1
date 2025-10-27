@@ -503,27 +503,27 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+                  className="flex flex-col items-center gap-1 h-auto py-1 px-2 hover:bg-primary/10 transition-colors"
                 >
-                  <MessageCircle className="h-5 w-5 text-primary" />
-                  <span className="text-xs font-medium text-foreground">Message</span>
+                  <MessageCircle className="h-4 w-4 text-primary" />
+                  <span className="text-[10px] font-medium text-foreground">Message</span>
                 </Button>
                 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+                  className="flex flex-col items-center gap-1 h-auto py-1 px-2 hover:bg-primary/10 transition-colors"
                 >
-                  <Radio className="h-5 w-5 text-foreground" />
-                  <span className="text-xs font-medium text-foreground">Status</span>
+                  <Radio className="h-4 w-4 text-foreground" />
+                  <span className="text-[10px] font-medium text-foreground">Status</span>
                 </Button>
                 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex flex-col items-center gap-1 h-auto py-2 px-3 hover:bg-primary/10 transition-colors"
+                  className="flex flex-col items-center gap-0 h-auto py-1 px-1 hover:bg-primary/10 transition-colors"
                 >
-                  <svg viewBox="0 0 60 60" className="!h-16 !w-16" xmlns="http://www.w3.org/2000/svg">
+                  <svg viewBox="0 0 60 60" className="!h-10 !w-10" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                       <style>{`.cls-1 { fill: #699f4c; } .cls-1, .cls-2 { fill-rule: evenodd; } .cls-2 { fill: #a5c594; }`}</style>
                     </defs>
@@ -535,19 +535,19 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+                  className="flex flex-col items-center gap-1 h-auto py-1 px-2 hover:bg-primary/10 transition-colors"
                 >
-                  <Phone className="h-5 w-5 text-foreground" />
-                  <span className="text-xs font-medium text-foreground">Call</span>
+                  <Phone className="h-4 w-4 text-foreground" />
+                  <span className="text-[10px] font-medium text-foreground">Call</span>
                 </Button>
                 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+                  className="flex flex-col items-center gap-1 h-auto py-1 px-2 hover:bg-primary/10 transition-colors"
                 >
-                  <User className="h-5 w-5 text-foreground" />
-                  <span className="text-xs font-medium text-foreground">Profile</span>
+                  <User className="h-4 w-4 text-foreground" />
+                  <span className="text-[10px] font-medium text-foreground">Profile</span>
                 </Button>
               </div>
             </div>
