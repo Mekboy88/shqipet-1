@@ -529,18 +529,17 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Right Navigation Bar */}
-      <div className="w-[70px] bg-[#f0f2f5] flex flex-col items-center pt-3 gap-6 flex-shrink-0 border-l border-gray-200 relative">
+      <div className="w-[70px] bg-[#f0f2f5] flex flex-col items-center flex-shrink-0 border-l border-gray-200 relative">
         {/* Contact Avatar - Square */}
-        <div className="w-12 h-12 rounded-lg overflow-hidden shadow-md">
-          <img 
-            src={selectedContact.avatar} 
-            alt={selectedContact.name}
-            className="w-full h-full object-cover"
-          />
+        <div className="pt-3 pb-3 flex flex-col items-center border-b border-gray-200 w-full">
+          <div className="w-12 h-12 rounded-lg overflow-hidden shadow-md">
+            <img 
+              src={selectedContact.avatar} 
+              alt={selectedContact.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
-        
-        {/* Border line below avatar */}
-        <div className="w-12 h-px bg-gray-300 mt-6"></div>
         
         {/* Small Toggle Button - Half outside on border */}
         <button className="absolute top-1/2 -left-[10px] transform -translate-y-1/2 w-5 h-5 rounded-full bg-[#00a884] hover:bg-[#00a884]/90 flex items-center justify-center transition-colors shadow-lg z-10">
