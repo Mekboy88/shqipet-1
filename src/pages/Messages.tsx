@@ -499,10 +499,10 @@ const Messages: React.FC = () => {
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-transparent">
               <Mic className="h-5 w-5 text-gray-600" />
             </Button>
+            <Button size="sm" className="h-9 w-9 p-0 bg-[#00a884] hover:bg-[#008f6d] text-white rounded-full">
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
-          <Button size="sm" className="h-10 w-10 p-0 bg-[#00a884] hover:bg-[#008f6d] text-white rounded-full flex-shrink-0">
-            <Send className="h-4 w-4" />
-          </Button>
         </div>
 
       </div>
