@@ -476,7 +476,7 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Message Input */}
-        <div className="bg-[#f0f2f5] px-4 py-2 flex items-center gap-3 flex-shrink-0">
+        <div className="bg-[#f0f2f5] px-4 py-1.5 flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center gap-2 bg-white rounded-full px-3 py-2 flex-1">
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-transparent">
               <Plus className="h-5 w-5 text-gray-600" />
