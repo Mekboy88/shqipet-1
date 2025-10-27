@@ -36,7 +36,10 @@ import {
   Search,
   Archive,
   Volume2,
-  VolumeX
+  VolumeX,
+  MessageCircle,
+  Radio,
+  User
 } from 'lucide-react';
 
 interface Message {
@@ -493,26 +496,60 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                 </svg>
               </Button>
             </div>
-            <div className="flex gap-2">
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a message..."
-                className="flex-1 border-primary/30 bg-background/50 focus:ring-2 focus:ring-primary/50 thick-caret h-10 text-base"
-                style={{ 
-                  lineHeight: '40px', 
-                  paddingTop: '0', 
-                  paddingBottom: '0'
-                } as React.CSSProperties}
-              />
-              <Button 
-                onClick={sendMessage} 
-                size="sm"
-                className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+            
+            {/* Bottom Menu Bar */}
+            <div className="border-t border-primary/20 mt-2">
+              <div className="flex items-center justify-around pt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+                >
+                  <MessageCircle className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium text-foreground">Message</span>
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+                >
+                  <Radio className="h-5 w-5 text-foreground" />
+                  <span className="text-xs font-medium text-foreground">Status</span>
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex flex-col items-center gap-1 h-auto py-2 px-3 hover:bg-primary/10 transition-colors"
+                >
+                  <svg viewBox="0 0 60 60" className="!h-16 !w-16" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <style>{`.cls-1 { fill: #699f4c; } .cls-1, .cls-2 { fill-rule: evenodd; } .cls-2 { fill: #a5c594; }`}</style>
+                    </defs>
+                    <path className="cls-1" d="M257.875,246a12,12,0,1,1-12,12A12,12,0,0,1,257.875,246ZM252,260h4v4a2,2,0,0,0,4,0v-4h4a2,2,0,0,0,0-4h-4v-4a2,2,0,0,0-4,0v4h-4A2,2,0,0,0,252,260Z" transform="translate(-210 -210.031)"></path>
+                    <path className="cls-2" d="M268.109,243.107A18,18,0,0,0,240,258c0,0.388.034,0.768,0.058,1.151l-0.058,0c-1.16,0-4.375-.536-5.358-0.166a5.046,5.046,0,0,0-.847.546c-0.912.91-8.24,10.53-13.295,10.49-0.31,0-2.485.251-2.5-2,0.006-1.352,1.122-1.8,2.433-6.909a20.624,20.624,0,0,0,.532-6.341,2.958,2.958,0,0,0-1.059-1.948c-6.082-4.495-9.906-11-9.906-18.236,0-13.568,13.431-24.566,30-24.566s30,11,30,24.566A20.571,20.571,0,0,1,268.109,243.107Z" transform="translate(-210 -210.031)"></path>
+                  </svg>
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+                >
+                  <Phone className="h-5 w-5 text-foreground" />
+                  <span className="text-xs font-medium text-foreground">Call</span>
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+                >
+                  <User className="h-5 w-5 text-foreground" />
+                  <span className="text-xs font-medium text-foreground">Profile</span>
+                </Button>
+              </div>
             </div>
           </div>
         </Card>
