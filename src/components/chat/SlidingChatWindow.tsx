@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,6 +82,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
   isMinimized,
   onMaximize
 }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { displayName, avatarUrl } = useUniversalUser(user?.id);
   
@@ -633,7 +635,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                         >
                           <button
                             onClick={() => {
-                              window.open('/', '_blank');
+                              window.open('/messages', '_blank');
                               setShowOptionsPopup(false);
                             }}
                             className="w-full px-4 py-3 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
@@ -643,6 +645,7 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                           <div className="border-t border-border" />
                           <button
                             onClick={() => {
+                              navigate('/messages');
                               setShowOptionsPopup(false);
                             }}
                             className="w-full px-4 py-3 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"

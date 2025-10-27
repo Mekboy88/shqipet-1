@@ -81,6 +81,7 @@ import PopularPosts from './pages/PopularPosts';
 import Memories from './pages/Memories';
 import HowAreYou from './pages/HowAreYou';
 import MyGroups from './pages/MyGroups';
+import Messages from './pages/Messages';
 import MyPages from './pages/MyPages';
 import Blog from './pages/Blog';
 import SharedThings from './pages/SharedThings';
@@ -315,9 +316,10 @@ function App() {
                        <Route path="/books" element={<Books />} />
                        <Route path="/saved-posts" element={<SavedPosts />} />
                        <Route path="/popular-posts" element={<PopularPosts />} />
-                       <Route path="/memories" element={<Memories />} />
-                       <Route path="/how-are-you" element={<HowAreYou />} />
-                       <Route path="/my-groups" element={<MyGroups />} />
+                        <Route path="/memories" element={<Memories />} />
+                        <Route path="/how-are-you" element={<HowAreYou />} />
+                        <Route path="/my-groups" element={<MyGroups />} />
+                        <Route path="/messages" element={<Messages />} />
                        <Route path="/my-pages" element={<MyPages />} />
                        <Route path="/blog" element={<Blog />} />
                        <Route path="/shared-things" element={<SharedThings />} />
