@@ -529,7 +529,7 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Right Navigation Bar */}
-      <div className="w-[70px] bg-[#f0f2f5] flex flex-col items-center flex-shrink-0 border-l border-gray-200 relative">
+      <div className="w-[100px] bg-[#f0f2f5] flex flex-col items-center flex-shrink-0 border-l border-gray-200 relative">
         {/* Contact Avatar - Square */}
         <div className="px-6 py-6 flex flex-col items-center justify-center border-b border-gray-200 w-full">
           <div className="w-12 h-12 rounded-lg overflow-hidden shadow-md">
