@@ -529,11 +529,21 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Right Navigation Bar */}
-      <div className="w-[70px] bg-[#f0f2f5] flex flex-col items-center py-6 gap-6 flex-shrink-0 border-l border-gray-200">
-        {/* Top Action Icons */}
-        <button className="w-12 h-12 rounded-xl bg-[#00a884] hover:bg-[#00a884]/90 flex items-center justify-center transition-colors shadow-lg">
-          <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="9 18 15 12 9 6" />
+      <div className="w-[70px] bg-[#f0f2f5] flex flex-col items-center py-6 gap-3 flex-shrink-0 border-l border-gray-200">
+        {/* Contact Avatar */}
+        <div className="w-12 h-12 rounded-full overflow-hidden shadow-lg">
+          <img 
+            src={selectedContact.avatar} 
+            alt={selectedContact.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        {/* Close Sidebar Button */}
+        <button className="w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors shadow-lg">
+          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
 
