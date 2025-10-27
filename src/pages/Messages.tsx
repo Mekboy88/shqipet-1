@@ -171,7 +171,7 @@ const Messages: React.FC = () => {
   return (
     <div className="flex h-screen bg-[#f0f2f5]">
       {/* Left Navigation Bar */}
-      <div className="w-[70px] bg-[#00a884] flex flex-col items-center py-3 gap-4 flex-shrink-0">
+      <div className="w-[70px] bg-[#00a884] flex flex-col items-center py-4 gap-6 flex-shrink-0">
         {/* Logo/Brand */}
         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
           <svg className="w-6 h-6 text-[#00a884]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -180,7 +180,7 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Navigation Icons */}
-        <div className="flex-1 flex flex-col items-center gap-4 mt-2">
+        <div className="flex-1 flex flex-col items-center gap-6 mt-4">
           <button className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
             <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -215,8 +215,8 @@ const Messages: React.FC = () => {
           </button>
         </div>
 
-        {/* Bottom Section with Avatar and Back Arrow */}
-        <div className="flex flex-col items-center gap-3 mt-auto pb-2">
+        {/* Bottom Icons */}
+        <div className="flex flex-col items-center gap-4 mt-auto">
           <button className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
             <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="3" />
@@ -230,26 +230,21 @@ const Messages: React.FC = () => {
             </svg>
           </button>
           
-          {/* Avatar with Back Arrow */}
-          <div className="flex flex-col items-center gap-2">
-            <button className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <Avatar className="h-12 w-12 border-2 border-white/30">
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback>RS</AvatarFallback>
-            </Avatar>
-          </div>
+          <button className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+            <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
       </div>
 
       {/* Contacts Sidebar */}
       <div className="w-[360px] bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
         {/* Profile Header */}
-        <div className="p-3 bg-[#00a884] text-white">
-          <div className="flex items-center justify-between">
+        <div className="p-4 bg-[#4a9b7f] text-white">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
                 <AvatarImage src="/placeholder.svg" />
@@ -356,7 +351,7 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white min-h-0">
+      <div className="flex-1 flex flex-col bg-[#e5ddd5] min-h-0">
         {/* Chat Header */}
         <div className="bg-[#f0f2f5] px-4 py-3 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -479,44 +474,34 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Message Input */}
-        <div className="bg-white px-3 py-2 flex items-center gap-2 flex-shrink-0 border-t border-gray-200">
-          <div className="flex items-center gap-2 bg-white rounded-lg px-2 py-1.5 flex-1">
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
-              <svg className="h-5 w-5 text-[#54656f]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="16" />
-                <line x1="8" y1="12" x2="16" y2="12" />
-              </svg>
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
-              <svg className="h-5 w-5 text-[#54656f]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <polyline points="21 15 16 10 5 21" />
-              </svg>
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
-              <Paperclip className="h-5 w-5 text-[#54656f]" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
-              <Smile className="h-5 w-5 text-[#54656f]" />
-            </Button>
-            
-            <Input
-              type="text"
-              placeholder="Write your message..."
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 h-8 text-sm px-2"
-            />
-            
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
-              <Mic className="h-5 w-5 text-[#54656f]" />
-            </Button>
-            <Button size="sm" className="h-8 w-8 p-0 bg-[#00a884] hover:bg-[#00a884]/90 text-white rounded-full">
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className="bg-[#f0f2f5] px-4 py-3 flex items-center gap-3 flex-shrink-0">
+          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
+            <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+            </svg>
+          </Button>
+          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
+            <Paperclip className="h-5 w-5 text-gray-600" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
+            <Smile className="h-5 w-5 text-gray-600" />
+          </Button>
+          
+          <Input
+            type="text"
+            placeholder="Write your message..."
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            className="flex-1 bg-white border-gray-300 rounded-full"
+          />
+          
+          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
+            <Mic className="h-5 w-5 text-gray-600" />
+          </Button>
+          <Button size="sm" className="h-9 w-9 p-0 bg-[#4a9b7f] hover:bg-[#3d8269] text-white rounded-full">
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
 
       </div>
