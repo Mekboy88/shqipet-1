@@ -52,9 +52,24 @@ interface Status {
 const Messages: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const standaloneParam = params.get('standalone');
-  const isStandalone = standaloneParam === '1' || standaloneParam === 'true' || standaloneParam === 'yes';
+  const [topOffset, setTopOffset] = useState(0);
+  
+  useEffect(() => {
+    const measure = () => {
+      const header = document.querySelector('header, [data-app-topbar], [data-topbar], .top-bar, .app-header') as HTMLElement | null;
+      let offset = 0;
+      if (header) {
+        const rect = header.getBoundingClientRect();
+        const style = window.getComputedStyle(header);
+        const isFixedLike = style.position === 'fixed' || style.position === 'sticky';
+        if (isFixedLike) offset = Math.max(0, Math.round(rect.height));
+      }
+      setTopOffset(offset);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
 
   const [selectedContact, setSelectedContact] = useState<Contact>({
     id: '1',
@@ -176,7 +191,8 @@ const Messages: React.FC = () => {
   ];
 
   return (
-    <div className={`flex overflow-hidden bg-white ${isStandalone ? 'h-screen fixed top-0 left-0 right-0' : 'h-[calc(100vh-58px)] fixed top-[58px] left-0 right-0'}`}>
+    <div className="flex overflow-hidden bg-white fixed left-0 right-0" style={{ top: topOffset, height: `calc(100vh - ${topOffset}px)` }}>
+
       {/* Left Navigation Bar */}
       <div className="w-[70px] bg-[#00a884] flex flex-col items-center py-4 gap-6 flex-shrink-0">
         {/* Logo/Brand */}
