@@ -16,7 +16,10 @@ import {
   Trash2,
   Bell,
   BellOff,
-  Settings
+  Settings,
+  Phone,
+  User,
+  Radio
 } from 'lucide-react';
 import ChatSettingsDialog from './settings/ChatSettingsDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -346,6 +349,47 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
           )}
         </div>
       </ScrollArea>
+
+      {/* Bottom Menu Bar */}
+      <div className="border-t border-primary/20 bg-background">
+        <div className="flex items-center justify-around p-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+          >
+            <MessageCircle className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Message</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+          >
+            <Radio className="h-5 w-5 text-foreground" />
+            <span className="text-xs font-medium text-foreground">Status</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+          >
+            <Phone className="h-5 w-5 text-foreground" />
+            <span className="text-xs font-medium text-foreground">Call</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-primary/10 transition-colors"
+          >
+            <User className="h-5 w-5 text-foreground" />
+            <span className="text-xs font-medium text-foreground">Profile</span>
+          </Button>
+        </div>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
