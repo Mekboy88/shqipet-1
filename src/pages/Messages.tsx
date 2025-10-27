@@ -3,24 +3,34 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Search, MoreVertical, Phone, Video, Info, Paperclip, Smile, Mic, Send, Check, CheckCheck, Download, Plus, Image as ImageIcon } from 'lucide-react';
+import { 
+  Search, 
+  MoreVertical, 
+  Phone, 
+  Video, 
+  Info,
+  Paperclip,
+  Smile,
+  Mic,
+  Send,
+  Check,
+  CheckCheck,
+  Download,
+  Plus,
+  Image as ImageIcon
+} from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+
 interface Message {
   id: string;
   text?: string;
   sender: 'user' | 'contact';
   timestamp: string;
   status?: 'sent' | 'delivered' | 'read';
-  images?: {
-    url: string;
-    size?: string;
-  }[];
-  file?: {
-    name: string;
-    size: string;
-    pages: number;
-  };
+  images?: { url: string; size?: string }[];
+  file?: { name: string; size: string; pages: number };
 }
+
 interface Contact {
   id: string;
   name: string;
@@ -32,15 +42,18 @@ interface Contact {
   status?: string;
   typing?: boolean;
 }
+
 interface Status {
   id: string;
   name: string;
   avatar: string;
 }
+
 const Messages: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [topOffset, setTopOffset] = useState(0);
+  
   useEffect(() => {
     const measure = () => {
       const header = document.querySelector('header, [data-app-topbar], [data-topbar], .top-bar, .app-header') as HTMLElement | null;
@@ -57,6 +70,7 @@ const Messages: React.FC = () => {
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
   }, []);
+
   const [selectedContact, setSelectedContact] = useState<Contact>({
     id: '1',
     name: 'Lea',
@@ -65,121 +79,119 @@ const Messages: React.FC = () => {
     timestamp: '22/10/23',
     online: true
   });
+
   const [messageInput, setMessageInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Mock data
-  const statuses: Status[] = [{
-    id: '1',
-    name: 'My Status',
-    avatar: '/placeholder.svg'
-  }, {
-    id: '2',
-    name: 'Jesus ...',
-    avatar: '/placeholder.svg'
-  }, {
-    id: '3',
-    name: 'Mari',
-    avatar: '/placeholder.svg'
-  }, {
-    id: '4',
-    name: 'Kristin ...',
-    avatar: '/placeholder.svg'
-  }, {
-    id: '5',
-    name: 'Lea',
-    avatar: '/placeholder.svg'
-  }];
-  const contacts: Contact[] = [{
-    id: '1',
-    name: 'Josephin water',
-    avatar: '/placeholder.svg',
-    lastMessage: 'Typing...',
-    timestamp: '22/10/23',
-    typing: true
-  }, {
-    id: '2',
-    name: 'Mari',
-    avatar: '/placeholder.svg',
-    lastMessage: 'This is nice, I love it ❤️',
-    timestamp: 'JUST NOW',
-    online: true
-  }, {
-    id: '3',
-    name: 'Lea',
-    avatar: '/placeholder.svg',
-    lastMessage: 'What are you doing',
-    timestamp: '22/10/23',
-    online: true
-  }, {
-    id: '4',
-    name: 'Kristin Watson',
-    avatar: '/placeholder.svg',
-    lastMessage: 'Okay I will try it 😊',
-    timestamp: 'Yesterday'
-  }, {
-    id: '5',
-    name: '15 Rocks',
-    avatar: '/placeholder.svg',
-    lastMessage: 'You : This is COOL',
-    timestamp: '18/08/2024'
-  }, {
-    id: '6',
-    name: 'Jesus Watson',
-    avatar: '/placeholder.svg',
-    lastMessage: 'Sent you image',
-    timestamp: '14/12/24'
-  }];
-  const messages: Message[] = [{
-    id: '1',
-    text: "Hi Angelo! Let's go out",
-    sender: 'contact',
-    timestamp: '01:42 AM',
-    status: 'read'
-  }, {
-    id: '2',
-    text: 'I have vacation plan in Ladakh for next week.',
-    sender: 'user',
-    timestamp: '01:35 AM'
-  }, {
-    id: '3',
-    text: 'You understand',
-    sender: 'contact',
-    timestamp: '01:35 AM'
-  }, {
-    id: '4',
-    images: [{
-      url: '/placeholder.svg',
-      size: '53 MB'
-    }, {
-      url: '/placeholder.svg'
-    }, {
-      url: '/placeholder.svg'
-    }, {
-      url: '/placeholder.svg'
-    }],
-    sender: 'contact',
-    timestamp: '01:42 AM'
-  }, {
-    id: '5',
-    text: 'You understand',
-    sender: 'contact',
-    timestamp: '01:42 AM'
-  }, {
-    id: '6',
-    file: {
-      name: 'Smitten Shah 01.pdf',
-      size: '1 Page | 250 Kb',
-      pages: 1
+  const statuses: Status[] = [
+    { id: '1', name: 'My Status', avatar: '/placeholder.svg' },
+    { id: '2', name: 'Jesus ...', avatar: '/placeholder.svg' },
+    { id: '3', name: 'Mari', avatar: '/placeholder.svg' },
+    { id: '4', name: 'Kristin ...', avatar: '/placeholder.svg' },
+    { id: '5', name: 'Lea', avatar: '/placeholder.svg' }
+  ];
+
+  const contacts: Contact[] = [
+    { 
+      id: '1', 
+      name: 'Josephin water', 
+      avatar: '/placeholder.svg', 
+      lastMessage: 'Typing...', 
+      timestamp: '22/10/23',
+      typing: true
     },
-    sender: 'user',
-    timestamp: '01:40 AM',
-    status: 'read'
-  }];
-  return <div className="flex overflow-hidden bg-white fixed left-0 right-0" style={{
-    top: topOffset,
-    height: `calc(100vh - ${topOffset}px)`
-  }}>
+    { 
+      id: '2', 
+      name: 'Mari', 
+      avatar: '/placeholder.svg', 
+      lastMessage: 'This is nice, I love it ❤️', 
+      timestamp: 'JUST NOW',
+      online: true
+    },
+    { 
+      id: '3', 
+      name: 'Lea', 
+      avatar: '/placeholder.svg', 
+      lastMessage: 'What are you doing', 
+      timestamp: '22/10/23',
+      online: true
+    },
+    { 
+      id: '4', 
+      name: 'Kristin Watson', 
+      avatar: '/placeholder.svg', 
+      lastMessage: 'Okay I will try it 😊', 
+      timestamp: 'Yesterday'
+    },
+    { 
+      id: '5', 
+      name: '15 Rocks', 
+      avatar: '/placeholder.svg', 
+      lastMessage: 'You : This is COOL', 
+      timestamp: '18/08/2024'
+    },
+    { 
+      id: '6', 
+      name: 'Jesus Watson', 
+      avatar: '/placeholder.svg', 
+      lastMessage: 'Sent you image', 
+      timestamp: '14/12/24'
+    }
+  ];
+
+  const messages: Message[] = [
+    {
+      id: '1',
+      text: "Hi Angelo! Let's go out",
+      sender: 'contact',
+      timestamp: '01:42 AM',
+      status: 'read'
+    },
+    {
+      id: '2',
+      text: 'I have vacation plan in Ladakh for next week.',
+      sender: 'user',
+      timestamp: '01:35 AM'
+    },
+    {
+      id: '3',
+      text: 'You understand',
+      sender: 'contact',
+      timestamp: '01:35 AM'
+    },
+    {
+      id: '4',
+      images: [
+        { url: '/placeholder.svg', size: '53 MB' },
+        { url: '/placeholder.svg' },
+        { url: '/placeholder.svg' },
+        { url: '/placeholder.svg' }
+      ],
+      sender: 'contact',
+      timestamp: '01:42 AM'
+    },
+    {
+      id: '5',
+      text: 'You understand',
+      sender: 'contact',
+      timestamp: '01:42 AM'
+    },
+    {
+      id: '6',
+      file: {
+        name: 'Smitten Shah 01.pdf',
+        size: '1 Page | 250 Kb',
+        pages: 1
+      },
+      sender: 'user',
+      timestamp: '01:40 AM',
+      status: 'read'
+    }
+  ];
+
+  return (
+    <div className="flex overflow-hidden bg-white fixed left-0 right-0" style={{ top: topOffset, height: `calc(100vh - ${topOffset}px)` }}>
 
       {/* Left Navigation Bar */}
       <div className="w-[70px] bg-[#00a884] flex flex-col items-center py-4 gap-6 flex-shrink-0">
@@ -279,7 +291,8 @@ const Messages: React.FC = () => {
             <button className="text-xs text-[#4a9b7f] hover:underline">View All</button>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2">
-            {statuses.map(status => <div key={status.id} className="flex flex-col items-center gap-1 min-w-[60px]">
+            {statuses.map((status) => (
+              <div key={status.id} className="flex flex-col items-center gap-1 min-w-[60px]">
                 <div className="relative">
                   <Avatar className="h-14 w-14 border-2 border-[#4a9b7f]">
                     <AvatarImage src={status.avatar} />
@@ -289,7 +302,8 @@ const Messages: React.FC = () => {
                 <span className="text-[10px] text-gray-600 truncate w-full text-center">
                   {status.name}
                 </span>
-              </div>)}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -328,13 +342,22 @@ const Messages: React.FC = () => {
 
         {/* Contacts List */}
         <div className="flex-1 overflow-y-auto">
-          {contacts.map(contact => <button key={contact.id} onClick={() => setSelectedContact(contact)} className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 ${selectedContact.id === contact.id ? 'bg-gray-50' : ''}`}>
+          {contacts.map((contact) => (
+            <button
+              key={contact.id}
+              onClick={() => setSelectedContact(contact)}
+              className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 ${
+                selectedContact.id === contact.id ? 'bg-gray-50' : ''
+              }`}
+            >
               <div className="relative">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={contact.avatar} />
                   <AvatarFallback>{contact.name[0]}</AvatarFallback>
                 </Avatar>
-                {contact.online && <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white" />}
+                {contact.online && (
+                  <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white" />
+                )}
               </div>
               <div className="flex-1 text-left">
                 <div className="flex items-center justify-between">
@@ -345,7 +368,8 @@ const Messages: React.FC = () => {
                   {contact.lastMessage}
                 </p>
               </div>
-            </button>)}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -392,34 +416,63 @@ const Messages: React.FC = () => {
 
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 space-y-4 min-h-0">
-          {messages.map(message => <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {message.sender === 'contact' && <Avatar className="h-8 w-8 mr-2">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              {message.sender === 'contact' && (
+                <Avatar className="h-8 w-8 mr-2">
                   <AvatarImage src={selectedContact.avatar} />
                   <AvatarFallback>{selectedContact.name[0]}</AvatarFallback>
-                </Avatar>}
+                </Avatar>
+              )}
               
               <div className={`max-w-[65%] ${message.sender === 'user' ? 'ml-auto' : ''}`}>
-                {message.text && <div className={`rounded-lg px-3 py-2 ${message.sender === 'user' ? 'bg-[#d9fdd3] text-gray-900' : 'bg-white text-gray-900'}`}>
+                {message.text && (
+                  <div
+                    className={`rounded-lg px-3 py-2 ${
+                      message.sender === 'user'
+                        ? 'bg-[#d9fdd3] text-gray-900'
+                        : 'bg-white text-gray-900'
+                    }`}
+                  >
                     <p className="text-sm">{message.text}</p>
                     <div className="flex items-center justify-end gap-1 mt-1">
                       <span className="text-[10px] text-gray-500">{message.timestamp}</span>
-                      {message.sender === 'user' && message.status === 'read' && <CheckCheck className="h-3 w-3 text-blue-500" />}
+                      {message.sender === 'user' && message.status === 'read' && (
+                        <CheckCheck className="h-3 w-3 text-blue-500" />
+                      )}
                     </div>
-                  </div>}
+                  </div>
+                )}
 
-                {message.images && <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden bg-white p-1">
-                    {message.images.map((img, idx) => <div key={idx} className="relative">
-                        <img src={img.url} alt="" className="w-full h-32 object-cover rounded" />
-                        {idx === 0 && img.size && <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                {message.images && (
+                  <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden bg-white p-1">
+                    {message.images.map((img, idx) => (
+                      <div key={idx} className="relative">
+                        <img
+                          src={img.url}
+                          alt=""
+                          className="w-full h-32 object-cover rounded"
+                        />
+                        {idx === 0 && img.size && (
+                          <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                             👍 {img.size}
-                          </div>}
-                        {idx === 3 && <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-lg font-semibold">
+                          </div>
+                        )}
+                        {idx === 3 && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-lg font-semibold">
                             10+
-                          </div>}
-                      </div>)}
-                  </div>}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                {message.file && <div className="bg-[#d9fdd3] rounded-lg p-3 flex items-center gap-3">
+                {message.file && (
+                  <div className="bg-[#d9fdd3] rounded-lg p-3 flex items-center gap-3">
                     <div className="h-12 w-12 bg-red-500 rounded flex items-center justify-center text-white text-xs font-bold">
                       PDF
                     </div>
@@ -432,11 +485,15 @@ const Messages: React.FC = () => {
                     </Button>
                     <div className="flex items-center gap-1">
                       <span className="text-[10px] text-gray-500">{message.timestamp}</span>
-                      {message.status === 'read' && <CheckCheck className="h-3 w-3 text-blue-500" />}
+                      {message.status === 'read' && (
+                        <CheckCheck className="h-3 w-3 text-blue-500" />
+                      )}
                     </div>
-                  </div>}
+                  </div>
+                )}
               </div>
-            </div>)}
+            </div>
+          ))}
         </div>
 
         {/* Message Input */}
@@ -452,7 +509,13 @@ const Messages: React.FC = () => {
               <Smile className="h-5 w-5 text-gray-600" />
             </Button>
             
-            <input type="text" placeholder="Write your message..." value={messageInput} onChange={e => setMessageInput(e.target.value)} className="flex-1 bg-transparent border-0 outline-none text-sm px-2" />
+            <input
+              type="text"
+              placeholder="Write your message..."
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              className="flex-1 bg-transparent border-0 outline-none text-sm px-2"
+            />
             
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-transparent">
               <Mic className="h-5 w-5 text-gray-600" />
@@ -477,7 +540,7 @@ const Messages: React.FC = () => {
         <div className="flex-1 flex flex-col items-center gap-6 mt-4">
           <button className="w-10 h-10 rounded-lg hover:bg-gray-200/60 flex items-center justify-center transition-colors">
             <svg className="w-6 h-6 text-[#00a884]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <circle cx="8.5" cy="8.5" r="1.5" />
               <polyline points="21 15 16 10 5 21" />
             </svg>
@@ -541,6 +604,8 @@ const Messages: React.FC = () => {
           </button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Messages;
