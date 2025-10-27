@@ -171,7 +171,7 @@ const Messages: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-[#f0f2f5]">
+    <div className="flex h-screen overflow-hidden bg-white">
       {/* Left Navigation Bar */}
       <div className="w-[70px] bg-[#00a884] flex flex-col items-center py-4 gap-6 flex-shrink-0">
         {/* Logo/Brand */}
@@ -353,7 +353,7 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-[#e5ddd5] min-h-0">
+      <div className="flex-1 flex flex-col bg-[#e5ddd5] min-h-0 relative">
         {/* Chat Header */}
         <div className="bg-[#f0f2f5] px-4 py-3 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -394,7 +394,7 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28 space-y-4 min-h-0">
           {messages.map((message) => (
             <div
               key={message.id}
