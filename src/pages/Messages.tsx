@@ -194,10 +194,10 @@ const Messages: React.FC = () => {
     <div className="flex overflow-hidden bg-white fixed left-0 right-0" style={{ top: topOffset, height: `calc(100vh - ${topOffset}px)` }}>
 
       {/* Left Navigation Bar */}
-      <div className="w-[70px] bg-[#00a884] flex flex-col items-center py-4 gap-6 flex-shrink-0">
+      <div className="w-[70px] bg-[#4682B4] flex flex-col items-center py-4 gap-6 flex-shrink-0">
         {/* Logo/Brand */}
         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-          <svg className="w-6 h-6 text-[#00a884]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg className="w-6 h-6 text-[#4682B4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
         </div>
@@ -288,13 +288,13 @@ const Messages: React.FC = () => {
         <div className="px-4 py-3 border-b border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-gray-900">Status</h3>
-            <button className="text-xs text-[#4a9b7f] hover:underline">View All</button>
+            <button className="text-xs text-[#4682B4] hover:underline">View All</button>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2">
             {statuses.map((status) => (
               <div key={status.id} className="flex flex-col items-center gap-1 min-w-[60px]">
                 <div className="relative">
-                  <Avatar className="h-14 w-14 border-2 border-[#4a9b7f]">
+                  <Avatar className="h-14 w-14 border-2 border-[#4682B4]">
                     <AvatarImage src={status.avatar} />
                     <AvatarFallback>{status.name[0]}</AvatarFallback>
                   </Avatar>
@@ -520,7 +520,7 @@ const Messages: React.FC = () => {
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-transparent">
               <Mic className="h-5 w-5 text-gray-600" />
             </Button>
-            <Button size="sm" className="h-9 w-9 p-0 bg-[#00a884] hover:bg-[#008f6d] text-white rounded-full">
+            <Button size="sm" className="h-9 w-9 p-0 bg-[#4682B4] hover:bg-[#3b6fa0] text-white rounded-full">
               <Send className="h-4 w-4" />
             </Button>
           </div>
@@ -534,7 +534,7 @@ const Messages: React.FC = () => {
         <div className="relative h-[88px] w-full flex items-center justify-center border-b border-gray-200">
           <div className="absolute top-1/2 -translate-y-1/2 w-16 h-16 rounded-lg overflow-hidden shadow-md">
             <img 
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedContact.name)}&size=160&background=00a884&color=fff&bold=true`}
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedContact.name)}&size=160&background=4682B4&color=fff&bold=true`}
               alt={selectedContact.name}
               className="w-full h-full object-cover"
             />
@@ -542,7 +542,7 @@ const Messages: React.FC = () => {
         </div>
         
         {/* Small Toggle Button - Half outside on border */}
-        <button className="absolute top-1/2 -left-[12px] transform -translate-y-1/2 w-6 h-6 rounded-md bg-[#00a884] hover:bg-[#00a884]/90 flex items-center justify-center transition-colors shadow-lg z-10">
+        <button className="absolute top-1/2 -left-[12px] transform -translate-y-1/2 w-6 h-6 rounded-md bg-[#4682B4] hover:bg-[#4682B4]/90 flex items-center justify-center transition-colors shadow-lg z-10">
           <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="9 6 15 12 9 18" />
           </svg>
@@ -550,7 +550,7 @@ const Messages: React.FC = () => {
 
         <div className="flex-1 flex flex-col items-center gap-6 mt-4">
           <button className="w-10 h-10 rounded-lg hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-            <svg className="w-6 h-6 text-[#00a884]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-6 h-6 text-[#4682B4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <circle cx="8.5" cy="8.5" r="1.5" />
               <polyline points="21 15 16 10 5 21" />
@@ -558,7 +558,7 @@ const Messages: React.FC = () => {
           </button>
           
           <button className="w-10 h-10 rounded-lg hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-            <svg className="w-6 h-6 text-[#00a884]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-6 h-6 text-[#4682B4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="18" cy="5" r="3" />
               <circle cx="6" cy="12" r="3" />
               <circle cx="18" cy="19" r="3" />
@@ -568,14 +568,14 @@ const Messages: React.FC = () => {
           </button>
           
           <button className="w-10 h-10 rounded-lg hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-            <svg className="w-6 h-6 text-[#00a884]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-6 h-6 text-[#4682B4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
             </svg>
           </button>
           
           <button className="w-10 h-10 rounded-lg hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-            <svg className="w-6 h-6 text-[#00a884]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-6 h-6 text-[#4682B4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 18V5l12-2v13" />
               <circle cx="6" cy="18" r="3" />
               <circle cx="18" cy="16" r="3" />
@@ -583,14 +583,14 @@ const Messages: React.FC = () => {
           </button>
           
           <button className="w-10 h-10 rounded-lg hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-            <svg className="w-6 h-6 text-[#00a884]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-6 h-6 text-[#4682B4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
               <polyline points="17 2 12 7 7 2" />
             </svg>
           </button>
           
           <button className="w-10 h-10 rounded-lg hover:bg-gray-200/60 flex items-center justify-center transition-colors">
-            <svg className="w-6 h-6 text-[#00a884]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-6 h-6 text-[#4682B4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
@@ -599,11 +599,11 @@ const Messages: React.FC = () => {
 
         {/* Bottom Action Buttons */}
         <div className="flex flex-col items-center gap-3 mt-auto">
-          <button className="w-12 h-12 rounded-full bg-[#25d366] hover:bg-[#20bd5a] flex items-center justify-center text-white shadow-lg transition-colors">
+          <button className="w-12 h-12 rounded-full bg-[#4682B4] hover:bg-[#3b6fa0] flex items-center justify-center text-white shadow-lg transition-colors">
             <span className="text-sm font-bold">RTL</span>
           </button>
           
-          <button className="w-12 h-12 rounded-full bg-[#25d366] hover:bg-[#20bd5a] flex items-center justify-center text-white shadow-lg transition-colors">
+          <button className="w-12 h-12 rounded-full bg-[#4682B4] hover:bg-[#3b6fa0] flex items-center justify-center text-white shadow-lg transition-colors">
             <span className="text-2xl leading-none">+</span>
           </button>
           
