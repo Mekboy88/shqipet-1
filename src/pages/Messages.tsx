@@ -529,10 +529,19 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Right Navigation Bar */}
-      <div className="w-[70px] bg-[#f0f2f5] flex flex-col items-center py-6 gap-6 flex-shrink-0 border-l border-gray-200">
-        {/* Top Action Icons */}
-        <button className="w-12 h-12 rounded-xl bg-[#00a884] hover:bg-[#00a884]/90 flex items-center justify-center transition-colors shadow-lg">
-          <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <div className="w-[70px] bg-[#f0f2f5] flex flex-col items-center py-6 gap-6 flex-shrink-0 border-l border-gray-200 relative">
+        {/* Contact Avatar - Square */}
+        <div className="w-12 h-12 rounded-lg overflow-hidden shadow-md">
+          <img 
+            src={selectedContact.avatar} 
+            alt={selectedContact.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        {/* Small Toggle Button - Half outside on border */}
+        <button className="absolute top-1/2 -right-[10px] transform -translate-y-1/2 w-5 h-5 rounded-full bg-[#00a884] hover:bg-[#00a884]/90 flex items-center justify-center transition-colors shadow-lg z-10">
+          <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
