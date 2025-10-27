@@ -245,7 +245,7 @@ const Messages: React.FC = () => {
       {/* Contacts Sidebar */}
       <div className="w-[360px] bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
         {/* Profile Header */}
-        <div className="p-4 bg-[#4a9b7f] text-white">
+        <div className="p-4 bg-white text-foreground">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
@@ -254,10 +254,10 @@ const Messages: React.FC = () => {
               </Avatar>
               <div>
                 <h3 className="font-semibold text-sm">Rohini Sharma</h3>
-                <p className="text-xs text-white/80">Busy</p>
+                <p className="text-xs text-muted-foreground">Busy</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white hover:bg-white/20">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
               <MoreVertical className="h-5 w-5" />
             </Button>
           </div>
