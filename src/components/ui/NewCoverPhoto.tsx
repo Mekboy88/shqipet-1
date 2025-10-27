@@ -17,7 +17,7 @@ interface NewCoverPhotoProps {
   onMouseMove?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-const NewCoverPhoto: React.FC<NewCoverPhotoProps> = ({
+const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
   userId,
   className,
   height = 500,
@@ -41,9 +41,11 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = ({
     }
   }, []);
 
-  // Use only real HTTP URLs (never blobs/data URIs)
-  const httpOnly = (u?: string | null) => (u && /^https?:/.test(u)) ? u : null;
-  const displayUrl = httpOnly(resolvedUrl) || httpOnly(lastGoodUrl);
+  // Use only real HTTP URLs (never blobs/data URIs) - memoized
+  const displayUrl = React.useMemo(() => {
+    const httpOnly = (u?: string | null) => (u && /^https?:/.test(u)) ? u : null;
+    return httpOnly(resolvedUrl) || httpOnly(lastGoodUrl);
+  }, [resolvedUrl, lastGoodUrl]);
 
   return (
     <div 
@@ -85,6 +87,8 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = ({
       )}
     </div>
   );
-};
+});
+
+NewCoverPhoto.displayName = 'NewCoverPhoto';
 
 export default NewCoverPhoto;

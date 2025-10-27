@@ -73,6 +73,17 @@ const notifyCoverChange = (userId: string, newState: CoverState) => {
     return;
   }
   
+  // CRITICAL: Skip if state didn't actually change (prevents flicker)
+  const prevState = stateByUser.get(userId);
+  if (prevState && 
+      prevState.resolvedUrl === newState.resolvedUrl &&
+      prevState.position === newState.position &&
+      prevState.loading === newState.loading &&
+      prevState.isPositionChanging === newState.isPositionChanging &&
+      prevState.isPositionSaving === newState.isPositionSaving) {
+    return; // No actual change - skip notification
+  }
+  
   // Update per-user state
   stateByUser.set(userId, newState);
   
@@ -394,7 +405,12 @@ export const useCover = (userId?: string) => {
       }
 
       // Don't reload if same key/url and we have a resolved URL
-      if (candidate === coverState.key && coverState.resolvedUrl && position === coverState.position) {
+      // ENHANCED: More aggressive check to prevent reloads
+      if (candidate === coverState.key && coverState.resolvedUrl && 
+          coverState.resolvedUrl.startsWith('http') && 
+          position === coverState.position &&
+          !coverState.loading) {
+        console.log('⏸️ Skipping cover reload - already have valid cover');
         return;
       }
 

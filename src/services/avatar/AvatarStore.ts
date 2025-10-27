@@ -75,6 +75,20 @@ const setState = (userId: string, patch: Partial<AvatarV2State>) => {
   const prev = ensureState(userId);
   const next = { ...prev, ...patch } as AvatarV2State;
   
+  // CRITICAL: Skip if nothing actually changed (prevents flicker from redundant updates)
+  const hasChanged = 
+    next.url !== prev.url ||
+    next.key !== prev.key ||
+    next.loading !== prev.loading ||
+    next.uploading !== prev.uploading ||
+    next.uploadProgress !== prev.uploadProgress ||
+    next.error !== prev.error ||
+    next.previewUrl !== prev.previewUrl;
+  
+  if (!hasChanged) {
+    return; // No change - skip update entirely
+  }
+  
   // Debug logging to track state changes
   console.log(`🔄 Avatar state change for ${userId}:`, {
     from: { url: prev.url, uploading: prev.uploading, loading: prev.loading },
@@ -223,8 +237,9 @@ class AvatarStore {
     }
     
     // Skip if we already have current URL (but not just lastGoodUrl - that needs refresh)
-    if (!forceRefresh && current.url) {
-      console.log('⏸️ Skipping load - already have current avatar URL');
+    // ENHANCED: Also skip if we have a valid Wasabi URL to prevent redundant loads
+    if (!forceRefresh && current.url && (current.url.startsWith('http') || current.url.startsWith('blob:'))) {
+      console.log('⏸️ Skipping load - already have valid avatar URL');
       return;
     }
     

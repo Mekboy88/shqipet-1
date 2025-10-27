@@ -1,10 +1,10 @@
+import React, { useRef, useState, useEffect } from 'react';
 import { Avatar as BaseAvatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Camera } from 'lucide-react';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
 import { useGlobalAvatar } from '@/hooks/useGlobalAvatar';
 import { toast } from 'sonner';
-import { useRef, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { mediaService } from '@/services/media/MediaService';
 
@@ -30,7 +30,7 @@ const sizeClasses: Record<AvatarProps['size'] & string, string> = {
   '2xl': 'w-20 h-20 text-xl'
 };
 
-const Avatar: React.FC<AvatarProps> = ({
+const Avatar: React.FC<AvatarProps> = React.memo(({
   userId,
   src,
   initials,
@@ -46,11 +46,19 @@ const Avatar: React.FC<AvatarProps> = ({
   const { user: authUser } = useAuth();
   const { avatarUrl: globalAvatarUrl, isLoading, uploadAvatar } = useGlobalAvatar(userId);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // Prefer provided src, then global avatar, then auth metadata URL, then universal user avatar
+  
+  // Memoize raw source to prevent unnecessary re-renders and re-resolutions
   const authAvatarUrl = (typeof authUser?.user_metadata?.avatar_url === 'string') 
     ? (authUser?.user_metadata?.avatar_url as string)
     : null;
+  
+  const rawSrcRef = useRef<string | null>(null);
   const rawSrc = src || globalAvatarUrl || authAvatarUrl || universalAvatarUrl || null;
+  
+  // Only update if actually changed to prevent flickering
+  if (rawSrc !== rawSrcRef.current && rawSrc) {
+    rawSrcRef.current = rawSrc;
+  }
 
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
   const [lastDisplayedSrc, setLastDisplayedSrc] = useState<string | null>(() => {
@@ -73,10 +81,18 @@ const Avatar: React.FC<AvatarProps> = ({
   // Prevent infinite error loops by limiting retries
   const errorRetryRef = useRef<number>(0);
 
-  // Resolve Wasabi keys to URLs with retry and fallback protection
+  // Resolve Wasabi keys to URLs ONCE per unique source - prevent flickering
   useEffect(() => {
-    if (!rawSrc) {
+    const currentRawSrc = rawSrcRef.current;
+    
+    if (!currentRawSrc) {
       // Keep last good image to avoid flicker/disappear during updates
+      return;
+    }
+
+    // Skip if we already resolved this exact source
+    if (resolvedSrc && lastDisplayedSrc && 
+        (currentRawSrc === resolvedSrc || currentRawSrc === lastDisplayedSrc)) {
       return;
     }
 
@@ -86,24 +102,32 @@ const Avatar: React.FC<AvatarProps> = ({
     rawKeyRef.current = null;
 
     // If already a proper URL, use as-is
-    if (/^(https?:|blob:|data:)/.test(rawSrc)) {
-      setResolvedSrc(rawSrc);
-      setLastDisplayedSrc(rawSrc);
+    if (/^(https?:|blob:|data:)/.test(currentRawSrc)) {
+      if (resolvedSrc !== currentRawSrc) {
+        setResolvedSrc(currentRawSrc);
+        setLastDisplayedSrc(currentRawSrc);
+      }
       return;
     }
 
     // If it looks like a storage key, remember it and resolve with retry logic
-    if (/^(uploads|avatars|covers)\//i.test(rawSrc)) {
-      rawKeyRef.current = rawSrc;
+    if (/^(uploads|avatars|covers)\//i.test(currentRawSrc)) {
+      rawKeyRef.current = currentRawSrc;
+      
+      // Check if we already have this in state (prevents re-resolution)
+      if (lastDisplayedSrc && lastDisplayedSrc.includes(encodeURIComponent(currentRawSrc))) {
+        return;
+      }
+      
       const resolveWithRetry = async (attempt = 1): Promise<void> => {
         try {
-          const url = await mediaService.getUrl(rawSrc);
+          const url = await mediaService.getUrl(currentRawSrc);
           // Preload to prevent flicker
           await mediaService.preloadImage(url).catch(() => {}); // Ignore preload failures
           setResolvedSrc(url);
           setLastDisplayedSrc(url);
         } catch (e) {
-          console.warn(`Failed to resolve avatar key (attempt ${attempt}):`, rawSrc, e);
+          console.warn(`Failed to resolve avatar key (attempt ${attempt}):`, currentRawSrc, e);
           if (attempt < 3) {
             // Retry with exponential backoff
             setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
@@ -118,9 +142,11 @@ const Avatar: React.FC<AvatarProps> = ({
     }
 
     // Unknown format, pass through
-    setResolvedSrc(rawSrc);
-    setLastDisplayedSrc(rawSrc);
-  }, [rawSrc]);
+    if (resolvedSrc !== currentRawSrc) {
+      setResolvedSrc(currentRawSrc);
+      setLastDisplayedSrc(currentRawSrc);
+    }
+  }, [rawSrcRef.current, resolvedSrc, lastDisplayedSrc]);
 
   const finalSrc = resolvedSrc || lastDisplayedSrc;
   
@@ -280,6 +306,8 @@ const Avatar: React.FC<AvatarProps> = ({
       )}
     </>
   );
-};
+});
+
+Avatar.displayName = 'Avatar';
 
 export default Avatar;
