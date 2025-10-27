@@ -531,12 +531,12 @@ const Messages: React.FC = () => {
       {/* Right Navigation Bar */}
       <div className="w-[100px] bg-[#f0f2f5] flex flex-col items-center flex-shrink-0 border-l border-gray-200 relative">
         {/* Contact Avatar - Square */}
-        <div className="px-6 py-6 flex flex-col items-center justify-center border-b border-gray-200 w-full">
-          <div className="relative w-10 h-10 rounded-lg overflow-hidden shadow-md">
+        <div className="relative h-[88px] w-full flex items-center justify-center border-b border-gray-200">
+          <div className="absolute top-1/2 -translate-y-1/2 w-16 h-16 rounded-lg overflow-hidden shadow-md">
             <img 
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedContact.name)}&size=128&background=00a884&color=fff&bold=true`}
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedContact.name)}&size=160&background=00a884&color=fff&bold=true`}
               alt={selectedContact.name}
-              className="absolute inset-0 w-full h-full object-cover scale-125"
+              className="w-full h-full object-cover"
             />
           </div>
         </div>
