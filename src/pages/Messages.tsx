@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,7 +19,7 @@ import {
   Plus,
   Image as ImageIcon
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface Message {
   id: string;
@@ -51,6 +51,20 @@ interface Status {
 
 const Messages: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isStandalone, setIsStandalone] = useState(false);
+  
+  useEffect(() => {
+    // Check if opened as standalone (new page/tab) or inside the app
+    const checkStandalone = () => {
+      // If there's no referrer or referrer is from a different origin, it's standalone
+      const isNewTab = !document.referrer || new URL(document.referrer).origin !== window.location.origin;
+      setIsStandalone(isNewTab);
+    };
+    
+    checkStandalone();
+  }, []);
+  
   const [selectedContact, setSelectedContact] = useState<Contact>({
     id: '1',
     name: 'Lea',
@@ -171,7 +185,7 @@ const Messages: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-[calc(100vh-58px)] overflow-hidden bg-white fixed top-[58px] left-0 right-0">
+    <div className={`flex overflow-hidden bg-white ${isStandalone ? 'h-screen fixed top-0 left-0 right-0' : 'h-[calc(100vh-58px)] fixed top-[58px] left-0 right-0'}`}>
       {/* Left Navigation Bar */}
       <div className="w-[70px] bg-[#00a884] flex flex-col items-center py-4 gap-6 flex-shrink-0">
         {/* Logo/Brand */}
