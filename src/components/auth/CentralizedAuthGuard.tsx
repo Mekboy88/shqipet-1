@@ -20,7 +20,10 @@ const publicRoutes = [
   // Public compose routes
   '/create-post',
   '/compose',
-  '/post/create'
+  '/post/create',
+  // Messages routes
+  '/messages',
+  '/messages/standalone'
 ];
 
 const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children }) => {

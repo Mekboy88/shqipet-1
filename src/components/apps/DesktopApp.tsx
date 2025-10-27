@@ -101,6 +101,7 @@ import { TranslationEditorPage } from '@/components/admin/localization/Translati
 import { ProfileSettingsProvider } from '@/contexts/ProfileSettingsContext';
 import ProfessionalPresentation from '@/pages/ProfessionalPresentation';
 import CreatePostDesktop from '@/pages/CreatePostDesktop';
+import Messages from '@/pages/Messages';
 
 const DesktopApp: React.FC = () => {
   return (
@@ -128,6 +129,8 @@ const DesktopApp: React.FC = () => {
           <Route path="/compose" element={<><NavbarNoTooltip /><CreatePostDesktop /></>} />
           <Route path="/post/create" element={<><NavbarNoTooltip /><CreatePostDesktop /></>} />
           <Route path="/history" element={<><NavbarNoTooltip /><HistoryPage /></>} />
+          <Route path="/messages" element={<><NavbarNoTooltip /><div className="pt-14"><Messages /></div></>} />
+          <Route path="/messages/standalone" element={<Messages />} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
           <Route path="/auth/verification" element={<Verification />} />
