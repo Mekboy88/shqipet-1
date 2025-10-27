@@ -505,7 +505,9 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => navigate('/messages')}
                   className="flex flex-col items-center gap-1 h-auto py-1 px-2 hover:bg-primary/10 transition-colors"
+                  title="Open here"
                 >
                   <MessageCircle className="h-4 w-4 text-primary" />
                   <span className="text-[10px] font-medium text-foreground">Message</span>
@@ -523,7 +525,9 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => window.open('/messages', '_blank')}
                   className="flex flex-col items-center gap-0 h-auto py-1 px-1 hover:bg-primary/10 transition-colors"
+                  title="Open in new page"
                 >
                   <svg viewBox="0 0 60 60" className="!h-10 !w-10" xmlns="http://www.w3.org/2000/svg">
                     <defs>
