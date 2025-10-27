@@ -437,10 +437,14 @@ export default function ProfessionalPresentation() {
 
             // For full URLs or local previews, apply directly
             if (/^(https?:|blob:|data:)/.test(keyOrUrl)) {
-              setProfile(prev => ({
-                ...prev,
-                avatarUrl: keyOrUrl
-              }));
+              setProfile(prev => {
+                // Prevent unnecessary update if URL hasn't changed
+                if (prev.avatarUrl === keyOrUrl) return prev;
+                return {
+                  ...prev,
+                  avatarUrl: keyOrUrl
+                };
+              });
               // SECURITY: Store with userId to prevent cross-account leakage
               try {
                 localStorage.setItem('pp:last:avatar_url', keyOrUrl);
@@ -456,10 +460,14 @@ export default function ProfessionalPresentation() {
                   const fresh = await mediaService.getUrl(keyOrUrl);
                   const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
                   await mediaService.preloadImage(versioned);
-                  setProfile(prev => ({
-                    ...prev,
-                    avatarUrl: versioned
-                  }));
+                  setProfile(prev => {
+                    // Prevent unnecessary update if URL hasn't changed
+                    if (prev.avatarUrl === versioned) return prev;
+                    return {
+                      ...prev,
+                      avatarUrl: versioned
+                    };
+                  });
                   try {
                     localStorage.setItem('pp:last:avatar_url', versioned);
                     localStorage.setItem('pp:avatar_meta', JSON.stringify({
@@ -478,10 +486,14 @@ export default function ProfessionalPresentation() {
                       // Only use cache if it's for the CURRENT user
                       if (meta.userId === user.id) {
                         const last = localStorage.getItem('pp:last:avatar_url');
-                        if (last) setProfile(prev => ({
-                          ...prev,
-                          avatarUrl: last
-                        }));
+                        if (last) setProfile(prev => {
+                          // Prevent unnecessary update if URL hasn't changed
+                          if (prev.avatarUrl === last) return prev;
+                          return {
+                            ...prev,
+                            avatarUrl: last
+                          };
+                        });
                       } else {
                         // Clear stale cache from different user
                         localStorage.removeItem('pp:last:avatar_url');
@@ -533,10 +545,14 @@ export default function ProfessionalPresentation() {
 
           // If this is a local preview (blob/data), apply immediately
           if (/^(blob:|data:)/.test(keyOrUrl)) {
-            setProfile(prev => ({
-              ...prev,
-              avatarUrl: keyOrUrl
-            }));
+            setProfile(prev => {
+              // Prevent unnecessary update if URL hasn't changed
+              if (prev.avatarUrl === keyOrUrl) return prev;
+              return {
+                ...prev,
+                avatarUrl: keyOrUrl
+              };
+            });
             // SECURITY: Store with userId to prevent cross-account leakage
             try {
               localStorage.setItem('pp:last:avatar_url', keyOrUrl);
@@ -561,10 +577,14 @@ export default function ProfessionalPresentation() {
 
               // Preload before applying to ensure smooth transition
               await mediaService.preloadImage(versioned);
-              setProfile(prev => ({
-                ...prev,
-                avatarUrl: versioned
-              }));
+              setProfile(prev => {
+                // Prevent unnecessary update if URL hasn't changed
+                if (prev.avatarUrl === versioned) return prev;
+                return {
+                  ...prev,
+                  avatarUrl: versioned
+                };
+              });
               // SECURITY: Store with userId to prevent cross-account leakage
               try {
                 localStorage.setItem('pp:last:avatar_url', versioned);
@@ -1167,7 +1187,7 @@ export default function ProfessionalPresentation() {
 }
 
 // ===== Photo strip (left, subtle) =====
-function PhotoStrip({
+const PhotoStrip = React.memo(({
   avatarUrl,
   accent,
   height = 420,
@@ -1181,10 +1201,11 @@ function PhotoStrip({
   userId?: string;
   editMode?: boolean;
   onPhotoUpdate?: (url: string) => void;
-}) {
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const rawAvatarRef = useRef(avatarUrl);
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
@@ -1314,41 +1335,35 @@ function PhotoStrip({
     fileInputRef.current?.click();
   };
 
-  // Flicker-free image loading with version dedupe
-  const [displayUrl, setDisplayUrl] = useState<string>(() => {
+  // Memoized URL resolution - prevent unnecessary re-resolves
+  const displayUrl = useMemo(() => {
+    // Check if avatarUrl changed
+    if (rawAvatarRef.current !== avatarUrl) {
+      rawAvatarRef.current = avatarUrl;
+    }
+
+    // If already a valid HTTP/blob/data URL, use it directly
+    if (avatarUrl && /^(https?:|blob:|data:)/.test(avatarUrl)) {
+      return avatarUrl;
+    }
+
+    // Try localStorage cache first
     try {
       const raw = localStorage.getItem('pp:avatar_meta');
       if (raw) {
         const meta = JSON.parse(raw);
         if (meta?.url && (!userId || meta.userId === userId)) {
-          return String(meta.url);
+          // If cached URL is valid HTTP, use it
+          if (/^https?:/.test(meta.url)) {
+            return String(meta.url);
+          }
         }
       }
     } catch {}
+
+    // Fallback to resolving
     return resolveMediaUrl(avatarUrl);
-  });
-  const imgRequestIdRef = useRef(0);
-  useEffect(() => {
-    const next = resolveMediaUrl(avatarUrl);
-    if (!next || next === displayUrl) return;
-    const requestId = ++imgRequestIdRef.current;
-
-    // Preload off-DOM, only swap src after fully loaded
-    const img = new Image();
-    img.onload = () => {
-      if (imgRequestIdRef.current === requestId) {
-        setDisplayUrl(next);
-      }
-    };
-    img.onerror = () => {
-      console.warn('⚠️ Preload failed, keeping last good image', {
-        next
-      });
-    };
-    img.src = next;
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [avatarUrl]);
+  }, [avatarUrl, userId]);
   // Photo editor hook
   const photoEditor = usePhotoEditor({
     userId,
@@ -1413,7 +1428,9 @@ function PhotoStrip({
       {/* Hidden file input */}
       <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileSelect} className="hidden" />
     </div>;
-}
+});
+
+PhotoStrip.displayName = 'PhotoStrip';
 
 // ===== Minor helpers =====
 function SettingsDialog({
