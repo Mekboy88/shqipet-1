@@ -171,7 +171,7 @@ const Messages: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
+    <div className="flex h-[calc(100vh-64px)] mt-16 overflow-hidden bg-white">
       {/* Left Navigation Bar */}
       <div className="w-[70px] bg-[#00a884] flex flex-col items-center py-4 gap-6 flex-shrink-0">
         {/* Logo/Brand */}
