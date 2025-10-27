@@ -356,7 +356,7 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-[#e5ddd5] min-h-0">
+      <div className="flex-1 flex flex-col bg-white min-h-0">
         {/* Chat Header */}
         <div className="bg-[#f0f2f5] px-4 py-3 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -479,41 +479,44 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Message Input */}
-        <div className="bg-[#f0f2f5] px-4 py-2 flex items-center gap-2 flex-shrink-0">
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full hover:bg-gray-200">
-            <svg className="h-5 w-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </Button>
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full hover:bg-gray-200">
-            <svg className="h-5 w-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-          </Button>
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full hover:bg-gray-200">
-            <Paperclip className="h-5 w-5 text-gray-600" />
-          </Button>
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full hover:bg-gray-200">
-            <Smile className="h-5 w-5 text-gray-600" />
-          </Button>
-          
-          <Input
-            type="text"
-            placeholder="Write your message..."
-            value={messageInput}
-            onChange={(e) => setMessageInput(e.target.value)}
-            className="flex-1 bg-white border-gray-300 rounded-lg h-9 text-sm"
-          />
-          
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full hover:bg-gray-200">
-            <Mic className="h-5 w-5 text-gray-600" />
-          </Button>
-          <Button size="sm" className="h-9 w-9 p-0 bg-[#00a884] hover:bg-[#00a884]/90 text-white rounded-full">
-            <Send className="h-4 w-4" />
-          </Button>
+        <div className="bg-white px-3 py-2 flex items-center gap-2 flex-shrink-0 border-t border-gray-200">
+          <div className="flex items-center gap-2 bg-white rounded-lg px-2 py-1.5 flex-1">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
+              <svg className="h-5 w-5 text-[#54656f]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
+              <svg className="h-5 w-5 text-[#54656f]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
+              <Paperclip className="h-5 w-5 text-[#54656f]" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
+              <Smile className="h-5 w-5 text-[#54656f]" />
+            </Button>
+            
+            <Input
+              type="text"
+              placeholder="Write your message..."
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 h-8 text-sm px-2"
+            />
+            
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
+              <Mic className="h-5 w-5 text-[#54656f]" />
+            </Button>
+            <Button size="sm" className="h-8 w-8 p-0 bg-[#00a884] hover:bg-[#00a884]/90 text-white rounded-full">
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
       </div>
