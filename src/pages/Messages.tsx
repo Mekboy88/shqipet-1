@@ -281,9 +281,9 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-[#e5ddd5]">
+      <div className="flex-1 flex flex-col bg-[#e5ddd5] min-h-0">
         {/* Chat Header */}
-        <div className="bg-[#f0f2f5] px-4 py-3 flex items-center justify-between border-b border-gray-200">
+        <div className="bg-[#f0f2f5] px-4 py-3 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={selectedContact.avatar} />
@@ -322,7 +322,7 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -404,7 +404,7 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Message Input */}
-        <div className="bg-[#f0f2f5] px-4 py-3 flex items-center gap-3">
+        <div className="bg-[#f0f2f5] px-4 py-3 flex items-center gap-3 flex-shrink-0">
           <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full">
             <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="12" cy="12" r="10" />
