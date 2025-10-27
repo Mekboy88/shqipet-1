@@ -542,8 +542,8 @@ const Messages: React.FC = () => {
         </div>
         
         {/* Small Toggle Button - Half outside on border */}
-        <button className="absolute top-1/2 -left-[10px] transform -translate-y-1/2 w-5 h-5 rounded-full bg-[#00a884] hover:bg-[#00a884]/90 flex items-center justify-center transition-colors shadow-lg z-10">
-          <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <button className="absolute top-1/2 -left-[12px] transform -translate-y-1/2 w-6 h-6 rounded-md bg-[#00a884] hover:bg-[#00a884]/90 flex items-center justify-center transition-colors shadow-lg z-10">
+          <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
