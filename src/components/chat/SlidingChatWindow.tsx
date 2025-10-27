@@ -580,31 +580,40 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
                     
                     {/* Options Popup */}
                     {showOptionsPopup && (
-                      <div 
-                        className="absolute right-0 top-full mt-2 w-48 bg-background border border-border rounded-lg shadow-lg overflow-hidden animate-scale-in z-[9999]"
-                        style={{
-                          animation: 'scale-in 0.2s ease-out'
-                        }}
-                      >
-                        <button
-                          onClick={() => {
-                            window.open('/', '_blank');
-                            setShowOptionsPopup(false);
+                      <>
+                        {/* Backdrop */}
+                        <div 
+                          className="fixed inset-0 z-[9998]"
+                          onClick={() => setShowOptionsPopup(false)}
+                        />
+                        
+                        {/* Popup Menu */}
+                        <div 
+                          className="absolute right-0 top-full mt-2 w-48 bg-background border border-border rounded-lg shadow-lg overflow-hidden animate-scale-in z-[9999]"
+                          style={{
+                            animation: 'scale-in 0.2s ease-out'
                           }}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
                         >
-                          <span>Open in new page</span>
-                        </button>
-                        <div className="border-t border-border" />
-                        <button
-                          onClick={() => {
-                            setShowOptionsPopup(false);
-                          }}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
-                        >
-                          <span>Open here</span>
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => {
+                              window.open('/', '_blank');
+                              setShowOptionsPopup(false);
+                            }}
+                            className="w-full px-4 py-3 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
+                          >
+                            <span>Open in new page</span>
+                          </button>
+                          <div className="border-t border-border" />
+                          <button
+                            onClick={() => {
+                              setShowOptionsPopup(false);
+                            }}
+                            className="w-full px-4 py-3 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
+                          >
+                            <span>Open here</span>
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                   <div className="flex items-center gap-1">
