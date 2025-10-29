@@ -33,8 +33,8 @@ const NavButtonNoTooltip = React.memo(({ to, active = false, children, customAct
       onClick={handleClick}
       className={`flex items-center justify-center h-14 w-[112px] relative transition-none ${
         active 
-          ? 'hover:bg-secondary/60' 
-          : 'hover:bg-secondary/40'
+          ? 'hover:bg-secondary/70' 
+          : 'hover:bg-secondary/50'
       }`}
       style={{
         textDecoration: 'none',
