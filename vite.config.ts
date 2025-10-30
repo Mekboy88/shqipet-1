@@ -31,9 +31,20 @@ export default defineConfig(async ({ mode }) => {
       // Memory-efficient build settings
       rollupOptions: {
         output: {
-          manualChunks: undefined, // Let Vite handle chunking automatically
+          // Enable CSS code splitting to reduce unused CSS on initial load
+          manualChunks(id: string) {
+            // Split vendor CSS into separate chunks
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+            // Split route-based components to enable lazy CSS loading
+            if (id.includes('src/pages/')) {
+              return 'routes';
+            }
+          },
         },
       },
+      cssCodeSplit: true, // Enable CSS code splitting
       // Disable sourcemaps in development builds to save memory
       sourcemap: false,
       // Increase chunk size warning limit
