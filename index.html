@@ -9,6 +9,14 @@
     <meta name="author" content="Shqipet" />
     <meta name="google-site-verification" content="googleeceaa7f10f975bf6" />
     
+    <!-- Resource hints for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    
     <!-- Custom favicon -->
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="shortcut icon" href="/favicon.png" type="image/png">
@@ -18,8 +26,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
     <link rel="mask-icon" href="/favicon.png" color="#C1272D">
     
-    <!-- DSEG seven/14-segment fonts -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.46/css/dseg.css">
+    <!-- DSEG seven/14-segment fonts - loaded with low priority -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.46/css/dseg.css" media="print" onload="this.media='all'; this.onload=null;">
 
     
     
