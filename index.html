@@ -17,6 +17,9 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     
+    <!-- Preload critical font for LCP optimization -->
+    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7PkRXMw.woff2" crossorigin>
+    
     <!-- Custom favicon -->
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="shortcut icon" href="/favicon.png" type="image/png">
@@ -39,7 +42,7 @@
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DvhUwi36RKbc14IdrOQJbhl9VO23/social-images/social-1761230493980-ChatGPT Image Jul 1, 2025, 04_20_17 PM.png">
     
     <style>
-      /* Critical CSS to prevent layout shifts */
+      /* Critical CSS to prevent layout shifts and improve LCP */
       html, body {
         margin: 0;
         padding: 0;
@@ -80,6 +83,17 @@
       /* Ensure all containers respect viewport bounds */
       body * {
         max-width: 100vw;
+      }
+      
+      /* Font display optimization for faster text rendering */
+      @font-face {
+        font-family: 'Cinzel-fallback';
+        src: local('Georgia'), local('Times New Roman');
+        font-display: swap;
+        ascent-override: 90%;
+        descent-override: 20%;
+        line-gap-override: 0%;
+        size-adjust: 105%;
       }
     </style>
     <!-- Preload marketplace wallpaper for instant paint -->
