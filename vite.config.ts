@@ -77,14 +77,6 @@ export default defineConfig(async ({ mode }) => {
       sourcemap: false,
       // Increase chunk size warning limit
       chunkSizeWarningLimit: 2000,
-      // Enable minification for better tree-shaking
-      minify: 'terser' as const,
-      terserOptions: {
-        compress: {
-          drop_console: false,
-          pure_funcs: ['console.log'],
-        },
-      },
     },
     optimizeDeps: {
       exclude: ["workbox-window"],
