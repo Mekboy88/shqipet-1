@@ -22,50 +22,51 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = ({
   const loadingRef = useRef<HTMLDivElement>(null);
   const pendingRef = useRef(false);
   
-  // Facebook-style loading check - simple and effective
+  // Facebook-style loading check - optimized to prevent forced reflows
   const checkIfNeedLoad = useCallback(() => {
     if (isLoading || !hasMore || pendingRef.current) return;
 
-    const container = scrollContainerRef?.current;
+    // Batch layout reads in requestAnimationFrame to prevent forced reflows
+    requestAnimationFrame(() => {
+      const container = scrollContainerRef?.current;
 
-    let scrollTop: number;
-    let scrollHeight: number;
-    let clientHeight: number;
+      let scrollTop: number;
+      let scrollHeight: number;
+      let clientHeight: number;
 
-    if (container) {
-      scrollTop = container.scrollTop;
-      scrollHeight = container.scrollHeight;
-      clientHeight = container.clientHeight;
-    } else {
-      scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      scrollHeight = document.documentElement.scrollHeight;
-      clientHeight = window.innerHeight;
-    }
+      if (container) {
+        scrollTop = container.scrollTop;
+        scrollHeight = container.scrollHeight;
+        clientHeight = container.clientHeight;
+      } else {
+        scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        scrollHeight = document.documentElement.scrollHeight;
+        clientHeight = window.innerHeight;
+      }
 
-    if (scrollTop + clientHeight >= scrollHeight - threshold) {
-      console.log('🔄 Loading more posts (Facebook style)');
-      pendingRef.current = true;
-      onLoadMore();
-      // Prevent spamming load requests
-      setTimeout(() => { pendingRef.current = false; }, 500);
-    }
+      if (scrollTop + clientHeight >= scrollHeight - threshold) {
+        console.log('🔄 Loading more posts (Facebook style)');
+        pendingRef.current = true;
+        onLoadMore();
+        // Prevent spamming load requests
+        setTimeout(() => { pendingRef.current = false; }, 500);
+      }
+    });
   }, [hasMore, isLoading, onLoadMore, threshold, scrollContainerRef]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      checkIfNeedLoad();
-    };
-
-    // Facebook uses simple throttling
+    // Facebook uses simple throttling with passive listeners
     let ticking = false;
     
     const throttledScroll = () => {
       if (!ticking) {
+        // checkIfNeedLoad already uses RAF internally, so just call it
+        checkIfNeedLoad();
+        ticking = true;
+        // Reset after animation frame completes
         requestAnimationFrame(() => {
-          handleScroll();
           ticking = false;
         });
-        ticking = true;
       }
     };
 
@@ -87,7 +88,7 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = ({
         targetEl.removeEventListener('scroll', throttledScroll as any);
       }
     };
-  }, [checkIfNeedLoad]);
+  }, [checkIfNeedLoad, scrollContainerRef]);
 
   return (
     <div>
