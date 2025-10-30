@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 // Removed toast system - using notification system instead
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,9 +10,10 @@ import { PostsProvider } from "@/contexts/PostsContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PublishingProgressProvider } from "@/contexts/PublishingProgressContext";
 
-import LaptopApp from '@/components/apps/LaptopApp';
-import DesktopApp from '@/components/apps/DesktopApp';
-import TermsOfUse from '@/pages/TermsOfUse';
+// Lazy load heavy app components to reduce initial bundle size
+const LaptopApp = lazy(() => import('@/components/apps/LaptopApp'));
+const DesktopApp = lazy(() => import('@/components/apps/DesktopApp'));
+const TermsOfUse = lazy(() => import('@/pages/TermsOfUse'));
 import SafetyWrapper from '@/components/SafetyWrapper';
 import RootLoadingWrapper from '@/components/RootLoadingWrapper';
 import CentralizedAuthGuard from '@/components/auth/CentralizedAuthGuard';
@@ -233,7 +234,9 @@ const ViewSwitcher: React.FC = () => {
               <BrowserRouter>
                 <div className="min-h-screen bg-gray-50">
                   <RoutePersistence />
-                  <TermsOfUse />
+                  <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><GlobeLoader size="lg" showText={true} /></div>}>
+                    <TermsOfUse />
+                  </Suspense>
                   <GlobalScrollIndicator />
                   {/* Removed toast system - using notification system */}
                 </div>
@@ -316,7 +319,9 @@ const ViewSwitcher: React.FC = () => {
                         <PostsProvider>
                              <PublishingProgressProvider>
                              <div className={`app-container is-${layoutType}-view vw-100 vh-100`} data-auth-ready>
-                               <AppComponent />
+                               <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><GlobeLoader size="lg" showText={true} /></div>}>
+                                 <AppComponent />
+                               </Suspense>
                                <DesktopMobileToggle />
                              </div>
                              <GlobalScrollIndicator />
