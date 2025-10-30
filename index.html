@@ -105,8 +105,8 @@
         size-adjust: 105%;
       }
     </style>
-    <!-- Preload marketplace wallpaper for instant paint -->
-    <link rel="preload" as="image" href="/marketplace-wallpaper.jpg" fetchpriority="high" />
+    <!-- Preload marketplace wallpaper with low priority to not block critical resources -->
+    <link rel="preload" as="image" href="/marketplace-wallpaper.jpg" fetchpriority="low" />
 
     <style>
       /* Ensure wallpaper shows before React mounts on first paint for /marketplace */
