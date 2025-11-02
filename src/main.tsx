@@ -7,6 +7,24 @@ import { HelmetProvider } from 'react-helmet-async';
 import './index.css';
 
 // Global error listeners to catch JavaScript errors  
+const CHUNK_ERROR_PATTERNS = [
+  'ChunkLoadError',
+  'Loading chunk',
+  'Failed to fetch dynamically imported module',
+  'Importing a module script failed'
+];
+
+const tryAutoRecover = (msg: unknown) => {
+  const message = typeof msg === 'string' ? msg : (msg as any)?.message || String(msg ?? '');
+  const alreadyReloaded = sessionStorage.getItem('chunkReloaded') === '1';
+  if (!alreadyReloaded && CHUNK_ERROR_PATTERNS.some(p => message.includes(p))) {
+    console.warn('🔁 Auto-recover: chunk load error detected, reloading once');
+    sessionStorage.setItem('chunkReloaded', '1');
+    // Reload to fetch fresh chunks
+    window.location.reload();
+  }
+};
+
 window.addEventListener('error', (event) => {
   console.error('🚨 Global JavaScript Error:', event.error);
   console.error('🚨 Error details:', {
@@ -16,10 +34,12 @@ window.addEventListener('error', (event) => {
     colno: event.colno,
     stack: event.error?.stack
   });
+  tryAutoRecover(event.message || event.error?.message);
 });
 
 window.addEventListener('unhandledrejection', (event) => {
   console.error('🚨 Unhandled Promise Rejection:', event.reason);
+  tryAutoRecover((event.reason as any)?.message || event.reason);
 });
 
 // Get root element
