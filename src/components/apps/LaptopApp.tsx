@@ -5,6 +5,7 @@ import NavbarNoTooltip from '@/components/NavbarNoTooltip';
 import Home from "@/pages/Home";
 import Watch from "@/pages/Watch";
 import Reels from "@/pages/Reels";
+import Live from "@/pages/Live";
 import Marketplace from "@/pages/Marketplace";
 // import MarketplaceEntrance from "@/pages/MarketplaceEntrance";
 import Groups from "@/pages/Groups";
