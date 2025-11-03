@@ -23,7 +23,9 @@ const publicRoutes = [
   '/post/create',
   // Messages routes
   '/messages',
-  '/messages/standalone'
+  '/messages/standalone',
+  // Live streams (public viewing)
+  '/live'
 ];
 
 const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children }) => {
