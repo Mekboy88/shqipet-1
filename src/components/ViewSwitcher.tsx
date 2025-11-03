@@ -17,7 +17,7 @@ const TermsOfUse = lazy(() => import('@/pages/TermsOfUse'));
 import SafetyWrapper from '@/components/SafetyWrapper';
 import RootLoadingWrapper from '@/components/RootLoadingWrapper';
 import CentralizedAuthGuard from '@/components/auth/CentralizedAuthGuard';
-import GlobeLoader from '@/components/ui/GlobeLoader';
+import { GlobalSkeleton } from '@/components/ui/GlobalSkeleton';
 import RoutePersistence from '@/components/routing/RoutePersistence';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
 import { isPrimaryDomain, isMobileSubdomain, buildUrlFor, isAdminPath, MOBILE_SUBDOMAIN, PRIMARY_DOMAINS } from '@/utils/domainConfig';
@@ -54,6 +54,9 @@ const isPublicPage = (pathname: string): boolean => {
 
 const ViewSwitcher: React.FC = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
+  
+  // Boot diagnostics
+  console.time('APP_BOOT');
 
   // Mobile redirect logic - runs once on mount
   useEffect(() => {
@@ -160,11 +163,8 @@ const ViewSwitcher: React.FC = () => {
 
   // Show loading while redirecting
   if (isRedirecting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <GlobeLoader size="lg" showText={true} />
-      </div>
-    );
+    console.log('🔄 Showing shimmer skeleton during redirect');
+    return <GlobalSkeleton />;
   }
 
   // Fallback device detection without hooks for initial render
@@ -226,6 +226,7 @@ const ViewSwitcher: React.FC = () => {
 
   // If we're on a public page, render it directly with error boundary
   if (isOnPublicPage) {
+    console.timeEnd('APP_BOOT');
     try {
       return (
         <SafetyWrapper>
@@ -234,7 +235,7 @@ const ViewSwitcher: React.FC = () => {
               <BrowserRouter>
                 <div className="min-h-screen bg-gray-50">
                   <RoutePersistence />
-                  <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><GlobeLoader size="lg" showText={true} /></div>}>
+                  <Suspense fallback={<GlobalSkeleton />}>
                     <TermsOfUse />
                   </Suspense>
                   <GlobalScrollIndicator />
@@ -247,11 +248,7 @@ const ViewSwitcher: React.FC = () => {
       );
     } catch (error) {
       console.error('Public page render error:', error);
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <GlobeLoader size="lg" showText={true} />
-        </div>
-      );
+      return <GlobalSkeleton />;
     }
   }
 
@@ -304,6 +301,7 @@ const ViewSwitcher: React.FC = () => {
 
 
   // Main render with comprehensive error handling
+  console.timeEnd('APP_BOOT');
   try {
     return (
       <RootLoadingWrapper>
@@ -319,7 +317,7 @@ const ViewSwitcher: React.FC = () => {
                         <PostsProvider>
                              <PublishingProgressProvider>
                              <div className={`app-container is-${layoutType}-view vw-100 vh-100`} data-auth-ready>
-                               <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><GlobeLoader size="lg" showText={true} /></div>}>
+                               <Suspense fallback={<GlobalSkeleton />}>
                                  <AppComponent />
                                </Suspense>
                                <DesktopMobileToggle />
@@ -340,11 +338,7 @@ const ViewSwitcher: React.FC = () => {
     );
   } catch (error) {
     console.error('ViewSwitcher render error:', error);
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <GlobeLoader size="lg" showText={true} />
-        </div>
-      );
+    return <GlobalSkeleton />;
   }
 };
 

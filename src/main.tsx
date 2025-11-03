@@ -1,9 +1,10 @@
-import { StrictMode } from 'react';
+import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GlobalRecoverBoundary } from './components/errors/GlobalRecoverBoundary';
 import { LanguageProvider } from './contexts/LanguageContext'; 
 import ViewSwitcher from './components/ViewSwitcher';
 import { HelmetProvider } from 'react-helmet-async';
+import { GlobalSkeleton } from '@/components/ui/GlobalSkeleton';
 import './index.css';
 
 // Global error listeners to catch JavaScript errors  
@@ -55,7 +56,9 @@ root.render(
     <HelmetProvider>
       <GlobalRecoverBoundary>
         <LanguageProvider>
-          <ViewSwitcher />
+          <Suspense fallback={<GlobalSkeleton />}>
+            <ViewSwitcher />
+          </Suspense>
         </LanguageProvider>
       </GlobalRecoverBoundary>
     </HelmetProvider>
