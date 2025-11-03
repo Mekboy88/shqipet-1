@@ -30,6 +30,7 @@ import ProfileSettings from './pages/ProfileSettings';
 import PhotoGallery from './pages/PhotoGallery';
 import Photos from './pages/Photos';
 import Watch from './pages/Watch';
+import Live from './pages/Live';
 import LocationPreferences from './pages/LocationPreferences';
 import ProfessionalPresentation from './pages/ProfessionalPresentation';
 import AuthCallback from './pages/auth/AuthCallback';
@@ -234,7 +235,8 @@ function App() {
                        <Route path="/post/create/*" element={<CreatePostDesktop />} />
                        <Route path="/reels" element={<Reels />} />
                       <Route path="/interesante" element={<Reels />} />
-                      <Route path="/watch" element={<Watch />} />
+                       <Route path="/watch" element={<Watch />} />
+                       <Route path="/live" element={<Live />} />
 <Route path="/profile" element={<Profile />} />
 <Route
   path="/profile/settings"
