@@ -107,6 +107,7 @@ import Messages from '@/pages/Messages';
 import LiveStreamManagement from '@/pages/admin/LiveStreamManagement';
 
 const DesktopApp: React.FC = () => {
+  console.log('🖥️ DesktopApp: Rendering');
   return (
     <DesktopLayout>
       <div className="relative">

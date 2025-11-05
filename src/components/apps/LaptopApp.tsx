@@ -71,6 +71,7 @@ import Messages from '@/pages/Messages';
 import LiveStreamManagement from '@/pages/admin/LiveStreamManagement';
 
 const LaptopApp: React.FC = () => {
+  console.log('🖥️ LaptopApp: Rendering');
   return (
     <LaptopLayout>
       <div className="relative">
