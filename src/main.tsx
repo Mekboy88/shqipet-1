@@ -82,26 +82,16 @@ root.render(
     </HelmetProvider>
   </StrictMode>
 );
-// Mark app mounted for boot failsafe in index.html
-// Signal in multiple ways to ensure failsafe catches it
-(window as any).__APP_MOUNTED__ = true;
-requestAnimationFrame(() => {
-  (window as any).__APP_MOUNTED__ = true;
-  try {
-    window.dispatchEvent(new CustomEvent('app:mounted'));
-  } catch {}
-});
+// Types for failsafe flag
+declare global { interface Window { __APP_MOUNTED__?: boolean } }
+// ✅ Tell failsafe that app mounted
+window.__APP_MOUNTED__ = true;
 
-setTimeout(() => {
-  (window as any).__APP_MOUNTED__ = true;
-  try {
-    window.dispatchEvent(new CustomEvent('app:mounted'));
-  } catch {}
-}, 0);
+const signalAppMounted = () => {
+  window.dispatchEvent(new Event("app:mounted"));
+};
 
-setTimeout(() => {
-  (window as any).__APP_MOUNTED__ = true;
-  try {
-    window.dispatchEvent(new CustomEvent('app:mounted'));
-  } catch {}
-}, 100);
+signalAppMounted();
+requestAnimationFrame(signalAppMounted);
+setTimeout(signalAppMounted, 0);
+setTimeout(signalAppMounted, 100);
