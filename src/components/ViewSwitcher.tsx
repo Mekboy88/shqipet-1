@@ -11,9 +11,10 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PublishingProgressProvider } from "@/contexts/PublishingProgressContext";
 import { retryableLazy } from '@/lib/retryableImport';
 
-// Lazy load heavy app components with retry logic to prevent chunk errors
-const LaptopApp = retryableLazy(() => import('@/components/apps/LaptopApp'));
-const DesktopApp = retryableLazy(() => import('@/components/apps/DesktopApp'));
+// Critical apps are eagerly imported to avoid dynamic import fetch failures
+import LaptopApp from '@/components/apps/LaptopApp';
+import DesktopApp from '@/components/apps/DesktopApp';
+// Keep lightweight pages lazy with retry
 const TermsOfUse = retryableLazy(() => import('@/pages/TermsOfUse'));
 import SafetyWrapper from '@/components/SafetyWrapper';
 import RootLoadingWrapper from '@/components/RootLoadingWrapper';
