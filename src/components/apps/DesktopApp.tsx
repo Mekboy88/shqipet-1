@@ -5,6 +5,7 @@ import NavbarNoTooltip from '@/components/NavbarNoTooltip';
 import Home from "@/pages/Home";
 import Watch from "@/pages/Watch";
 import Reels from "@/pages/Reels";
+import Live from "@/pages/Live";
 import Marketplace from "@/pages/Marketplace";
 // import MarketplaceEntrance from "@/pages/MarketplaceEntrance";
 import Groups from "@/pages/Groups";
@@ -112,6 +113,7 @@ const DesktopApp: React.FC = () => {
           <Route path="/reels" element={<><NavbarNoTooltip /><Reels /></>} />
           <Route path="/interesante" element={<><NavbarNoTooltip /><Reels /></>} />
           <Route path="/watch" element={<><NavbarNoTooltip /><Watch /></>} />
+          <Route path="/live" element={<><NavbarNoTooltip /><div className="pt-14"><Live /></div></>} />
           {/* <Route path="/marketplace" element={<><NavbarNoTooltip /><MarketplaceEntrance /></>} /> */}
           <Route path="/marketplace" element={<><NavbarNoTooltip /><Marketplace /></>} />
           <Route path="/marketplace/platform" element={<><NavbarNoTooltip /><Marketplace /></>} />
