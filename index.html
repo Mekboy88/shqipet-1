@@ -145,26 +145,38 @@
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <!-- Boot failsafe: if React doesn’t mount, auto-refresh once with cache-buster and remove itself when app mounts -->
+    <!-- Boot failsafe: MUST be before main module to ensure listener is ready -->
     <script>
       (function () {
         try {
-          var BOOT_TIMEOUT_MS = 12000; // wait longer on slow networks
-          var POLL_MS = 250;
+          window.__FAILSAFE_DEBUG__ = [];
+          var BOOT_TIMEOUT_MS = 12000;
+          var POLL_MS = 200;
+          var overlayShown = false;
+          
+          function log(msg) {
+            window.__FAILSAFE_DEBUG__.push({ t: Date.now(), msg: msg });
+          }
+          
           function removeFailsafeUI() {
             var el = document.getElementById('boot-failsafe');
-            if (el && el.parentNode) el.parentNode.removeChild(el);
+            if (el && el.parentNode) {
+              log('overlay-removed');
+              el.parentNode.removeChild(el);
+            }
           }
+          
           function addFailsafeUI(msg) {
             if (document.getElementById('boot-failsafe')) return;
+            overlayShown = true;
+            log('overlay-shown');
             var el = document.createElement('div');
             el.id = 'boot-failsafe';
             el.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#ffffff;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;z-index:2147483647';
             el.innerHTML = '<div style="max-width:680px;padding:24px;text-align:center">\
-              <h1 style="margin:0 0 12px;font-size:22px">Refreshing the app…</h1>\
-              <p style="margin:0 0 16px;font-size:14px;opacity:.8">' + (msg || 'We\'re updating your app. If it stays blank, a cached file may be stuck.') + '</p>\
-              <button id="boot-reload" style="padding:10px 16px;border-radius:8px;border:1px solid #e5e7eb;background:#e11d48;color:#fff;cursor:pointer">Reload now</button>\
+              <h2 style="font-size:24px;font-weight:600;margin:0 0 12px">Refreshing the app…</h2>\
+              <p style="font-size:16px;margin:0 0 20px;color:#666">' + msg + '</p>\
+              <button id="boot-reload" style="background:#111;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;font-weight:500;cursor:pointer">Reload now</button>\
             </div>';
             document.body.appendChild(el);
             var btn = document.getElementById('boot-reload');
@@ -177,20 +189,37 @@
               } catch (e) { window.location.reload(); }
             };
           }
-          // Remove overlay when the app announces it mounted
-          window.addEventListener('app:mounted', removeFailsafeUI, { once: true });
-          // Poll for mount
+          
+          log('listener-ready');
+          
+          // Listen for mount signal
+          window.addEventListener('app:mounted', function() {
+            log('event-received');
+            removeFailsafeUI();
+          }, { once: true });
+          
+          // Poll continuously for mount detection
           var started = Date.now();
+          var timeoutReached = false;
           var poll = setInterval(function () {
-            if ((window).__APP_MOUNTED__) {
+            var rootHasChildren = document.querySelector('#root')?.children.length > 0;
+            var appMounted = !!(window).__APP_MOUNTED__;
+            
+            // If app mounted, remove overlay and stop
+            if (appMounted || rootHasChildren) {
+              log('mounted-detected: ' + (appMounted ? 'flag' : 'dom'));
               clearInterval(poll);
               removeFailsafeUI();
               return;
             }
-            if (Date.now() - started > BOOT_TIMEOUT_MS) {
-              clearInterval(poll);
+            
+            // After timeout, show overlay and auto-refresh once
+            if (!timeoutReached && Date.now() - started > BOOT_TIMEOUT_MS) {
+              timeoutReached = true;
               var already = sessionStorage.getItem('bootRefreshedOnce') === '1';
+              log('timeout-reached: already=' + already);
               addFailsafeUI(already ? 'If this persists, click Reload to clear your cache.' : 'Auto-refreshing to clear possible cached files…');
+              
               if (!already) {
                 try {
                   var url = new URL(window.location.href);
@@ -200,10 +229,20 @@
                 } catch (e) { window.location.reload(); }
               }
             }
+            
+            // Safety: if overlay shown but mount detected later, remove it
+            if (overlayShown && (appMounted || rootHasChildren)) {
+              log('late-mount-detected');
+              clearInterval(poll);
+              removeFailsafeUI();
+            }
           }, POLL_MS);
-        } catch (e) {}
+        } catch (e) {
+          console.error('Failsafe error:', e);
+        }
       })();
     </script>
+    <script type="module" src="/src/main.tsx"></script>
     <noscript>
       <style>body{background:#fff;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
       <div style="padding:24px;text-align:center">
