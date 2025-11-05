@@ -26,7 +26,6 @@ export const devToolsMenuItems: MenuItem[] = [
     icon: Languages,
     colorVariant: 'maroonBeige',
     submenu: [
-      { id: 'live-streams-management', label: '🎥 Live Streams Management', href: '/admin/content/live-streams' },
       { id: 'live-broadcast', label: '📹 Live Broadcast', href: '/admin/streaming/broadcast' },
       { id: 'audio-streaming', label: '🎙️ Audio Streaming', href: '/admin/streaming/audio' },
       { id: 'stream-analytics', label: '📊 Stream Analytics', href: '/admin/streaming/analytics' },

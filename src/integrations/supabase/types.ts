@@ -221,48 +221,6 @@ export type Database = {
         }
         Relationships: []
       }
-      live_streams: {
-        Row: {
-          category: string | null
-          created_at: string
-          ended_at: string | null
-          host: string
-          id: string
-          is_live: boolean
-          started_at: string
-          thumbnail_url: string
-          title: string
-          updated_at: string
-          views: number
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string
-          ended_at?: string | null
-          host: string
-          id?: string
-          is_live?: boolean
-          started_at?: string
-          thumbnail_url: string
-          title: string
-          updated_at?: string
-          views?: number
-        }
-        Update: {
-          category?: string | null
-          created_at?: string
-          ended_at?: string | null
-          host?: string
-          id?: string
-          is_live?: boolean
-          started_at?: string
-          thumbnail_url?: string
-          title?: string
-          updated_at?: string
-          views?: number
-        }
-        Relationships: []
-      }
       notification_preferences: {
         Row: {
           channel_email: boolean | null

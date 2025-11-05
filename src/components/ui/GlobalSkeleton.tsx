@@ -212,9 +212,6 @@ export const GlobalSkeleton: React.FC<GlobalSkeletonProps> = ({ className = "" }
           </div>
         </div>
       </div>
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin opacity-70" />
-      </div>
     </div>
   );
 };
