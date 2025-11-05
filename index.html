@@ -146,15 +146,19 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- Boot failsafe: if React doesn’t mount, auto-refresh with cache-buster and show a minimal UI -->
+    <!-- Boot failsafe: if React doesn’t mount, auto-refresh once with cache-buster and remove itself when app mounts -->
     <script>
       (function () {
         try {
-          var BOOT_TIMEOUT_MS = 6000;
-          function addFailsafeUI(msg) {
+          var BOOT_TIMEOUT_MS = 12000; // wait longer on slow networks
+          var POLL_MS = 250;
+          function removeFailsafeUI() {
             var el = document.getElementById('boot-failsafe');
-            if (el) return;
-            el = document.createElement('div');
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+          }
+          function addFailsafeUI(msg) {
+            if (document.getElementById('boot-failsafe')) return;
+            var el = document.createElement('div');
             el.id = 'boot-failsafe';
             el.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#ffffff;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;z-index:2147483647';
             el.innerHTML = '<div style="max-width:680px;padding:24px;text-align:center">\
@@ -164,24 +168,39 @@
             </div>';
             document.body.appendChild(el);
             var btn = document.getElementById('boot-reload');
-            if (btn) btn.onclick = function() {
+            if (btn) btn.onclick = function () {
               try {
                 var url = new URL(window.location.href);
                 url.searchParams.set('v', Date.now().toString());
+                sessionStorage.setItem('bootRefreshedOnce', '1');
                 window.location.replace(url.toString());
               } catch (e) { window.location.reload(); }
             };
           }
-          setTimeout(function () {
-            if (!(window).__APP_MOUNTED__) {
-              addFailsafeUI('Auto-refreshing to clear possible cached files…');
-              try {
-                var url = new URL(window.location.href);
-                url.searchParams.set('v', Date.now().toString());
-                window.location.replace(url.toString());
-              } catch (e) { window.location.reload(); }
+          // Remove overlay when the app announces it mounted
+          window.addEventListener('app:mounted', removeFailsafeUI, { once: true });
+          // Poll for mount
+          var started = Date.now();
+          var poll = setInterval(function () {
+            if ((window).__APP_MOUNTED__) {
+              clearInterval(poll);
+              removeFailsafeUI();
+              return;
             }
-          }, BOOT_TIMEOUT_MS);
+            if (Date.now() - started > BOOT_TIMEOUT_MS) {
+              clearInterval(poll);
+              var already = sessionStorage.getItem('bootRefreshedOnce') === '1';
+              addFailsafeUI(already ? 'If this persists, click Reload to clear your cache.' : 'Auto-refreshing to clear possible cached files…');
+              if (!already) {
+                try {
+                  var url = new URL(window.location.href);
+                  url.searchParams.set('v', Date.now().toString());
+                  sessionStorage.setItem('bootRefreshedOnce', '1');
+                  window.location.replace(url.toString());
+                } catch (e) { window.location.reload(); }
+              }
+            }
+          }, POLL_MS);
         } catch (e) {}
       })();
     </script>

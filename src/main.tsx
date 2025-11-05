@@ -84,3 +84,6 @@ root.render(
 );
 // Mark app mounted for boot failsafe in index.html
 ;(window as any).__APP_MOUNTED__ = true;
+try {
+  window.dispatchEvent(new CustomEvent('app:mounted'));
+} catch {}
