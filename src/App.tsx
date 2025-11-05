@@ -215,15 +215,16 @@ function App() {
                      {/* Global avatar bootstrap - ensures avatar system is initialized */}
                      <GlobalAvatarBootstrap />
                      
-                     <Routes>
-                      {/* Public routes - NO AUTH CHECK */}
-                      <Route path="/auth/login" element={<Login />} />
-                      <Route path="/auth/register" element={<Register />} />
-                      <Route path="/register" element={<Register />} />
-                      <Route path="/auth/verification" element={<Verification />} />
-                      <Route path="/auth/callback" element={<AuthCallback />} />
-                      <Route path="/terms-of-use" element={<TermsOfUse />} />
-                      <Route path="/privacy-policy" element={<TermsOfUse />} />
+                      <Routes>
+                       {/* Public routes - NO AUTH CHECK */}
+                       <Route path="/auth/login" element={<Login />} />
+                       <Route path="/landing" element={<Login />} />
+                       <Route path="/auth/register" element={<Register />} />
+                       <Route path="/register" element={<Register />} />
+                       <Route path="/auth/verification" element={<Verification />} />
+                       <Route path="/auth/callback" element={<AuthCallback />} />
+                       <Route path="/terms-of-use" element={<TermsOfUse />} />
+                       <Route path="/privacy-policy" element={<TermsOfUse />} />
                       
                        {/* Protected routes - NO redundant auth checks, RootAuthRedirect handles it all */}
                        <Route path="/" element={<Index />} />

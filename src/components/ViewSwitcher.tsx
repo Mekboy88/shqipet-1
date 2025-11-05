@@ -58,7 +58,7 @@ const ViewSwitcher: React.FC = () => {
   // Boot diagnostics
   console.time('APP_BOOT');
 
-  // Mobile redirect logic - runs once on mount
+  // Mobile redirect logic - DISABLED BY DEFAULT (opt-in only)
   useEffect(() => {
     // Skip if already redirected in this session
     if (sessionStorage.getItem('mobileRedirectChecked') === '1') return;
@@ -67,8 +67,21 @@ const ViewSwitcher: React.FC = () => {
       const hostname = window.location.hostname;
       const pathname = window.location.pathname;
       
+      console.info('🔍 ViewSwitcher: Checking redirect conditions', { hostname, pathname });
+      
       // Skip redirect for admin paths
       if (isAdminPath(pathname)) {
+        console.info('✅ ViewSwitcher: Admin path, skipping mobile redirect');
+        sessionStorage.setItem('mobileRedirectChecked', '1');
+        return;
+      }
+      
+      // CRITICAL: Mobile subdomain redirect is DISABLED by default
+      // Users must explicitly enable it with: localStorage.setItem('enableMobileSubdomain', '1')
+      const enableMobileSubdomain = localStorage.getItem('enableMobileSubdomain') === '1';
+      
+      if (!enableMobileSubdomain) {
+        console.info('✅ ViewSwitcher: Mobile subdomain redirect disabled (default), staying on current domain');
         sessionStorage.setItem('mobileRedirectChecked', '1');
         return;
       }
@@ -79,6 +92,7 @@ const ViewSwitcher: React.FC = () => {
       const prefersDesktop = localStorage.getItem('prefersDesktop') === '1';
       
       if (forceDesktop || prefersDesktop) {
+        console.info('✅ ViewSwitcher: Desktop override active, skipping mobile redirect');
         sessionStorage.setItem('mobileRedirectChecked', '1');
         return;
       }
@@ -103,7 +117,7 @@ const ViewSwitcher: React.FC = () => {
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
-        console.log('Redirecting mobile/tablet user to:', targetUrl);
+        console.info('🔄 ViewSwitcher: Redirecting mobile/tablet user to:', targetUrl);
         
         // Log redirect to database if user is authenticated
         supabase.auth.getUser().then(({ data: { user } }) => {
@@ -131,7 +145,7 @@ const ViewSwitcher: React.FC = () => {
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(PRIMARY_DOMAINS[0]);
-        console.log('Redirecting desktop user to:', targetUrl);
+        console.info('🔄 ViewSwitcher: Redirecting desktop user to:', targetUrl);
         
         // Log redirect to database if user is authenticated
         supabase.auth.getUser().then(({ data: { user } }) => {
@@ -154,9 +168,10 @@ const ViewSwitcher: React.FC = () => {
         return;
       }
       
+      console.info('✅ ViewSwitcher: No redirect needed, staying on current domain');
       sessionStorage.setItem('mobileRedirectChecked', '1');
     } catch (error) {
-      console.warn('Mobile redirect check failed:', error);
+      console.warn('⚠️ ViewSwitcher: Mobile redirect check failed:', error);
       sessionStorage.setItem('mobileRedirectChecked', '1');
     }
   }, []);
