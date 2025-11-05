@@ -432,8 +432,8 @@ const CreatePostDesktop: React.FC = () => {
                   to bottom,
                   transparent 0px,
                   transparent 25px,
-                  rgba(239, 68, 68, 0.06) 25px,
-                  rgba(239, 68, 68, 0.06) 26px
+                  rgba(239, 68, 68, 0.10) 25px,
+                  rgba(239, 68, 68, 0.10) 26px
                 )`,
                 lineHeight: '26px',
                 paddingTop: '4px',
