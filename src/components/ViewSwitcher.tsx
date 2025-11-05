@@ -1,5 +1,5 @@
 import React, { useEffect, useState, lazy, Suspense } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 // Removed toast system - using notification system instead
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -235,15 +235,20 @@ const ViewSwitcher: React.FC = () => {
   
   const windowSize = getWindowSize();
 
-  // Safe domain detection with error handling
-  const currentPath = (() => {
+  // Safe path detection with hash routing support
+  const getInitialPath = () => {
     try {
-      return typeof window !== 'undefined' ? window.location.pathname : '/';
+      if (typeof window === 'undefined') return '/';
+      const hashPath = window.location.hash?.slice(1) || '';
+      const path = hashPath || window.location.pathname || '/';
+      return path;
     } catch (error) {
       console.warn('Path detection failed:', error);
       return '/';
     }
-  })();
+  };
+  
+  const currentPath = getInitialPath();
   
   const isOnPublicPage = isPublicPage(currentPath);
 
@@ -255,7 +260,7 @@ const ViewSwitcher: React.FC = () => {
         <SafetyWrapper>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
-              <BrowserRouter>
+              <HashRouter>
                 <div className="min-h-screen bg-gray-50">
                   <RoutePersistence />
                   <Suspense fallback={<GlobalSkeleton />}>
@@ -264,7 +269,7 @@ const ViewSwitcher: React.FC = () => {
                   <GlobalScrollIndicator />
                   {/* Removed toast system - using notification system */}
                 </div>
-              </BrowserRouter>
+              </HashRouter>
             </TooltipProvider>
           </QueryClientProvider>
         </SafetyWrapper>
@@ -334,7 +339,7 @@ const ViewSwitcher: React.FC = () => {
               <VideoSettingsProvider>
                 <ThemeProvider>
                   <TooltipProvider>
-                    <BrowserRouter>
+                    <HashRouter>
                       <RoutePersistence />
                       <CentralizedAuthGuard>
                         <PostsProvider>
@@ -350,7 +355,7 @@ const ViewSwitcher: React.FC = () => {
                            </PublishingProgressProvider>
                         </PostsProvider>
                       </CentralizedAuthGuard>
-                    </BrowserRouter>
+                    </HashRouter>
                   </TooltipProvider>
                 </ThemeProvider>
               </VideoSettingsProvider>
