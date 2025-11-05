@@ -12,6 +12,7 @@ interface LiveStream {
   is_live: boolean;
   started_at: string;
   ended_at?: string;
+  category?: string;
 }
 
 export const useLiveStreams = () => {
@@ -41,7 +42,8 @@ export const useLiveStreams = () => {
             host: stream.host,
             thumbnail: stream.thumbnail_url,
             views: stream.views,
-            isLive: stream.is_live
+            isLive: stream.is_live,
+            category: stream.category || 'general'
           }));
           
           console.log('✅ useLiveStreams: Loaded streams from DB:', mappedStreams.length);
@@ -86,7 +88,8 @@ export const useLiveStreams = () => {
               host: newStream.host,
               thumbnail: newStream.thumbnail_url,
               views: newStream.views,
-              isLive: newStream.is_live
+              isLive: newStream.is_live,
+              category: newStream.category || 'general'
             }, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
             const updatedStream = payload.new as LiveStream;
@@ -98,7 +101,8 @@ export const useLiveStreams = () => {
                     host: updatedStream.host,
                     thumbnail: updatedStream.thumbnail_url,
                     views: updatedStream.views,
-                    isLive: updatedStream.is_live
+                    isLive: updatedStream.is_live,
+                    category: updatedStream.category || 'general'
                   }
                 : stream
             ).filter(s => s.isLive)); // Remove if no longer live

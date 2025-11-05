@@ -1,9 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import { useLiveStreams } from "@/hooks/useLiveStreams";
 import LiveSectionHeader from "./components/LiveSectionHeader";
 import LiveVideoList from "./components/LiveVideoList";
 import LiveVideoGrid from "./components/LiveVideoGrid";
 import LiveEmptyState from "./LiveEmptyState";
+import LiveFilters, { LiveFiltersState } from "./components/LiveFilters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocalization } from '@/hooks/useLocalization';
 import "./styles/index.css";
@@ -15,10 +16,41 @@ const LiveNowSection: React.FC = () => {
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [gridLayout, setGridLayout] = useState<"1x1" | "2x2" | "3x3" | "4x4">("1x1");
+  const [filters, setFilters] = useState<LiveFiltersState>({
+    searchQuery: '',
+    category: 'all',
+    minViews: 0,
+  });
   const { t } = useLocalization();
   const { streams, loading, error } = useLiveStreams();
 
-  const hasLiveStreams = streams.length > 0;
+  // Filter streams based on user input
+  const filteredStreams = useMemo(() => {
+    return streams.filter(stream => {
+      // Search filter (host or title)
+      const searchLower = filters.searchQuery.toLowerCase();
+      const matchesSearch = !filters.searchQuery || 
+        stream.host.toLowerCase().includes(searchLower) ||
+        stream.title.toLowerCase().includes(searchLower);
+
+      // Category filter
+      const matchesCategory = filters.category === 'all' || 
+        stream.category === filters.category;
+
+      // Viewer count filter
+      const matchesViews = stream.views >= filters.minViews;
+
+      return matchesSearch && matchesCategory && matchesViews;
+    });
+  }, [streams, filters]);
+
+  // Calculate max views for slider
+  const maxViews = useMemo(() => {
+    if (streams.length === 0) return 1000;
+    return Math.max(...streams.map(s => s.views), 100);
+  }, [streams]);
+
+  const hasLiveStreams = filteredStreams.length > 0;
 
   const scrollVideos = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -85,13 +117,22 @@ const LiveNowSection: React.FC = () => {
       onMouseLeave={() => setIsHovering(false)} 
       style={{ overscrollBehaviorX: 'contain' }}
     >
-      {hasLiveStreams ? (
+      {streams.length > 0 && (
         <>
           <LiveSectionHeader gridLayout={gridLayout} setGridLayout={setGridLayout} />
-          
+          <LiveFilters 
+            filters={filters} 
+            onFiltersChange={setFilters}
+            maxViews={maxViews}
+          />
+        </>
+      )}
+      
+      {hasLiveStreams ? (
+        <>
           {gridLayout === "1x1" ? (
             <LiveVideoList 
-              videos={streams} 
+              videos={filteredStreams} 
               showLeftButton={showLeftButton} 
               isHovering={isHovering} 
               onScroll={handleScroll} 
@@ -101,12 +142,16 @@ const LiveNowSection: React.FC = () => {
             />
           ) : (
             <LiveVideoGrid 
-              videos={streams} 
+              videos={filteredStreams} 
               gridLayout={gridLayout} 
               getGridClass={getGridClass} 
             />
           )}
         </>
+      ) : streams.length > 0 ? (
+        <div className="px-4 pb-6 pt-4 text-center text-muted-foreground">
+          <p>No streams match your filters. Try adjusting your search criteria.</p>
+        </div>
       ) : (
         <LiveEmptyState />
       )}

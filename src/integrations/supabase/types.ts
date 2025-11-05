@@ -223,6 +223,7 @@ export type Database = {
       }
       live_streams: {
         Row: {
+          category: string | null
           created_at: string
           ended_at: string | null
           host: string
@@ -235,6 +236,7 @@ export type Database = {
           views: number
         }
         Insert: {
+          category?: string | null
           created_at?: string
           ended_at?: string | null
           host: string
@@ -247,6 +249,7 @@ export type Database = {
           views?: number
         }
         Update: {
+          category?: string | null
           created_at?: string
           ended_at?: string | null
           host?: string
