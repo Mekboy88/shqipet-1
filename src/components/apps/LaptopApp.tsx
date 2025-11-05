@@ -67,6 +67,7 @@ import { ProfileSettingsProvider } from '@/contexts/ProfileSettingsContext';
 import ProfessionalPresentation from '@/pages/ProfessionalPresentation';
 import CreatePostDesktop from '@/pages/CreatePostDesktop';
 import Messages from '@/pages/Messages';
+import LiveStreamManagement from '@/pages/admin/LiveStreamManagement';
 
 const LaptopApp: React.FC = () => {
   return (
@@ -146,6 +147,11 @@ const LaptopApp: React.FC = () => {
           {/* Post Settings routes */}
           <Route path="/admin/posts/management" element={<AdminDashboard />}>
             <Route index element={<PostSettings />} />
+          </Route>
+
+          {/* Live Stream Management route */}
+          <Route path="/admin/content/live-streams" element={<AdminDashboard />}>
+            <Route index element={<LiveStreamManagement />} />
           </Route>
 
           <Route path="/admin/ai/moderation" element={<AdminDashboard />}>
