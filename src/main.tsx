@@ -84,6 +84,7 @@ root.render(
 );
 // Mark app mounted for boot failsafe in index.html
 // Signal in multiple ways to ensure failsafe catches it
+(window as any).__APP_MOUNTED__ = true;
 requestAnimationFrame(() => {
   (window as any).__APP_MOUNTED__ = true;
   try {
@@ -97,3 +98,10 @@ setTimeout(() => {
     window.dispatchEvent(new CustomEvent('app:mounted'));
   } catch {}
 }, 0);
+
+setTimeout(() => {
+  (window as any).__APP_MOUNTED__ = true;
+  try {
+    window.dispatchEvent(new CustomEvent('app:mounted'));
+  } catch {}
+}, 100);

@@ -203,7 +203,7 @@
           var timeoutReached = false;
           var poll = setInterval(function () {
             var rootHasChildren = document.querySelector('#root')?.children.length > 0;
-            var appMounted = !!(window).__APP_MOUNTED__;
+            var appMounted = !!window.__APP_MOUNTED__;
             
             // If app mounted, remove overlay and stop
             if (appMounted || rootHasChildren) {
