@@ -1,4 +1,4 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { HashRouter } from 'react-router-dom';
 // Removed toast system - using notification system instead
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,11 +9,12 @@ import { VideoSettingsProvider } from "@/contexts/VideoSettingsContext";
 import { PostsProvider } from "@/contexts/PostsContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PublishingProgressProvider } from "@/contexts/PublishingProgressContext";
+import { retryableLazy } from '@/lib/retryableImport';
 
-// Lazy load heavy app components to reduce initial bundle size
-const LaptopApp = lazy(() => import('@/components/apps/LaptopApp'));
-const DesktopApp = lazy(() => import('@/components/apps/DesktopApp'));
-const TermsOfUse = lazy(() => import('@/pages/TermsOfUse'));
+// Lazy load heavy app components with retry logic to prevent chunk errors
+const LaptopApp = retryableLazy(() => import('@/components/apps/LaptopApp'));
+const DesktopApp = retryableLazy(() => import('@/components/apps/DesktopApp'));
+const TermsOfUse = retryableLazy(() => import('@/pages/TermsOfUse'));
 import SafetyWrapper from '@/components/SafetyWrapper';
 import RootLoadingWrapper from '@/components/RootLoadingWrapper';
 import CentralizedAuthGuard from '@/components/auth/CentralizedAuthGuard';
