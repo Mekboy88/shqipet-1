@@ -25,6 +25,7 @@ import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
 import { isPrimaryDomain, isMobileSubdomain, buildUrlFor, isAdminPath, MOBILE_SUBDOMAIN, PRIMARY_DOMAINS } from '@/utils/domainConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { DesktopMobileToggle } from './DesktopMobileToggle';
+import { FailsafeDebugPanel } from './debug/FailsafeDebugPanel';
 
 
 // Import unified responsive styles
@@ -361,6 +362,7 @@ const ViewSwitcher: React.FC = () => {
               </VideoSettingsProvider>
             </QueryClientProvider>
           </AuthProvider>
+          <FailsafeDebugPanel />
         </SafetyWrapper>
       </RootLoadingWrapper>
     );
