@@ -12,11 +12,35 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // 1. VALIDATE AUTHENTICATION
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Authentication failed:', authError);
+      return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const mediaType = (formData.get('mediaType') as string) || 'profile';
     const userId = formData.get('userId') as string;
-    const updateProfile = formData.get('updateProfile') as string; // 'true' to update profiles table
+    const updateProfile = formData.get('updateProfile') as string;
 
     if (!file) {
       return new Response(JSON.stringify({ error: 'No file provided' }), {
@@ -25,7 +49,40 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Upload request:', { fileName: file.name, mediaType, userId });
+    // 2. VERIFY USER MATCHES TOKEN
+    if (user.id !== userId) {
+      console.error('User ID mismatch:', { tokenUserId: user.id, requestedUserId: userId });
+      return new Response(JSON.stringify({ error: 'Forbidden: Cannot upload for other users' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 3. VALIDATE FILE TYPE
+    const allowedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+      'video/mp4', 'video/quicktime', 'video/x-msvideo'
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      return new Response(JSON.stringify({ error: 'Invalid file type. Allowed: images (jpg, png, webp, gif) and videos (mp4, mov, avi)' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 4. VALIDATE FILE SIZE
+    const maxSizeImage = 10 * 1024 * 1024; // 10MB
+    const maxSizeVideo = 100 * 1024 * 1024; // 100MB
+    const maxSize = file.type.startsWith('image/') ? maxSizeImage : maxSizeVideo;
+    if (file.size > maxSize) {
+      const maxSizeMB = maxSize / (1024 * 1024);
+      return new Response(JSON.stringify({ error: `File too large. Maximum size: ${maxSizeMB}MB` }), {
+        status: 413,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log('Upload request:', { fileName: file.name, mediaType, userId, authenticated: true });
 
     const region = Deno.env.get('WASABI_REGION')!;
     const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
