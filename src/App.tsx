@@ -30,6 +30,7 @@ import ProfileSettings from './pages/ProfileSettings';
 import PhotoGallery from './pages/PhotoGallery';
 import Photos from './pages/Photos';
 import Watch from './pages/Watch';
+import Live from './pages/Live';
 import LocationPreferences from './pages/LocationPreferences';
 import ProfessionalPresentation from './pages/ProfessionalPresentation';
 import AuthCallback from './pages/auth/AuthCallback';
@@ -214,15 +215,16 @@ function App() {
                      {/* Global avatar bootstrap - ensures avatar system is initialized */}
                      <GlobalAvatarBootstrap />
                      
-                     <Routes>
-                      {/* Public routes - NO AUTH CHECK */}
-                      <Route path="/auth/login" element={<Login />} />
-                      <Route path="/auth/register" element={<Register />} />
-                      <Route path="/register" element={<Register />} />
-                      <Route path="/auth/verification" element={<Verification />} />
-                      <Route path="/auth/callback" element={<AuthCallback />} />
-                      <Route path="/terms-of-use" element={<TermsOfUse />} />
-                      <Route path="/privacy-policy" element={<TermsOfUse />} />
+                      <Routes>
+                       {/* Public routes - NO AUTH CHECK */}
+                       <Route path="/auth/login" element={<Login />} />
+                       <Route path="/landing" element={<Login />} />
+                       <Route path="/auth/register" element={<Register />} />
+                       <Route path="/register" element={<Register />} />
+                       <Route path="/auth/verification" element={<Verification />} />
+                       <Route path="/auth/callback" element={<AuthCallback />} />
+                       <Route path="/terms-of-use" element={<TermsOfUse />} />
+                       <Route path="/privacy-policy" element={<TermsOfUse />} />
                       
                        {/* Protected routes - NO redundant auth checks, RootAuthRedirect handles it all */}
                        <Route path="/" element={<Index />} />
@@ -234,7 +236,8 @@ function App() {
                        <Route path="/post/create/*" element={<CreatePostDesktop />} />
                        <Route path="/reels" element={<Reels />} />
                       <Route path="/interesante" element={<Reels />} />
-                      <Route path="/watch" element={<Watch />} />
+                       <Route path="/watch" element={<Watch />} />
+                       <Route path="/live" element={<Live />} />
 <Route path="/profile" element={<Profile />} />
 <Route
   path="/profile/settings"

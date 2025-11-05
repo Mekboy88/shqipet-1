@@ -1,5 +1,5 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import React, { useEffect, useState, Suspense } from 'react';
+import { HashRouter } from 'react-router-dom';
 // Removed toast system - using notification system instead
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -9,15 +9,17 @@ import { VideoSettingsProvider } from "@/contexts/VideoSettingsContext";
 import { PostsProvider } from "@/contexts/PostsContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PublishingProgressProvider } from "@/contexts/PublishingProgressContext";
+import { retryableLazy } from '@/lib/retryableImport';
 
-// Lazy load heavy app components to reduce initial bundle size
-const LaptopApp = lazy(() => import('@/components/apps/LaptopApp'));
-const DesktopApp = lazy(() => import('@/components/apps/DesktopApp'));
-const TermsOfUse = lazy(() => import('@/pages/TermsOfUse'));
+// Critical apps are eagerly imported to avoid dynamic import fetch failures
+import LaptopApp from '@/components/apps/LaptopApp';
+import DesktopApp from '@/components/apps/DesktopApp';
+// Keep lightweight pages lazy with retry
+const TermsOfUse = retryableLazy(() => import('@/pages/TermsOfUse'));
 import SafetyWrapper from '@/components/SafetyWrapper';
 import RootLoadingWrapper from '@/components/RootLoadingWrapper';
 import CentralizedAuthGuard from '@/components/auth/CentralizedAuthGuard';
-import GlobeLoader from '@/components/ui/GlobeLoader';
+import { GlobalSkeleton } from '@/components/ui/GlobalSkeleton';
 import RoutePersistence from '@/components/routing/RoutePersistence';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
 import { isPrimaryDomain, isMobileSubdomain, buildUrlFor, isAdminPath, MOBILE_SUBDOMAIN, PRIMARY_DOMAINS } from '@/utils/domainConfig';
@@ -54,8 +56,19 @@ const isPublicPage = (pathname: string): boolean => {
 
 const ViewSwitcher: React.FC = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
+  
+  // Boot diagnostics
+  console.time('APP_BOOT');
 
-  // Mobile redirect logic - runs once on mount
+  // Hard-disable any mobile subdomain redirects globally
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('mobileRedirectChecked', '1');
+      console.info('✅ ViewSwitcher: Mobile redirects hard-disabled');
+    } catch {}
+  }, []);
+
+  // Mobile redirect logic - DISABLED BY DEFAULT (opt-in only)
   useEffect(() => {
     // Skip if already redirected in this session
     if (sessionStorage.getItem('mobileRedirectChecked') === '1') return;
@@ -64,8 +77,21 @@ const ViewSwitcher: React.FC = () => {
       const hostname = window.location.hostname;
       const pathname = window.location.pathname;
       
+      console.info('🔍 ViewSwitcher: Checking redirect conditions', { hostname, pathname });
+      
       // Skip redirect for admin paths
       if (isAdminPath(pathname)) {
+        console.info('✅ ViewSwitcher: Admin path, skipping mobile redirect');
+        sessionStorage.setItem('mobileRedirectChecked', '1');
+        return;
+      }
+      
+      // CRITICAL: Mobile subdomain redirect is DISABLED by default
+      // Users must explicitly enable it with: localStorage.setItem('enableMobileSubdomain', '1')
+      const enableMobileSubdomain = localStorage.getItem('enableMobileSubdomain') === '1';
+      
+      if (!enableMobileSubdomain) {
+        console.info('✅ ViewSwitcher: Mobile subdomain redirect disabled (default), staying on current domain');
         sessionStorage.setItem('mobileRedirectChecked', '1');
         return;
       }
@@ -76,6 +102,7 @@ const ViewSwitcher: React.FC = () => {
       const prefersDesktop = localStorage.getItem('prefersDesktop') === '1';
       
       if (forceDesktop || prefersDesktop) {
+        console.info('✅ ViewSwitcher: Desktop override active, skipping mobile redirect');
         sessionStorage.setItem('mobileRedirectChecked', '1');
         return;
       }
@@ -100,7 +127,7 @@ const ViewSwitcher: React.FC = () => {
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
-        console.log('Redirecting mobile/tablet user to:', targetUrl);
+        console.info('🔄 ViewSwitcher: Redirecting mobile/tablet user to:', targetUrl);
         
         // Log redirect to database if user is authenticated
         supabase.auth.getUser().then(({ data: { user } }) => {
@@ -128,7 +155,7 @@ const ViewSwitcher: React.FC = () => {
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(PRIMARY_DOMAINS[0]);
-        console.log('Redirecting desktop user to:', targetUrl);
+        console.info('🔄 ViewSwitcher: Redirecting desktop user to:', targetUrl);
         
         // Log redirect to database if user is authenticated
         supabase.auth.getUser().then(({ data: { user } }) => {
@@ -151,20 +178,18 @@ const ViewSwitcher: React.FC = () => {
         return;
       }
       
+      console.info('✅ ViewSwitcher: No redirect needed, staying on current domain');
       sessionStorage.setItem('mobileRedirectChecked', '1');
     } catch (error) {
-      console.warn('Mobile redirect check failed:', error);
+      console.warn('⚠️ ViewSwitcher: Mobile redirect check failed:', error);
       sessionStorage.setItem('mobileRedirectChecked', '1');
     }
   }, []);
 
   // Show loading while redirecting
   if (isRedirecting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <GlobeLoader size="lg" showText={true} />
-      </div>
-    );
+    console.log('🔄 Showing shimmer skeleton during redirect');
+    return <GlobalSkeleton />;
   }
 
   // Fallback device detection without hooks for initial render
@@ -212,46 +237,48 @@ const ViewSwitcher: React.FC = () => {
   
   const windowSize = getWindowSize();
 
-  // Safe domain detection with error handling
-  const currentPath = (() => {
+  // Safe path detection with hash routing support
+  const getInitialPath = () => {
     try {
-      return typeof window !== 'undefined' ? window.location.pathname : '/';
+      if (typeof window === 'undefined') return '/';
+      const hashPath = window.location.hash?.slice(1) || '';
+      const path = hashPath || window.location.pathname || '/';
+      return path;
     } catch (error) {
       console.warn('Path detection failed:', error);
       return '/';
     }
-  })();
+  };
+  
+  const currentPath = getInitialPath();
   
   const isOnPublicPage = isPublicPage(currentPath);
 
   // If we're on a public page, render it directly with error boundary
   if (isOnPublicPage) {
+    console.timeEnd('APP_BOOT');
     try {
       return (
         <SafetyWrapper>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
-              <BrowserRouter>
+              <HashRouter>
                 <div className="min-h-screen bg-gray-50">
                   <RoutePersistence />
-                  <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><GlobeLoader size="lg" showText={true} /></div>}>
+                  <Suspense fallback={<GlobalSkeleton />}>
                     <TermsOfUse />
                   </Suspense>
                   <GlobalScrollIndicator />
                   {/* Removed toast system - using notification system */}
                 </div>
-              </BrowserRouter>
+              </HashRouter>
             </TooltipProvider>
           </QueryClientProvider>
         </SafetyWrapper>
       );
     } catch (error) {
       console.error('Public page render error:', error);
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <GlobeLoader size="lg" showText={true} />
-        </div>
-      );
+      return <GlobalSkeleton />;
     }
   }
 
@@ -304,6 +331,7 @@ const ViewSwitcher: React.FC = () => {
 
 
   // Main render with comprehensive error handling
+  console.timeEnd('APP_BOOT');
   try {
     return (
       <RootLoadingWrapper>
@@ -313,15 +341,13 @@ const ViewSwitcher: React.FC = () => {
               <VideoSettingsProvider>
                 <ThemeProvider>
                   <TooltipProvider>
-                    <BrowserRouter>
+                    <HashRouter>
                       <RoutePersistence />
                       <CentralizedAuthGuard>
                         <PostsProvider>
                              <PublishingProgressProvider>
                              <div className={`app-container is-${layoutType}-view vw-100 vh-100`} data-auth-ready>
-                               <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><GlobeLoader size="lg" showText={true} /></div>}>
-                                 <AppComponent />
-                               </Suspense>
+                               <AppComponent />
                                <DesktopMobileToggle />
                              </div>
                              <GlobalScrollIndicator />
@@ -329,7 +355,7 @@ const ViewSwitcher: React.FC = () => {
                            </PublishingProgressProvider>
                         </PostsProvider>
                       </CentralizedAuthGuard>
-                    </BrowserRouter>
+                    </HashRouter>
                   </TooltipProvider>
                 </ThemeProvider>
               </VideoSettingsProvider>
@@ -340,11 +366,7 @@ const ViewSwitcher: React.FC = () => {
     );
   } catch (error) {
     console.error('ViewSwitcher render error:', error);
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <GlobeLoader size="lg" showText={true} />
-        </div>
-      );
+    return <GlobalSkeleton />;
   }
 };
 

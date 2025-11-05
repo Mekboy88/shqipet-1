@@ -9,6 +9,7 @@ interface CentralizedAuthGuardProps {
 
 const publicRoutes = [
   '/auth/login', 
+  '/landing',
   '/auth/register', 
   '/register', 
   '/auth/verification', 
@@ -23,7 +24,9 @@ const publicRoutes = [
   '/post/create',
   // Messages routes
   '/messages',
-  '/messages/standalone'
+  '/messages/standalone',
+  // Live streams (public viewing)
+  '/live'
 ];
 
 const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children }) => {
@@ -33,7 +36,7 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     authContext = useAuth();
   } catch (error) {
     console.warn('CentralizedAuthGuard: Auth context not ready yet');
-    return <GlobalSkeleton />;
+    return <Navigate to="/auth/login" replace />;
   }
   
   const { user, loading } = authContext;
@@ -74,10 +77,24 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     console.log('👤 CentralizedAuthGuard: User state changed to:', !!user, user?.email);
   }, [user]);
   
-  // Check if current route is public
-  const isPublicRoute = publicRoutes.includes(location.pathname);
+  // Check if current route is public (handle trailing slashes and nested paths)
+  const isPublicRoute = React.useMemo(() => {
+    const raw = location.pathname || '/';
+    const path = raw !== '/' ? raw.replace(/\/+$/, '') : '/';
+    return publicRoutes.some((route) => path === route || path.startsWith(route + '/'));
+  }, [location.pathname]);
   // Routes where we must not flash the skeleton (render immediately)
-  const noSkeletonRoutes = ['/professional-presentation', '/create-post', '/compose', '/post/create'];
+  const noSkeletonRoutes = ['/professional-presentation', '/create-post', '/compose', '/post/create', '/auth/login', '/landing'];
+  
+  // Early unauthenticated redirect — do not wait for loading
+  if (!user && !isPublicRoute) {
+    console.log('🚫 CentralizedAuthGuard: Early redirect for unauthenticated user');
+    try {
+      const fullPath = location.pathname + location.search + location.hash;
+      sessionStorage.setItem('redirectAfterAuth', fullPath);
+    } catch {}
+    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+  }
   
   // CRITICAL: Show loading skeleton while auth is still initializing (unless forced)
   if (loading && !forceRender) {
@@ -93,7 +110,16 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
   if (forceRender) {
     console.log('🚨 CentralizedAuthGuard: Force rendering due to timeout');
   }
-  
+  // If auth timed out and unauthenticated on protected route, redirect to login
+  if (forceRender && !user && !isPublicRoute) {
+    console.warn('CentralizedAuthGuard: Fallback redirect after auth timeout → /auth/login', { path: location.pathname });
+    try {
+      const fullPath = location.pathname + location.search + location.hash;
+      sessionStorage.setItem('redirectAfterAuth', fullPath);
+    } catch {}
+    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+  }
+
   // If user is authenticated and on auth pages, redirect to preserved path or home
   // EXCEPTION: allow /auth/cookies-consent even when authenticated (post-registration flow)
   if (
@@ -112,15 +138,7 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     return <Navigate to="/" replace />;
   }
   
-  // If user is not authenticated and on protected route, redirect to login
-  if (!user && !isPublicRoute && !forceRender) {
-    console.log('🚫 CentralizedAuthGuard: Unauthenticated user on protected route, redirecting to login');
-    try {
-      const fullPath = location.pathname + location.search + location.hash;
-      sessionStorage.setItem('redirectAfterAuth', fullPath);
-    } catch {}
-    return <Navigate to="/auth/login" replace state={{ from: location }} />;
-  }
+  // Early unauthenticated redirect handled above.
   
   // Render children for all other cases
   console.log('✅ CentralizedAuthGuard: Rendering children');
