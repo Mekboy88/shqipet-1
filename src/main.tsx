@@ -17,13 +17,31 @@ const CHUNK_ERROR_PATTERNS = [
 
 const tryAutoRecover = (msg: unknown) => {
   const message = typeof msg === 'string' ? msg : (msg as any)?.message || String(msg ?? '');
+  const isChunkError = CHUNK_ERROR_PATTERNS.some(p => message.includes(p));
   const alreadyReloaded = sessionStorage.getItem('chunkReloaded') === '1';
-  if (!alreadyReloaded && CHUNK_ERROR_PATTERNS.some(p => message.includes(p))) {
-    console.warn('🔁 Auto-recover: chunk load error detected, reloading once');
+
+  if (!isChunkError) return;
+
+  // First attempt: reload with cache-busting query to avoid stale chunks
+  if (!alreadyReloaded) {
+    console.warn('🔁 Auto-recover: chunk load error detected, reloading with cache-buster');
     sessionStorage.setItem('chunkReloaded', '1');
-    // Reload to fetch fresh chunks
-    window.location.reload();
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('v', Date.now().toString());
+      // Preserve hash for hash routing
+      const newHref = url.toString();
+      window.location.replace(newHref);
+    } catch {
+      window.location.reload();
+    }
+    return;
   }
+
+  // Second attempt: hard reload to fully reset runtime if error persists
+  console.warn('🔁 Auto-recover: second attempt hard reload');
+  sessionStorage.removeItem('chunkReloaded');
+  window.location.reload();
 };
 
 window.addEventListener('error', (event) => {

@@ -347,9 +347,7 @@ const ViewSwitcher: React.FC = () => {
                         <PostsProvider>
                              <PublishingProgressProvider>
                              <div className={`app-container is-${layoutType}-view vw-100 vh-100`} data-auth-ready>
-                               <Suspense fallback={<GlobalSkeleton />}>
-                                 <AppComponent />
-                               </Suspense>
+                               <AppComponent />
                                <DesktopMobileToggle />
                              </div>
                              <GlobalScrollIndicator />
