@@ -10,7 +10,6 @@ export const contentMenuItems: MenuItem[] = [
     colorVariant: 'greenTan',
     submenu: [
       { id: 'posts-management', label: '📝 Posts Management', href: '/admin/content/posts' },
-      { id: 'live-streams', label: '🎥 Live Streams', href: '/admin/content/live-streams' },
       { id: 'media-library', label: '📸 Media Library', href: '/admin/content/media' },
       { id: 'pages-management', label: '📑 Pages Management', href: '/admin/content/pages' },
       { id: 'blog-management', label: '📰 Blog Management', href: '/admin/content/blog' },
