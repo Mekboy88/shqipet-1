@@ -58,6 +58,14 @@ const ViewSwitcher: React.FC = () => {
   // Boot diagnostics
   console.time('APP_BOOT');
 
+  // Hard-disable any mobile subdomain redirects globally
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('mobileRedirectChecked', '1');
+      console.info('✅ ViewSwitcher: Mobile redirects hard-disabled');
+    } catch {}
+  }, []);
+
   // Mobile redirect logic - DISABLED BY DEFAULT (opt-in only)
   useEffect(() => {
     // Skip if already redirected in this session

@@ -36,7 +36,7 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     authContext = useAuth();
   } catch (error) {
     console.warn('CentralizedAuthGuard: Auth context not ready yet');
-    return <GlobalSkeleton />;
+    return <Navigate to="/auth/login" replace />;
   }
   
   const { user, loading } = authContext;
@@ -86,6 +86,16 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
   // Routes where we must not flash the skeleton (render immediately)
   const noSkeletonRoutes = ['/professional-presentation', '/create-post', '/compose', '/post/create', '/auth/login', '/landing'];
   
+  // Early unauthenticated redirect — do not wait for loading
+  if (!user && !isPublicRoute) {
+    console.log('🚫 CentralizedAuthGuard: Early redirect for unauthenticated user');
+    try {
+      const fullPath = location.pathname + location.search + location.hash;
+      sessionStorage.setItem('redirectAfterAuth', fullPath);
+    } catch {}
+    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+  }
+  
   // CRITICAL: Show loading skeleton while auth is still initializing (unless forced)
   if (loading && !forceRender) {
     console.log('⏳ CentralizedAuthGuard: Auth still loading', { path: location.pathname });
@@ -128,15 +138,7 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     return <Navigate to="/" replace />;
   }
   
-  // If user is not authenticated and on protected route, redirect to login
-  if (!user && !isPublicRoute && !forceRender) {
-    console.log('🚫 CentralizedAuthGuard: Unauthenticated user on protected route, redirecting to login');
-    try {
-      const fullPath = location.pathname + location.search + location.hash;
-      sessionStorage.setItem('redirectAfterAuth', fullPath);
-    } catch {}
-    return <Navigate to="/auth/login" replace state={{ from: location }} />;
-  }
+  // Early unauthenticated redirect handled above.
   
   // Render children for all other cases
   console.log('✅ CentralizedAuthGuard: Rendering children');
