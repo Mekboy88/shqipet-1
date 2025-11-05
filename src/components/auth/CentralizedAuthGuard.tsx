@@ -9,6 +9,7 @@ interface CentralizedAuthGuardProps {
 
 const publicRoutes = [
   '/auth/login', 
+  '/landing',
   '/auth/register', 
   '/register', 
   '/auth/verification', 
@@ -95,7 +96,16 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
   if (forceRender) {
     console.log('🚨 CentralizedAuthGuard: Force rendering due to timeout');
   }
-  
+  // If auth timed out and unauthenticated on protected route, redirect to login
+  if (forceRender && !user && !isPublicRoute) {
+    console.warn('CentralizedAuthGuard: Fallback redirect after auth timeout → /auth/login', { path: location.pathname });
+    try {
+      const fullPath = location.pathname + location.search + location.hash;
+      sessionStorage.setItem('redirectAfterAuth', fullPath);
+    } catch {}
+    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+  }
+
   // If user is authenticated and on auth pages, redirect to preserved path or home
   // EXCEPTION: allow /auth/cookies-consent even when authenticated (post-registration flow)
   if (

@@ -11,6 +11,7 @@ import Marketplace from "@/pages/Marketplace";
 import Groups from "@/pages/Groups";
 import Gaming from "@/pages/Gaming";
 import Login from "@/pages/auth/Login";
+import LandingPublic from "@/pages/LandingPublic";
 import Register from "@/pages/auth/Register";
 import Verification from "@/pages/auth/Verification";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
@@ -135,6 +136,7 @@ const DesktopApp: React.FC = () => {
           <Route path="/messages" element={<><NavbarNoTooltip /><div className="pt-14"><Messages /></div></>} />
           <Route path="/messages/standalone" element={<Messages />} />
           <Route path="/auth/login" element={<Login />} />
+          <Route path="/landing" element={<LandingPublic />} />
           <Route path="/auth/register" element={<Register />} />
           <Route path="/auth/verification" element={<Verification />} />
           <Route path="/auth/cookies-consent" element={<CookiesConsent />} /> 
