@@ -16,6 +16,7 @@ import { PostsProvider } from './contexts/PostsContext';
 import { NotificationSettingsProvider } from './contexts/NotificationSettingsContext';
 import { PublishingProgressProvider } from './contexts/PublishingProgressContext';
 import { ProfileSettingsProvider } from './contexts/ProfileSettingsContext';
+import { DynamicFavicon } from './components/DynamicFavicon';
 import AuthGuard from './components/auth/AuthGuard';
 import InitialAuthCheck from './components/auth/InitialAuthCheck';
 import RootAuthRedirect from './components/auth/RootAuthRedirect';
@@ -206,11 +207,14 @@ function App() {
                       onDismiss={dismissBanner}
                     />
                     
-                    {/* Global scroll indicator - detects active scroll container */}
-                    <GlobalScrollIndicator />
-                    
-                     {/* Global real-time notifications listener - always on */}
-                     <GlobalNotificationsListener />
+                     {/* Global scroll indicator - detects active scroll container */}
+                     <GlobalScrollIndicator />
+                     
+                      {/* Global real-time notifications listener - always on */}
+                      <GlobalNotificationsListener />
+                      
+                      {/* Dynamic favicon - updates based on app settings */}
+                      <DynamicFavicon />
                      
                      {/* Global avatar bootstrap - ensures avatar system is initialized */}
                      <GlobalAvatarBootstrap />

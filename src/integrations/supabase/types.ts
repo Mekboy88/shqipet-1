@@ -1686,6 +1686,7 @@ export type Database = {
           username: string
         }[]
       }
+      get_public_website_settings: { Args: never; Returns: Json }
       get_safe_profile: {
         Args: { profile_id: string }
         Returns: {
