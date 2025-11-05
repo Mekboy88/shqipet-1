@@ -80,7 +80,7 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
   // Check if current route is public
   const isPublicRoute = publicRoutes.includes(location.pathname);
   // Routes where we must not flash the skeleton (render immediately)
-  const noSkeletonRoutes = ['/professional-presentation', '/create-post', '/compose', '/post/create'];
+  const noSkeletonRoutes = ['/professional-presentation', '/create-post', '/compose', '/post/create', '/auth/login', '/landing'];
   
   // CRITICAL: Show loading skeleton while auth is still initializing (unless forced)
   if (loading && !forceRender) {
