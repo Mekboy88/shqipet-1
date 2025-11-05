@@ -31,49 +31,10 @@ export default defineConfig(async ({ mode }) => {
       // Memory-efficient build settings
       rollupOptions: {
         output: {
-          // Aggressive code splitting to reduce unused JavaScript
-          manualChunks(id: string) {
-            // Split large vendor libraries into separate chunks
-            if (id.includes('node_modules')) {
-              // Split React and related libraries
-              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-                return 'react-vendor';
-              }
-              // Split Radix UI components
-              if (id.includes('@radix-ui')) {
-                return 'radix-vendor';
-              }
-              // Split Supabase
-              if (id.includes('@supabase')) {
-                return 'supabase-vendor';
-              }
-              // Split other large libraries
-              if (id.includes('framer-motion')) {
-                return 'framer-vendor';
-              }
-              if (id.includes('lucide-react')) {
-                return 'icons-vendor';
-              }
-              // All other node_modules
-              return 'vendor';
-            }
-            // Split page components for lazy loading
-            if (id.includes('src/pages/')) {
-              return 'pages';
-            }
-            // Split app components
-            if (id.includes('src/components/apps/')) {
-              return 'apps';
-            }
-            // Split contexts
-            if (id.includes('src/contexts/')) {
-              return 'contexts';
-            }
-          },
+          manualChunks: undefined, // Let Vite handle chunking automatically
         },
       },
-      cssCodeSplit: true, // Enable CSS code splitting
-      // Disable sourcemaps in production to reduce bundle size
+      // Disable sourcemaps in development builds to save memory
       sourcemap: false,
       // Increase chunk size warning limit
       chunkSizeWarningLimit: 2000,

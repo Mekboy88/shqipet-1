@@ -5,13 +5,11 @@ import NavbarNoTooltip from '@/components/NavbarNoTooltip';
 import Home from "@/pages/Home";
 import Watch from "@/pages/Watch";
 import Reels from "@/pages/Reels";
-import Live from "@/pages/Live";
 import Marketplace from "@/pages/Marketplace";
 // import MarketplaceEntrance from "@/pages/MarketplaceEntrance";
 import Groups from "@/pages/Groups";
 import Gaming from "@/pages/Gaming";
 import Login from "@/pages/auth/Login";
-import LandingPublic from "@/pages/LandingPublic";
 import Register from "@/pages/auth/Register";
 import Verification from "@/pages/auth/Verification";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
@@ -104,10 +102,8 @@ import { ProfileSettingsProvider } from '@/contexts/ProfileSettingsContext';
 import ProfessionalPresentation from '@/pages/ProfessionalPresentation';
 import CreatePostDesktop from '@/pages/CreatePostDesktop';
 import Messages from '@/pages/Messages';
-import LiveStreamManagement from '@/pages/admin/LiveStreamManagement';
 
 const DesktopApp: React.FC = () => {
-  console.log('🖥️ DesktopApp: Rendering');
   return (
     <DesktopLayout>
       <div className="relative">
@@ -116,7 +112,6 @@ const DesktopApp: React.FC = () => {
           <Route path="/reels" element={<><NavbarNoTooltip /><Reels /></>} />
           <Route path="/interesante" element={<><NavbarNoTooltip /><Reels /></>} />
           <Route path="/watch" element={<><NavbarNoTooltip /><Watch /></>} />
-          <Route path="/live" element={<><NavbarNoTooltip /><div className="pt-14"><Live /></div></>} />
           {/* <Route path="/marketplace" element={<><NavbarNoTooltip /><MarketplaceEntrance /></>} /> */}
           <Route path="/marketplace" element={<><NavbarNoTooltip /><Marketplace /></>} />
           <Route path="/marketplace/platform" element={<><NavbarNoTooltip /><Marketplace /></>} />
@@ -137,7 +132,6 @@ const DesktopApp: React.FC = () => {
           <Route path="/messages" element={<><NavbarNoTooltip /><div className="pt-14"><Messages /></div></>} />
           <Route path="/messages/standalone" element={<Messages />} />
           <Route path="/auth/login" element={<Login />} />
-          <Route path="/landing" element={<LandingPublic />} />
           <Route path="/auth/register" element={<Register />} />
           <Route path="/auth/verification" element={<Verification />} />
           <Route path="/auth/cookies-consent" element={<CookiesConsent />} /> 
@@ -273,11 +267,6 @@ const DesktopApp: React.FC = () => {
           {/* Post Settings routes */}
           <Route path="/admin/posts/management" element={<AdminDashboard />}>
             <Route index element={<PostSettings />} />
-          </Route>
-
-          {/* Live Stream Management route */}
-          <Route path="/admin/content/live-streams" element={<AdminDashboard />}>
-            <Route index element={<LiveStreamManagement />} />
           </Route>
 
           {/* AI & Automation routes */}

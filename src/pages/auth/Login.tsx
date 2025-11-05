@@ -9,9 +9,6 @@ import { useWebsiteSettingsLegacy as useWebsiteSettings } from '@/hooks/useWebsi
 const Login = () => {
   const { isDeveloperMode, loading, countdownEnabled, returnTimeHours } = useWebsiteSettings();
 
-  console.log('🔐 LOGIN: Rendering', { isDeveloperMode, loading });
-  console.log('🔐 LOGIN: Failsafe exists?', !!document.getElementById('boot-failsafe'));
-
   // Show maintenance overlay if developer mode is enabled (but don't block login if loading)
   if (isDeveloperMode && !loading) {
     return (
@@ -22,12 +19,9 @@ const Login = () => {
     );
   }
 
-  console.log('🔐 LOGIN: Rendering form');
-  
   // Always show login page immediately - don't wait for settings
-  // CRITICAL: z-index must be higher than failsafe (999999) to be visible
   return (
-    <div className="h-screen w-screen fixed inset-0 flex flex-col md:flex-row overflow-hidden bg-white" style={{ zIndex: 10000000 }}>
+    <div className="h-screen w-screen fixed inset-0 flex flex-col md:flex-row overflow-hidden">
       {/* Left side with rich red gradient background - hidden on small screens */}
       <div className="hidden md:flex flex-1 flex-col justify-center items-start px-8 lg:px-16 bg-gradient-to-r from-red-500 via-red-600 to-red-900 relative">
         {/* Metallic highlight overlay for glossy effect */}

@@ -1,6 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,12 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// SECURITY: Comprehensive input validation schema
-const RequestSchema = z.object({
-  limit: z.number().int().min(1).max(200).optional().default(50),
-  offset: z.number().int().min(0).optional().default(0),
-  search: z.string().max(100).optional().default("")
-}).strict();
+interface RequestBody {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -43,25 +41,11 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // SECURITY: Parse and validate input with zod schema
-    let parsedBody;
-    try {
-      const rawBody = await req.json().catch(() => ({}));
-      parsedBody = RequestSchema.parse(rawBody);
-    } catch (err: any) {
-      console.warn("Invalid input:", err?.message || err);
-      return new Response(
-        JSON.stringify({ 
-          error: "Invalid input", 
-          details: err instanceof z.ZodError ? err.errors : "Validation failed" 
-        }), 
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const limit = parsedBody.limit;
-    const offset = parsedBody.offset;
-    const search = parsedBody.search.trim();
+    // Parse body
+    const body = (await req.json().catch(() => ({}))) as RequestBody;
+    const limit = Math.min(Math.max(body.limit ?? 50, 1), 200);
+    const offset = Math.max(body.offset ?? 0, 0);
+    const search = (body.search ?? "").trim();
 
     // Create an auth-bound client to identify the caller
     const anonClient = createClient(supabaseUrl, anonKey, {

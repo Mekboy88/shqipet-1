@@ -6,5 +6,4 @@ export interface LiveVideo {
   thumbnail: string;
   views: number;
   isLive: boolean;
-  category?: string;
 }

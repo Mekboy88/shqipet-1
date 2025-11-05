@@ -2,149 +2,114 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     <meta name="format-detection" content="telephone=no" />
     <title>Shqipet - Connect with friends and the world around you</title>
-    <meta
-      name="description"
-      content="Shqipet is a social media platform that helps you connect with friends, family and communities of people who share your interests."
-    />
+    <meta name="description" content="Shqipet is a social media platform that helps you connect with friends, family and communities of people who share your interests.">
     <meta name="author" content="Shqipet" />
     <meta name="google-site-verification" content="googleeceaa7f10f975bf6" />
+    
+    <!-- Custom favicon -->
+    <link rel="icon" href="/favicon.png" type="image/png">
+    <link rel="shortcut icon" href="/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="icon" sizes="16x16" href="/favicon.png" type="image/png">
+    <link rel="icon" sizes="32x32" href="/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+    <link rel="mask-icon" href="/favicon.png" color="#C1272D">
+    
+    <!-- DSEG seven/14-segment fonts -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.46/css/dseg.css">
 
-    <!-- ✅ your original fonts, favicons, preload, meta (unchanged) -->
-    <!-- KEEP ALL ORIGINAL HEAD CONTENT -->
-    <!-- ... (all your existing head tags remain unchanged here) ... -->
-  </head>
-  <body>
-    <div id="root"></div>
+    
+    
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DvhUwi36RKbc14IdrOQJbhl9VO23/social-images/social-1761230493980-ChatGPT Image Jul 1, 2025, 04_20_17 PM.png">
 
-    <!-- ✅ FINAL FIXED BOOT FAILSAFE -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@shqipet" />
+    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DvhUwi36RKbc14IdrOQJbhl9VO23/social-images/social-1761230493980-ChatGPT Image Jul 1, 2025, 04_20_17 PM.png">
+    
+    <style>
+      /* Critical CSS to prevent layout shifts */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      #root {
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+      
+      * {
+        box-sizing: border-box;
+      }
+      
+      /* Prevent any initial scaling or layout shifts */
+      .main-layout {
+        contain: layout style;
+        transform: none;
+        width: 100%;
+        max-width: 100vw;
+      }
+      
+      .feed-content {
+        contain: layout style;
+        transform: none;
+        width: 100%;
+        max-width: 100vw;
+      }
+      
+      /* Ensure all containers respect viewport bounds */
+      body * {
+        max-width: 100vw;
+      }
+    </style>
+    <!-- Preload marketplace wallpaper for instant paint -->
+    <link rel="preload" as="image" href="/marketplace-wallpaper.jpg" fetchpriority="high" />
+
+    <style>
+      /* Ensure wallpaper shows before React mounts on first paint for /marketplace */
+      body.marketplace-bg {
+        background-image: url('/marketplace-wallpaper.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+    </style>
+
     <script>
-      (function () {
+      // Add wallpaper class before React renders if landing on /marketplace
+      (function() {
         try {
-          window.__FAILSAFE_DEBUG__ = window.__FAILSAFE_DEBUG__ || [];
-          const BOOT_TIMEOUT_MS = 15000;
-          const CHECK_INTERVAL_MS = 200;
-
-          let overlayShown = false;
-          let timeoutTriggered = false;
-
-          function log(msg) {
-            window.__FAILSAFE_DEBUG__.push({ t: Date.now(), msg });
+          var path = window.location.pathname;
+          if (path === '/marketplace' || path === '/marketplace/') {
+            document.body.classList.add('marketplace-bg');
           }
-
-          function removeOverlay() {
-            const el = document.getElementById("boot-failsafe");
-            if (el) {
-              log("overlay-removed");
-              el.remove();
-            }
-          }
-
-          function showOverlay(message) {
-            if (document.getElementById("boot-failsafe")) return;
-
-            overlayShown = true;
-            log("overlay-shown");
-
-            const el = document.createElement("div");
-            el.id = "boot-failsafe";
-            el.style.cssText = `
-              position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-              background:#fff;color:#111;z-index:999999;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-            `;
-
-            el.innerHTML = `
-              <div style="max-width:680px;text-align:center;padding:24px">
-                <h2 style="font-size:24px;margin-bottom:12px;font-weight:600">Refreshing the app…</h2>
-                <p style="font-size:16px;margin-bottom:20px;color:#666">${message}</p>
-                <button id="boot-reload" style="
-                  padding:12px 24px;background:#111;color:#fff;border:none;border-radius:8px;
-                  font-size:16px;font-weight:500;cursor:pointer;
-                ">Reload now</button>
-              </div>
-            `;
-
-            document.body.appendChild(el);
-            document.getElementById("boot-reload").onclick = () => {
-              try {
-                const url = new URL(window.location.href);
-                url.searchParams.set("v", Date.now());
-                sessionStorage.setItem("bootRefreshedOnce","1");
-                window.location.replace(url.toString());
-              } catch {
-                window.location.reload();
-              }
-            };
-          }
-
-          log("listener-ready");
-
-          // ✅ remove overlay if event arrives ANY time
-          window.addEventListener("app:mounted", () => {
-            log("event-received");
-            removeOverlay();
-          });
-
-          const started = Date.now();
-          setInterval(() => {
-            const domMounted = document.querySelector("#root")?.children.length > 0;
-            const flagMounted = !!window.__APP_MOUNTED__;
-
-            // ✅ React mounted — remove overlay immediately
-            if (domMounted || flagMounted) {
-              log(domMounted ? "dom-mounted" : "flag-mounted");
-              removeOverlay();
-              return;
-            }
-
-            // ⏳ timeout fallback
-            if (!timeoutTriggered && Date.now() - started > BOOT_TIMEOUT_MS) {
-              timeoutTriggered = true;
-              const alreadyReloaded = sessionStorage.getItem("bootRefreshedOnce")==="1";
-
-              log("boot-timeout");
-
-              showOverlay(
-                alreadyReloaded
-                  ? "If this persists, click Reload to clear your cache."
-                  : "Auto-refreshing to clear cached files…"
-              );
-
-              if (!alreadyReloaded) {
-                try {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("v", Date.now());
-                  sessionStorage.setItem("bootRefreshedOnce","1");
-                  window.location.replace(url.toString());
-                } catch {
-                  window.location.reload();
-                }
-              }
-            }
-          }, CHECK_INTERVAL_MS);
-
-        } catch (err) {
-          console.error("Failsafe error", err);
-        }
+        } catch (e) {}
       })();
     </script>
+    
+  
+  
+  
+  <meta property="og:title" content="Shqipet - Connect with friends and the world around you">
+  <meta name="twitter:title" content="Shqipet - Connect with friends and the world around you">
+  <meta property="og:description" content="Shqipet is a social media platform that helps you connect with friends, family and communities of people who share your interests.">
+  <meta name="twitter:description" content="Shqipet is a social media platform that helps you connect with friends, family and communities of people who share your interests.">
+</head>
 
-    <!-- ✅ LOAD APP AFTER FAILSAFE -->
+  <body>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-
-    <noscript>
-      <style>
-        body{background:#fff;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-      </style>
-      <div style="padding:24px;text-align:center">
-        <h1>JavaScript is required</h1>
-        <p>Please enable JavaScript and refresh.</p>
-      </div>
-    </noscript>
   </body>
 </html>

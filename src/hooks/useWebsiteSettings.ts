@@ -27,48 +27,18 @@ export function useWebsiteSettings() {
   return useQuery({
     queryKey: ['website-settings'],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase.rpc('get_public_website_settings');
-        
-        if (error) {
-          console.error('Error fetching website settings:', error);
-          // Return defaults
-          return {
-            developer_mode: false,
-            maintenance_countdown_enabled: false,
-            maintenance_return_time: 2,
-            maintenance_super_admin_bypass: false,
-            maintenance_production_only: false,
-            auto_detect_timezone: true,
-            default_timezone: 'UTC',
-            time_format: 'HH:mm:ss',
-            date_format: 'PPP',
-            favicon_url: null
-          };
-        }
-        
-        return {
-          ...data,
-          auto_detect_timezone: true,
-          default_timezone: 'UTC',
-          time_format: 'HH:mm:ss',
-          date_format: 'PPP'
-        };
-      } catch (error) {
-        console.error('Error in website settings query:', error);
-        return {
-          developer_mode: false,
-          maintenance_countdown_enabled: false,
-          maintenance_return_time: 2,
-          maintenance_super_admin_bypass: false,
-          maintenance_production_only: false,
-          auto_detect_timezone: true,
-          default_timezone: 'UTC',
-          time_format: 'HH:mm:ss',
-          date_format: 'PPP',
-          favicon_url: null
-        };
-      }
+      // Return default settings since table doesn't exist yet
+      return {
+        developer_mode: false,
+        maintenance_countdown_enabled: false,
+        maintenance_return_time: 2,
+        maintenance_super_admin_bypass: false,
+        maintenance_production_only: false,
+        auto_detect_timezone: true,
+        default_timezone: 'UTC',
+        time_format: 'HH:mm:ss',
+        date_format: 'PPP'
+      };
     },
     retry: 1,
   });

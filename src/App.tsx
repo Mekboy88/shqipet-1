@@ -16,7 +16,6 @@ import { PostsProvider } from './contexts/PostsContext';
 import { NotificationSettingsProvider } from './contexts/NotificationSettingsContext';
 import { PublishingProgressProvider } from './contexts/PublishingProgressContext';
 import { ProfileSettingsProvider } from './contexts/ProfileSettingsContext';
-import { DynamicFavicon } from './components/DynamicFavicon';
 import AuthGuard from './components/auth/AuthGuard';
 import InitialAuthCheck from './components/auth/InitialAuthCheck';
 import RootAuthRedirect from './components/auth/RootAuthRedirect';
@@ -31,7 +30,6 @@ import ProfileSettings from './pages/ProfileSettings';
 import PhotoGallery from './pages/PhotoGallery';
 import Photos from './pages/Photos';
 import Watch from './pages/Watch';
-import Live from './pages/Live';
 import LocationPreferences from './pages/LocationPreferences';
 import ProfessionalPresentation from './pages/ProfessionalPresentation';
 import AuthCallback from './pages/auth/AuthCallback';
@@ -207,28 +205,24 @@ function App() {
                       onDismiss={dismissBanner}
                     />
                     
-                     {/* Global scroll indicator - detects active scroll container */}
-                     <GlobalScrollIndicator />
-                     
-                      {/* Global real-time notifications listener - always on */}
-                      <GlobalNotificationsListener />
-                      
-                      {/* Dynamic favicon - updates based on app settings */}
-                      <DynamicFavicon />
+                    {/* Global scroll indicator - detects active scroll container */}
+                    <GlobalScrollIndicator />
+                    
+                     {/* Global real-time notifications listener - always on */}
+                     <GlobalNotificationsListener />
                      
                      {/* Global avatar bootstrap - ensures avatar system is initialized */}
                      <GlobalAvatarBootstrap />
                      
-                      <Routes>
-                       {/* Public routes - NO AUTH CHECK */}
-                       <Route path="/auth/login" element={<Login />} />
-                       <Route path="/landing" element={<Login />} />
-                       <Route path="/auth/register" element={<Register />} />
-                       <Route path="/register" element={<Register />} />
-                       <Route path="/auth/verification" element={<Verification />} />
-                       <Route path="/auth/callback" element={<AuthCallback />} />
-                       <Route path="/terms-of-use" element={<TermsOfUse />} />
-                       <Route path="/privacy-policy" element={<TermsOfUse />} />
+                     <Routes>
+                      {/* Public routes - NO AUTH CHECK */}
+                      <Route path="/auth/login" element={<Login />} />
+                      <Route path="/auth/register" element={<Register />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/auth/verification" element={<Verification />} />
+                      <Route path="/auth/callback" element={<AuthCallback />} />
+                      <Route path="/terms-of-use" element={<TermsOfUse />} />
+                      <Route path="/privacy-policy" element={<TermsOfUse />} />
                       
                        {/* Protected routes - NO redundant auth checks, RootAuthRedirect handles it all */}
                        <Route path="/" element={<Index />} />
@@ -240,8 +234,7 @@ function App() {
                        <Route path="/post/create/*" element={<CreatePostDesktop />} />
                        <Route path="/reels" element={<Reels />} />
                       <Route path="/interesante" element={<Reels />} />
-                       <Route path="/watch" element={<Watch />} />
-                       <Route path="/live" element={<Live />} />
+                      <Route path="/watch" element={<Watch />} />
 <Route path="/profile" element={<Profile />} />
 <Route
   path="/profile/settings"
