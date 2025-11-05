@@ -77,8 +77,12 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     console.log('👤 CentralizedAuthGuard: User state changed to:', !!user, user?.email);
   }, [user]);
   
-  // Check if current route is public
-  const isPublicRoute = publicRoutes.includes(location.pathname);
+  // Check if current route is public (handle trailing slashes and nested paths)
+  const isPublicRoute = React.useMemo(() => {
+    const raw = location.pathname || '/';
+    const path = raw !== '/' ? raw.replace(/\/+$/, '') : '/';
+    return publicRoutes.some((route) => path === route || path.startsWith(route + '/'));
+  }, [location.pathname]);
   // Routes where we must not flash the skeleton (render immediately)
   const noSkeletonRoutes = ['/professional-presentation', '/create-post', '/compose', '/post/create', '/auth/login', '/landing'];
   
