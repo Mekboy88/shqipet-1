@@ -17,7 +17,7 @@ const CreatePostPrivacySelector: React.FC<CreatePostPrivacySelectorProps> = ({ p
     { value: 'Everyone', label: 'Everyone', icon: Globe },
     { value: 'People I Follow', label: 'People I Follow', icon: Users },
     { value: 'People Follow Me', label: 'People Follow Me', icon: UserPlus },
-    { value: 'Anonymous', label: 'Anonymous', icon: () => <AnonymousIcon className="w-4 h-4" /> },
+    { value: 'Anonymous', label: 'Anonymous', icon: AnonymousIcon },
     { value: 'Monetized', label: 'Monetized', icon: Briefcase },
   ];
 
