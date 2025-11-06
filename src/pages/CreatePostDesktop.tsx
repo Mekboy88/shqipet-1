@@ -7,6 +7,7 @@ import PostInsightsPanel from '@/components/create-post/PostInsightsPanel';
 import AISmartSummary from '@/components/create-post/AISmartSummary';
 import AnonymousIcon from '@/components/icons/AnonymousIcon';
 import OnlyMeIcon from '@/components/icons/OnlyMeIcon';
+import FollowersIcon from '@/components/icons/FollowersIcon';
 import { Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, Heart, Share2, Shield, Clock, Globe, Settings2, ChevronDown, Sparkles, Brain, Lightbulb, TrendingUp, Calendar, Languages, Info, Save, Eye, Send, X, Mic2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -467,6 +468,11 @@ const CreatePostDesktop: React.FC = () => {
                       <OnlyMeIcon className="w-4 h-4 text-gray-600" />
                       <span>Only Me</span>
                     </div>
+                  ) : visibility === 'followers' ? (
+                    <div className="flex items-center gap-2">
+                      <FollowersIcon className="w-4 h-4" />
+                      <span>Followers</span>
+                    </div>
                   ) : (
                     <SelectValue />
                   )}
@@ -474,7 +480,12 @@ const CreatePostDesktop: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="public">🌐 Public</SelectItem>
                   <SelectItem value="friends">👥 Friends</SelectItem>
-                  <SelectItem value="followers">👤 Followers</SelectItem>
+                  <SelectItem value="followers">
+                    <div className="flex items-center gap-2">
+                      <FollowersIcon className="w-4 h-4" />
+                      <span>Followers</span>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="onlyme">
                     <div className="flex items-center gap-2">
                       <OnlyMeIcon className="w-4 h-4 text-gray-600" />
