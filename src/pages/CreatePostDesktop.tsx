@@ -456,14 +456,26 @@ const CreatePostDesktop: React.FC = () => {
               <p className="font-semibold text-lg">{displayName || "User"}</p>
               <Select value={visibility} onValueChange={setVisibility}>
                 <SelectTrigger className="w-48 h-8 text-sm border-red-200/40 hover:border-red-300/50 focus:border-red-300/60 focus:ring-0 focus:shadow-[0_0_20px_rgba(239,68,68,0.08)] transition-all duration-200">
-                  <SelectValue />
+                  {visibility === 'anonymous' ? (
+                    <div className="flex items-center gap-2">
+                      <AnonymousIcon className="w-4 h-4" />
+                      <span>Anonymous</span>
+                    </div>
+                  ) : (
+                    <SelectValue />
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="public">🌐 Public</SelectItem>
                   <SelectItem value="friends">👥 Friends</SelectItem>
                   <SelectItem value="followers">👤 Followers</SelectItem>
                   <SelectItem value="onlyme">🔒 Only Me</SelectItem>
-                  <SelectItem value="anonymous">🕵️ Anonymous</SelectItem>
+                  <SelectItem value="anonymous">
+                    <div className="flex items-center gap-2">
+                      <AnonymousIcon className="w-4 h-4" />
+                      <span>Anonymous</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
