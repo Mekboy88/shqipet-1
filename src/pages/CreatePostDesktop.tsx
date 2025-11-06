@@ -560,14 +560,20 @@ const CreatePostDesktop: React.FC = () => {
 
           {/* Text Editor */}
           <div className="flex-1 mb-6 relative">
-            {!postContent && <div className="absolute left-4 top-1 flex items-center gap-2 pointer-events-none text-lg text-muted-foreground leading-tight">
+            {/* Anonymous watermark */}
+            {isAnonymous && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-[0.03]">
+                <AnonymousIcon className="w-64 h-64 text-gray-400" />
+              </div>
+            )}
+            {!postContent && <div className="absolute left-4 top-1 flex items-center gap-2 pointer-events-none text-lg text-muted-foreground leading-tight z-10">
                 <span>Çdo moment është një fillim i ri</span>
                 <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-5 h-5 text-gray-600 flex-shrink-0">
                   <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
                   <path d="M11.315 10.014a.5.5 0 0 1 .548.736A4.498 4.498 0 0 1 7.965 13a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .548-.736h.005l.017.005.067.015.252.055c.215.046.515.108.857.169.693.124 1.522.242 2.152.242.63 0 1.46-.118 2.152-.242a26.58 26.58 0 0 0 1.109-.224l.067-.015.017-.004.005-.002zM4.756 4.566c.763-1.424 4.02-.12.952 3.434-4.496-1.596-2.35-4.298-.952-3.434zm6.488 0c1.398-.864 3.544 1.838-.952 3.434-3.067-3.554.19-4.858.952-3.434z"></path>
                 </svg>
               </div>}
-            <Textarea value={postContent} onChange={e => setPostContent(e.target.value)} placeholder="" className="min-h-[200px] text-lg resize-none border border-red-200/55 rounded-[14px] px-4 transition-all duration-200 ease-out hover:border-red-300/60 focus-visible:border-red-300/70 focus-visible:ring-0 focus-visible:shadow-[0_0_20px_rgba(239,68,68,0.08)]" style={{
+            <Textarea value={postContent} onChange={e => setPostContent(e.target.value)} placeholder="" className="min-h-[200px] text-lg resize-none border border-red-200/55 rounded-[14px] px-4 transition-all duration-200 ease-out hover:border-red-300/60 focus-visible:border-red-300/70 focus-visible:ring-0 focus-visible:shadow-[0_0_20px_rgba(239,68,68,0.08)] relative z-10" style={{
             backgroundImage: `repeating-linear-gradient(
                   to bottom,
                   transparent 0px,
@@ -579,7 +585,8 @@ const CreatePostDesktop: React.FC = () => {
             paddingTop: '4px',
             paddingBottom: '4px',
             caretColor: 'rgba(239, 68, 68, 0.6)',
-            verticalAlign: 'baseline'
+            verticalAlign: 'baseline',
+            backgroundColor: isAnonymous ? 'rgba(255, 255, 255, 0.95)' : 'transparent'
           }} />
             <div className="flex justify-between items-center mt-2">
               <span className="text-sm text-muted-foreground">
