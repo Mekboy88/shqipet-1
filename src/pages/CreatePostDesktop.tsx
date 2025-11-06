@@ -485,9 +485,17 @@ const CreatePostDesktop: React.FC = () => {
       }} className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col">
           {/* Header with Avatar & Visibility */}
           <div className="flex items-center gap-4 mb-6">
-            <Avatar size="lg" />
+            {isAnonymous ? (
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="w-7 h-7 text-gray-600" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm10 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-5 7c2.21 0 4-1.79 4-4h-8c0 2.21 1.79 4 4 4z"/>
+                </svg>
+              </div>
+            ) : (
+              <Avatar size="lg" />
+            )}
             <div className="flex-1">
-              <p className="font-semibold text-lg">{displayName || "User"}</p>
+              <p className="font-semibold text-lg">{isAnonymous ? "Anonymous" : displayName || "User"}</p>
               <Select value={visibility} onValueChange={setVisibility}>
                 <SelectTrigger className="w-48 h-8 text-sm border-red-200/40 hover:border-red-300/50 focus:border-red-300/60 focus:ring-0 focus:shadow-[0_0_20px_rgba(239,68,68,0.08)] transition-all duration-200">
                   {visibility === 'public' ? (
@@ -666,9 +674,17 @@ const CreatePostDesktop: React.FC = () => {
               </DialogHeader>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Avatar size="md" />
+                  {isAnonymous ? (
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" className="w-6 h-6 text-gray-600" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm10 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-5 7c2.21 0 4-1.79 4-4h-8c0 2.21 1.79 4 4 4z"/>
+                      </svg>
+                    </div>
+                  ) : (
+                    <Avatar size="md" />
+                  )}
                   <div>
-                    <p className="font-semibold">{isAnonymous ? "Anonymous User" : displayName}</p>
+                    <p className="font-semibold">{isAnonymous ? "Anonymous" : displayName}</p>
                     <p className="text-sm text-muted-foreground">{visibility}</p>
                   </div>
                 </div>
