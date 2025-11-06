@@ -36,6 +36,7 @@ const CreatePostDesktop: React.FC = () => {
   const [postContent, setPostContent] = useState('');
   const [visibility, setVisibility] = useState('public');
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [previousVisibility, setPreviousVisibility] = useState('public');
   const [autoSave, setAutoSave] = useState(true);
   const [allowComments, setAllowComments] = useState(true);
   const [allowReactions, setAllowReactions] = useState(true);
@@ -65,6 +66,32 @@ const CreatePostDesktop: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [postContent, autoSave]);
+  
+  // Sync anonymous switch with visibility dropdown
+  useEffect(() => {
+    if (isAnonymous) {
+      // Save current visibility before switching to anonymous
+      if (visibility !== 'anonymous') {
+        setPreviousVisibility(visibility);
+      }
+      setVisibility('anonymous');
+    } else {
+      // Restore previous visibility when turning off anonymous
+      if (visibility === 'anonymous') {
+        setVisibility(previousVisibility);
+      }
+    }
+  }, [isAnonymous]);
+  
+  // Sync visibility dropdown with anonymous switch
+  useEffect(() => {
+    if (visibility === 'anonymous') {
+      setIsAnonymous(true);
+    } else {
+      setIsAnonymous(false);
+    }
+  }, [visibility]);
+  
   const charCount = postContent.length;
   const isOptimal = charCount > 0 && charCount <= 150;
   const handlePublish = async () => {
