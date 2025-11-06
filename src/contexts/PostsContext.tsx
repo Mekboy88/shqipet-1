@@ -20,6 +20,7 @@ export interface Post {
   created_at: string;
   updated_at: string;
   is_sponsored?: boolean;
+  is_anonymous?: boolean;
   location?: string;
   visibility: string;
   post_type: string;

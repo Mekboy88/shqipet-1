@@ -127,7 +127,8 @@ const CreatePostDesktop: React.FC = () => {
         },
         visibility,
         post_type: 'regular',
-        is_sponsored: false
+        is_sponsored: false,
+        is_anonymous: isAnonymous
       }).select().single();
       if (error) throw error;
       toast({

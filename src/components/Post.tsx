@@ -33,6 +33,7 @@ interface PostProps {
     time: string;
     isSponsored?: boolean;
     visibility?: string;
+    is_anonymous?: boolean;
     content: {
       text?: string;
       image?: string;
@@ -386,7 +387,8 @@ const Post: React.FC<PostProps> = ({
             user={userWithRealName} 
             time={post.time} 
             visibility={post.visibility} 
-            isSponsored={post.isSponsored} 
+            isSponsored={post.isSponsored}
+            isAnonymous={post.is_anonymous}
             postId={post.id}
             userId={post.user_id}
             onVisibilityChange={handleVisibilityChange} 
@@ -474,7 +476,8 @@ const Post: React.FC<PostProps> = ({
         user={userWithRealName} 
         time={post.time} 
         visibility={post.visibility} 
-        isSponsored={post.isSponsored} 
+        isSponsored={post.isSponsored}
+        isAnonymous={post.is_anonymous}
         postId={post.id}
         userId={post.user_id} 
         onVisibilityChange={handleVisibilityChange} 

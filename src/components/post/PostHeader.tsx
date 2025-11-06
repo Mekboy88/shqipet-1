@@ -45,6 +45,7 @@ interface PostHeaderProps {
   time: string;
   visibility?: string;
   isSponsored?: boolean;
+  isAnonymous?: boolean;
   postId: string;
   userId?: string; // Add userId for ownership validation
   onVisibilityChange: (visibility: string) => void;
@@ -56,6 +57,7 @@ const PostHeader: React.FC<PostHeaderProps> = ({
   time,
   visibility = "public",
   isSponsored = false,
+  isAnonymous = false,
   postId,
   userId,
   onVisibilityChange,
@@ -181,15 +183,23 @@ const PostHeader: React.FC<PostHeaderProps> = ({
       <div className="flex items-center justify-between p-4 pb-2">
         <div className="flex items-center space-x-3">
           <div className="flex-shrink-0">
-            <Avatar 
-              userId={userId}
-              size="md"
-            />
+            {isAnonymous ? (
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="w-6 h-6 text-gray-600" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm10 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-5 7c2.21 0 4-1.79 4-4h-8c0 2.21 1.79 4 4 4z"/>
+                </svg>
+              </div>
+            ) : (
+              <Avatar 
+                userId={userId}
+                size="md"
+              />
+            )}
           </div>
           <div className="flex flex-col">
             <div className="flex items-center space-x-1">
               <span className="font-semibold text-gray-900 hover:underline cursor-pointer">
-                {user.name}
+                {isAnonymous ? "Anonymous" : user.name}
               </span>
             </div>
             <div className="flex items-center space-x-1 text-sm text-gray-500">
