@@ -2,7 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Lock, Globe, Users, UserPlus, EyeOff, Briefcase } from 'lucide-react';
+import { ChevronDown, Lock, Globe, Users, UserPlus, Briefcase } from 'lucide-react';
+import AnonymousIcon from '@/components/icons/AnonymousIcon';
 import '../animations.css';
 
 interface CreatePostPrivacySelectorProps {
@@ -16,7 +17,7 @@ const CreatePostPrivacySelector: React.FC<CreatePostPrivacySelectorProps> = ({ p
     { value: 'Everyone', label: 'Everyone', icon: Globe },
     { value: 'People I Follow', label: 'People I Follow', icon: Users },
     { value: 'People Follow Me', label: 'People Follow Me', icon: UserPlus },
-    { value: 'Anonymous', label: 'Anonymous', icon: EyeOff },
+    { value: 'Anonymous', label: 'Anonymous', icon: () => <AnonymousIcon className="w-4 h-4" /> },
     { value: 'Monetized', label: 'Monetized', icon: Briefcase },
   ];
 
