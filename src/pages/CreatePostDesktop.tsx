@@ -466,7 +466,7 @@ const CreatePostDesktop: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-center gap-2">
               <Switch checked={isAnonymous} onCheckedChange={setIsAnonymous} />
               <span className="text-sm text-muted-foreground"> Anonymous</span>
             </div>
