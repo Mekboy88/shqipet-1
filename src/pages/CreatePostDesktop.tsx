@@ -490,35 +490,20 @@ const CreatePostDesktop: React.FC = () => {
                   )}
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">
-                    <div className="flex items-center gap-2">
-                      <PublicIcon className="w-4 h-4 text-gray-600" />
-                      <span>Public</span>
-                    </div>
+                  <SelectItem value="public" icon={<PublicIcon className="w-4 h-4 text-gray-600" />}>
+                    <span>Public</span>
                   </SelectItem>
-                  <SelectItem value="friends">
-                    <div className="flex items-center gap-2">
-                      <FriendsIcon className="w-4 h-4 text-gray-600" />
-                      <span>Friends</span>
-                    </div>
+                  <SelectItem value="friends" icon={<FriendsIcon className="w-4 h-4 text-gray-600" />}>
+                    <span>Friends</span>
                   </SelectItem>
-                  <SelectItem value="followers">
-                    <div className="flex items-center gap-2">
-                      <FollowersIcon className="w-4 h-4 text-gray-600" />
-                      <span>Followers</span>
-                    </div>
+                  <SelectItem value="followers" icon={<FollowersIcon className="w-4 h-4 text-gray-600" />}>
+                    <span>Followers</span>
                   </SelectItem>
-                  <SelectItem value="onlyme">
-                    <div className="flex items-center gap-2">
-                      <OnlyMeIcon className="w-4 h-4 text-gray-600" />
-                      <span>Only Me</span>
-                    </div>
+                  <SelectItem value="onlyme" icon={<OnlyMeIcon className="w-4 h-4 text-gray-600" />}>
+                    <span>Only Me</span>
                   </SelectItem>
-                  <SelectItem value="anonymous">
-                    <div className="flex items-center gap-2">
-                      <AnonymousIcon className="w-4 h-4" />
-                      <span>Anonymous</span>
-                    </div>
+                  <SelectItem value="anonymous" icon={<AnonymousIcon className="w-4 h-4" />}>
+                    <span>Anonymous</span>
                   </SelectItem>
                 </SelectContent>
               </Select>
