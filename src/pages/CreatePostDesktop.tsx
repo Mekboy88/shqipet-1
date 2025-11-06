@@ -8,6 +8,7 @@ import AISmartSummary from '@/components/create-post/AISmartSummary';
 import AnonymousIcon from '@/components/icons/AnonymousIcon';
 import OnlyMeIcon from '@/components/icons/OnlyMeIcon';
 import FollowersIcon from '@/components/icons/FollowersIcon';
+import FriendsIcon from '@/components/icons/FriendsIcon';
 import { Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, Heart, Share2, Shield, Clock, Globe, Settings2, ChevronDown, Sparkles, Brain, Lightbulb, TrendingUp, Calendar, Languages, Info, Save, Eye, Send, X, Mic2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -473,13 +474,23 @@ const CreatePostDesktop: React.FC = () => {
                       <FollowersIcon className="w-4 h-4" />
                       <span>Followers</span>
                     </div>
+                  ) : visibility === 'friends' ? (
+                    <div className="flex items-center gap-2">
+                      <FriendsIcon className="w-4 h-4" />
+                      <span>Friends</span>
+                    </div>
                   ) : (
                     <SelectValue />
                   )}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="public">🌐 Public</SelectItem>
-                  <SelectItem value="friends">👥 Friends</SelectItem>
+                  <SelectItem value="friends">
+                    <div className="flex items-center gap-2">
+                      <FriendsIcon className="w-4 h-4" />
+                      <span>Friends</span>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="followers">
                     <div className="flex items-center gap-2">
                       <FollowersIcon className="w-4 h-4" />
