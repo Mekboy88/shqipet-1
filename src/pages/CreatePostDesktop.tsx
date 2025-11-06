@@ -14,6 +14,7 @@ import { Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, Heart, Shar
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { AnonymousSwitch } from '@/components/create-post/AnonymousSwitch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -536,7 +537,7 @@ const CreatePostDesktop: React.FC = () => {
               </Select>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <Switch
+              <AnonymousSwitch
                 checked={isAnonymous}
                 onCheckedChange={setIsAnonymous}
                 onIcon={<AnonymousIcon className="w-5 h-5 text-gray-600" />}
