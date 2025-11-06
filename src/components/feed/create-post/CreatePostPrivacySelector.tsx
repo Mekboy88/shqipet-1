@@ -50,7 +50,7 @@ const CreatePostPrivacySelector: React.FC<CreatePostPrivacySelectorProps> = ({ p
               onSelect={() => setPrivacy(option.label)}
               className={`edge-smoke-hover ${colorClass} rounded-lg smoke-ring-rounded hover:bg-transparent focus:bg-transparent data-[highlighted]:bg-transparent`}
             >
-              <Icon className="w-4 h-4 mr-2" />
+              <Icon className={`w-4 h-4 mr-2 ${option.label === 'Anonymous' ? 'text-gray-600' : ''}`} />
               <span>{option.label}</span>
             </DropdownMenuItem>
           );
