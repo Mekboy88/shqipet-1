@@ -9,6 +9,7 @@ import AnonymousIcon from '@/components/icons/AnonymousIcon';
 import OnlyMeIcon from '@/components/icons/OnlyMeIcon';
 import FollowersIcon from '@/components/icons/FollowersIcon';
 import FriendsIcon from '@/components/icons/FriendsIcon';
+import PublicIcon from '@/components/icons/PublicIcon';
 import { Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, Heart, Share2, Shield, Clock, Globe, Settings2, ChevronDown, Sparkles, Brain, Lightbulb, TrendingUp, Calendar, Languages, Info, Save, Eye, Send, X, Mic2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -459,7 +460,12 @@ const CreatePostDesktop: React.FC = () => {
               <p className="font-semibold text-lg">{displayName || "User"}</p>
               <Select value={visibility} onValueChange={setVisibility}>
                 <SelectTrigger className="w-48 h-8 text-sm border-red-200/40 hover:border-red-300/50 focus:border-red-300/60 focus:ring-0 focus:shadow-[0_0_20px_rgba(239,68,68,0.08)] transition-all duration-200">
-                  {visibility === 'anonymous' ? (
+                  {visibility === 'public' ? (
+                    <div className="flex items-center gap-2">
+                      <PublicIcon className="w-4 h-4 text-gray-600" />
+                      <span>Public</span>
+                    </div>
+                  ) : visibility === 'anonymous' ? (
                     <div className="flex items-center gap-2">
                       <AnonymousIcon className="w-4 h-4" />
                       <span>Anonymous</span>
@@ -484,7 +490,12 @@ const CreatePostDesktop: React.FC = () => {
                   )}
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">🌐 Public</SelectItem>
+                  <SelectItem value="public">
+                    <div className="flex items-center gap-2">
+                      <PublicIcon className="w-4 h-4 text-gray-600" />
+                      <span>Public</span>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="friends">
                     <div className="flex items-center gap-2">
                       <FriendsIcon className="w-4 h-4 text-gray-600" />
