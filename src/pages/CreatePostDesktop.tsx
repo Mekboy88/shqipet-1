@@ -5,12 +5,7 @@ import FloatingAIButton from '@/components/create-post/FloatingAIButton';
 import PostIntentSection from '@/components/create-post/PostIntentSection';
 import PostInsightsPanel from '@/components/create-post/PostInsightsPanel';
 import AISmartSummary from '@/components/create-post/AISmartSummary';
-import { 
-  Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, 
-  EyeOff, Heart, Share2, Shield, Clock, Globe,
-  Settings2, ChevronDown, Sparkles, Brain, Lightbulb, TrendingUp,
-  Calendar, Languages, Info, Save, Eye, Send, X, Mic2, MessageSquare
-} from 'lucide-react';
+import { Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, EyeOff, Heart, Share2, Shield, Clock, Globe, Settings2, ChevronDown, Sparkles, Brain, Lightbulb, TrendingUp, Calendar, Languages, Info, Save, Eye, Send, X, Mic2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -23,11 +18,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-
 const CreatePostDesktop: React.FC = () => {
-  const { displayName } = useUniversalUser();
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const {
+    displayName
+  } = useUniversalUser();
+  const {
+    user
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const [postContent, setPostContent] = useState('');
   const [visibility, setVisibility] = useState('public');
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -46,14 +46,12 @@ const CreatePostDesktop: React.FC = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   const [postIntent, setPostIntent] = useState('emotion');
   const [showAIChat, setShowAIChat] = useState(false);
-
   useEffect(() => {
     if (showTip) {
       const timer = setTimeout(() => setShowTip(false), 8000);
       return () => clearTimeout(timer);
     }
   }, [showTip]);
-
   useEffect(() => {
     if (autoSave && postContent) {
       const timer = setTimeout(() => {
@@ -62,55 +60,46 @@ const CreatePostDesktop: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [postContent, autoSave]);
-
   const charCount = postContent.length;
   const isOptimal = charCount > 0 && charCount <= 150;
-
   const handlePublish = async () => {
     if (!postContent.trim()) {
       toast({
         title: "Error",
         description: "Please write something before publishing.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (!user) {
       toast({
         title: "Authentication Required",
         description: "Please sign in to publish posts.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setIsPublishing(true);
-
     try {
-      const { data, error } = await supabase
-        .from('posts')
-        .insert({
-          user_id: user.id,
-          content: {
-            text: postContent,
-            tone,
-            contentWarning,
-          },
-          visibility,
-          post_type: 'regular',
-          is_sponsored: false,
-        })
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('posts').insert({
+        user_id: user.id,
+        content: {
+          text: postContent,
+          tone,
+          contentWarning
+        },
+        visibility,
+        post_type: 'regular',
+        is_sponsored: false
+      }).select().single();
       if (error) throw error;
-
       toast({
         title: "Post Published!",
-        description: "Your post has been shared successfully.",
+        description: "Your post has been shared successfully."
       });
-
       setPostContent('');
       setShowPreview(false);
     } catch (error) {
@@ -118,40 +107,111 @@ const CreatePostDesktop: React.FC = () => {
       toast({
         title: "Error",
         description: "Failed to publish post. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsPublishing(false);
     }
   };
-
-  const mediaTools = [
-    { icon: Camera, label: 'Photo', color: 'text-blue-500' },
-    { icon: Video, label: 'Video', color: 'text-purple-500' },
-    { icon: Mic, label: 'Audio', color: 'text-red-500' },
-    { icon: MapPin, label: 'Location', color: 'text-green-500' },
-    { icon: BarChart3, label: 'Poll', color: 'text-orange-500' },
-    { icon: Tag, label: 'Tag', color: 'text-pink-500' },
-    { icon: Link2, label: 'Link', color: 'text-indigo-500' },
-    { icon: Palette, label: 'Background', color: 'text-yellow-500' },
-    { icon: EyeOff, label: 'Anonymous', color: 'text-gray-500' },
-  ];
-
-  const aiFeatures = [
-    { icon: Sparkles, label: 'Improve Writing', action: () => toast({ title: "✨ Improving writing..." }) },
-    { icon: Brain, label: 'Fix Grammar & Spelling', action: () => toast({ title: "🧠 Checking grammar..." }) },
-    { icon: Lightbulb, label: 'Generate Captions', action: () => toast({ title: "💡 Generating captions..." }) },
-    { icon: Tag, label: 'Suggest Hashtags', action: () => toast({ title: "🔥 Finding hashtags..." }) },
-    { icon: TrendingUp, label: 'Optimize Engagement', action: () => toast({ title: "🎯 Analyzing engagement..." }) },
-    { icon: Clock, label: 'Best Time to Post', action: () => toast({ title: "🕓 Calculating best time..." }) },
-    { icon: Shield, label: 'Detect Sensitive/Duplicate', action: () => toast({ title: "🚫 Scanning content..." }) },
-    { icon: Globe, label: 'Translate Automatically', action: () => toast({ title: "🌍 Translating..." }) },
-    { icon: Eye, label: 'Convert to Story', action: () => toast({ title: "🧩 Converting to story..." }) },
-    { icon: Mic2, label: 'Voice-Over Preview', action: () => toast({ title: "🗣️ Generating voice-over..." }) },
-  ];
-
-  return (
-    <div className="min-h-screen w-full bg-background pt-14">
+  const mediaTools = [{
+    icon: Camera,
+    label: 'Photo',
+    color: 'text-blue-500'
+  }, {
+    icon: Video,
+    label: 'Video',
+    color: 'text-purple-500'
+  }, {
+    icon: Mic,
+    label: 'Audio',
+    color: 'text-red-500'
+  }, {
+    icon: MapPin,
+    label: 'Location',
+    color: 'text-green-500'
+  }, {
+    icon: BarChart3,
+    label: 'Poll',
+    color: 'text-orange-500'
+  }, {
+    icon: Tag,
+    label: 'Tag',
+    color: 'text-pink-500'
+  }, {
+    icon: Link2,
+    label: 'Link',
+    color: 'text-indigo-500'
+  }, {
+    icon: Palette,
+    label: 'Background',
+    color: 'text-yellow-500'
+  }, {
+    icon: EyeOff,
+    label: 'Anonymous',
+    color: 'text-gray-500'
+  }];
+  const aiFeatures = [{
+    icon: Sparkles,
+    label: 'Improve Writing',
+    action: () => toast({
+      title: "✨ Improving writing..."
+    })
+  }, {
+    icon: Brain,
+    label: 'Fix Grammar & Spelling',
+    action: () => toast({
+      title: "🧠 Checking grammar..."
+    })
+  }, {
+    icon: Lightbulb,
+    label: 'Generate Captions',
+    action: () => toast({
+      title: "💡 Generating captions..."
+    })
+  }, {
+    icon: Tag,
+    label: 'Suggest Hashtags',
+    action: () => toast({
+      title: "🔥 Finding hashtags..."
+    })
+  }, {
+    icon: TrendingUp,
+    label: 'Optimize Engagement',
+    action: () => toast({
+      title: "🎯 Analyzing engagement..."
+    })
+  }, {
+    icon: Clock,
+    label: 'Best Time to Post',
+    action: () => toast({
+      title: "🕓 Calculating best time..."
+    })
+  }, {
+    icon: Shield,
+    label: 'Detect Sensitive/Duplicate',
+    action: () => toast({
+      title: "🚫 Scanning content..."
+    })
+  }, {
+    icon: Globe,
+    label: 'Translate Automatically',
+    action: () => toast({
+      title: "🌍 Translating..."
+    })
+  }, {
+    icon: Eye,
+    label: 'Convert to Story',
+    action: () => toast({
+      title: "🧩 Converting to story..."
+    })
+  }, {
+    icon: Mic2,
+    label: 'Voice-Over Preview',
+    action: () => toast({
+      title: "🗣️ Generating voice-over..."
+    })
+  }];
+  return <div className="min-h-screen w-full bg-background pt-14">
       <Helmet>
         <title>Create Post | Shqipet</title>
         <meta name="description" content="Compose a new Shqipet post with media, AI assistance, and privacy settings." />
@@ -162,12 +222,15 @@ const CreatePostDesktop: React.FC = () => {
       {/* Main 2-Column Layout (Left Sidebar + Center) */}
       <div className="w-full min-h-[calc(100vh-56px)] grid grid-cols-[280px_1fr] gap-4 p-4 pr-[420px]">
         {/* Left Sidebar - Post Settings */}
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-          className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border p-6 overflow-y-auto"
-        >
+        <motion.div initial={{
+        opacity: 0,
+        x: -40
+      }} animate={{
+        opacity: 1,
+        x: 0
+      }} transition={{
+        duration: 0.4
+      }} className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border p-6 overflow-y-auto">
           <h2 className="text-xl font-bold mb-6 text-foreground">Post Settings</h2>
           
           <div className="space-y-3">
@@ -176,15 +239,7 @@ const CreatePostDesktop: React.FC = () => {
               <CollapsibleTrigger className="w-full">
                 <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
                   <div className="flex items-center gap-2">
-                    <svg 
-                      className="w-4 h-4" 
-                      viewBox="0 0 32 32" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    >
+                    <svg className="w-4 h-4" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="10" y1="12" x2="19" y2="12"></line>
                       <line x1="10" y1="16" x2="14" y2="16"></line>
                       <path d="M11,4c-4.4,0-8,3.6-8,8v12v5l0,0c3.7-3.2,8.4-5,13.3-5H21c4.4,0,8-3.6,8-8v-4c0-4.4-3.6-8-8-8H11z"></path>
@@ -381,12 +436,18 @@ const CreatePostDesktop: React.FC = () => {
         </motion.div>
 
         {/* Center Column - Editor */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 40 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col"
-        >
+        <motion.div initial={{
+        opacity: 0,
+        scale: 0.96,
+        y: 40
+      }} animate={{
+        opacity: 1,
+        scale: 1,
+        y: 0
+      }} transition={{
+        duration: 0.5,
+        delay: 0.1
+      }} className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col">
           {/* Header with Avatar & Visibility */}
           <div className="flex items-center gap-4 mb-6">
             <Avatar size="lg" />
@@ -407,41 +468,33 @@ const CreatePostDesktop: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={isAnonymous} onCheckedChange={setIsAnonymous} />
-              <span className="text-sm text-muted-foreground">🕵️ Anonymous</span>
+              <span className="text-sm text-muted-foreground"> Anonymous</span>
             </div>
           </div>
 
           {/* Text Editor */}
           <div className="flex-1 mb-6 relative">
-            {!postContent && (
-              <div className="absolute left-4 top-1 flex items-center gap-2 pointer-events-none text-lg text-muted-foreground leading-tight">
+            {!postContent && <div className="absolute left-4 top-1 flex items-center gap-2 pointer-events-none text-lg text-muted-foreground leading-tight">
                 <span>Çdo moment është një fillim i ri</span>
                 <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-5 h-5 text-gray-600 flex-shrink-0">
                   <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
                   <path d="M11.315 10.014a.5.5 0 0 1 .548.736A4.498 4.498 0 0 1 7.965 13a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .548-.736h.005l.017.005.067.015.252.055c.215.046.515.108.857.169.693.124 1.522.242 2.152.242.63 0 1.46-.118 2.152-.242a26.58 26.58 0 0 0 1.109-.224l.067-.015.017-.004.005-.002zM4.756 4.566c.763-1.424 4.02-.12.952 3.434-4.496-1.596-2.35-4.298-.952-3.434zm6.488 0c1.398-.864 3.544 1.838-.952 3.434-3.067-3.554.19-4.858.952-3.434z"></path>
                 </svg>
-              </div>
-            )}
-            <Textarea
-              value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
-              placeholder=""
-              className="min-h-[200px] text-lg resize-none border border-red-200/55 rounded-[14px] px-4 transition-all duration-200 ease-out hover:border-red-300/60 focus-visible:border-red-300/70 focus-visible:ring-0 focus-visible:shadow-[0_0_20px_rgba(239,68,68,0.08)]"
-              style={{
-                backgroundImage: `repeating-linear-gradient(
+              </div>}
+            <Textarea value={postContent} onChange={e => setPostContent(e.target.value)} placeholder="" className="min-h-[200px] text-lg resize-none border border-red-200/55 rounded-[14px] px-4 transition-all duration-200 ease-out hover:border-red-300/60 focus-visible:border-red-300/70 focus-visible:ring-0 focus-visible:shadow-[0_0_20px_rgba(239,68,68,0.08)]" style={{
+            backgroundImage: `repeating-linear-gradient(
                   to bottom,
                   transparent 0px,
                   transparent 25px,
                   rgba(239, 68, 68, 0.10) 25px,
                   rgba(239, 68, 68, 0.10) 26px
                 )`,
-                lineHeight: '26px',
-                paddingTop: '4px',
-                paddingBottom: '4px',
-                caretColor: 'rgba(239, 68, 68, 0.6)',
-                verticalAlign: 'baseline'
-              }}
-            />
+            lineHeight: '26px',
+            paddingTop: '4px',
+            paddingBottom: '4px',
+            caretColor: 'rgba(239, 68, 68, 0.6)',
+            verticalAlign: 'baseline'
+          }} />
             <div className="flex justify-between items-center mt-2">
               <span className="text-sm text-muted-foreground">
                 {charCount} characters {isOptimal && <span className="text-green-600 font-medium">✓ Optimal</span>}
@@ -459,13 +512,11 @@ const CreatePostDesktop: React.FC = () => {
             <PostIntentSection selectedIntent={postIntent} onSelectIntent={setPostIntent} />
             
             {/* AI Chat Toggle Button */}
-            {!showAIChat && (
-              <motion.button
-                onClick={() => setShowAIChat(true)}
-                className="relative group"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+            {!showAIChat && <motion.button onClick={() => setShowAIChat(true)} className="relative group" whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }}>
                 {/* Pulsing Glow Ring */}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-200 to-purple-300 opacity-75 blur-md animate-pulse" />
                 
@@ -474,8 +525,7 @@ const CreatePostDesktop: React.FC = () => {
                   <MessageSquare className="w-5 h-5 text-foreground animate-pulse" />
                   <span className="font-semibold text-foreground text-sm">Shqipet AI</span>
                 </div>
-              </motion.button>
-            )}
+              </motion.button>}
           </div>
 
           {/* AI Smart Summary */}
@@ -485,17 +535,14 @@ const CreatePostDesktop: React.FC = () => {
           <div className="border-t border-border pt-4 mb-6">
             <p className="text-sm font-medium text-foreground mb-3">Add to your post</p>
             <div className="flex flex-wrap gap-3">
-              {mediaTools.map((tool, idx) => (
-                <motion.button
-                  key={idx}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-accent transition-all ${tool.color}`}
-                >
+              {mediaTools.map((tool, idx) => <motion.button key={idx} whileHover={{
+              scale: 1.1
+            }} whileTap={{
+              scale: 0.95
+            }} className={`flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-accent transition-all ${tool.color}`}>
                   <tool.icon className="w-6 h-6" />
                   <span className="text-xs text-muted-foreground">{tool.label}</span>
-                </motion.button>
-              ))}
+                </motion.button>)}
             </div>
           </div>
 
@@ -504,14 +551,14 @@ const CreatePostDesktop: React.FC = () => {
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full mb-4">
                 <svg className="w-64 h-64" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                  <path d="M64.32 103.32c-34.03 0-53.56-33.13-56.94-39.38c3.07-6.27 20.91-39.26 56.94-39.26s53.87 32.98 56.94 39.26c-3.38 6.25-22.92 39.38-56.94 39.38z" fill="#fafafa"/>
-                  <path d="M64.32 27.12c15.81 0 29.84 6.42 41.7 19.09c6.63 7.08 10.73 14.26 12.49 17.67c-4.51 7.99-23.05 36.99-54.19 36.99c-14.88 0-28.63-6.45-40.89-19.17c-6.89-7.15-11.37-14.41-13.3-17.82c1.75-3.41 5.86-10.6 12.49-17.67c11.86-12.67 25.89-19.09 41.7-19.09m0-4.88C22.56 22.24 4.66 64 4.66 64s20.25 41.76 59.66 41.76S123.97 64 123.97 64s-17.9-41.76-59.65-41.76z" fill="#b0bec5"/>
-                  <path d="M64.32 37c26.97 0 45.47 16.51 53.66 27.71c.96 1.31 1.99-4.99 1.12-6.36c-7.84-12.26-25.41-32.91-54.77-32.91S17.38 46.1 9.54 58.36c-.88 1.37.3 6.83 1.41 5.64c8.54-9.17 26.39-27 53.37-27z" fill="#b0bec5"/>
-                  <circle cx="64.32" cy="60.79" r="33.15" fill="#9c7a63"/>
-                  <path d="M64.32 37c10.87 0 20.36 2.68 28.36 6.62c-5.81-9.58-16.34-15.97-28.36-15.97c-12.28 0-23 6.69-28.72 16.61C43.61 40.04 53.18 37 64.32 37z" fill="#806451"/>
-                  <circle cx="64.32" cy="60.79" r="15.43" fill="#212121"/>
-                  <circle cx="88.86" cy="59.37" r="7.72" fill="#d9baa5"/>
-                  <path d="M7.21 67.21c-.52 0-1.05-.13-1.54-.4a3.207 3.207 0 0 1-1.27-4.35c.85-1.55 21.28-40.21 59.92-40.21s58.47 37.89 59.29 39.41c.84 1.56.27 3.5-1.29 4.35c-1.56.84-3.5.27-4.35-1.29c-.18-.34-18.88-33.86-53.66-33.86c-34.79 0-54.11 34.34-54.3 34.69a3.185 3.185 0 0 1-2.8 1.66z" fill="#616161"/>
+                  <path d="M64.32 103.32c-34.03 0-53.56-33.13-56.94-39.38c3.07-6.27 20.91-39.26 56.94-39.26s53.87 32.98 56.94 39.26c-3.38 6.25-22.92 39.38-56.94 39.38z" fill="#fafafa" />
+                  <path d="M64.32 27.12c15.81 0 29.84 6.42 41.7 19.09c6.63 7.08 10.73 14.26 12.49 17.67c-4.51 7.99-23.05 36.99-54.19 36.99c-14.88 0-28.63-6.45-40.89-19.17c-6.89-7.15-11.37-14.41-13.3-17.82c1.75-3.41 5.86-10.6 12.49-17.67c11.86-12.67 25.89-19.09 41.7-19.09m0-4.88C22.56 22.24 4.66 64 4.66 64s20.25 41.76 59.66 41.76S123.97 64 123.97 64s-17.9-41.76-59.65-41.76z" fill="#b0bec5" />
+                  <path d="M64.32 37c26.97 0 45.47 16.51 53.66 27.71c.96 1.31 1.99-4.99 1.12-6.36c-7.84-12.26-25.41-32.91-54.77-32.91S17.38 46.1 9.54 58.36c-.88 1.37.3 6.83 1.41 5.64c8.54-9.17 26.39-27 53.37-27z" fill="#b0bec5" />
+                  <circle cx="64.32" cy="60.79" r="33.15" fill="#9c7a63" />
+                  <path d="M64.32 37c10.87 0 20.36 2.68 28.36 6.62c-5.81-9.58-16.34-15.97-28.36-15.97c-12.28 0-23 6.69-28.72 16.61C43.61 40.04 53.18 37 64.32 37z" fill="#806451" />
+                  <circle cx="64.32" cy="60.79" r="15.43" fill="#212121" />
+                  <circle cx="88.86" cy="59.37" r="7.72" fill="#d9baa5" />
+                  <path d="M7.21 67.21c-.52 0-1.05-.13-1.54-.4a3.207 3.207 0 0 1-1.27-4.35c.85-1.55 21.28-40.21 59.92-40.21s58.47 37.89 59.29 39.41c.84 1.56.27 3.5-1.29 4.35c-1.56.84-3.5.27-4.35-1.29c-.18-.34-18.88-33.86-53.66-33.86c-34.79 0-54.11 34.34-54.3 34.69a3.185 3.185 0 0 1-2.8 1.66z" fill="#616161" />
                 </svg>
                 Preview Post
               </Button>
@@ -541,12 +588,7 @@ const CreatePostDesktop: React.FC = () => {
           </Dialog>
 
           {/* Publish Button */}
-          <Button
-            onClick={handlePublish}
-            disabled={isPublishing || !postContent.trim()}
-            size="lg"
-            className="w-full bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/30 hover:border-red-500/50 text-foreground font-semibold text-lg h-14 rounded-xl shadow-md transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-xl"
-          >
+          <Button onClick={handlePublish} disabled={isPublishing || !postContent.trim()} size="lg" className="w-full bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/30 hover:border-red-500/50 text-foreground font-semibold text-lg h-14 rounded-xl shadow-md transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-xl">
             <Send className="w-5 h-5 mr-2" />
             {isPublishing ? 'Publishing...' : 'Publish Post'}
           </Button>
@@ -554,17 +596,10 @@ const CreatePostDesktop: React.FC = () => {
       </div>
 
       {/* Collapsible AI Chat Sidebar */}
-      <CollapsibleAIChat 
-        onUseText={(text) => setPostContent(prev => prev + '\n\n' + text)} 
-        hideToggleButton={true}
-        isExpanded={showAIChat}
-        onToggleChange={setShowAIChat}
-      />
+      <CollapsibleAIChat onUseText={text => setPostContent(prev => prev + '\n\n' + text)} hideToggleButton={true} isExpanded={showAIChat} onToggleChange={setShowAIChat} />
 
       {/* Post Insights Panel - Shows when AI is closed */}
       <PostInsightsPanel isVisible={!showAIChat} />
-    </div>
-  );
+    </div>;
 };
-
 export default CreatePostDesktop;
