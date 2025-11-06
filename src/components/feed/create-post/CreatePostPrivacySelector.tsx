@@ -28,7 +28,7 @@ const CreatePostPrivacySelector: React.FC<CreatePostPrivacySelectorProps> = ({ p
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="text-gray-600">
-          <PrivacyIcon className="w-4 h-4 mr-2" />
+          <PrivacyIcon className={`w-4 h-4 mr-2 ${privacy === 'Anonymous' ? 'text-gray-600' : ''}`} />
           {privacy}
           <ChevronDown className="w-4 h-4 ml-1" />
         </Button>
