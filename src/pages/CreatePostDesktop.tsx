@@ -10,7 +10,8 @@ import OnlyMeIcon from '@/components/icons/OnlyMeIcon';
 import FollowersIcon from '@/components/icons/FollowersIcon';
 import FriendsIcon from '@/components/icons/FriendsIcon';
 import PublicIcon from '@/components/icons/PublicIcon';
-import { Camera, Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, Heart, Share2, Shield, Clock, Globe, Settings2, ChevronDown, Sparkles, Brain, Lightbulb, TrendingUp, Calendar, Languages, Info, Save, Eye, Send, X, Mic2, MessageSquare } from 'lucide-react';
+import PhotoIcon from '@/components/icons/PhotoIcon';
+import { Video, Mic, MapPin, BarChart3, Tag, Link2, Palette, Heart, Share2, Shield, Clock, Globe, Settings2, ChevronDown, Sparkles, Brain, Lightbulb, TrendingUp, Calendar, Languages, Info, Save, Eye, Send, X, Mic2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -147,7 +148,7 @@ const CreatePostDesktop: React.FC = () => {
     }
   };
   const mediaTools = [{
-    icon: Camera,
+    icon: PhotoIcon,
     label: 'Photo',
     color: 'text-blue-500'
   }, {
