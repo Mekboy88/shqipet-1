@@ -562,7 +562,7 @@ const CreatePostDesktop: React.FC = () => {
           <div className="flex-1 mb-6 relative">
             {/* Anonymous watermark */}
             {isAnonymous && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-[0.03]">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-[0.08]">
                 <AnonymousIcon className="w-64 h-64 text-gray-400" />
               </div>
             )}
