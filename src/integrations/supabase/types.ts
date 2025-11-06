@@ -221,6 +221,48 @@ export type Database = {
         }
         Relationships: []
       }
+      live_streams: {
+        Row: {
+          category: string | null
+          created_at: string
+          ended_at: string | null
+          host: string
+          id: string
+          is_live: boolean
+          started_at: string
+          thumbnail_url: string
+          title: string
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          ended_at?: string | null
+          host: string
+          id?: string
+          is_live?: boolean
+          started_at?: string
+          thumbnail_url: string
+          title: string
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          ended_at?: string | null
+          host?: string
+          id?: string
+          is_live?: boolean
+          started_at?: string
+          thumbnail_url?: string
+          title?: string
+          updated_at?: string
+          views?: number
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           channel_email: boolean | null
@@ -786,6 +828,7 @@ export type Database = {
           created_at: string | null
           deleted_at: string | null
           id: string
+          is_anonymous: boolean | null
           is_deleted: boolean | null
           is_sponsored: boolean | null
           likes_count: number | null
@@ -801,6 +844,7 @@ export type Database = {
           created_at?: string | null
           deleted_at?: string | null
           id?: string
+          is_anonymous?: boolean | null
           is_deleted?: boolean | null
           is_sponsored?: boolean | null
           likes_count?: number | null
@@ -816,6 +860,7 @@ export type Database = {
           created_at?: string | null
           deleted_at?: string | null
           id?: string
+          is_anonymous?: boolean | null
           is_deleted?: boolean | null
           is_sponsored?: boolean | null
           likes_count?: number | null
@@ -1576,7 +1621,7 @@ export type Database = {
         Returns: Json
       }
       calculate_current_month_costs: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           billable_usage: number
           estimated_cost: number
@@ -1585,10 +1630,7 @@ export type Database = {
           total_usage: number
         }[]
       }
-      can_view_profile: {
-        Args: { profile_id: string }
-        Returns: boolean
-      }
+      can_view_profile: { Args: { profile_id: string }; Returns: boolean }
       can_view_sensitive_profile_data: {
         Args: { profile_id: string }
         Returns: boolean
@@ -1602,14 +1644,8 @@ export type Database = {
         }
         Returns: string
       }
-      current_user_is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      current_user_is_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      current_user_is_admin: { Args: never; Returns: boolean }
+      current_user_is_super_admin: { Args: never; Returns: boolean }
       deny_permission: {
         Args: {
           _device_type: Database["public"]["Enums"]["device_type"]
@@ -1638,10 +1674,7 @@ export type Database = {
           username: string
         }[]
       }
-      get_profile_field_access_info: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_profile_field_access_info: { Args: never; Returns: Json }
       get_public_profiles: {
         Args: { limit_count?: number; offset_count?: number }
         Returns: {
@@ -1656,6 +1689,7 @@ export type Database = {
           username: string
         }[]
       }
+      get_public_website_settings: { Args: never; Returns: Json }
       get_safe_profile: {
         Args: { profile_id: string }
         Returns: {
@@ -1670,14 +1704,8 @@ export type Database = {
           username: string
         }[]
       }
-      get_upload_analytics: {
-        Args: { p_time_window?: string }
-        Returns: Json
-      }
-      get_upload_configuration: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_upload_analytics: { Args: { p_time_window?: string }; Returns: Json }
+      get_upload_configuration: { Args: never; Returns: Json }
       get_user_primary_role: {
         Args: { target_user_id: string }
         Returns: string
@@ -1715,10 +1743,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_platform_owner: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_platform_owner: { Args: { _user_id: string }; Returns: boolean }
       request_permission: {
         Args: {
           _device_type: Database["public"]["Enums"]["device_type"]
@@ -1727,14 +1752,8 @@ export type Database = {
         }
         Returns: string
       }
-      restore_post: {
-        Args: { post_id_param: string }
-        Returns: undefined
-      }
-      soft_delete_post: {
-        Args: { post_id_param: string }
-        Returns: undefined
-      }
+      restore_post: { Args: { post_id_param: string }; Returns: undefined }
+      soft_delete_post: { Args: { post_id_param: string }; Returns: undefined }
       sync_phone_verification_status: {
         Args: {
           is_verified: boolean
@@ -1743,10 +1762,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      sync_user_verification_status: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      sync_user_verification_status: { Args: never; Returns: undefined }
       update_upload_configuration: {
         Args: { config_data: Json }
         Returns: Json
