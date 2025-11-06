@@ -37,7 +37,7 @@ const QuickSettingsPanel: React.FC<QuickSettingsPanelProps> = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="p-3 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100% - 120px)' }}>
+      <div className="p-3 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100% - 80px)' }}>
         {/* Appearance Section */}
         <div className="space-y-3">
           <h3 className="text-base font-medium">Appearance</h3>
