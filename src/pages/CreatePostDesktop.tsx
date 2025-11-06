@@ -471,12 +471,12 @@ const CreatePostDesktop: React.FC = () => {
                     </div>
                   ) : visibility === 'followers' ? (
                     <div className="flex items-center gap-2">
-                      <FollowersIcon className="w-4 h-4" />
+                      <FollowersIcon className="w-4 h-4 text-gray-600" />
                       <span>Followers</span>
                     </div>
                   ) : visibility === 'friends' ? (
                     <div className="flex items-center gap-2">
-                      <FriendsIcon className="w-4 h-4" />
+                      <FriendsIcon className="w-4 h-4 text-gray-600" />
                       <span>Friends</span>
                     </div>
                   ) : (
@@ -487,13 +487,13 @@ const CreatePostDesktop: React.FC = () => {
                   <SelectItem value="public">🌐 Public</SelectItem>
                   <SelectItem value="friends">
                     <div className="flex items-center gap-2">
-                      <FriendsIcon className="w-4 h-4" />
+                      <FriendsIcon className="w-4 h-4 text-gray-600" />
                       <span>Friends</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="followers">
                     <div className="flex items-center gap-2">
-                      <FollowersIcon className="w-4 h-4" />
+                      <FollowersIcon className="w-4 h-4 text-gray-600" />
                       <span>Followers</span>
                     </div>
                   </SelectItem>
