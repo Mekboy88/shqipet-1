@@ -503,7 +503,7 @@ const CreatePostDesktop: React.FC = () => {
                     </div>
                   ) : visibility === 'anonymous' ? (
                     <div className="flex items-center gap-2">
-                      <AnonymousIcon className="w-4 h-4" />
+                      <AnonymousIcon className="w-4 h-4 text-gray-600" />
                       <span>Anonymous</span>
                     </div>
                   ) : visibility === 'onlyme' ? (
@@ -538,7 +538,7 @@ const CreatePostDesktop: React.FC = () => {
                   <SelectItem value="onlyme" icon={<OnlyMeIcon className="w-4 h-4 text-gray-600" />}>
                     <span>Only Me</span>
                   </SelectItem>
-                  <SelectItem value="anonymous" icon={<AnonymousIcon className="w-4 h-4" />}>
+                  <SelectItem value="anonymous" icon={<AnonymousIcon className="w-4 h-4 text-gray-600" />}>
                     <span>Anonymous</span>
                   </SelectItem>
                 </SelectContent>
