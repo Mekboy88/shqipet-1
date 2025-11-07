@@ -107,7 +107,7 @@ const CreatePostFilePreview: React.FC<CreatePostFilePreviewProps> = ({
         <div className="absolute top-2 right-2 z-10">
           <button
             onClick={() => setShowMediaDialog(true)}
-            className="bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-primary/20 hover:opacity-90 transition-opacity"
+            className="bg-background/95 hover:bg-background text-foreground px-4 py-1.5 rounded-full text-xs font-semibold shadow-lg border border-border/50 hover:border-border transition-all backdrop-blur-sm"
           >
             See All
           </button>
