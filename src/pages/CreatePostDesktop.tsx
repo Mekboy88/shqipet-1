@@ -747,32 +747,98 @@ const CreatePostDesktop: React.FC = () => {
                 Preview Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Post Preview</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  {isAnonymous ? (
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                      <AnonymousIcon className="w-6 h-6 text-gray-600" />
+              
+              {/* Render post exactly as it would appear in feed */}
+              <div className="bg-card rounded-lg shadow-sm border border-border">
+                {/* Post Header */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {isAnonymous ? (
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <AnonymousIcon className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                      ) : (
+                        <Avatar size="md" />
+                      )}
+                      <div>
+                        <p className="font-semibold text-foreground">{isAnonymous ? "Anonymous" : displayName}</p>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          <span>Just now</span>
+                          <span>•</span>
+                          <span className="capitalize">{visibility}</span>
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <Avatar size="md" />
-                  )}
-                  <div>
-                    <p className="font-semibold">{isAnonymous ? "Anonymous" : displayName}</p>
-                    <p className="text-sm text-muted-foreground">{visibility}</p>
                   </div>
                 </div>
-                <p className="text-lg whitespace-pre-wrap">{postContent || "No content yet..."}</p>
-                <div className="flex gap-2">
-                  <Button onClick={() => setShowPreview(false)}>Edit Again</Button>
-                  <Button variant="default" onClick={handlePublish} className="bg-primary hover:bg-primary/90">
-                    <Send className="w-4 h-4 mr-2" />
-                    Publish Now
-                  </Button>
+
+                {/* Post Text Content */}
+                {postContent && (
+                  <div className="px-4 pb-4">
+                    <p className="text-foreground whitespace-pre-wrap">{postContent}</p>
+                  </div>
+                )}
+
+                {/* Post Media */}
+                {selectedFiles.length > 0 && (
+                  <div className="w-full">
+                    <CreatePostFilePreview 
+                      files={selectedFiles}
+                      onRemoveFile={() => {}}
+                    />
+                  </div>
+                )}
+
+                {/* Placeholder if no content */}
+                {!postContent && selectedFiles.length === 0 && (
+                  <div className="px-4 pb-4">
+                    <p className="text-muted-foreground italic">No content yet...</p>
+                  </div>
+                )}
+
+                {/* Separator */}
+                <div className="px-4">
+                  <div className="border-t border-border" />
                 </div>
+
+                {/* Post Actions (Like, Comment, Share) */}
+                <div className="px-4 py-3">
+                  <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <div className="flex gap-4">
+                      <button className="flex items-center gap-2 hover:text-foreground transition-colors">
+                        <Heart className="w-5 h-5" />
+                        <span>Like</span>
+                      </button>
+                      {allowComments && (
+                        <button className="flex items-center gap-2 hover:text-foreground transition-colors">
+                          <MessageSquare className="w-5 h-5" />
+                          <span>Comment</span>
+                        </button>
+                      )}
+                      {allowSharing && (
+                        <button className="flex items-center gap-2 hover:text-foreground transition-colors">
+                          <Share2 className="w-5 h-5" />
+                          <span>Share</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 mt-4">
+                <Button variant="outline" onClick={() => setShowPreview(false)}>Edit Again</Button>
+                <Button variant="default" onClick={handlePublish} className="bg-primary hover:bg-primary/90">
+                  <Send className="w-4 h-4 mr-2" />
+                  Publish Now
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
