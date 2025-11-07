@@ -25,7 +25,6 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
 }) => {
   const [mediaDimensions, setMediaDimensions] = useState<{[key: string]: {width: number, height: number}}>({});
   const [dimensionsLoaded, setDimensionsLoaded] = useState(false);
-  const [failedKeys, setFailedKeys] = useState<Set<string>>(new Set());
 
   // Convert input to standardized format with proper video detection
   const standardizedMedia: MediaItemProps[] = useMemo(() => {
@@ -229,15 +228,6 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
   const renderMediaItem = (item: ProcessedMedia, displayIndex: number, layoutClass: string) => {
     const isLastItem = displayIndex === 4 && processedMedia.length > 5;
     const remainingCount = processedMedia.length - 5;
-    const key = `${item.index}-${item.url}`;
-
-    const handleFail = () => {
-      setFailedKeys(prev => {
-        const next = new Set(prev);
-        next.add(key);
-        return next;
-      });
-    };
     
     return (
       <div
@@ -245,11 +235,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
         className="universal-photo-wrapper"
         onClick={() => onMediaClick?.(item.index)}
       >
-        {failedKeys.has(key) ? (
-          <div className="w-full h-full flex items-center justify-center bg-muted/20 text-muted-foreground text-xs">
-            Preview unavailable
-          </div>
-        ) : item.isVideo ? (
+        {item.isVideo ? (
           <div className="relative w-full h-full">
             <video
               src={item.url}
@@ -259,7 +245,6 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
               loop
               playsInline
               preload="metadata"
-              onError={handleFail}
             />
             <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
               Video
@@ -271,7 +256,6 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
               src={item.url}
               alt={`Media ${item.index + 1}`}
               className="w-full h-full object-cover"
-              onError={handleFail}
             />
           ) : (
             <WasabiImageDisplay
