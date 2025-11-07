@@ -885,7 +885,7 @@ const CreatePostDesktop: React.FC = () => {
       </div>
 
       {/* Collapsible AI Chat Sidebar */}
-      <CollapsibleAIChat onUseText={text => setPostContent(prev => prev + '\n\n' + text)} hideToggleButton={true} isExpanded={showAIChat} onToggleChange={setShowAIChat} />
+      <CollapsibleAIChat onUseText={text => setPostContent(prev => prev ? prev + '\n' + text : text)} hideToggleButton={true} isExpanded={showAIChat} onToggleChange={setShowAIChat} />
 
       {/* Post Insights Panel - Shows when AI is closed */}
       <PostInsightsPanel isVisible={!showAIChat} />
