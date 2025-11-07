@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Clock, TrendingUp, BarChart3, Lightbulb, Hash, Users, Heart, MessageSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import FollowersIcon from '@/components/icons/FollowersIcon';
 
 interface PostInsightsPanelProps {
   isVisible: boolean;
@@ -60,7 +61,7 @@ const PostInsightsPanel: React.FC<PostInsightsPanelProps> = ({ isVisible }) => {
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Users className="w-3 h-3" />
+            <FollowersIcon className="w-3 h-3" />
             <span>1,234 of your followers are online now</span>
           </div>
         </div>
