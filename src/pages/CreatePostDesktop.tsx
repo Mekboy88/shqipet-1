@@ -343,7 +343,7 @@ const CreatePostDesktop: React.FC = () => {
                 <div>
                   <label className="text-sm font-medium">Visible to</label>
                   <Select value={visibility} onValueChange={setVisibility}>
-                    <SelectTrigger className="w-full mt-1 h-9 text-sm">
+                    <SelectTrigger className="w-full mt-1 h-9 text-sm focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0">
                       {visibility === 'public' ? (
                         <div className="flex items-center gap-2">
                           <PublicIcon className="w-4 h-4 text-gray-600" />
