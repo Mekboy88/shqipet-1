@@ -135,9 +135,10 @@ const DropdownSection: React.FC<DropdownSectionProps> = ({
             <DropdownMenuItem 
               key={index} 
               onClick={() => handleDropdownNavigation(item.label)} 
-              className="text-sm font-medium text-gray-800 hover:bg-gray-100 cursor-pointer px-3 py-2 flex items-center justify-center"
+              className="text-sm font-medium text-gray-800 hover:bg-gray-100 cursor-pointer px-3 py-2 flex items-center gap-3"
             >
-              <span className="text-left">{item.label}</span>
+              <img src={item.icon} alt={item.label} className="w-5 h-5 rounded-md flex-shrink-0" />
+              <span className="text-left flex-1">{item.label}</span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
