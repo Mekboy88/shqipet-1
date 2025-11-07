@@ -4,6 +4,13 @@ import { X, Video, File, Play, FileText, Music, Image } from "lucide-react";
 import { getFileCategory, formatFileSize } from "@/utils/contentFilter";
 import UniversalPhotoGrid from "@/components/shared/UniversalPhotoGrid";
 
+// Helpers to robustly detect media types (fallback when MIME is missing)
+const getExtension = (name: string) => name.split('.').pop()?.toLowerCase() || '';
+const VIDEO_EXTS = new Set(['mp4','mov','m4v','avi','webm','mkv','3gp','ogv']);
+const IMAGE_EXTS = new Set(['jpg','jpeg','png','gif','webp','bmp','svg']); // Exclude heic/tiff (not broadly supported)
+const isVideoFile = (file: File) => file.type.startsWith('video/') || VIDEO_EXTS.has(getExtension(file.name));
+const isSupportedImageFile = (file: File) => file.type.startsWith('image/') || IMAGE_EXTS.has(getExtension(file.name));
+
 interface CreatePostFilePreviewProps {
   files: File[];
   onRemoveFile: (index: number) => void;
@@ -18,21 +25,15 @@ const CreatePostFilePreview: React.FC<CreatePostFilePreviewProps> = ({
   if (files.length === 0) return null;
 
   // Separate media files (photos/videos) from other files
-  const mediaFiles = files.filter(file => {
-    const category = getFileCategory(file);
-    return category === 'image' || category === 'video';
-  });
+  const mediaFiles = files.filter(file => isSupportedImageFile(file) || isVideoFile(file));
 
-  const otherFiles = files.filter(file => {
-    const category = getFileCategory(file);
-    return category !== 'image' && category !== 'video';
-  });
+  const otherFiles = files.filter(file => !(isSupportedImageFile(file) || isVideoFile(file)));
 
   // Create media items for UniversalPhotoGrid
   const mediaItems = useMemo(() => {
     return mediaFiles.map((file, index) => ({
       url: URL.createObjectURL(file),
-      isVideo: file.type.startsWith('video/'),
+      isVideo: isVideoFile(file),
       width: 1000,
       height: 1000
     }));
