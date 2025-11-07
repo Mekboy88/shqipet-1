@@ -3,7 +3,7 @@ import { MediaItemProps } from '@/components/profile/content/photo-layouts/types
 import { detectOrientation } from '@/components/profile/content/photo-layouts/utils/orientationUtils';
 import { isSecureVideoFile } from '@/utils/videoSecurity';
 import { WasabiImageDisplay } from '@/components/fallback/WasabiImageDisplay';
-import { X, VolumeX } from 'lucide-react';
+import { X } from 'lucide-react';
 import UnmuteIcon from '@/components/icons/UnmuteIcon';
 import './UniversalPhotoGrid.css';
 
@@ -266,11 +266,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
                   }}
                   className="absolute top-2 left-2 bg-black/70 hover:bg-black text-white rounded-full p-2 shadow z-10"
                 >
-                  {isMuted ? (
-                    <UnmuteIcon className="w-4 h-4" />
-                  ) : (
-                    <VolumeX className="w-4 h-4" />
-                  )}
+                  <UnmuteIcon className="w-4 h-4" muted={isMuted} />
                 </button>
                 {/* Video badge on bottom right */}
                 <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
