@@ -155,24 +155,37 @@ const CreatePostDesktop: React.FC = () => {
     }
   };
   const handlePhotoClick = () => {
+    console.log('📸 Photo button clicked');
     photoInputRef.current?.click();
   };
 
   const handleVideoClick = () => {
+    console.log('🎥 Video button clicked');
     videoInputRef.current?.click();
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setSelectedFiles(prev => [...prev, ...files]);
+    console.log('📸 Photos selected:', files.length, files);
+    setSelectedFiles(prev => {
+      const newFiles = [...prev, ...files];
+      console.log('📸 Total files after adding photos:', newFiles.length);
+      return newFiles;
+    });
   };
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setSelectedFiles(prev => [...prev, ...files]);
+    console.log('🎥 Videos selected:', files.length, files);
+    setSelectedFiles(prev => {
+      const newFiles = [...prev, ...files];
+      console.log('🎥 Total files after adding videos:', newFiles.length);
+      return newFiles;
+    });
   };
 
   const handleRemoveFile = (index: number) => {
+    console.log('🗑️ Removing file at index:', index);
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -667,10 +680,20 @@ const CreatePostDesktop: React.FC = () => {
           {/* File Preview */}
           {selectedFiles.length > 0 && (
             <div className="mb-6">
+              <div className="text-xs text-muted-foreground mb-2">
+                📎 {selectedFiles.length} file(s) attached
+              </div>
               <CreatePostFilePreview 
                 files={selectedFiles} 
                 onRemoveFile={handleRemoveFile} 
               />
+            </div>
+          )}
+          
+          {/* Debug info */}
+          {selectedFiles.length === 0 && (
+            <div className="text-xs text-muted-foreground mb-2">
+              No files selected yet
             </div>
           )}
 
