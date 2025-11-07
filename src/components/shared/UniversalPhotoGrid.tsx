@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MediaItemProps } from '@/components/profile/content/photo-layouts/types';
 import { detectOrientation } from '@/components/profile/content/photo-layouts/utils/orientationUtils';
 import { isSecureVideoFile } from '@/utils/videoSecurity';
 import { WasabiImageDisplay } from '@/components/fallback/WasabiImageDisplay';
-import { X } from 'lucide-react';
+import { X, VolumeX } from 'lucide-react';
 import UnmuteIcon from '@/components/icons/UnmuteIcon';
 import './UniversalPhotoGrid.css';
 
@@ -27,7 +27,8 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
 }) => {
   const [mediaDimensions, setMediaDimensions] = useState<{[key: string]: {width: number, height: number}}>({});
   const [dimensionsLoaded, setDimensionsLoaded] = useState(false);
-
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const [mutedMap, setMutedMap] = useState<Record<string, boolean>>({});
   // Convert input to standardized format with proper video detection
   const standardizedMedia: MediaItemProps[] = useMemo(() => {
     return media.map((item) => {
@@ -237,25 +238,47 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
         className="universal-photo-wrapper group relative"
       >
         {item.isVideo ? (
-          <div className="relative w-full h-full">
-            <video
-              src={item.url}
-              className="w-full h-full object-cover"
-              muted
-              autoPlay
-              loop
-              playsInline
-              preload="metadata"
-            />
-            {/* Unmute icon on left side */}
-            <div className="absolute top-2 left-2 bg-black/60 text-white p-2 rounded-full">
-              <UnmuteIcon className="w-4 h-4" />
-            </div>
-            {/* Video badge on bottom right */}
-            <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-              Video
-            </div>
-          </div>
+          (() => {
+            const keyId = `${item.index}-${item.url}`;
+            const isMuted = mutedMap[keyId] ?? true;
+            return (
+              <div className="relative w-full h-full">
+                <video
+                  ref={(el) => { videoRefs.current[keyId] = el; }}
+                  src={item.url}
+                  className="w-full h-full object-cover"
+                  muted={isMuted}
+                  autoPlay
+                  loop
+                  playsInline
+                  preload="metadata"
+                />
+                {/* Mute/Unmute toggle on left side */}
+                <button
+                  type="button"
+                  aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = !isMuted;
+                    setMutedMap((prev) => ({ ...prev, [keyId]: next }));
+                    const v = videoRefs.current[keyId];
+                    if (v) v.muted = next;
+                  }}
+                  className="absolute top-2 left-2 bg-black/70 hover:bg-black text-white rounded-full p-2 shadow z-10"
+                >
+                  {isMuted ? (
+                    <UnmuteIcon className="w-4 h-4" />
+                  ) : (
+                    <VolumeX className="w-4 h-4" />
+                  )}
+                </button>
+                {/* Video badge on bottom right */}
+                <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                  Video
+                </div>
+              </div>
+            );
+          })()
         ) : (
           item.url.startsWith('blob:') || item.url.startsWith('data:') ? (
             <img
