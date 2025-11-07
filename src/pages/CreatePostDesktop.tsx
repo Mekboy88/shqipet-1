@@ -771,6 +771,11 @@ const CreatePostDesktop: React.FC = () => {
                           <Clock className="w-3 h-3" />
                           <span>Just now</span>
                           <span>•</span>
+                          {visibility === 'public' && <PublicIcon className="w-3 h-3" />}
+                          {visibility === 'anonymous' && <AnonymousIcon className="w-3 h-3" />}
+                          {visibility === 'onlyme' && <OnlyMeIcon className="w-3 h-3" />}
+                          {visibility === 'followers' && <FollowersIcon className="w-3 h-3" />}
+                          {visibility === 'friends' && <FriendsIcon className="w-3 h-3" />}
                           <span className="capitalize">{visibility}</span>
                         </div>
                       </div>
