@@ -111,18 +111,11 @@ const CreatePostFilePreview: React.FC<CreatePostFilePreviewProps> = ({
             </h3>
           </div>
           
-          <div className="rounded-lg overflow-hidden border border-border group relative">
+          <div className="rounded-lg overflow-hidden border border-border">
             <UniversalPhotoGrid 
               media={mediaItems}
               onMediaClick={handleMediaRemove}
             />
-            
-            {/* Instructions overlay */}
-            <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 hover:opacity-100 pointer-events-none">
-              <div className="bg-black/60 text-white px-3 py-2 rounded-lg text-sm font-medium">
-                Click to remove
-              </div>
-            </div>
           </div>
         </div>
       )}

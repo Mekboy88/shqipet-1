@@ -3,6 +3,8 @@ import { MediaItemProps } from '@/components/profile/content/photo-layouts/types
 import { detectOrientation } from '@/components/profile/content/photo-layouts/utils/orientationUtils';
 import { isSecureVideoFile } from '@/utils/videoSecurity';
 import { WasabiImageDisplay } from '@/components/fallback/WasabiImageDisplay';
+import { X } from 'lucide-react';
+import UnmuteIcon from '@/components/icons/UnmuteIcon';
 import './UniversalPhotoGrid.css';
 
 interface UniversalPhotoGridProps {
@@ -232,8 +234,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
     return (
       <div
         key={`${item.index}-${displayIndex}`}
-        className="universal-photo-wrapper"
-        onClick={() => onMediaClick?.(item.index)}
+        className="universal-photo-wrapper group relative"
       >
         {item.isVideo ? (
           <div className="relative w-full h-full">
@@ -246,8 +247,9 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
               playsInline
               preload="metadata"
             />
-            <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-              Video
+            {/* Unmute icon on left side */}
+            <div className="absolute top-2 left-2 bg-black/60 text-white p-2 rounded-full">
+              <UnmuteIcon className="w-4 h-4" />
             </div>
           </div>
         ) : (
@@ -266,6 +268,17 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
             />
           )
         )}
+        
+        {/* X button with circle - appears on hover */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onMediaClick?.(item.index);
+          }}
+          className="absolute top-2 right-2 bg-black/80 hover:bg-black text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+        >
+          <X className="w-4 h-4" />
+        </button>
         
         {isLastItem && remainingCount > 0 && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
