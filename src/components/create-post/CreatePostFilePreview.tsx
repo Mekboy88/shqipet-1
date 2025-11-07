@@ -98,12 +98,6 @@ const CreatePostFilePreview: React.FC<CreatePostFilePreviewProps> = ({
       {/* Media Grid - using UniversalPhotoGrid for photos/videos */}
       {mediaFiles.length > 0 && (
         <div className="bg-gradient-to-br from-card via-card/95 to-card/90 rounded-xl border border-border/50 p-4 shadow-lg backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-card-foreground">
-              Media Preview ({mediaFiles.length} item{mediaFiles.length !== 1 ? 's' : ''})
-            </h3>
-          </div>
-          
           <div className="rounded-lg overflow-hidden border border-border">
             <UniversalPhotoGrid 
               media={mediaItems}
