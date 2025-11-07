@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import CollapsibleAIChat from '@/components/create-post/ai-chat/CollapsibleAIChat';
 import FloatingAIButton from '@/components/create-post/FloatingAIButton';
 import PostIntentSection from '@/components/create-post/PostIntentSection';
 import PostInsightsPanel from '@/components/create-post/PostInsightsPanel';
 import AISmartSummary from '@/components/create-post/AISmartSummary';
+import CreatePostFilePreview from '@/components/create-post/CreatePostFilePreview';
 import AnonymousIcon from '@/components/icons/AnonymousIcon';
 import OnlyMeIcon from '@/components/icons/OnlyMeIcon';
 import FollowersIcon from '@/components/icons/FollowersIcon';
@@ -55,6 +56,10 @@ const CreatePostDesktop: React.FC = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   const [postIntent, setPostIntent] = useState('emotion');
   const [showAIChat, setShowAIChat] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (showTip) {
       const timer = setTimeout(() => setShowTip(false), 8000);
@@ -149,14 +154,38 @@ const CreatePostDesktop: React.FC = () => {
       setIsPublishing(false);
     }
   };
+  const handlePhotoClick = () => {
+    photoInputRef.current?.click();
+  };
+
+  const handleVideoClick = () => {
+    videoInputRef.current?.click();
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const mediaTools = [{
     icon: PhotoIcon,
     label: 'Photo',
-    color: 'text-blue-500'
+    color: 'text-blue-500',
+    onClick: handlePhotoClick
   }, {
     icon: VideoIcon,
     label: 'Video',
-    color: 'text-purple-500'
+    color: 'text-purple-500',
+    onClick: handleVideoClick
   }, {
     icon: Mic,
     label: 'Audio',
@@ -635,11 +664,21 @@ const CreatePostDesktop: React.FC = () => {
           {/* AI Smart Summary */}
           <AISmartSummary content={postContent} />
 
+          {/* File Preview */}
+          {selectedFiles.length > 0 && (
+            <div className="mb-6">
+              <CreatePostFilePreview 
+                files={selectedFiles} 
+                onRemoveFile={handleRemoveFile} 
+              />
+            </div>
+          )}
+
           {/* Media Toolbar */}
           <div className="border-t border-border pt-4 mb-6">
             <p className="text-sm font-medium text-foreground mb-3">Add to your post</p>
             <div className="flex flex-wrap gap-3">
-              {mediaTools.map((tool, idx) => <motion.button key={idx} whileHover={{
+              {mediaTools.map((tool, idx) => <motion.button key={idx} onClick={tool.onClick} whileHover={{
               scale: 1.1
             }} whileTap={{
               scale: 0.95
@@ -649,6 +688,24 @@ const CreatePostDesktop: React.FC = () => {
                 </motion.button>)}
             </div>
           </div>
+
+          {/* Hidden file inputs */}
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handlePhotoChange}
+          />
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/*"
+            multiple
+            className="hidden"
+            onChange={handleVideoChange}
+          />
 
           {/* Preview Button */}
           <Dialog open={showPreview} onOpenChange={setShowPreview}>
