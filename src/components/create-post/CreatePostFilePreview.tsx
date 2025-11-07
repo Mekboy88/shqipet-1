@@ -3,6 +3,12 @@ import React, { useState, useMemo, useEffect } from "react";
 import { X, Video, File, Play, FileText, Music, Image } from "lucide-react";
 import { getFileCategory, formatFileSize } from "@/utils/contentFilter";
 import UniversalPhotoGrid from "@/components/shared/UniversalPhotoGrid";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Helpers to robustly detect media types (only preview known-safe formats)
 const getExtension = (name: string) => name.split('.').pop()?.toLowerCase() || '';
@@ -24,6 +30,7 @@ const CreatePostFilePreview: React.FC<CreatePostFilePreviewProps> = ({
   onRemoveFile
 }) => {
   const [showAll, setShowAll] = useState(false);
+  const [showMediaDialog, setShowMediaDialog] = useState(false);
 
   if (files.length === 0) return null;
 
@@ -95,12 +102,17 @@ const CreatePostFilePreview: React.FC<CreatePostFilePreviewProps> = ({
 
   return (
     <div className="relative space-y-4">
-      {/* 2000 Badge */}
-      <div className="absolute top-2 right-2 z-10">
-        <div className="bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-primary/20">
-          2000
+      {/* See All Button */}
+      {mediaFiles.length > 0 && (
+        <div className="absolute top-2 right-2 z-10">
+          <button
+            onClick={() => setShowMediaDialog(true)}
+            className="bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-primary/20 hover:opacity-90 transition-opacity"
+          >
+            See All
+          </button>
         </div>
-      </div>
+      )}
 
       {/* Media Grid - using UniversalPhotoGrid for photos/videos */}
       {mediaFiles.length > 0 && (
@@ -184,6 +196,69 @@ const CreatePostFilePreview: React.FC<CreatePostFilePreviewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Media Dialog - Show all photos and videos */}
+      <Dialog open={showMediaDialog} onOpenChange={setShowMediaDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>All Media ({mediaFiles.length} items)</DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+            {mediaFiles.map((file, index) => {
+              const originalIndex = files.findIndex(f => f === file);
+              const isVideo = isPreviewableVideo(file);
+              const mediaItem = mediaItems[index];
+              
+              return (
+                <div key={index} className="relative group aspect-square bg-muted rounded-lg overflow-hidden">
+                  {mediaItem && (
+                    <>
+                      {isVideo ? (
+                        <video
+                          src={mediaItem.url}
+                          className="w-full h-full object-cover"
+                          muted
+                          loop
+                          playsInline
+                        />
+                      ) : (
+                        <img
+                          src={mediaItem.url}
+                          alt={`Media ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </>
+                  )}
+                  
+                  {/* Remove button with circle */}
+                  <button
+                    onClick={() => {
+                      onRemoveFile(originalIndex);
+                    }}
+                    className="absolute top-2 right-2 bg-black/80 hover:bg-black text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Video badge */}
+                  {isVideo && (
+                    <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                      Video
+                    </div>
+                  )}
+                  
+                  {/* File name */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-white text-xs truncate">{file.name}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
