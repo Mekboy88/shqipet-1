@@ -342,17 +342,68 @@ const CreatePostDesktop: React.FC = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium">Visible to</label>
-                  <Select defaultValue="everyone">
-                    <SelectTrigger className="w-full mt-1">
-                      <SelectValue />
+                  <Select value={visibility} onValueChange={setVisibility}>
+                    <SelectTrigger className="w-full mt-1 h-9 text-sm">
+                      {visibility === 'public' ? (
+                        <div className="flex items-center gap-2">
+                          <PublicIcon className="w-4 h-4 text-gray-600" />
+                          <span>Public</span>
+                        </div>
+                      ) : visibility === 'anonymous' ? (
+                        <div className="flex items-center gap-2">
+                          <AnonymousIcon className="w-4 h-4 text-gray-600" />
+                          <span>Anonymous</span>
+                        </div>
+                      ) : visibility === 'onlyme' ? (
+                        <div className="flex items-center gap-2">
+                          <OnlyMeIcon className="w-4 h-4 text-gray-600" />
+                          <span>Only Me</span>
+                        </div>
+                      ) : visibility === 'followers' ? (
+                        <div className="flex items-center gap-2">
+                          <FollowersIcon className="w-4 h-4 text-gray-600" />
+                          <span>Followers</span>
+                        </div>
+                      ) : visibility === 'friends' ? (
+                        <div className="flex items-center gap-2">
+                          <FriendsIcon className="w-4 h-4 text-gray-600" />
+                          <span>Friends</span>
+                        </div>
+                      ) : (
+                        <SelectValue />
+                      )}
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="everyone">Everyone</SelectItem>
-                      <SelectItem value="friends">Friends Only</SelectItem>
-                      <SelectItem value="followers">Followers</SelectItem>
-                      <SelectItem value="onlyme">Only Me</SelectItem>
+                    <SelectContent className="bg-background border border-border shadow-lg z-50">
+                      <SelectItem value="public" icon={<PublicIcon className="w-4 h-4 text-gray-600" />}>Public</SelectItem>
+                      <SelectItem value="friends" icon={<FriendsIcon className="w-4 h-4 text-gray-600" />}>Friends</SelectItem>
+                      <SelectItem value="followers" icon={<FollowersIcon className="w-4 h-4 text-gray-600" />}>Followers</SelectItem>
+                      <SelectItem value="onlyme" icon={<OnlyMeIcon className="w-4 h-4 text-gray-600" />}>Only Me</SelectItem>
+                      <SelectItem value="anonymous" icon={<AnonymousIcon className="w-4 h-4 text-gray-600" />}>Anonymous</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  {/* Anonymous toggle inside left sidebar */}
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-sm">Post as Anonymous</span>
+                    <AnonymousSwitch
+                      checked={isAnonymous}
+                      onCheckedChange={setIsAnonymous}
+                      onIcon={<AnonymousIcon className="w-5 h-5 text-gray-600" />}
+                      offIcon={
+                        visibility === 'public' ? (
+                          <PublicIcon className="w-5 h-5 text-gray-600" />
+                        ) : visibility === 'friends' ? (
+                          <FriendsIcon className="w-5 h-5 text-gray-600" />
+                        ) : visibility === 'followers' ? (
+                          <FollowersIcon className="w-5 h-5 text-gray-600" />
+                        ) : visibility === 'onlyme' ? (
+                          <OnlyMeIcon className="w-5 h-5 text-gray-600" />
+                        ) : (
+                          <PublicIcon className="w-5 h-5 text-gray-600" />
+                        )
+                      }
+                    />
+                  </div>
                 </div>
               </CollapsibleContent>
             </Collapsible>
