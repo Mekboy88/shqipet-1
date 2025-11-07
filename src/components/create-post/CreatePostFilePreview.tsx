@@ -127,6 +127,7 @@ const CreatePostFilePreview: React.FC<CreatePostFilePreviewProps> = ({
             <UniversalPhotoGrid 
               media={mediaItems}
               onMediaClick={handleMediaRemove}
+              stablePreview
             />
           </div>
         </div>

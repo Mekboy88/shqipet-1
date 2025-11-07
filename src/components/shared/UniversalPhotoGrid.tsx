@@ -12,6 +12,7 @@ interface UniversalPhotoGridProps {
   videos?: string[];
   onMediaClick?: (index: number) => void;
   className?: string;
+  stablePreview?: boolean;
 }
 
 interface ProcessedMedia extends MediaItemProps {
@@ -23,7 +24,8 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
   media, 
   videos = [],
   onMediaClick,
-  className = ''
+  className = '',
+  stablePreview = false
 }) => {
   const [mediaDimensions, setMediaDimensions] = useState<{[key: string]: {width: number, height: number}}>({});
   const [dimensionsLoaded, setDimensionsLoaded] = useState(false);
@@ -49,32 +51,32 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
 
   // Load dimensions for proper orientation detection
   useEffect(() => {
+    if (stablePreview) {
+      // Skip async dimension probing in preview to prevent flicker
+      setMediaDimensions({});
+      setDimensionsLoaded(true);
+      return;
+    }
+
     let isMounted = true;
-    
     const loadDimensions = async () => {
       if (standardizedMedia.length === 0) {
         setDimensionsLoaded(true);
         return;
       }
-      
       const dimensions: {[key: string]: {width: number, height: number}} = {};
-      
       const dimensionPromises = standardizedMedia.map((item, index) => {
         return new Promise<void>((resolve) => {
           const key = `${index}-${item.url}`;
-          
           // Set intelligent defaults based on content type
           dimensions[key] = item.isVideo 
             ? { width: 16, height: 9 }   // Videos default to landscape
             : { width: 3, height: 4 };   // Photos default to portrait
-          
           if (item.isVideo) {
             const video = document.createElement('video');
             video.src = item.url;
             video.crossOrigin = 'anonymous';
-            
             const timeout = setTimeout(() => resolve(), 1000);
-            
             video.onloadedmetadata = () => {
               clearTimeout(timeout);
               if (video.videoWidth && video.videoHeight) {
@@ -85,18 +87,14 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
               }
               resolve();
             };
-            
             video.onerror = () => {
               clearTimeout(timeout);
               resolve();
             };
           } else {
-            // Handle blob URLs (File objects) and regular URLs differently
-            if (item.url.startsWith('blob:')) {
-              // For blob URLs, try to load the image
+            if (item.url.startsWith('blob:') || item.url.startsWith('data:')) {
               const img = new Image();
               const timeout = setTimeout(() => resolve(), 1000);
-              
               img.onload = () => {
                 clearTimeout(timeout);
                 dimensions[key] = {
@@ -105,54 +103,48 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
                 };
                 resolve();
               };
-              
               img.onerror = () => {
                 clearTimeout(timeout);
                 resolve();
               };
-              
               img.src = item.url;
             } else {
-              // For remote URLs, use existing dimensions if available
               if (item.width && item.height) {
-                dimensions[key] = {
-                  width: item.width,
-                  height: item.height
-                };
+                dimensions[key] = { width: item.width, height: item.height };
               }
               resolve();
             }
           }
         });
       });
-      
       await Promise.all(dimensionPromises);
-      
       if (isMounted) {
         setMediaDimensions(dimensions);
         setDimensionsLoaded(true);
       }
     };
-    
+
     setDimensionsLoaded(false);
     loadDimensions();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [standardizedMedia.length, standardizedMedia[0]?.url]);
+    return () => { isMounted = false; };
+  }, [standardizedMedia.length, standardizedMedia[0]?.url, stablePreview]);
 
   // Process media with orientation detection - show ALL content
   const processedMedia: ProcessedMedia[] = useMemo(() => {
     return standardizedMedia.map((item, index) => {
       const key = `${index}-${item.url}`;
-      const dims = mediaDimensions[key];
-      
       let orientation: 'vertical' | 'horizontal' | 'square';
-      if (dims) {
-        orientation = detectOrientation(dims.width, dims.height);
+
+      if (stablePreview) {
+        // Lock orientation to avoid layout shifts during preview
+        orientation = item.isVideo ? 'horizontal' : 'square';
       } else {
-        orientation = detectOrientation(item.width || 1000, item.height || 1000);
+        const dims = mediaDimensions[key];
+        if (dims) {
+          orientation = detectOrientation(dims.width, dims.height);
+        } else {
+          orientation = detectOrientation(item.width || 1000, item.height || 1000);
+        }
       }
       
       return {
@@ -161,7 +153,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
         index
       };
     });
-  }, [standardizedMedia, mediaDimensions]);
+  }, [standardizedMedia, mediaDimensions, stablePreview]);
 
   // Determine layout class based on exact rules
   const getLayoutClass = (media: ProcessedMedia[]): string => {
@@ -313,7 +305,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
   };
 
   // Show minimal loading state
-  if (!dimensionsLoaded && standardizedMedia.length > 0) {
+  if (!dimensionsLoaded && standardizedMedia.length > 0 && !stablePreview) {
     return (
       <div className={`universal-photo-grid universal-grid-1 animate-fade-in ${className}`}>
         <div className="universal-photo-wrapper bg-muted/20 flex items-center justify-center">
