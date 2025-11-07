@@ -747,13 +747,13 @@ const CreatePostDesktop: React.FC = () => {
                 Preview Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-300">
               <DialogHeader>
                 <DialogTitle>Post Preview</DialogTitle>
               </DialogHeader>
               
               {/* Render post exactly as it would appear in feed */}
-              <div className="bg-card rounded-lg shadow-sm border border-border">
+              <div className="bg-card rounded-lg shadow-sm border border-border animate-fade-in">
                 {/* Post Header */}
                 <div className="p-4">
                   <div className="flex items-center justify-between">
