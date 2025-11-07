@@ -31,6 +31,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
   const [dimensionsLoaded, setDimensionsLoaded] = useState(false);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [mutedMap, setMutedMap] = useState<Record<string, boolean>>({});
+  const [loadedMap, setLoadedMap] = useState<Record<string, boolean>>({});
   // Convert input to standardized format with proper video detection
   const standardizedMedia: MediaItemProps[] = useMemo(() => {
     return media.map((item) => {
@@ -238,12 +239,14 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
                 <video
                   ref={(el) => { videoRefs.current[keyId] = el; }}
                   src={item.url}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${loadedMap[keyId] ? 'opacity-100' : 'opacity-0'}`}
                   muted={isMuted}
                   autoPlay
                   loop
                   playsInline
                   preload="metadata"
+                  onLoadedData={() => setLoadedMap((m) => ({ ...m, [keyId]: true }))}
+                  onLoadedMetadata={() => setLoadedMap((m) => ({ ...m, [keyId]: true }))}
                 />
                 {/* Mute/Unmute toggle on left side */}
                 <button
@@ -272,7 +275,9 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
             <img
               src={item.url}
               alt={`Media ${item.index + 1}`}
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover transition-opacity duration-300 ${loadedMap[`${item.index}-${item.url}`] ? 'opacity-100' : 'opacity-0'}`}
+              loading="eager"
+              onLoad={() => setLoadedMap((m) => ({ ...m, [`${item.index}-${item.url}`]: true }))}
             />
           ) : (
             <WasabiImageDisplay
@@ -329,7 +334,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
   const sortedMedia = getSortedMedia(processedMedia, layoutClass);
 
   return (
-    <div className={`universal-photo-grid ${layoutClass} animate-fade-in ${className}`}>
+    <div className={`universal-photo-grid ${layoutClass} ${!stablePreview ? 'animate-fade-in' : ''} ${className}`}>
       {sortedMedia.map((item, displayIndex) => 
         renderMediaItem(item, displayIndex, layoutClass)
       )}
