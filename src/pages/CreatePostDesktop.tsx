@@ -868,7 +868,7 @@ const CreatePostDesktop: React.FC = () => {
               {/* Action Buttons */}
               <div className="flex gap-2 mt-4">
                 <Button variant="outline" onClick={() => setShowPreview(false)}>Edit Again</Button>
-                <Button variant="default" onClick={handlePublish} className="bg-primary hover:bg-primary/90">
+                <Button onClick={handlePublish} className="bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/30 hover:border-red-500/50 text-foreground font-semibold">
                   <Send className="w-4 h-4 mr-2" />
                   Publish Now
                 </Button>
