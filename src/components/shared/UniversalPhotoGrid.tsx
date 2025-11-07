@@ -251,6 +251,10 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
             <div className="absolute top-2 left-2 bg-black/60 text-white p-2 rounded-full">
               <UnmuteIcon className="w-4 h-4" />
             </div>
+            {/* Video badge on bottom right */}
+            <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+              Video
+            </div>
           </div>
         ) : (
           item.url.startsWith('blob:') || item.url.startsWith('data:') ? (
