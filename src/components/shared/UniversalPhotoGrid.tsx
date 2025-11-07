@@ -251,7 +251,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
             </div>
           </div>
         ) : (
-          item.url.startsWith('blob:') ? (
+          item.url.startsWith('blob:') || item.url.startsWith('data:') ? (
             <img
               src={item.url}
               alt={`Media ${item.index + 1}`}

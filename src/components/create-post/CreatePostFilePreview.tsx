@@ -32,26 +32,43 @@ const CreatePostFilePreview: React.FC<CreatePostFilePreviewProps> = ({
 
   const otherFiles = files.filter(file => !(isPreviewableImage(file) || isPreviewableVideo(file)));
 
-  // Create media items for UniversalPhotoGrid
-  const mediaItems = useMemo(() => {
-    return mediaFiles.map((file, index) => ({
-      url: URL.createObjectURL(file),
-      isVideo: isPreviewableVideo(file),
-      width: 1000,
-      height: 1000
-    }));
-  }, [mediaFiles.length, mediaFiles.map(f => f.name + f.size).join(',')]);
+  // Build preview items: images as Data URLs (no revoke issues), videos as blob URLs
+  const [mediaItems, setMediaItems] = useState<Array<{ url: string; isVideo: boolean; width: number; height: number }>>([]);
 
-  // Cleanup blob URLs when component unmounts or files change
   useEffect(() => {
-    return () => {
-      mediaItems.forEach(item => {
-        if (item.url.startsWith('blob:')) {
-          URL.revokeObjectURL(item.url);
+    let cancelled = false;
+    const videoUrls: string[] = [];
+
+    const readAsDataUrl = (file: File) => new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => resolve(URL.createObjectURL(file)); // fallback to blob URL
+      reader.readAsDataURL(file);
+    });
+
+    const build = async () => {
+      const items = await Promise.all(mediaFiles.map(async (file) => {
+        if (isPreviewableVideo(file)) {
+          const url = URL.createObjectURL(file);
+          videoUrls.push(url);
+          return { url, isVideo: true, width: 1000, height: 1000 };
         }
+        const url = await readAsDataUrl(file);
+        return { url, isVideo: false, width: 1000, height: 1000 };
+      }));
+      if (!cancelled) setMediaItems(items);
+    };
+
+    build();
+
+    return () => {
+      cancelled = true;
+      // Revoke only video blob URLs
+      videoUrls.forEach((u) => {
+        if (u.startsWith('blob:')) URL.revokeObjectURL(u);
       });
     };
-  }, [mediaItems]);
+  }, [mediaFiles.length, mediaFiles.map(f => f.name + f.size).join(',')]);
 
   const displayOtherFiles = showAll ? otherFiles : otherFiles.slice(0, 4);
   const remainingOtherCount = otherFiles.length - 4;
