@@ -315,7 +315,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
   // Show minimal loading state
   if (!dimensionsLoaded && standardizedMedia.length > 0) {
     return (
-      <div className={`universal-photo-grid universal-grid-1 ${className}`}>
+      <div className={`universal-photo-grid universal-grid-1 animate-fade-in ${className}`}>
         <div className="universal-photo-wrapper bg-muted/20 flex items-center justify-center">
           <div className="w-3 h-3 border border-muted-foreground/30 rounded-full" />
         </div>
@@ -337,7 +337,7 @@ const UniversalPhotoGrid: React.FC<UniversalPhotoGridProps> = ({
   const sortedMedia = getSortedMedia(processedMedia, layoutClass);
 
   return (
-    <div className={`universal-photo-grid ${layoutClass} ${className}`}>
+    <div className={`universal-photo-grid ${layoutClass} animate-fade-in ${className}`}>
       {sortedMedia.map((item, displayIndex) => 
         renderMediaItem(item, displayIndex, layoutClass)
       )}
