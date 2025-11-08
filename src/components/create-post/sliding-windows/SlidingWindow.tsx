@@ -26,7 +26,7 @@ const SlidingWindow: React.FC<SlidingWindowProps> = ({
 
   const defaultStyle = {
     left: 'calc(50% - 860px - 140px)', // Moved even more to the right
-    top: '10px'
+    top: '-20px'
   };
 
   return (
