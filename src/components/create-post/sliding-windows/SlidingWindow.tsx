@@ -59,7 +59,7 @@ const SlidingWindow: React.FC<SlidingWindowProps> = ({
           </div>
           
            {/* Content */}
-          <div className="flex-1 px-4 py-4 overflow-y-auto overflow-x-visible animate-none [&_*]:animate-none">
+          <div className="flex-1 px-4 py-4 overflow-hidden animate-none [&_*]:animate-none">
             {children}
           </div>
         </div>
