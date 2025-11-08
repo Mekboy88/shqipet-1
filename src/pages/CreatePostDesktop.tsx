@@ -377,7 +377,6 @@ const CreatePostDesktop: React.FC = () => {
                       <SelectItem value="public" icon={<PublicIcon className="w-4 h-4 text-gray-600" />}>Public</SelectItem>
                       <SelectItem value="friends" icon={<FriendsIcon className="w-4 h-4 text-gray-600" />}>Friends</SelectItem>
                       <SelectItem value="followers" icon={<FollowersIcon className="w-4 h-4 text-gray-600" />}>Followers</SelectItem>
-                      <SelectItem value="onlyme" icon={<OnlyMeIcon className="w-4 h-4 text-gray-600" />}>Only Me</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
