@@ -48,7 +48,13 @@ const SchedulingSlidingWindow: React.FC<SchedulingSlidingWindowProps> = ({
               mode="single"
               selected={date}
               onSelect={setDate}
-              disabled={(date) => date < new Date()}
+              disabled={(date) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const compareDate = new Date(date);
+                compareDate.setHours(0, 0, 0, 0);
+                return compareDate < today;
+              }}
               className="rounded-md border"
             />
           </div>
