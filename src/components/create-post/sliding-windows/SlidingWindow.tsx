@@ -25,8 +25,9 @@ const SlidingWindow: React.FC<SlidingWindowProps> = ({
   if (!isOpen) return null;
 
   const defaultStyle = {
-    left: 'calc(50% - 860px - 140px)', // Moved even more to the right
-    top: '-20px'
+    left: 'auto',
+    right: '20px',
+    top: '20px'
   };
 
   return (
@@ -39,7 +40,7 @@ const SlidingWindow: React.FC<SlidingWindowProps> = ({
       
       {/* Sliding Window */}
       <div 
-        className={`fixed w-[400px] h-[700px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto flex flex-col z-50 rounded-xl animate-none [&_*]:animate-none motion-reduce:transition-none ${className}`}
+        className={`fixed w-full sm:w-[400px] h-auto sm:h-[700px] max-h-[90vh] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto flex flex-col z-50 rounded-xl animate-none [&_*]:animate-none motion-reduce:transition-none ${className}`}
         style={{ ...defaultStyle, ...style }}
       >
           {/* Header */}
@@ -59,7 +60,7 @@ const SlidingWindow: React.FC<SlidingWindowProps> = ({
           </div>
           
            {/* Content */}
-          <div className="flex-1 px-4 py-4 overflow-hidden animate-none [&_*]:animate-none">
+          <div className="flex-1 px-4 py-4 overflow-y-auto sm:overflow-hidden animate-none [&_*]:animate-none">
             {children}
           </div>
         </div>
