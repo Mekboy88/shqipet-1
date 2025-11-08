@@ -341,7 +341,7 @@ const CreatePostDesktop: React.FC = () => {
                   <Switch checked={allowSharing} onCheckedChange={setAllowSharing} />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Visible to</label>
+                  <label className="text-sm font-medium">Allow to comment</label>
                   <Select value={visibility} onValueChange={setVisibility}>
                     <SelectTrigger className="w-full mt-1 h-9 text-sm focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0">
                       {visibility === 'public' ? (
