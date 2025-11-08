@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { immediateLogoutService } from '@/utils/auth/immediateLogoutService';
 import { userDataSynchronizer } from '@/services/userDataSynchronizer';
+import { sessionProtection } from '@/utils/auth/sessionProtection';
 
 interface UserProfile {
   id: string;
@@ -80,32 +81,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             console.log('🔄 AuthProvider: Auth state changed:', event, !!session?.user);
             
-            // Update auth state immediately
-            setSession(session);
-            setUser(session?.user ?? null);
-            
-            // Set loading to false on any auth event
-            if (authInitialized) {
-              setLoading(false);
-            }
-            
-            // Handle different events
+            // CRITICAL: Prevent automatic logout - only respond to explicit SIGNED_OUT events
             if (event === 'SIGNED_OUT') {
+              console.log('🚪 User explicitly signed out');
+              setSession(null);
+              setUser(null);
               setUserProfile(null);
               setUserRole(null);
               setUserLevel(0);
               setAuthDataCached(false);
-              // Clear synchronized user data
               userDataSynchronizer.clearUserData();
-            } else if (event === 'SIGNED_IN' && session?.user) {
-              // Only fetch if not already cached to prevent constant reloading
-              if (!authDataCached) {
-                fetchUserProfile(session.user.id).catch(console.warn);
-                fetchUserRole(session.user.id).catch(console.warn);
-                // Prefetch profile settings so settings pages are instant
-                import('@/lib/profileSettingsCache').then(m => m.prefetchProfileSettings(session.user!.id)).catch(console.warn);
-                // Synchronize all user data immediately
-                userDataSynchronizer.syncUserData(session.user.id).catch(console.warn);
+              return;
+            }
+            
+            // Update auth state for active sessions
+            if (session?.user) {
+              setSession(session);
+              setUser(session.user);
+              
+              // Set loading to false on any auth event
+              if (authInitialized) {
+                setLoading(false);
+              }
+              
+              // Handle sign in and token refresh
+              if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                // Only fetch if not already cached to prevent constant reloading
+                if (!authDataCached || event === 'TOKEN_REFRESHED') {
+                  fetchUserProfile(session.user.id).catch(console.warn);
+                  fetchUserRole(session.user.id).catch(console.warn);
+                  // Prefetch profile settings so settings pages are instant
+                  import('@/lib/profileSettingsCache').then(m => m.prefetchProfileSettings(session.user!.id)).catch(console.warn);
+                  // Synchronize all user data immediately
+                  userDataSynchronizer.syncUserData(session.user.id).catch(console.warn);
+                }
               }
             }
           }
@@ -143,10 +152,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           import('@/lib/profileSettingsCache').then(m => m.prefetchProfileSettings(session.user!.id)).catch(console.warn);
           // Immediately synchronize all user data for instant loading
           userDataSynchronizer.syncUserData(session.user.id).catch(console.warn);
+          
+          // CRITICAL: Start session protection to prevent automatic logouts
+          sessionProtection.startProtection();
+          console.log('🛡️ Session protection started for user');
         } else if (!session?.user) {
           // Clear user data if no session
           userDataSynchronizer.clearUserData();
           setAuthDataCached(false);
+          
+          // Stop session protection when no user
+          sessionProtection.stopProtection();
         }
 
         return cleanupSubscription;
@@ -362,9 +378,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    console.log('🚪 Starting sign out process...');
+    console.log('🚪 User explicitly requested sign out');
     
     try {
+      // Stop session protection first
+      sessionProtection.stopProtection();
+      
       // Clear states immediately
       setUser(null);
       setSession(null);

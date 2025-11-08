@@ -20,7 +20,7 @@ class ImmediateLogoutService {
     }
 
     this.logoutInProgress = true;
-    console.log('🚪 Starting immediate logout process...');
+    console.log('🚪 Starting EXPLICIT logout process - user requested logout');
     
     try {
       // Clear device auth state immediately
@@ -51,7 +51,7 @@ class ImmediateLogoutService {
       });
       console.log('✅ Auth-related localStorage cleared');
       
-      console.log('✅ Immediate logout completed successfully');
+      console.log('✅ EXPLICIT logout completed successfully');
     } catch (error) {
       console.error('❌ Logout error:', error);
     } finally {
