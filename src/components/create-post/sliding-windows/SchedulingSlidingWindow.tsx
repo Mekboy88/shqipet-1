@@ -72,7 +72,7 @@ const SchedulingSlidingWindow: React.FC<SchedulingSlidingWindowProps> = ({
             </div>
           </div>
 
-          <div className="pt-4 space-y-2">
+          <div className="pt-2 space-y-2">
             <Button 
               onClick={handleSchedule}
               className="w-full bg-gradient-to-r from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 text-foreground font-semibold border-2 border-orange-200"
