@@ -33,13 +33,13 @@ const SlidingWindow: React.FC<SlidingWindowProps> = ({
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/20 z-40" 
+        className="fixed inset-0 bg-black/20 z-40 animate-none" 
         onClick={onClose} 
       />
       
       {/* Sliding Window */}
       <div 
-        className={`fixed w-[400px] h-[700px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto flex flex-col z-50 rounded-xl ${className}`}
+        className={`fixed w-[400px] h-[700px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto flex flex-col z-50 rounded-xl animate-none [&_*]:animate-none motion-reduce:transition-none ${className}`}
         style={{ ...defaultStyle, ...style }}
       >
           {/* Header */}
@@ -59,7 +59,7 @@ const SlidingWindow: React.FC<SlidingWindowProps> = ({
           </div>
           
            {/* Content */}
-          <div className="flex-1 px-4 py-4 overflow-y-auto overflow-x-visible">
+          <div className="flex-1 px-4 py-4 overflow-y-auto overflow-x-visible animate-none [&_*]:animate-none">
             {children}
           </div>
         </div>
