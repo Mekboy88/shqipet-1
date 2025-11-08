@@ -57,6 +57,9 @@ const CreatePostDesktop: React.FC = () => {
   const [postIntent, setPostIntent] = useState('emotion');
   const [showAIChat, setShowAIChat] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [crosspostMarketplace, setCrosspostMarketplace] = useState(false);
+  const [crosspostGroups, setCrosspostGroups] = useState(false);
+  const [crosspostPages, setCrosspostPages] = useState(false);
   
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -415,18 +418,18 @@ const CreatePostDesktop: React.FC = () => {
                 <div>
                   <label className="text-sm font-medium mb-2 block">Cross-post to</label>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" className="rounded" />
-                      Marketplace
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" className="rounded" />
-                      Groups
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" className="rounded" />
-                      Pages
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Marketplace</span>
+                      <Switch checked={crosspostMarketplace} onCheckedChange={setCrosspostMarketplace} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Groups</span>
+                      <Switch checked={crosspostGroups} onCheckedChange={setCrosspostGroups} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Pages</span>
+                      <Switch checked={crosspostPages} onCheckedChange={setCrosspostPages} />
+                    </div>
                   </div>
                 </div>
               </CollapsibleContent>
