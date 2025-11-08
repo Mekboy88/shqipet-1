@@ -38,12 +38,12 @@ function Calendar({
         cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-semibold aria-selected:opacity-100 text-foreground"
+          "h-9 w-9 p-0 font-semibold aria-selected:opacity-100 text-foreground hover:bg-gradient-to-br hover:from-yellow-50 hover:to-orange-50 [&:nth-child(7n+1)]:hover:from-red-50 [&:nth-child(7n+1)]:hover:to-pink-50 [&:nth-child(7n+2)]:hover:from-orange-50 [&:nth-child(7n+2)]:hover:to-amber-50 [&:nth-child(7n+3)]:hover:from-yellow-50 [&:nth-child(7n+3)]:hover:to-lime-50 [&:nth-child(7n+4)]:hover:from-green-50 [&:nth-child(7n+4)]:hover:to-emerald-50 [&:nth-child(7n+5)]:hover:from-teal-50 [&:nth-child(7n+5)]:hover:to-cyan-50 [&:nth-child(7n+6)]:hover:from-blue-50 [&:nth-child(7n+6)]:hover:to-indigo-50 [&:nth-child(7n+7)]:hover:from-purple-50 [&:nth-child(7n+7)]:hover:to-pink-50"
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 focus:from-yellow-500 focus:to-orange-600 font-bold shadow-md",
-        day_today: "bg-gradient-to-r from-yellow-200 to-orange-200 text-foreground font-bold border-2 border-orange-400",
+          "bg-gradient-to-br text-foreground hover:shadow-md focus:shadow-md font-bold border-2 [&:nth-child(7n+1)]:from-red-100 [&:nth-child(7n+1)]:to-pink-100 [&:nth-child(7n+1)]:border-red-300 [&:nth-child(7n+2)]:from-orange-100 [&:nth-child(7n+2)]:to-amber-100 [&:nth-child(7n+2)]:border-orange-300 [&:nth-child(7n+3)]:from-yellow-100 [&:nth-child(7n+3)]:to-lime-100 [&:nth-child(7n+3)]:border-yellow-300 [&:nth-child(7n+4)]:from-green-100 [&:nth-child(7n+4)]:to-emerald-100 [&:nth-child(7n+4)]:border-green-300 [&:nth-child(7n+5)]:from-teal-100 [&:nth-child(7n+5)]:to-cyan-100 [&:nth-child(7n+5)]:border-teal-300 [&:nth-child(7n+6)]:from-blue-100 [&:nth-child(7n+6)]:to-indigo-100 [&:nth-child(7n+6)]:border-blue-300 [&:nth-child(7n+7)]:from-purple-100 [&:nth-child(7n+7)]:to-pink-100 [&:nth-child(7n+7)]:border-purple-300",
+        day_today: "bg-gradient-to-br from-yellow-100 to-orange-100 text-foreground font-bold border-2 border-orange-300",
         day_outside:
           "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         day_disabled: "text-muted-foreground opacity-50",
