@@ -1181,6 +1181,39 @@ export type Database = {
         }
         Relationships: []
       }
+      session_activity: {
+        Row: {
+          created_at: string | null
+          event_source: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_source?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_source?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       system_health_metrics: {
         Row: {
           created_at: string
@@ -1728,6 +1761,7 @@ export type Database = {
         }
         Returns: string
       }
+      has_active_session: { Args: { p_user_id: string }; Returns: boolean }
       has_permission: {
         Args: {
           _device_type?: Database["public"]["Enums"]["device_type"]
@@ -1744,6 +1778,14 @@ export type Database = {
         Returns: boolean
       }
       is_platform_owner: { Args: { _user_id: string }; Returns: boolean }
+      log_session_activity: {
+        Args: {
+          p_event_source?: string
+          p_event_type: string
+          p_metadata?: Json
+        }
+        Returns: string
+      }
       request_permission: {
         Args: {
           _device_type: Database["public"]["Enums"]["device_type"]
