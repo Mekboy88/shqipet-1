@@ -101,7 +101,7 @@ const PostExpirationSelector: React.FC<PostExpirationSelectorProps> = ({ expirat
                     {customDate ? format(customDate, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-full max-w-none p-0" align="start">
                   <CalendarComponent
                     mode="single"
                     selected={customDate}
