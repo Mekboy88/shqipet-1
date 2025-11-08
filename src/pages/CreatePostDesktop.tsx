@@ -378,32 +378,8 @@ const CreatePostDesktop: React.FC = () => {
                       <SelectItem value="friends" icon={<FriendsIcon className="w-4 h-4 text-gray-600" />}>Friends</SelectItem>
                       <SelectItem value="followers" icon={<FollowersIcon className="w-4 h-4 text-gray-600" />}>Followers</SelectItem>
                       <SelectItem value="onlyme" icon={<OnlyMeIcon className="w-4 h-4 text-gray-600" />}>Only Me</SelectItem>
-                      <SelectItem value="anonymous" icon={<AnonymousIcon className="w-4 h-4 text-gray-600" />}>Anonymous</SelectItem>
                     </SelectContent>
                   </Select>
-
-                  {/* Anonymous toggle inside left sidebar */}
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-sm">Post as Anonymous</span>
-                    <AnonymousSwitch
-                      checked={isAnonymous}
-                      onCheckedChange={setIsAnonymous}
-                      onIcon={<AnonymousIcon className="w-5 h-5 text-gray-600" />}
-                      offIcon={
-                        visibility === 'public' ? (
-                          <PublicIcon className="w-5 h-5 text-gray-600" />
-                        ) : visibility === 'friends' ? (
-                          <FriendsIcon className="w-5 h-5 text-gray-600" />
-                        ) : visibility === 'followers' ? (
-                          <FollowersIcon className="w-5 h-5 text-gray-600" />
-                        ) : visibility === 'onlyme' ? (
-                          <OnlyMeIcon className="w-5 h-5 text-gray-600" />
-                        ) : (
-                          <PublicIcon className="w-5 h-5 text-gray-600" />
-                        )
-                      }
-                    />
-                  </div>
                 </div>
               </CollapsibleContent>
             </Collapsible>
@@ -632,32 +608,8 @@ const CreatePostDesktop: React.FC = () => {
                   <SelectItem value="onlyme" icon={<OnlyMeIcon className="w-4 h-4 text-gray-600" />}>
                     <span>Only Me</span>
                   </SelectItem>
-                  <SelectItem value="anonymous" icon={<AnonymousIcon className="w-4 h-4 text-gray-600" />}>
-                    <span>Anonymous</span>
-                  </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <AnonymousSwitch
-                checked={isAnonymous}
-                onCheckedChange={setIsAnonymous}
-                onIcon={<AnonymousIcon className="w-5 h-5 text-gray-600" />}
-                offIcon={
-                  visibility === 'public' ? (
-                    <PublicIcon className="w-5 h-5 text-gray-600" />
-                  ) : visibility === 'friends' ? (
-                    <FriendsIcon className="w-5 h-5 text-gray-600" />
-                  ) : visibility === 'followers' ? (
-                    <FollowersIcon className="w-5 h-5 text-gray-600" />
-                  ) : visibility === 'onlyme' ? (
-                    <OnlyMeIcon className="w-5 h-5 text-gray-600" />
-                  ) : (
-                    <PublicIcon className="w-5 h-5 text-gray-600" />
-                  )
-                }
-              />
-              <span className="text-sm text-muted-foreground"> Anonymous</span>
             </div>
           </div>
 
