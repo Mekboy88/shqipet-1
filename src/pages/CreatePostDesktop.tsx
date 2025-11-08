@@ -584,7 +584,7 @@ const CreatePostDesktop: React.FC = () => {
             <div className="flex-1">
               <p className="font-semibold text-lg">{isAnonymous ? "Anonymous" : (displayName || "User")}</p>
               <Select value={visibility} onValueChange={setVisibility}>
-                <SelectTrigger className="w-48 h-8 text-sm border-red-200/40 hover:border-red-300/50 focus:border-red-300/60 focus:ring-0 focus:shadow-[0_0_20px_rgba(239,68,68,0.08)] transition-all duration-200">
+                <SelectTrigger className="w-48 h-8 text-sm border-red-200/40 hover:border-red-300/50 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none transition-all duration-200">
                   {visibility === 'public' ? (
                     <div className="flex items-center gap-2">
                       <PublicIcon className="w-4 h-4 text-gray-600" />
