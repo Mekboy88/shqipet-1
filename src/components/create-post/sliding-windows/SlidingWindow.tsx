@@ -39,7 +39,7 @@ const SlidingWindow: React.FC<SlidingWindowProps> = ({
       
       {/* Sliding Window */}
       <div 
-        className={`fixed w-[400px] h-[700px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto flex flex-col z-50 rounded-xl animate-slide-in-right ${className}`}
+        className={`fixed w-[400px] h-[700px] bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto flex flex-col z-50 rounded-xl ${className}`}
         style={{ ...defaultStyle, ...style }}
       >
           {/* Header */}
