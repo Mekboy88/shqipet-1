@@ -325,11 +325,11 @@ const CreatePostDesktop: React.FC = () => {
       }} className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border p-4 sm:p-6 overflow-y-auto max-h-[600px] lg:max-h-none">
           <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-foreground">Post Settings</h2>
           
-          <div className="space-y-3">
+          <div className="space-y-3 [&_*:focus]:outline-none [&_*:focus-visible]:outline-none [&_*:focus]:ring-0 [&_*:focus-visible]:ring-0 [&_*:focus]:border-transparent [&_button:focus]:outline-none [&_button:focus-visible]:outline-none">
             {/* Comments & Privacy */}
             <Collapsible>
-              <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
+              <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all focus:outline-none focus-visible:outline-none">
                   <div className="flex items-center gap-2">
                     <svg className="w-4 h-4" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="10" y1="12" x2="19" y2="12"></line>
@@ -399,8 +399,8 @@ const CreatePostDesktop: React.FC = () => {
 
             {/* Publishing Options */}
             <Collapsible>
-              <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
+              <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all focus:outline-none focus-visible:outline-none">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     <span className="font-medium text-sm">Publishing Options</span>
@@ -454,8 +454,8 @@ const CreatePostDesktop: React.FC = () => {
 
             {/* Language & AI Tone */}
             <Collapsible>
-              <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
+              <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all focus:outline-none focus-visible:outline-none">
                   <div className="flex items-center gap-2">
                     <Languages className="w-4 h-4" />
                     <span className="font-medium text-sm">Language & AI Tone</span>
@@ -487,8 +487,8 @@ const CreatePostDesktop: React.FC = () => {
 
             {/* Moderation & Security */}
             <Collapsible>
-              <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
+              <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all focus:outline-none focus-visible:outline-none">
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4" />
                     <span className="font-medium text-sm">Moderation & Security</span>
@@ -510,8 +510,8 @@ const CreatePostDesktop: React.FC = () => {
 
             {/* Draft & Auto-Save */}
             <Collapsible>
-              <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
+              <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all focus:outline-none focus-visible:outline-none">
                   <div className="flex items-center gap-2">
                     <Save className="w-4 h-4" />
                     <span className="font-medium text-sm">Draft & Auto-Save</span>
@@ -532,8 +532,8 @@ const CreatePostDesktop: React.FC = () => {
 
             {/* Engagement Analytics */}
             <Collapsible>
-              <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all">
+              <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
+                <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all focus:outline-none focus-visible:outline-none">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" />
                     <span className="font-medium text-sm">Engagement Analytics</span>
