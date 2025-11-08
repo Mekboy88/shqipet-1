@@ -203,7 +203,7 @@ const CollapsibleAIChat: React.FC<CollapsibleAIChatProps> = ({
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.96, x: 40 }}
             transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed right-4 top-[72px] h-[calc(100vh-88px)] w-[400px] bg-white/70 backdrop-blur-xl shadow-lg border border-gray-200/60 z-50 flex flex-col rounded-3xl scroll-lock"
+            className="fixed right-2 sm:right-4 top-[72px] h-[calc(100vh-88px)] w-full sm:w-[90vw] md:w-[400px] max-w-[400px] bg-white/70 backdrop-blur-xl shadow-lg border border-gray-200/60 z-50 flex flex-col rounded-3xl scroll-lock"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200/60">

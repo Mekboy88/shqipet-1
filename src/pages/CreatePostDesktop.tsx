@@ -312,7 +312,7 @@ const CreatePostDesktop: React.FC = () => {
       <h1 className="sr-only">Create Post – Shqipet</h1>
 
       {/* Main 2-Column Layout (Left Sidebar + Center) */}
-      <div className="w-full min-h-[calc(100vh-56px)] grid grid-cols-[280px_1fr] gap-4 p-4 pr-[420px]">
+      <div className="w-full min-h-[calc(100vh-56px)] flex flex-col lg:grid lg:grid-cols-[280px_1fr] xl:pr-[420px] gap-4 p-2 sm:p-4">
         {/* Left Sidebar - Post Settings */}
         <motion.div initial={{
         opacity: 0,
@@ -322,8 +322,8 @@ const CreatePostDesktop: React.FC = () => {
         x: 0
       }} transition={{
         duration: 0.4
-      }} className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border p-6 overflow-y-auto">
-          <h2 className="text-xl font-bold mb-6 text-foreground">Post Settings</h2>
+      }} className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border p-4 sm:p-6 overflow-y-auto max-h-[600px] lg:max-h-none">
+          <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-foreground">Post Settings</h2>
           
           <div className="space-y-3">
             {/* Comments & Privacy */}

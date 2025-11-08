@@ -33,7 +33,7 @@ const PostInsightsPanel: React.FC<PostInsightsPanelProps> = ({ isVisible }) => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 40 }}
       transition={{ duration: 0.3 }}
-      className="fixed right-4 top-[72px] w-[380px] h-[calc(100vh-88px)] overflow-y-auto space-y-4 pb-4"
+      className="hidden xl:block fixed right-2 lg:right-4 top-[72px] w-[340px] lg:w-[380px] h-[calc(100vh-88px)] overflow-y-auto space-y-4 pb-4"
     >
       {/* Best Time to Post */}
       <Card className="p-5 bg-card/80 backdrop-blur-xl border-border shadow-md">

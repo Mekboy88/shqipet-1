@@ -13,7 +13,9 @@ const NavbarNoTooltip = React.memo(() => {
         transform: 'translate3d(0, 0, 0)',
         willChange: 'auto',
         zIndex: 1000,
-        position: 'fixed'
+        position: 'fixed',
+        maxWidth: '100vw',
+        overflowX: 'hidden'
       }}
     >
       <NavbarLayoutNoTooltip />
