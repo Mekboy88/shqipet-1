@@ -347,7 +347,7 @@ const CreatePostDesktop: React.FC = () => {
                       {visibility === 'public' ? (
                         <div className="flex items-center gap-2">
                           <PublicIcon className="w-4 h-4 text-gray-600" />
-                          <span>Public</span>
+                          <span>Everyone</span>
                         </div>
                       ) : visibility === 'anonymous' ? (
                         <div className="flex items-center gap-2">
@@ -374,7 +374,7 @@ const CreatePostDesktop: React.FC = () => {
                       )}
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border shadow-lg z-50">
-                      <SelectItem value="public" icon={<PublicIcon className="w-4 h-4 text-gray-600" />}>Public</SelectItem>
+                      <SelectItem value="public" icon={<PublicIcon className="w-4 h-4 text-gray-600" />}>Everyone</SelectItem>
                       <SelectItem value="friends" icon={<FriendsIcon className="w-4 h-4 text-gray-600" />}>Friends</SelectItem>
                       <SelectItem value="followers" icon={<FollowersIcon className="w-4 h-4 text-gray-600" />}>Followers</SelectItem>
                     </SelectContent>
