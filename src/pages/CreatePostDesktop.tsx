@@ -325,7 +325,7 @@ const CreatePostDesktop: React.FC = () => {
       }} className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border p-4 sm:p-6 overflow-y-auto max-h-[600px] lg:max-h-none">
           <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-foreground">Post Settings</h2>
           
-          <div className="space-y-3 [&_*:focus]:outline-none [&_*:focus-visible]:outline-none [&_*:focus]:ring-0 [&_*:focus-visible]:ring-0 [&_*:focus]:border-transparent [&_button:focus]:outline-none [&_button:focus-visible]:outline-none">
+          <div className="space-y-3 [&_*:focus]:outline-none [&_*:focus-visible]:outline-none [&_*:focus]:ring-0 [&_*:focus-visible]:ring-0 [&_*:focus]:ring-offset-0 [&_*:focus-visible]:ring-offset-0 [&_*:focus]:shadow-none [&_*:focus-visible]:shadow-none [&_button:focus]:outline-none [&_button:focus-visible]:outline-none">
             {/* Comments & Privacy */}
             <Collapsible>
               <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
