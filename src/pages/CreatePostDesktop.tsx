@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import SchedulingSlidingWindow from '@/components/create-post/sliding-windows/SchedulingSlidingWindow';
 const CreatePostDesktop: React.FC = () => {
   const {
     displayName
@@ -60,6 +61,7 @@ const CreatePostDesktop: React.FC = () => {
   const [crosspostMarketplace, setCrosspostMarketplace] = useState(false);
   const [crosspostGroups, setCrosspostGroups] = useState(false);
   const [crosspostPages, setCrosspostPages] = useState(false);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -157,6 +159,15 @@ const CreatePostDesktop: React.FC = () => {
       setIsPublishing(false);
     }
   };
+  
+  const handleSchedule = (date: Date, time: string) => {
+    toast({
+      title: "Post Scheduled",
+      description: `Your post will be published on ${date.toLocaleDateString()} at ${time}.`
+    });
+    console.log('Scheduled for:', date, time);
+  };
+  
   const handlePhotoClick = () => {
     console.log('📸 Photo button clicked');
     photoInputRef.current?.click();
@@ -398,9 +409,15 @@ const CreatePostDesktop: React.FC = () => {
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2 space-y-3 p-3 bg-muted/30 rounded-lg">
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1">Publish Now</Button>
-                  <Button size="sm" variant="outline" className="flex-1">Schedule</Button>
+                <div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setIsScheduleOpen(true)}
+                  >
+                    Schedule
+                  </Button>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Expiration</label>
@@ -926,6 +943,14 @@ const CreatePostDesktop: React.FC = () => {
 
       {/* Post Insights Panel - Shows when AI is closed */}
       <PostInsightsPanel isVisible={!showAIChat} />
+      
+      {/* Scheduling Sliding Window */}
+      <SchedulingSlidingWindow
+        isOpen={isScheduleOpen}
+        onClose={() => setIsScheduleOpen(false)}
+        onSchedule={handleSchedule}
+        icon={<Clock className="w-4 h-4" />}
+      />
     </div>;
 };
 export default CreatePostDesktop;
