@@ -28,6 +28,8 @@ const AvatarImage = React.forwardRef<
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
   const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
+  const [computedSrcSet, setComputedSrcSet] = React.useState<string | undefined>(undefined);
+  const [computedSizes, setComputedSizes] = React.useState<string | undefined>(undefined);
 
   React.useEffect(() => {
     const raw = typeof src === 'string' ? src : '';
@@ -36,12 +38,41 @@ const AvatarImage = React.forwardRef<
     if (!raw) {
       console.warn('🧪 AvatarImageGlobal: empty src', { props });
       setResolvedSrc(undefined);
+      setComputedSrcSet(undefined);
       return;
     }
 
     // If already a direct URL/blob/data use as-is
     if (/^(https?:|blob:|data:)/i.test(raw)) {
       setResolvedSrc(raw);
+      // Try to derive key from URL for srcset
+      try {
+        const m = raw.match(/\/(uploads|avatars|covers)\/([^?#\s]+)/i);
+        const key = m ? `${m[1]}/${decodeURIComponent(m[2])}` : null;
+        if (key && key.startsWith('avatars/')) {
+          // Build srcset from known derivative keys
+          const baseKey = key
+            .replace(/-original\.[^/.]+$/i, '')
+            .replace(/-(thumbnail|small|medium|large)\.[^.]+$/i, '');
+          const names = ['thumbnail','small','medium','large'] as const;
+          Promise.all(
+            names.map(async (n) => {
+              const k = `${baseKey}-${n}.jpg`;
+              try { const u = await mediaService.getUrl(k); return [n, u] as const; } catch { return null; }
+            })
+          ).then((pairs) => {
+            const map = new Map(pairs.filter(Boolean) as Array<readonly [string, string]>);
+            if (map.size) {
+              const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
+              const set = names
+                .filter((n) => map.has(n))
+                .map((n) => `${map.get(n)} ${widthMap[n]}w`)
+                .join(', ');
+              setComputedSrcSet(set);
+            }
+          });
+        }
+      } catch {}
       return;
     }
 
@@ -64,6 +95,32 @@ const AvatarImage = React.forwardRef<
         }
       };
       
+      // Build srcset for avatar keys
+      try {
+        if (raw.startsWith('avatars/')) {
+          const baseKey = raw
+            .replace(/-original\.[^/.]+$/i, '')
+            .replace(/-(thumbnail|small|medium|large)\.[^.]+$/i, '');
+          const names = ['thumbnail','small','medium','large'] as const;
+          Promise.all(
+            names.map(async (n) => {
+              const k = `${baseKey}-${n}.jpg`;
+              try { const u = await mediaService.getUrl(k); return [n, u] as const; } catch { return null; }
+            })
+          ).then((pairs) => {
+            const map = new Map(pairs.filter(Boolean) as Array<readonly [string, string]>);
+            if (map.size) {
+              const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
+              const set = names
+                .filter((n) => map.has(n))
+                .map((n) => `${map.get(n)} ${widthMap[n]}w`)
+                .join(', ');
+              setComputedSrcSet(set);
+            }
+          });
+        }
+      } catch {}
+      
       resolveWithRetry();
       return () => { canceled = true; };
     }
@@ -84,6 +141,7 @@ const AvatarImage = React.forwardRef<
       const h = Math.round(rect.height);
       if (w > 0 && h > 0) {
         setDimensions({ width: w, height: h });
+        setComputedSizes(`${w}px`);
       }
     };
 
@@ -104,6 +162,8 @@ const AvatarImage = React.forwardRef<
       }}
       className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
       src={resolvedSrc}
+      srcSet={(props as any).srcSet ?? computedSrcSet}
+      sizes={(props as any).sizes ?? computedSizes}
       width={dimensions?.width}
       height={dimensions?.height}
       loading="eager"

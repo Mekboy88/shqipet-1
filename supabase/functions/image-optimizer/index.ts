@@ -7,11 +7,19 @@ const corsHeaders = {
 };
 
 // Image size configurations
-const SIZES = {
+const DEFAULT_SIZES = {
   thumbnail: { width: 64, height: 64 },
   small: { width: 128, height: 128 },
   medium: { width: 256, height: 256 },
   large: { width: 512, height: 512 },
+} as const;
+
+// Avatar-specific sizes tuned for retina small circles (e.g., 32–40px at 2x/3x)
+const AVATAR_SIZES = {
+  thumbnail: { width: 80, height: 80 },
+  small: { width: 160, height: 160 },
+  medium: { width: 320, height: 320 },
+  large: { width: 640, height: 640 },
 } as const;
 
 /**
@@ -126,19 +134,23 @@ Deno.serve(async (req) => {
     console.log('📤 Uploading original:', originalKey);
     await uploadToWasabi(aws, bucket, region, originalKey, file, file.type);
 
-    // Create and upload all sizes in parallel
-    const sizes: Record<string, string> = { original: originalKey };
-    
-    const resizePromises = Object.entries(SIZES).map(async ([sizeName, dimensions]) => {
-      console.log(`🔧 Creating ${sizeName} (${dimensions.width}x${dimensions.height})`);
-      const resizedBlob = await resizeImage(file, dimensions.width, dimensions.height);
-      const sizeKey = `${baseKey}-${sizeName}.${extension}`;
-      
-      await uploadToWasabi(aws, bucket, region, sizeKey, resizedBlob, 'image/jpeg');
-      console.log(`✅ Uploaded ${sizeName}:`, sizeKey);
-      
-      return [sizeName, sizeKey];
-    });
+// Create and upload all sizes in parallel
+const sizes: Record<string, string> = { original: originalKey };
+
+// Choose sizes based on media type
+const sizesConfig = /avatar/i.test(mediaType) ? AVATAR_SIZES : DEFAULT_SIZES;
+
+const resizePromises = Object.entries(sizesConfig).map(async ([sizeName, dimensions]) => {
+  const dims = dimensions as { width: number; height: number };
+  console.log(`🔧 Creating ${sizeName} (${dims.width}x${dims.height})`);
+  const resizedBlob = await resizeImage(file, dims.width, dims.height);
+  const sizeKey = `${baseKey}-${sizeName}.${extension}`;
+  
+  await uploadToWasabi(aws, bucket, region, sizeKey, resizedBlob, 'image/jpeg');
+  console.log(`✅ Uploaded ${sizeName}:`, sizeKey);
+  
+  return [sizeName, sizeKey];
+});
 
     const resizedResults = await Promise.all(resizePromises);
     resizedResults.forEach(([sizeName, key]) => {

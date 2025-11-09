@@ -25,14 +25,14 @@ interface ValidationRules {
 
 const VALIDATION_RULES: Record<MediaType, ValidationRules> = {
   avatar: {
-    maxSizeMB: 5,
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-    dimensions: { minWidth: 100, minHeight: 100, maxWidth: 2000, maxHeight: 2000 }
+    maxSizeMB: 10,
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+    dimensions: { minWidth: 80, minHeight: 80, maxWidth: 6000, maxHeight: 6000 }
   },
   cover: {
-    maxSizeMB: 10,
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-    dimensions: { minWidth: 800, minHeight: 300, maxWidth: 4000, maxHeight: 4000 }
+    maxSizeMB: 15,
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+    dimensions: { minWidth: 800, minHeight: 300, maxWidth: 6000, maxHeight: 6000 }
   },
   'post-image': {
     maxSizeMB: 20,
