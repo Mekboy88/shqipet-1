@@ -23,6 +23,7 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
 }) => {
   const { user } = useAuth();
   const [showCoverControls, setShowCoverControls] = useState(true);
+  const storageKey = user?.id ? `profile:showCoverControls:${user.id}` : null;
 
   const {
     isDragging,
@@ -57,6 +58,34 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
     
     loadControlsPreference();
   }, [user?.id, isOwnProfile]);
+
+  // Fast local sync via localStorage and custom events
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const v = localStorage.getItem(storageKey);
+      if (v !== null) setShowCoverControls(v === '1' || v === 'true');
+    } catch {}
+
+    const onCustom = (e: Event) => {
+      const detail = (e as CustomEvent).detail as any;
+      if (detail && typeof detail.value === 'boolean') {
+        setShowCoverControls(detail.value);
+      }
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === storageKey && e.newValue !== null) {
+        setShowCoverControls(e.newValue === '1' || e.newValue === 'true');
+      }
+    };
+
+    window.addEventListener('cover-controls-changed', onCustom as EventListener);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener('cover-controls-changed', onCustom as EventListener);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [storageKey]);
 
   return (
     <>

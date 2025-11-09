@@ -86,6 +86,7 @@ const AvatarAndCoverForm: React.FC = () => {
   } = useGlobalCoverPhoto();
 
   const [showCoverControls, setShowCoverControls] = useState(true);
+  const controlsStorageKey = React.useMemo(() => user?.id ? `profile:showCoverControls:${user.id}` : null, [user?.id]);
 
 const { resolvedUrl: coverResolvedUrl, updateCover: updateCoverV2, refresh: refreshCoverV2 } = useCover();
 
@@ -163,7 +164,11 @@ useEffect(() => {
         .single();
       
       if (data && !error) {
-        setShowCoverControls(data.show_cover_controls ?? true);
+        const value = data.show_cover_controls ?? true;
+        setShowCoverControls(value);
+        if (controlsStorageKey) {
+          try { localStorage.setItem(controlsStorageKey, value ? '1' : '0'); } catch {}
+        }
       }
     };
     
@@ -247,6 +252,12 @@ useEffect(() => {
     if (!user?.id) return;
     
     setShowCoverControls(checked);
+
+    // Persist instantly for other views and tabs
+    if (controlsStorageKey) {
+      try { localStorage.setItem(controlsStorageKey, checked ? '1' : '0'); } catch {}
+    }
+    try { window.dispatchEvent(new CustomEvent('cover-controls-changed', { detail: { value: checked, userId: user.id } })); } catch {}
     
     const { error } = await supabase
       .from('profiles')
@@ -257,6 +268,9 @@ useEffect(() => {
       console.error('Error updating cover controls preference:', error);
       toast.error('Failed to update preference');
       setShowCoverControls(!checked); // Revert on error
+      if (controlsStorageKey) {
+        try { localStorage.setItem(controlsStorageKey, !checked ? '1' : '0'); } catch {}
+      }
     } else {
       toast.success(checked ? 'Cover controls enabled' : 'Cover controls hidden');
     }
