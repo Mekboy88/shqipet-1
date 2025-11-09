@@ -74,8 +74,13 @@ const AvatarImage = React.forwardRef<
     <AvatarPrimitive.Image
       ref={ref}
       className={cn("aspect-square h-full w-full", className)}
-      style={{ imageRendering: '-webkit-optimize-contrast' }}
+      style={{ imageRendering: '-webkit-optimize-contrast', transform: 'translateZ(0)' }}
       src={resolvedSrc}
+      loading="eager"
+      decoding="sync"
+      // @ts-ignore - not in TS types but supported by browsers
+      fetchpriority="high"
+      draggable={false}
       onLoad={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
         console.log('🧪 AvatarImageGlobal onLoad', { src: s.slice(0, 140) });
