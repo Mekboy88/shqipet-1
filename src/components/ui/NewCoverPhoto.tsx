@@ -6,6 +6,8 @@
 import React from 'react';
 import { useCover } from '@/hooks/media/useCover';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { mediaService } from '@/services/media/MediaService';
 
 interface NewCoverPhotoProps {
   userId?: string;
@@ -15,6 +17,14 @@ interface NewCoverPhotoProps {
   children?: React.ReactNode;
   style?: React.CSSProperties;
   onMouseMove?: (e: React.MouseEvent<HTMLDivElement>) => void;
+}
+
+interface CoverSizes {
+  thumbnail?: string;
+  small?: string;
+  medium?: string;
+  large?: string;
+  original?: string;
 }
 
 const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
@@ -47,6 +57,73 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
     return httpOnly(resolvedUrl) || httpOnly(lastGoodUrl);
   }, [resolvedUrl, lastGoodUrl]);
 
+  // Fetch cover_sizes from database for srcset
+  const [coverSizes, setCoverSizes] = React.useState<CoverSizes | null>(null);
+  React.useEffect(() => {
+    if (!userId) return;
+    const fetchSizes = async () => {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('cover_sizes')
+          .eq('id', userId)
+          .maybeSingle();
+        
+        if (data?.cover_sizes && typeof data.cover_sizes === 'object') {
+          setCoverSizes(data.cover_sizes as CoverSizes);
+          console.log('🖼️ Cover sizes loaded for srcset:', data.cover_sizes);
+        }
+      } catch (e) {
+        console.warn('Failed to fetch cover_sizes:', e);
+      }
+    };
+    fetchSizes();
+  }, [userId]);
+
+  // Resolve cover sizes to URLs for srcset
+  const [resolvedSrcSet, setResolvedSrcSet] = React.useState<string | undefined>(undefined);
+  React.useEffect(() => {
+    if (!coverSizes || Object.keys(coverSizes).length === 0) {
+      setResolvedSrcSet(undefined);
+      return;
+    }
+
+    const resolveSizes = async () => {
+      try {
+        const sizeMap: Record<string, number> = {
+          thumbnail: 800,
+          small: 1200,
+          medium: 1600,
+          large: 2400,
+          original: 3200
+        };
+
+        const srcSetEntries: string[] = [];
+
+        for (const [sizeKey, storageKey] of Object.entries(coverSizes)) {
+          const width = sizeMap[sizeKey];
+          if (width && storageKey) {
+            try {
+              const url = await mediaService.getUrl(storageKey);
+              srcSetEntries.push(`${url} ${width}w`);
+            } catch (e) {
+              console.warn('Failed to resolve cover srcSet key:', storageKey, e);
+            }
+          }
+        }
+
+        if (srcSetEntries.length > 0) {
+          setResolvedSrcSet(srcSetEntries.join(', '));
+          console.log('🖼️ Generated cover srcset for crisp display');
+        }
+      } catch (e) {
+        console.warn('Failed to process cover srcSet:', e);
+      }
+    };
+
+    resolveSizes();
+  }, [coverSizes]);
+
   return (
     <div 
       className={cn(
@@ -63,6 +140,8 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
       {displayUrl && (
         <img
           src={displayUrl}
+          srcSet={resolvedSrcSet}
+          sizes="100vw"
           alt="Cover photo"
           className="absolute inset-0 w-full h-full object-cover"
           style={{ 
