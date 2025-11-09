@@ -99,96 +99,11 @@ Deno.serve(async (req) => {
 
   try {
     const formData = await req.formData();
-    const file = formData.get('file') as File | null;
-    const existingKey = formData.get('existingKey') as string | null;
+    const file = formData.get('file') as File;
     const mediaType = (formData.get('mediaType') as string) || 'avatar';
     const userId = formData.get('userId') as string;
     const updateProfile = formData.get('updateProfile') as string;
 
-    // Backfill mode: regenerate sizes from existing key
-    if (existingKey && !file) {
-      console.log('🔄 Backfill mode: regenerating sizes from', existingKey);
-      
-      const region = Deno.env.get('WASABI_REGION')!;
-      const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
-      const accessKeyId = Deno.env.get('WASABI_ACCESS_KEY_ID')!;
-      const secretAccessKey = Deno.env.get('WASABI_SECRET_ACCESS_KEY')!;
-
-      const aws = new AwsClient({
-        accessKeyId,
-        secretAccessKey,
-        service: 's3',
-        region,
-      });
-
-      // Fetch original from Wasabi
-      const s3Base = region === 'us-east-1'
-        ? 'https://s3.wasabisys.com'
-        : `https://s3.${region}.wasabisys.com`;
-      const getUrl = `${s3Base}/${bucket}/${existingKey}`;
-      
-      const getRes = await aws.fetch(getUrl);
-      if (!getRes.ok) {
-        throw new Error(`Failed to fetch original: ${getRes.status}`);
-      }
-
-      const originalBlob = await getRes.blob();
-      const isCover = /cover/i.test(mediaType);
-      const folder = isCover ? 'covers' : 'avatars';
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substring(7);
-      const baseKey = `${folder}/${userId}/${timestamp}-${random}`;
-
-      // Create and upload all sizes
-      const sizes: Record<string, string> = { original: existingKey };
-      
-      const resizePromises = Object.entries(SIZES).map(async ([sizeName, dimensions]) => {
-        console.log(`🔧 Creating ${sizeName} (${dimensions.width}x${dimensions.height})`);
-        const resizedBlob = await resizeImage(originalBlob, dimensions.width, dimensions.height, isCover);
-        const sizeKey = `${baseKey}-${sizeName}.jpg`;
-        
-        await uploadToWasabi(aws, bucket, region, sizeKey, resizedBlob, 'image/jpeg');
-        console.log(`✅ Uploaded ${sizeName}:`, sizeKey);
-        
-        return [sizeName, sizeKey];
-      });
-
-      const resizedResults = await Promise.all(resizePromises);
-      resizedResults.forEach(([sizeName, key]) => {
-        sizes[sizeName as string] = key as string;
-      });
-
-      // Update database
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      );
-
-      const isAvatar = /avatar|profile/i.test(mediaType);
-      const sizesField = isAvatar ? 'avatar_sizes' : 'cover_sizes';
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ [sizesField]: sizes })
-        .eq('id', userId);
-
-      if (updateError) {
-        console.error('❌ Error updating profile:', updateError);
-        throw updateError;
-      }
-
-      console.log(`✅ Backfilled ${sizesField} for user ${userId}`);
-
-      return new Response(JSON.stringify({
-        success: true,
-        key: existingKey,
-        sizes,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Normal upload mode
     if (!file || !file.type.startsWith('image/')) {
       return new Response(JSON.stringify({ error: 'Valid image file required' }), {
         status: 400,

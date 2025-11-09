@@ -57,23 +57,16 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
     return httpOnly(resolvedUrl) || httpOnly(lastGoodUrl);
   }, [resolvedUrl, lastGoodUrl]);
 
-  // Fetch cover_sizes from database for srcset - auto-parse userId from coverUrl if not provided
+  // Fetch cover_sizes from database for srcset
   const [coverSizes, setCoverSizes] = React.useState<CoverSizes | null>(null);
   React.useEffect(() => {
-    const parseUserId = (url: string): string | null => {
-      const match = url?.match(/covers\/([a-f0-9-]+)\//);
-      return match ? match[1] : null;
-    };
-
-    const effectiveUserId = userId || (resolvedUrl ? parseUserId(resolvedUrl) : null);
-    if (!effectiveUserId) return;
-
+    if (!userId) return;
     const fetchSizes = async () => {
       try {
         const { data } = await supabase
           .from('profiles')
           .select('cover_sizes')
-          .eq('id', effectiveUserId)
+          .eq('id', userId)
           .maybeSingle();
         
         if (data?.cover_sizes && typeof data.cover_sizes === 'object') {
@@ -85,7 +78,7 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
       }
     };
     fetchSizes();
-  }, [userId, resolvedUrl]);
+  }, [userId]);
 
   // Resolve cover sizes to URLs for srcset
   const [resolvedSrcSet, setResolvedSrcSet] = React.useState<string | undefined>(undefined);
