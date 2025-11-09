@@ -49,12 +49,25 @@ const AvatarImage = React.forwardRef<
       try {
         // Extract storage key from various URL formats
         let key: string | null = null;
-        const m1 = raw.match(/\/(uploads|avatars|covers)\/([^?#\s]+)/i);
-        if (m1 && m1[1] && m1[2]) {
-          key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
-        } else {
-          const m2 = raw.match(/\/shqipet\/([^?#\s]+)/i);
-          if (m2 && m2[1]) key = decodeURIComponent(m2[1]);
+        
+        // First try query parameter (for proxy URLs like ?key=avatars/...)
+        try {
+          const url = new URL(raw, window.location.origin);
+          const qpKey = url.searchParams.get('key');
+          if (qpKey && /^(uploads|avatars|covers)\//i.test(qpKey)) {
+            key = decodeURIComponent(qpKey);
+          }
+        } catch {}
+        
+        // If no query param, try path extraction
+        if (!key) {
+          const m1 = raw.match(/\/(uploads|avatars|covers)\/([^?#\s]+)/i);
+          if (m1 && m1[1] && m1[2]) {
+            key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
+          } else {
+            const m2 = raw.match(/\/shqipet\/([^?#\s]+)/i);
+            if (m2 && m2[1]) key = decodeURIComponent(m2[1]);
+          }
         }
         if (key && key.startsWith('avatars/')) {
           // Derive base (without variant suffix) and gather extension candidates
@@ -214,12 +227,25 @@ const AvatarImage = React.forwardRef<
           retriedOnceRef.current = true;
           try {
             let key: string | null = null;
-            const m1 = s.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
-            if (m1 && m1[1] && m1[2]) {
-              key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
-            } else {
-              const m2 = s.match(/\/shqipet\/([^?#\s]+)/i);
-              if (m2 && m2[1]) key = decodeURIComponent(m2[1]);
+            
+            // First try query parameter (for proxy URLs like ?key=avatars/...)
+            try {
+              const url = new URL(s, window.location.origin);
+              const qpKey = url.searchParams.get('key');
+              if (qpKey && /^(uploads|avatars|covers)\//i.test(qpKey)) {
+                key = decodeURIComponent(qpKey);
+              }
+            } catch {}
+            
+            // If no query param, try path extraction
+            if (!key) {
+              const m1 = s.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
+              if (m1 && m1[1] && m1[2]) {
+                key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
+              } else {
+                const m2 = s.match(/\/shqipet\/([^?#\s]+)/i);
+                if (m2 && m2[1]) key = decodeURIComponent(m2[1]);
+              }
             }
             if (key) {
               try { mediaService.clearCache(key); } catch {}
