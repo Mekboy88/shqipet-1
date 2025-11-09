@@ -526,7 +526,10 @@ const CreatePostDesktop: React.FC = () => {
               <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
                 <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all focus:outline-none focus-visible:outline-none">
                   <div className="flex items-center gap-2">
-                    <Save className="w-4 h-4" />
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-600" fill="currentColor">
+                      <path d="M3.5,10V4a2,2,0,0,1,2-2h11a1,1,0,0,1,.71.29l4,4A1,1,0,0,1,21.5,7V20a2,2,0,0,1-2,2H8.5a1,1,0,0,1-1-1V12a1,1,0,0,0-1-1h-2A1,1,0,0,1,3.5,10Z"/>
+                      <path d="M7.5,6a1,1,0,0,1,1-1h2a1,1,0,0,1,0,2h-2A1,1,0,0,1,7.5,6Zm0,9v6a1,1,0,0,0,1,1h9V15a1,1,0,0,0-1-1h-8A1,1,0,0,0,7.5,15ZM3,20.5A1.5,1.5,0,1,0,4.5,19,1.5,1.5,0,0,0,3,20.5ZM4.5,17a1,1,0,0,0,1-1V13a1,1,0,0,0-2,0v3A1,1,0,0,0,4.5,17Z" opacity="0.7"/>
+                    </svg>
                     <span className="font-medium text-sm">Draft & Auto-Save</span>
                   </div>
                   <ChevronDown className="w-4 h-4" />
