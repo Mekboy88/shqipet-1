@@ -69,9 +69,6 @@ const AvatarImage = React.forwardRef<
                  .map((n) => `${map.get(n)} ${widthMap[n]}w`)
                  .join(', ');
                setComputedSrcSet(set);
-               // Prefer highest quality available for clarity
-               const preferred = map.get('large') || map.get('medium') || map.get('small') || map.get('thumbnail');
-               if (preferred) setResolvedSrc(preferred);
              }
            });
         }
@@ -119,9 +116,6 @@ const AvatarImage = React.forwardRef<
                  .map((n) => `${map.get(n)} ${widthMap[n]}w`)
                  .join(', ');
                setComputedSrcSet(set);
-               // Prefer highest quality available for clarity
-               const preferred = map.get('large') || map.get('medium') || map.get('small') || map.get('thumbnail');
-               if (preferred) setResolvedSrc(preferred);
              }
            });
         }
@@ -166,10 +160,10 @@ const AvatarImage = React.forwardRef<
         if (typeof ref === 'function') ref(node);
         else if (ref) ref.current = node;
       }}
-      className={cn("aspect-square h-full w-full object-contain object-center select-none", className)}
+      className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
       src={resolvedSrc}
       srcSet={(props as any).srcSet ?? computedSrcSet}
-      sizes={(props as any).sizes ?? computedSizes}
+      sizes={(props as any).sizes ?? computedSizes ?? "40px"}
       width={dimensions?.width}
       height={dimensions?.height}
       loading="eager"
