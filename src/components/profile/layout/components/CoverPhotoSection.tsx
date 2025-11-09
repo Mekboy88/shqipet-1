@@ -61,30 +61,7 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
           showControls={showCoverControls}
         />
 
-        {/* Quick controls toggle — independent of settings panel */}
-        {isOwnProfile && (
-          showCoverControls ? (
-            <button
-              onClick={() => setShowCoverControls(false)}
-              aria-pressed={true}
-              title="Hide cover controls"
-              className="absolute top-4 right-4 z-50 px-3 py-1.5 rounded-full border text-xs font-medium flex items-center gap-1.5 bg-background/80 backdrop-blur-sm border-border shadow-sm hover:bg-background/90 hover:shadow transition-all"
-            >
-              <EyeOff className="w-3.5 h-3.5" />
-              Hide cover controls
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowCoverControls(true)}
-              aria-pressed={false}
-              title="Show cover controls"
-              className="absolute top-4 right-4 z-50 px-3 py-1.5 rounded-full border text-xs font-medium flex items-center gap-1.5 bg-background/80 backdrop-blur-sm border-border shadow-sm hover:bg-background/90 hover:shadow transition-all md:opacity-0 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              Show cover controls
-            </button>
-          )
-        )}
+        {/* Quick controls toggle removed per request */}
 
 
         {/* Profile Info Section - MATCHES COVER WIDTH */}
