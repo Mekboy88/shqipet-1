@@ -25,14 +25,23 @@ const CoverSettingsPanel: React.FC<CoverSettingsPanelProps> = ({
   onCancelChanges,
   isSaving = false,
 }) => {
+  const [customColor, setCustomColor] = React.useState('#3b82f6');
+  
   const colorOptions = [
     { name: 'White (transparent)', value: 'rgba(255, 255, 255, 0.1)', description: 'A subtle white overlay that blends naturally with your cover photo' },
     { name: 'Dark', value: 'rgba(0, 0, 0, 0.5)', description: 'A semi-transparent dark overlay for better text contrast' },
-    { name: 'Blue', value: 'rgba(59, 130, 246, 0.7)', description: 'A vibrant blue tone that adds a professional touch' },
-    { name: 'Green', value: 'rgba(34, 197, 94, 0.7)', description: 'A fresh green color representing growth and energy' },
-    { name: 'Red', value: 'rgba(239, 68, 68, 0.7)', description: 'A bold red accent that draws attention' },
-    { name: 'Purple', value: 'rgba(168, 85, 247, 0.7)', description: 'A creative purple shade for a unique look' },
   ];
+
+  const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const hex = e.target.value;
+    setCustomColor(hex);
+    // Convert hex to rgba with 70% opacity
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const rgba = `rgba(${r}, ${g}, ${b}, 0.7)`;
+    onButtonColorChange(rgba);
+  };
 
   return (
     <div 
@@ -152,7 +161,7 @@ const CoverSettingsPanel: React.FC<CoverSettingsPanelProps> = ({
           </div>
 
           {/* Color Options Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {colorOptions.map((option) => (
               <button
                 key={option.value}
@@ -175,6 +184,43 @@ const CoverSettingsPanel: React.FC<CoverSettingsPanelProps> = ({
                 </p>
               </button>
             ))}
+            
+            {/* Custom Color Picker Card */}
+            <div
+              className={`flex flex-col items-start p-4 rounded-lg border-2 transition-all ${
+                !colorOptions.some(opt => opt.value === buttonColor)
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <div className="flex items-center gap-3 w-full mb-2">
+                <div
+                  className="w-10 h-10 rounded-md border-2 border-white/30 flex-shrink-0 relative cursor-pointer"
+                  style={{ backgroundColor: customColor }}
+                  onClick={() => document.getElementById('custom-color-input')?.click()}
+                >
+                  {/* Color picker icon overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-md">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <span className="text-sm font-medium block mb-1">Custom Color</span>
+                  <input
+                    id="custom-color-input"
+                    type="color"
+                    value={customColor}
+                    onChange={handleCustomColorChange}
+                    className="w-full h-8 rounded border border-border cursor-pointer"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground text-left">
+                Pick any color you want for your button. The color will be applied with 70% opacity for a professional look.
+              </p>
+            </div>
           </div>
         </div>
 
