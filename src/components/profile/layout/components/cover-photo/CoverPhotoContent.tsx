@@ -373,7 +373,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
       </div>
 
       {/* User Info - positioned on the right side next to profile picture */}
-      {showProfileInfo && profileDisplayName && (
+      {(showProfileInfo || miniMode) && profileDisplayName && (
         <div className="absolute bottom-8 left-48 pt-4">
           <h1 className="font-bold text-white mb-1 text-3xl drop-shadow-lg">
             {profileDisplayName}
