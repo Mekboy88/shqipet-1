@@ -294,8 +294,8 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
         <LoadingDots message="Saving changes..." variant="light" size="md" />
       )}
 
-      {/* Cover Photo Controls - always shown in settings (miniMode), conditionally shown on profile page based on user preference */}
-      {isOwnProfile && (miniMode || showControls) && (
+      {/* Cover Photo Controls - only show on profile page, not in settings (miniMode) */}
+      {isOwnProfile && !miniMode && showControls && (
         <CoverPhotoControls
           isDragMode={isDragMode}
           isSaving={isSaving ?? false}
@@ -303,12 +303,30 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
           onDragModeToggle={onDragModeToggle}
           onSaveChanges={onSaveChanges}
           onCancelChanges={onCancelChanges}
-          onEditCoverClick={miniMode ? onToggleSettingsPanel : onEditCoverClick}
+          onEditCoverClick={onEditCoverClick}
           onMouseDown={onMouseDown}
           onButtonColorChange={onButtonColorChange}
           isOwnProfile={isOwnProfile}
           miniMode={miniMode}
         />
+      )}
+
+      {/* Settings Button - Only show in miniMode (Avatar & Cover settings page) */}
+      {isOwnProfile && miniMode && !isDragMode && onToggleSettingsPanel && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleSettingsPanel();
+          }}
+          className="absolute bottom-4 right-4 bg-black bg-opacity-30 rounded-lg cursor-pointer hover:bg-opacity-50 transition-all duration-200 p-3 flex items-center gap-2"
+        >
+          <svg viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
+            <g>
+              <path fill="#e6e6e6" d="M16 8l-3-3v2h-4v-4h2l-3-3-3 3h2v4h-4v-2l-3 3 3 3v-2h4v4h-2l3 3 3-3h-2v-4h4v2z"></path>
+            </g>
+          </svg>
+        </button>
       )}
 
       {/* Profile Picture - positioned at bottom left with upload animation */}

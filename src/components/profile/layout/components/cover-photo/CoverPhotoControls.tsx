@@ -48,6 +48,7 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
   const handleDragModeToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    // In miniMode, this should open settings panel instead of drag mode
     onDragModeToggle();
   };
 
