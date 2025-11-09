@@ -60,17 +60,20 @@ const AvatarImage = React.forwardRef<
               const k = `${baseKey}-${n}.jpg`;
               try { const u = await mediaService.getUrl(k); return [n, u] as const; } catch { return null; }
             })
-          ).then((pairs) => {
-            const map = new Map(pairs.filter(Boolean) as Array<readonly [string, string]>);
-            if (map.size) {
-              const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
-              const set = names
-                .filter((n) => map.has(n))
-                .map((n) => `${map.get(n)} ${widthMap[n]}w`)
-                .join(', ');
-              setComputedSrcSet(set);
-            }
-          });
+           ).then((pairs) => {
+             const map = new Map(pairs.filter(Boolean) as Array<readonly [string, string]>);
+             if (map.size) {
+               const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
+               const set = names
+                 .filter((n) => map.has(n))
+                 .map((n) => `${map.get(n)} ${widthMap[n]}w`)
+                 .join(', ');
+               setComputedSrcSet(set);
+               // Prefer highest quality available for clarity
+               const preferred = map.get('large') || map.get('medium') || map.get('small') || map.get('thumbnail');
+               if (preferred) setResolvedSrc(preferred);
+             }
+           });
         }
       } catch {}
       return;
@@ -107,17 +110,20 @@ const AvatarImage = React.forwardRef<
               const k = `${baseKey}-${n}.jpg`;
               try { const u = await mediaService.getUrl(k); return [n, u] as const; } catch { return null; }
             })
-          ).then((pairs) => {
-            const map = new Map(pairs.filter(Boolean) as Array<readonly [string, string]>);
-            if (map.size) {
-              const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
-              const set = names
-                .filter((n) => map.has(n))
-                .map((n) => `${map.get(n)} ${widthMap[n]}w`)
-                .join(', ');
-              setComputedSrcSet(set);
-            }
-          });
+           ).then((pairs) => {
+             const map = new Map(pairs.filter(Boolean) as Array<readonly [string, string]>);
+             if (map.size) {
+               const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
+               const set = names
+                 .filter((n) => map.has(n))
+                 .map((n) => `${map.get(n)} ${widthMap[n]}w`)
+                 .join(', ');
+               setComputedSrcSet(set);
+               // Prefer highest quality available for clarity
+               const preferred = map.get('large') || map.get('medium') || map.get('small') || map.get('thumbnail');
+               if (preferred) setResolvedSrc(preferred);
+             }
+           });
         }
       } catch {}
       
@@ -160,7 +166,7 @@ const AvatarImage = React.forwardRef<
         if (typeof ref === 'function') ref(node);
         else if (ref) ref.current = node;
       }}
-      className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
+      className={cn("aspect-square h-full w-full object-contain object-center select-none", className)}
       src={resolvedSrc}
       srcSet={(props as any).srcSet ?? computedSrcSet}
       sizes={(props as any).sizes ?? computedSizes}
