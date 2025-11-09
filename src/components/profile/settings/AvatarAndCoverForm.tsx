@@ -88,7 +88,7 @@ const AvatarAndCoverForm: React.FC = () => {
 
   const [showCoverControls, setShowCoverControls] = useState(true);
   const controlsStorageKey = React.useMemo(() => user?.id ? `profile:showCoverControls:${user.id}` : null, [user?.id]);
-  const [controlsLoaded, setControlsLoaded] = useState(false);
+  
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
 
 const { resolvedUrl: coverResolvedUrl, updateCover: updateCoverV2, refresh: refreshCoverV2 } = useCover();
@@ -185,7 +185,7 @@ useEffect(() => {
       const v = localStorage.getItem(controlsStorageKey);
       if (v !== null) setShowCoverControls(v === '1' || v === 'true');
     } catch {}
-    setControlsLoaded(true);
+    
   }, [controlsStorageKey]);
 
   useEffect(() => {
@@ -261,38 +261,39 @@ useEffect(() => {
     if (isDragMode && ev.target === ev.currentTarget) handleMouseDown(ev);
   };
 
-  const handleToggleCoverControls = async (checked: boolean) => {
-    console.log('Toggling cover controls to:', checked);
+  const handleToggleCoverControls = (checked: boolean) => {
+    console.info('Toggling cover controls to:', checked);
     setShowCoverControls(checked);
 
     // Persist instantly for other views and tabs (local only if no user)
     if (controlsStorageKey) {
       try { localStorage.setItem(controlsStorageKey, checked ? '1' : '0'); } catch {}
     }
+
+    // Notify other tabs / listeners
     try {
       window.dispatchEvent(
         new CustomEvent('cover-controls-changed', { detail: { value: checked, userId: user?.id || null } })
       );
     } catch {}
 
-    // Persist to backend only when user is available
+    // Persist to backend in background (do not revert UI on failure)
     if (user?.id) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ show_cover_controls: checked })
-        .eq('id', user.id);
+      queueMicrotask(async () => {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ show_cover_controls: checked })
+          .eq('id', user.id);
 
-      if (error) {
-        console.error('Error updating cover controls preference:', error);
-        toast.error('Failed to update preference');
-        setShowCoverControls(!checked); // Revert on error
-        if (controlsStorageKey) {
-          try { localStorage.setItem(controlsStorageKey, !checked ? '1' : '0'); } catch {}
+        if (error) {
+          console.error('Error updating cover controls preference:', error);
+          toast.error('Preference saved locally. Sync will retry later.');
+          // Do not revert UI/localStorage here
+        } else {
+          console.info('Successfully updated cover controls to:', checked);
+          toast.success(checked ? 'Cover controls enabled' : 'Cover controls hidden');
         }
-      } else {
-        console.log('Successfully updated cover controls to:', checked);
-        toast.success(checked ? 'Cover controls enabled' : 'Cover controls hidden');
-      }
+      });
     }
   };
 
@@ -381,16 +382,12 @@ useEffect(() => {
             Note: These controls are only visible to you on your own profile. Other users never see these buttons.
           </p>
         </div>
-        {controlsLoaded ? (
           <Switch
             id="cover-controls-toggle"
             checked={showCoverControls}
             onCheckedChange={handleToggleCoverControls}
-            className="cursor-pointer"
+            className="cursor-pointer pointer-events-auto"
           />
-        ) : (
-          <div className="w-11 h-6 rounded-full bg-muted animate-pulse" aria-hidden="true" />
-        )}
       </div>
 
       <input
