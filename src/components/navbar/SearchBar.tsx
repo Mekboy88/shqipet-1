@@ -61,7 +61,7 @@ const SearchBar: React.FC = () => {
               value={searchQuery}
               onChange={handleInputChange}
               onFocus={handleFocus}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:ring-0 focus:border-gray-400 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none hover:border-gray-400 transition-colors bg-white -ml-6"
+              className="w-full pl-10 pr-4 py-2 border border-input rounded-lg text-sm placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-transparent focus:border-t-2 focus:border-t-primary hover:border-muted transition-colors bg-background -ml-6"
             />
           </div>
         </PopoverPrimitive.Anchor>
