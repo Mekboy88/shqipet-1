@@ -15,6 +15,7 @@ interface CoverPhotoControlsProps {
   onMouseDown: (e: React.MouseEvent) => void;
   onButtonColorChange: (color: string) => void;
   isOwnProfile?: boolean; // Only show controls if viewing own profile
+  miniMode?: boolean; // Smaller controls for settings page
 }
 
 const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
@@ -27,7 +28,8 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
   onEditCoverClick,
   onMouseDown,
   onButtonColorChange,
-  isOwnProfile = true // Default to true for backwards compatibility
+  isOwnProfile = true, // Default to true for backwards compatibility
+  miniMode = false // Default to false for normal size
 }) => {
   // Don't render controls if not viewing own profile
   if (!isOwnProfile) {
@@ -88,10 +90,10 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
       {/* Redakto Button - Only show when not in drag mode */}
       {!isDragMode && (
         <div 
-          className="bg-black bg-opacity-30 rounded-lg p-3 cursor-pointer hover:bg-opacity-50 transition-all duration-200" 
+          className={`bg-black bg-opacity-30 rounded-lg cursor-pointer hover:bg-opacity-50 transition-all duration-200 ${miniMode ? 'p-2' : 'p-3'}`}
           onClick={handleRedaktoClick}
         >
-          <svg viewBox="0 0 1024 1024" className="w-6 h-6" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 1024 1024" className={miniMode ? 'w-4 h-4' : 'w-6 h-6'} xmlns="http://www.w3.org/2000/svg">
             <path d="M539.4 550.9m-164.7 0a164.7 164.7 0 1 0 329.4 0 164.7 164.7 0 1 0-329.4 0Z" fill="#e6e6e6"/>
             <path d="M679.3 405.4c-8.9-14-27.4-18.2-41.4-9.3-14 8.9-18.2 27.4-9.3 41.4 14 22.1 21.4 47.7 21.4 74 0 16.6 13.4 30 30 30s30-13.4 30-30c0-37.7-10.6-74.4-30.7-106.1z" fill="#e6e6e6"/>
             <path d="M607.4 611.4c-25.9 24.9-60 38.6-96 38.6-76.4 0-138.5-62.1-138.5-138.5S435 373 511.4 373c22.9 0 44.7 5.4 64.8 16 14.6 7.8 32.8 2.2 40.6-12.5 7.8-14.6 2.2-32.8-12.5-40.6-28.4-15.1-60.5-23-92.9-23-109.5 0-198.5 89.1-198.5 198.5C312.9 620.9 402 710 511.5 710c51.5 0 100.4-19.7 137.5-55.4 11.9-11.5 12.3-30.5 0.8-42.4-11.4-11.9-30.4-12.3-42.4-0.8z" fill="#e6e6e6"/>
@@ -103,27 +105,27 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
       {/* Move/Expand Icon */}
       {!isDragMode ? (
         <div 
-          className="bg-black bg-opacity-30 rounded-lg p-3 cursor-pointer hover:bg-opacity-50 transition-all duration-200 flex items-center gap-2"
+          className={`bg-black bg-opacity-30 rounded-lg cursor-pointer hover:bg-opacity-50 transition-all duration-200 flex items-center gap-2 ${miniMode ? 'p-2' : 'p-3'}`}
           onClick={handleDragModeToggle}
         >
-          <svg viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000" className="w-6 h-6">
+          <svg viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000" className={miniMode ? 'w-4 h-4' : 'w-6 h-6'}>
             <g>
               <path fill="#e6e6e6" d="M16 8l-3-3v2h-4v-4h2l-3-3-3 3h2v4h-4v-2l-3 3 3 3v-2h4v4h-2l3 3 3-3h-2v-4h4v2z"></path>
             </g>
           </svg>
         </div>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className={`flex items-center ${miniMode ? 'gap-1' : 'gap-2'}`}>
           {/* Color Picker for Button */}
-          <div className="bg-black bg-opacity-50 rounded-lg p-2 flex items-center gap-2">
-            <span className="text-white text-xs font-medium">Ngjyra e butonit:</span>
+          <div className={`bg-black bg-opacity-50 rounded-lg flex items-center gap-2 ${miniMode ? 'p-1.5' : 'p-2'}`}>
+            <span className={`text-white font-medium ${miniMode ? 'text-[10px]' : 'text-xs'}`}>Ngjyra e butonit:</span>
             <div className="flex gap-1">
               {colorOptions.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => onButtonColorChange(option.value)}
-                  className={`w-8 h-8 rounded border-2 transition-all ${
+                  className={`${miniMode ? 'w-6 h-6' : 'w-8 h-8'} rounded border-2 transition-all ${
                     buttonColor === option.value ? 'border-white scale-110' : 'border-white/30 hover:border-white/60'
                   }`}
                   style={{ backgroundColor: option.value }}
@@ -135,15 +137,15 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
 
           {/* Active Drag Icon */}
           <div 
-            className="bg-blue-600 bg-opacity-80 rounded-lg p-3 cursor-grab hover:bg-opacity-90 transition-all duration-200 flex items-center gap-2"
+            className={`bg-blue-600 bg-opacity-80 rounded-lg cursor-grab hover:bg-opacity-90 transition-all duration-200 flex items-center gap-2 ${miniMode ? 'p-2' : 'p-3'}`}
             onMouseDown={handleMouseDown}
           >
-            <svg viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000" className="w-6 h-6">
+            <svg viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000" className={miniMode ? 'w-4 h-4' : 'w-6 h-6'}>
               <g>
                 <path fill="#ffffff" d="M16 8l-3-3v2h-4v-4h2l-3-3-3 3h2v4h-4v-2l-3 3 3 3v-2h4v4h-2l3 3 3-3h-2v-4h4v2z"></path>
               </g>
             </svg>
-            <span className="text-white text-sm font-medium">Zvarrit për të rregulluar</span>
+            <span className={`text-white font-medium ${miniMode ? 'text-xs' : 'text-sm'}`}>Zvarrit për të rregulluar</span>
           </div>
           
           {/* Save Changes Button */}
@@ -152,9 +154,9 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
             onClick={handleSaveChanges}
             disabled={isSaving}
             aria-busy={isSaving}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            className={`bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 ${miniMode ? 'px-3 py-1.5 text-xs' : 'px-4 py-2'}`}
           >
-            <Save className="w-4 h-4" />
+            <Save className={miniMode ? 'w-3 h-3' : 'w-4 h-4'} />
             {isSaving ? 'Duke ruajtur…' : 'Ruaj ndryshimet'}
           </Button>
 
@@ -164,9 +166,9 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
             onClick={handleCancelChanges}
             disabled={isSaving}
             variant="outline"
-            className="bg-red-600 hover:bg-red-700 text-white border-red-600 px-3 py-2 rounded-lg flex items-center gap-1"
+            className={`bg-red-600 hover:bg-red-700 text-white border-red-600 rounded-lg flex items-center gap-1 ${miniMode ? 'px-2 py-1.5' : 'px-3 py-2'}`}
           >
-            <X className="w-4 h-4" />
+            <X className={miniMode ? 'w-3 h-3' : 'w-4 h-4'} />
           </Button>
         </div>
       )}
@@ -174,10 +176,10 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
       {/* Edit Icon - Only show when not in drag mode */}
       {!isDragMode && (
         <div 
-          className="bg-black bg-opacity-30 rounded-lg p-3 cursor-pointer hover:bg-opacity-50 transition-all duration-200" 
+          className={`bg-black bg-opacity-30 rounded-lg cursor-pointer hover:bg-opacity-50 transition-all duration-200 ${miniMode ? 'p-2' : 'p-3'}`}
           onClick={handleEditCoverClick}
         >
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={miniMode ? 'w-4 h-4' : 'w-6 h-6'}>
             <g>
               <path d="M7 11C8.10457 11 9 10.1046 9 9C9 7.89543 8.10457 7 7 7C5.89543 7 5 7.89543 5 9C5 10.1046 5.89543 11 7 11Z" stroke="#e6e6e6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
               <path d="M5.56055 21C11.1305 11.1 15.7605 9.35991 21.0005 15.7899" stroke="#e6e6e6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>

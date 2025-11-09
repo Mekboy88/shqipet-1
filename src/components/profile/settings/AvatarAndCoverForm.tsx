@@ -246,6 +246,7 @@ useEffect(() => {
           showProfileInfo={false}
           containerClassName="!h-auto aspect-[12/5] w-full max-w-[1200px]"
           isOwnProfile={true}
+          miniMode={true}
         />
 
 
