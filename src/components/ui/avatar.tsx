@@ -29,6 +29,7 @@ const AvatarImage = React.forwardRef<
   const imgRef = React.useRef<HTMLImageElement>(null);
   const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
   const [computedSizes, setComputedSizes] = React.useState<string | undefined>(undefined);
+  const [computedSrcSet, setComputedSrcSet] = React.useState<string | undefined>(undefined);
 
   React.useEffect(() => {
     const raw = typeof src === 'string' ? src : '';
@@ -68,6 +69,76 @@ const AvatarImage = React.forwardRef<
     setResolvedSrc(raw);
   }, [src]);
 
+  // Build responsive srcset from variant keys when available
+  React.useEffect(() => {
+    const raw = typeof src === 'string' ? src : '';
+    if (!raw) {
+      setComputedSrcSet(undefined);
+      return;
+    }
+
+    let key: string | null = null;
+    try {
+      const u = new URL(raw, window.location.origin);
+      const qp = u.searchParams.get('key');
+      if (qp) key = decodeURIComponent(qp);
+    } catch {}
+
+    if (!key) {
+      const m = raw.match(/^(uploads|avatars|covers)\/([^?#\s]+)/i);
+      if (m && m[1] && m[2]) key = `${m[1]}/${m[2]}`;
+    }
+
+    if (!key && resolvedSrc) {
+      try {
+        const u2 = new URL(resolvedSrc);
+        const qp2 = u2.searchParams.get('key');
+        if (qp2) key = decodeURIComponent(qp2);
+      } catch {}
+      if (!key) {
+        const m2 = resolvedSrc.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
+        if (m2 && m2[1] && m2[2]) key = `${m2[1]}/${decodeURIComponent(m2[2])}`;
+      }
+    }
+
+    if (!key || !/^avatars\//i.test(key)) {
+      setComputedSrcSet(undefined);
+      return;
+    }
+
+    const originalMatch = key.match(/^(avatars\/.+)-original\.[A-Za-z0-9]+$/i);
+    if (!originalMatch) {
+      setComputedSrcSet(undefined);
+      return;
+    }
+
+    const base = originalMatch[1];
+    const variants = [
+      { suffix: 'thumbnail.jpg', w: 80 },
+      { suffix: 'small.jpg', w: 160 },
+      { suffix: 'medium.jpg', w: 320 },
+      { suffix: 'large.jpg', w: 640 },
+    ];
+
+    let canceled = false;
+    (async () => {
+      const settled = await Promise.allSettled(
+        variants.map(v => mediaService.getUrl(`${base}-${v.suffix}`))
+      );
+      const parts: string[] = [];
+      settled.forEach((res, i) => {
+        if (res.status === 'fulfilled' && typeof res.value === 'string') {
+          parts.push(`${res.value} ${variants[i].w}w`);
+        }
+      });
+      if (!canceled) {
+        setComputedSrcSet(parts.length ? parts.join(', ') : undefined);
+      }
+    })();
+
+    return () => { canceled = true; };
+  }, [src, resolvedSrc]);
+
   // Measure container size and set integer dimensions for crisp rendering
   React.useLayoutEffect(() => {
     const img = imgRef.current;
@@ -101,6 +172,7 @@ const AvatarImage = React.forwardRef<
       }}
       className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
       src={resolvedSrc}
+      srcSet={computedSrcSet}
       sizes={computedSizes ?? "40px"}
       width={dimensions?.width}
       height={dimensions?.height}
