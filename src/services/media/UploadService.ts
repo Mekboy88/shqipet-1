@@ -97,10 +97,16 @@ class UploadService {
         formData.append('userId', userId);
       }
 
-      // Upload directly to wasabi-upload edge function using multipart/form-data
+      // Use image-optimizer for avatar and cover photos, wasabi-upload for others
       const baseUrl = import.meta.env.VITE_SUPABASE_URL as string;
       const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-      const response = await fetch(`${baseUrl}/functions/v1/wasabi-upload`, {
+      const edgeFunction = (mediaType === 'avatar' || mediaType === 'cover') 
+        ? 'image-optimizer' 
+        : 'wasabi-upload';
+      
+      console.log(`📤 Using ${edgeFunction} for ${mediaType} upload`);
+      
+      const response = await fetch(`${baseUrl}/functions/v1/${edgeFunction}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${session.access_token}`,
