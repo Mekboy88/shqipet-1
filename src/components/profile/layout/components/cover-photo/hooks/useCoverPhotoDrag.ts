@@ -72,6 +72,18 @@ export const useCoverPhotoDrag = () => {
     };
     
     loadButtonColor();
+
+    // Listen for color changes from other components
+    const handleColorChange = (e: CustomEvent) => {
+      if (e.detail?.color && e.detail?.userId === userId) {
+        setButtonColor(e.detail.color);
+      }
+    };
+
+    window.addEventListener('button-color-changed', handleColorChange as EventListener);
+    return () => {
+      window.removeEventListener('button-color-changed', handleColorChange as EventListener);
+    };
   }, [userId]);
 
   // Save button color to database
@@ -90,6 +102,11 @@ export const useCoverPhotoDrag = () => {
         console.error('Error saving button color:', error);
         toast.error('Failed to save color');
       } else {
+        // Broadcast color change to other components
+        window.dispatchEvent(new CustomEvent('button-color-changed', { 
+          detail: { color, userId } 
+        }));
+        
         toast.success('Color saved automatically', {
           duration: 2000,
         });
