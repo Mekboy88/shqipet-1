@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useCover } from '@/hooks/media/useCover';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useCoverPhotoDrag = () => {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export const useCoverPhotoDrag = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [buttonColor, setButtonColor] = useState('rgba(255, 255, 255, 0.1)');
   const [originalButtonColor, setOriginalButtonColor] = useState('rgba(255, 255, 255, 0.1)');
+  const [isSavingColor, setIsSavingColor] = useState(false);
   const coverRef = useRef<HTMLDivElement>(null);
   const rafId = useRef<number | null>(null);
   const lastMouseYRef = useRef(0);
@@ -52,6 +54,54 @@ export const useCoverPhotoDrag = () => {
     setInitialY(currentY);
   }, [currentY]);
 
+  // Load button color from database on mount
+  useEffect(() => {
+    if (!userId) return;
+    
+    const loadButtonColor = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('professional_button_color')
+        .eq('id', userId)
+        .single();
+      
+      if (data?.professional_button_color && !error) {
+        setButtonColor(data.professional_button_color);
+        setOriginalButtonColor(data.professional_button_color);
+      }
+    };
+    
+    loadButtonColor();
+  }, [userId]);
+
+  // Save button color to database
+  const saveButtonColor = async (color: string) => {
+    if (!userId || isSavingColor) return;
+    
+    setIsSavingColor(true);
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ professional_button_color: color })
+        .eq('id', userId);
+      
+      if (error) {
+        console.error('Error saving button color:', error);
+        toast.error('Failed to save color');
+      } else {
+        toast.success('Color saved automatically', {
+          duration: 2000,
+        });
+      }
+    } catch (err) {
+      console.error('Error saving button color:', err);
+      toast.error('Failed to save color');
+    } finally {
+      setIsSavingColor(false);
+    }
+  };
+
   // Drag handlers
   const handleDragModeToggle = () => {
     if (!isPositionChanging) {
@@ -73,9 +123,12 @@ export const useCoverPhotoDrag = () => {
     toast.info("Changes cancelled");
   };
 
-  const handleButtonColorChange = (color: string) => {
+  const handleButtonColorChange = async (color: string) => {
     setButtonColor(color);
     setHasUnsavedChanges(true);
+    
+    // Auto-save the color to database
+    await saveButtonColor(color);
   };
 
   const handleSaveChanges = async () => {
