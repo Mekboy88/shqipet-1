@@ -331,10 +331,11 @@ const CreatePostDesktop: React.FC = () => {
               <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
                 <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all focus:outline-none focus-visible:outline-none">
                   <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" viewBox="0 0 32 32" fill="none" stroke="#4b5563" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="10" y1="12" x2="19" y2="12"></line>
-                      <line x1="10" y1="16" x2="14" y2="16"></line>
-                      <path d="M11,4c-4.4,0-8,3.6-8,8v12v5l0,0c3.7-3.2,8.4-5,13.3-5H21c4.4,0,8-3.6,8-8v-4c0-4.4-3.6-8-8-8H11z"></path>
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
+                      <path d="M12 4V4C8.22876 4 6.34315 4 5.17157 5.17157C4 6.34315 4 8.22876 4 12V18C4 18.9428 4 19.4142 4.29289 19.7071C4.58579 20 5.05719 20 6 20H12C15.7712 20 17.6569 20 18.8284 18.8284C20 17.6569 20 15.7712 20 12V12" stroke="#4b5563" strokeWidth="2"></path>
+                      <path d="M9 10L15 10" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                      <path d="M9 14H12" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                      <path d="M19 8L19 2M16 5H22" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
                     </svg>
                     <span className="font-medium text-sm">Comments & Privacy</span>
                   </div>
