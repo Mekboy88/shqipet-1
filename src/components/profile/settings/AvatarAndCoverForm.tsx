@@ -17,9 +17,12 @@ import {
   AvatarImage as UIAvatarImage,
   AvatarFallback as UIAvatarFallback,
 } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 import { supabase } from '@/integrations/supabase/client';
 import { mediaService } from '@/services/media/MediaService';
+import { useAuth } from '@/contexts/AuthContext';
 
 /* --------------------------- helpers & utilities -------------------------- */
 
@@ -75,11 +78,14 @@ function useSmoothProgress(active: boolean) {
 /* --------------------------------- main ---------------------------------- */
 
 const AvatarAndCoverForm: React.FC = () => {
+  const { user } = useAuth();
   const {
     coverPhotoUrl: globalCoverUrl,
     coverPosition,
     isLoading: globalCoverLoading,
   } = useGlobalCoverPhoto();
+
+  const [showCoverControls, setShowCoverControls] = useState(true);
 
 const { resolvedUrl: coverResolvedUrl, updateCover: updateCoverV2, refresh: refreshCoverV2 } = useCover();
 
@@ -144,6 +150,25 @@ useEffect(() => {
       .catch(() => { if (!cancelled) setDisplayedUrl(''); });
     return () => { cancelled = true; };
   }, [globalCoverUrl, coverResolvedUrl]);
+
+  // Load show_cover_controls preference from database
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const loadControlsPreference = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('show_cover_controls')
+        .eq('id', user.id)
+        .single();
+      
+      if (data && !error) {
+        setShowCoverControls(data.show_cover_controls ?? true);
+      }
+    };
+    
+    loadControlsPreference();
+  }, [user?.id]);
 
   useEffect(() => {
     if (coverRef.current && coverPosition) {
@@ -218,6 +243,25 @@ useEffect(() => {
     if (isDragMode && ev.target === ev.currentTarget) handleMouseDown(ev);
   };
 
+  const handleToggleCoverControls = async (checked: boolean) => {
+    if (!user?.id) return;
+    
+    setShowCoverControls(checked);
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ show_cover_controls: checked })
+      .eq('id', user.id);
+    
+    if (error) {
+      console.error('Error updating cover controls preference:', error);
+      toast.error('Failed to update preference');
+      setShowCoverControls(!checked); // Revert on error
+    } else {
+      toast.success(checked ? 'Cover controls enabled' : 'Cover controls hidden');
+    }
+  };
+
   const isCoverLoading = coverUploading;
 
   return (
@@ -227,6 +271,24 @@ useEffect(() => {
         isUploading={isCoverLoading} 
         progress={isCoverLoading ? coverProgress : 0} 
       />
+
+      {/* Cover Controls Toggle */}
+      <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
+        <div className="space-y-1">
+          <Label htmlFor="cover-controls-toggle" className="text-sm font-medium">
+            Show Cover Photo Controls
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            When turned off, the edit, reposition, and color picker buttons will be hidden from your profile cover photo. 
+            This gives you a cleaner look when viewing your profile. You can turn them back on anytime from this settings page.
+          </p>
+        </div>
+        <Switch
+          id="cover-controls-toggle"
+          checked={showCoverControls}
+          onCheckedChange={handleToggleCoverControls}
+        />
+      </div>
       
       <CoverPhotoContent
           coverPhotoUrl={displayedUrl || ''}
@@ -247,6 +309,7 @@ useEffect(() => {
           containerClassName="!h-auto aspect-[12/5] w-full max-w-[1200px]"
           isOwnProfile={true}
           miniMode={true}
+          showControls={showCoverControls}
         />
 
 

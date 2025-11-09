@@ -36,6 +36,7 @@ interface CoverPhotoContentProps {
   containerClassName?: string;
   isOwnProfile?: boolean; // Pass down to controls
   miniMode?: boolean; // Pass down to controls
+  showControls?: boolean; // Control visibility of edit buttons
 }
 
 const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
@@ -56,7 +57,8 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   showProfileInfo = true,
   containerClassName,
   isOwnProfile = true,
-  miniMode = false
+  miniMode = false,
+  showControls = true
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -288,19 +290,22 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
         <LoadingDots message="Saving changes..." variant="light" size="md" />
       )}
 
-      <CoverPhotoControls
-        isDragMode={isDragMode}
-        isSaving={isSaving ?? false}
-        buttonColor={buttonColor}
-        onDragModeToggle={onDragModeToggle}
-        onSaveChanges={onSaveChanges}
-        onCancelChanges={onCancelChanges}
-        onEditCoverClick={onEditCoverClick}
-        onMouseDown={onMouseDown}
-        onButtonColorChange={onButtonColorChange}
-        isOwnProfile={isOwnProfile}
-        miniMode={miniMode}
-      />
+      {/* Cover Photo Controls - conditionally shown based on user preference */}
+      {isOwnProfile && showControls && (
+        <CoverPhotoControls
+          isDragMode={isDragMode}
+          isSaving={isSaving ?? false}
+          buttonColor={buttonColor}
+          onDragModeToggle={onDragModeToggle}
+          onSaveChanges={onSaveChanges}
+          onCancelChanges={onCancelChanges}
+          onEditCoverClick={onEditCoverClick}
+          onMouseDown={onMouseDown}
+          onButtonColorChange={onButtonColorChange}
+          isOwnProfile={isOwnProfile}
+          miniMode={miniMode}
+        />
+      )}
 
       {/* Profile Picture - positioned at bottom left with upload animation */}
       <div className="absolute bottom-4 left-4">

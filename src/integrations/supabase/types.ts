@@ -1022,6 +1022,7 @@ export type Database = {
           photo_transform: Json | null
           prefers_desktop: boolean
           primary_role: string | null
+          show_cover_controls: boolean | null
           updated_at: string
           username: string | null
         }
@@ -1050,6 +1051,7 @@ export type Database = {
           photo_transform?: Json | null
           prefers_desktop?: boolean
           primary_role?: string | null
+          show_cover_controls?: boolean | null
           updated_at?: string
           username?: string | null
         }
@@ -1078,6 +1080,7 @@ export type Database = {
           photo_transform?: Json | null
           prefers_desktop?: boolean
           primary_role?: string | null
+          show_cover_controls?: boolean | null
           updated_at?: string
           username?: string | null
         }
