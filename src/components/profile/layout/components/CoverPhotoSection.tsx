@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCoverPhotoDrag } from './cover-photo/hooks/useCoverPhotoDrag';
 import CoverPhotoContent from './cover-photo/CoverPhotoContent';
 import ProfileNavigationTabs from './cover-photo/ProfileNavigationTabs';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CoverPhotoSectionProps {
   coverPhotoUrl: string;
@@ -19,6 +21,9 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
   setActiveTab,
   isOwnProfile = true
 }) => {
+  const { user } = useAuth();
+  const [showCoverControls, setShowCoverControls] = useState(true);
+
   const {
     isDragging,
     isDragMode,
@@ -33,6 +38,25 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
     handleMouseUp,
     handleButtonColorChange
   } = useCoverPhotoDrag();
+
+  // Load show_cover_controls preference from database
+  useEffect(() => {
+    if (!user?.id || !isOwnProfile) return;
+    
+    const loadControlsPreference = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('show_cover_controls')
+        .eq('id', user.id)
+        .single();
+      
+      if (data && !error) {
+        setShowCoverControls(data.show_cover_controls ?? true);
+      }
+    };
+    
+    loadControlsPreference();
+  }, [user?.id, isOwnProfile]);
 
   return (
     <>
@@ -54,6 +78,7 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
           onMouseUp={handleMouseUp}
           onButtonColorChange={handleButtonColorChange}
           isOwnProfile={isOwnProfile}
+          showControls={showCoverControls}
         />
 
         {/* Profile Info Section - MATCHES COVER WIDTH */}
