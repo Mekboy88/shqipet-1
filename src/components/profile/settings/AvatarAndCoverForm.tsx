@@ -24,6 +24,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { mediaService } from '@/services/media/MediaService';
 import { useAuth } from '@/contexts/AuthContext';
 import CoverSettingsPanel from './CoverSettingsPanel';
+import { useCoverControlsPreference } from '@/hooks/useCoverControlsPreference';
 
 /* --------------------------- helpers & utilities -------------------------- */
 
@@ -86,8 +87,7 @@ const AvatarAndCoverForm: React.FC = () => {
     isLoading: globalCoverLoading,
   } = useGlobalCoverPhoto();
 
-  const [showCoverControls, setShowCoverControls] = useState(true);
-  const controlsStorageKey = React.useMemo(() => user?.id ? `profile:showCoverControls:${user.id}` : null, [user?.id]);
+  const { value: showCoverControls, setValue: setShowCoverControls } = useCoverControlsPreference();
   
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
 
@@ -155,38 +155,6 @@ useEffect(() => {
     return () => { cancelled = true; };
   }, [globalCoverUrl, coverResolvedUrl]);
 
-  // Load show_cover_controls preference from database
-  useEffect(() => {
-    if (!user?.id) return;
-    
-    const loadControlsPreference = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('show_cover_controls')
-        .eq('id', user.id)
-        .single();
-      
-      if (data && !error) {
-        const value = data.show_cover_controls ?? true;
-        setShowCoverControls(value);
-        if (controlsStorageKey) {
-          try { localStorage.setItem(controlsStorageKey, value ? '1' : '0'); } catch {}
-        }
-      }
-    };
-    
-    loadControlsPreference();
-  }, [user?.id]);
-
-  // Read from localStorage immediately to avoid UI flicker
-  useEffect(() => {
-    if (!controlsStorageKey) return;
-    try {
-      const v = localStorage.getItem(controlsStorageKey);
-      if (v !== null) setShowCoverControls(v === '1' || v === 'true');
-    } catch {}
-    
-  }, [controlsStorageKey]);
 
   useEffect(() => {
     if (coverRef.current && coverPosition) {
@@ -262,39 +230,8 @@ useEffect(() => {
   };
 
   const handleToggleCoverControls = (checked: boolean) => {
-    console.info('Toggling cover controls to:', checked);
     setShowCoverControls(checked);
-
-    // Persist instantly for other views and tabs (local only if no user)
-    if (controlsStorageKey) {
-      try { localStorage.setItem(controlsStorageKey, checked ? '1' : '0'); } catch {}
-    }
-
-    // Notify other tabs / listeners
-    try {
-      window.dispatchEvent(
-        new CustomEvent('cover-controls-changed', { detail: { value: checked, userId: user?.id || null } })
-      );
-    } catch {}
-
-    // Persist to backend in background (do not revert UI on failure)
-    if (user?.id) {
-      queueMicrotask(async () => {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ show_cover_controls: checked })
-          .eq('id', user.id);
-
-        if (error) {
-          console.error('Error updating cover controls preference:', error);
-          toast.error('Preference saved locally. Sync will retry later.');
-          // Do not revert UI/localStorage here
-        } else {
-          console.info('Successfully updated cover controls to:', checked);
-          toast.success(checked ? 'Cover controls enabled' : 'Cover controls hidden');
-        }
-      });
-    }
+    toast.success(checked ? 'Cover controls enabled' : 'Cover controls hidden');
   };
 
   const isCoverLoading = coverUploading;
