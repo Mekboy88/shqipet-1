@@ -24,7 +24,7 @@ const SlidingMenuPanel: React.FC<SlidingMenuPanelProps> = ({ isOpen, onClose }) 
       
       {/* Sliding Panel */}
       <div 
-        className={`fixed top-12 right-0 h-[calc(100vh-3rem)] w-[420px] bg-gray-50 shadow-2xl z-50 transform transition-transform duration-300 ease-out ${
+        className={`fixed top-12 right-0 h-[calc(100vh-3rem)] w-[420px] bg-gray-50 shadow-2xl z-50 transform transition-transform duration-300 ease-out flex flex-col ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -42,14 +42,14 @@ const SlidingMenuPanel: React.FC<SlidingMenuPanelProps> = ({ isOpen, onClose }) 
         </div>
         
         {/* Content Area */}
-        <div className="flex-1 p-3 overflow-hidden h-full">
-          <div className="grid grid-cols-4 gap-x-1.5 gap-y-0.5 h-full">
+        <div className="flex-1 p-3 overflow-hidden">
+          <div className="grid grid-cols-4 grid-rows-6 gap-x-1.5 gap-y-0.5 h-full">
             {emptyCards.map((cardIndex) => (
-              <div key={cardIndex} className="flex flex-col items-center">
+              <div key={cardIndex} className="relative">
                 {cardIndex === 0 ? (
                   <Link 
                     to="/tasks" 
-                    className="aspect-[6/5] xl:aspect-square bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 flex items-center justify-center w-full cursor-pointer"
+                    className="relative w-full h-full bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 flex items-center justify-center cursor-pointer"
                     style={{
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05)',
                       background: 'linear-gradient(45deg, #FFF0C4 0%, #FFF5D6 25%, #FFFAE8 50%, #FFFFFF 75%, #F0EFEF 100%)'
@@ -86,10 +86,13 @@ const SlidingMenuPanel: React.FC<SlidingMenuPanelProps> = ({ isOpen, onClose }) 
                         </g>
                       </svg>
                     </div>
+                    <div className="absolute bottom-1 left-1 right-1 text-[10px] text-gray-700 text-center pointer-events-none">
+                      Detyrat
+                    </div>
                   </Link>
                 ) : (
                   <div
-                    className="aspect-[6/5] xl:aspect-square bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 flex items-center justify-center w-full"
+                    className="relative w-full h-full bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 flex items-center justify-center"
                     style={{
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05)'
                     }}
@@ -99,9 +102,6 @@ const SlidingMenuPanel: React.FC<SlidingMenuPanelProps> = ({ isOpen, onClose }) 
                       <div className="text-xs">Empty</div>
                     </div>
                   </div>
-                )}
-                {cardIndex === 0 && (
-                  <div className="text-xs text-gray-600 mt-1 text-center">Detyrat</div>
                 )}
               </div>
             ))}
