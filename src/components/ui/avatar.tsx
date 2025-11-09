@@ -28,141 +28,37 @@ const AvatarImage = React.forwardRef<
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
   const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
-  const [computedSrcSet, setComputedSrcSet] = React.useState<string | undefined>(undefined);
   const [computedSizes, setComputedSizes] = React.useState<string | undefined>(undefined);
 
   React.useEffect(() => {
     const raw = typeof src === 'string' ? src : '';
-    try { (window as any).__avatarImageGlobalLast = { raw, ts: Date.now() }; } catch {}
-
+    
     if (!raw) {
-      console.warn('🧪 AvatarImageGlobal: empty src', { props });
       setResolvedSrc(undefined);
-      setComputedSrcSet(undefined);
       return;
     }
 
     // If already a direct URL/blob/data use as-is
     if (/^(https?:|blob:|data:)/i.test(raw)) {
       setResolvedSrc(raw);
-      // Try to derive key from URL for srcset
-      try {
-        // Extract storage key from various URL formats
-        let key: string | null = null;
-        
-        // First try query parameter (for proxy URLs like ?key=avatars/...)
-        try {
-          const url = new URL(raw, window.location.origin);
-          const qpKey = url.searchParams.get('key');
-          if (qpKey && /^(uploads|avatars|covers)\//i.test(qpKey)) {
-            key = decodeURIComponent(qpKey);
-          }
-        } catch {}
-        
-        // If no query param, try path extraction
-        if (!key) {
-          const m1 = raw.match(/\/(uploads|avatars|covers)\/([^?#\s]+)/i);
-          if (m1 && m1[1] && m1[2]) {
-            key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
-          } else {
-            const m2 = raw.match(/\/shqipet\/([^?#\s]+)/i);
-            if (m2 && m2[1]) key = decodeURIComponent(m2[1]);
-          }
-        }
-        if (key && key.startsWith('avatars/')) {
-          // Derive base (without variant suffix) and gather extension candidates
-          const baseNoExt = key
-            .replace(/\.[^./?#]+$/i, '') // strip extension
-            .replace(/-(original|thumbnail|small|medium|large)$/i, '');
-          const extMatch = key.match(/\.([^./?#]+)(?:$|[?#])/i);
-          const primaryExt = (extMatch?.[1] || 'jpg').toLowerCase();
-          const extCandidates = Array.from(new Set([primaryExt, 'jpg', 'jpeg', 'png', 'webp']));
-          const names = ['thumbnail','small','medium','large'] as const;
-
-          (async () => {
-            const results = await Promise.all(
-              names.map(async (n) => {
-                for (const ext of extCandidates) {
-                  const k = `${baseNoExt}-${n}.${ext}`;
-                  try {
-                    const u = await mediaService.getUrl(k);
-                    return [n, u] as const;
-                  } catch {}
-                }
-                return null;
-              })
-            );
-
-            const map = new Map(results.filter(Boolean) as Array<readonly [string, string]>);
-            if (map.size) {
-              const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
-              const set = names
-                .filter((n) => map.has(n))
-                .map((n) => `${map.get(n)} ${widthMap[n]}w`)
-                .join(', ');
-              setComputedSrcSet(set);
-            }
-          })();
-        }
-      } catch {}
+      return;
     }
 
-    // If looks like a Wasabi key (uploads|avatars|covers), resolve it via mediaService with retry
+    // If looks like a Wasabi key (uploads|avatars|covers), resolve it via mediaService
     if (/^(uploads|avatars|covers)\//i.test(raw)) {
       let canceled = false;
-      console.log('🧪 AvatarImageGlobal: resolving key', raw.slice(0, 140));
       
       const resolveWithRetry = async (attempt = 1): Promise<void> => {
         try {
           const url = await mediaService.getUrl(raw);
           if (!canceled) setResolvedSrc(url);
         } catch (e) {
-          console.warn(`⚠️ AvatarImageGlobal: resolve failed (attempt ${attempt}):`, e);
+          console.warn(`⚠️ AvatarImage: resolve failed (attempt ${attempt}):`, e);
           if (attempt < 3 && !canceled) {
-            // Retry with exponential backoff
             setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
           }
-          // On final failure, keep the previous resolvedSrc (don't clear it)
         }
       };
-      
-      // Build srcset for avatar keys
-      try {
-        if (raw.startsWith('avatars/')) {
-          const baseNoExt = raw
-            .replace(/\.[^./?#]+$/i, '') // strip extension
-            .replace(/-(original|thumbnail|small|medium|large)$/i, '');
-          const extMatch = raw.match(/\.([^./?#]+)(?:$|[?#])/i);
-          const primaryExt = (extMatch?.[1] || 'jpg').toLowerCase();
-          const extCandidates = Array.from(new Set([primaryExt, 'jpg', 'jpeg', 'png', 'webp']));
-          const names = ['thumbnail','small','medium','large'] as const;
-
-          (async () => {
-            const results = await Promise.all(
-              names.map(async (n) => {
-                for (const ext of extCandidates) {
-                  const k = `${baseNoExt}-${n}.${ext}`;
-                  try {
-                    const u = await mediaService.getUrl(k);
-                    return [n, u] as const;
-                  } catch {}
-                }
-                return null;
-              })
-            );
-
-            const map = new Map(results.filter(Boolean) as Array<readonly [string, string]>);
-            if (map.size) {
-              const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
-              const set = names
-                .filter((n) => map.has(n))
-                .map((n) => `${map.get(n)} ${widthMap[n]}w`)
-                .join(', ');
-              setComputedSrcSet(set);
-            }
-          })();
-        }
-      } catch {}
       
       resolveWithRetry();
       return () => { canceled = true; };
@@ -205,8 +101,7 @@ const AvatarImage = React.forwardRef<
       }}
       className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
       src={resolvedSrc}
-      srcSet={(props as any).srcSet ?? computedSrcSet}
-      sizes={(props as any).sizes ?? computedSizes ?? "40px"}
+      sizes={computedSizes ?? "40px"}
       width={dimensions?.width}
       height={dimensions?.height}
       loading="eager"
@@ -214,21 +109,15 @@ const AvatarImage = React.forwardRef<
       // @ts-ignore - not in TS types but supported by browsers
       fetchpriority="high"
       draggable={false}
-      onLoad={(e) => {
-        const s = (e.currentTarget as HTMLImageElement).currentSrc;
-        console.log('🧪 AvatarImageGlobal onLoad', { src: s.slice(0, 140) });
-        onLoad?.(e);
-      }}
+      onLoad={onLoad}
       onError={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
-        console.warn('🧪 AvatarImageGlobal onError', { src: s, origSrc: src });
-        // Attempt one-time recovery by deriving key and refreshing a fresh URL
-        if (!retriedOnceRef.current && typeof s === 'string' && /wasabi|s3/i.test(s)) {
+        // Attempt one-time recovery
+        if (!retriedOnceRef.current && typeof s === 'string') {
           retriedOnceRef.current = true;
           try {
             let key: string | null = null;
-            
-            // First try query parameter (for proxy URLs like ?key=avatars/...)
+            // Try query parameter first
             try {
               const url = new URL(s, window.location.origin);
               const qpKey = url.searchParams.get('key');
@@ -236,26 +125,18 @@ const AvatarImage = React.forwardRef<
                 key = decodeURIComponent(qpKey);
               }
             } catch {}
-            
-            // If no query param, try path extraction
+            // Try path extraction
             if (!key) {
               const m1 = s.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
               if (m1 && m1[1] && m1[2]) {
                 key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
-              } else {
-                const m2 = s.match(/\/shqipet\/([^?#\s]+)/i);
-                if (m2 && m2[1]) key = decodeURIComponent(m2[1]);
               }
             }
             if (key) {
-              try { mediaService.clearCache(key); } catch {}
-              mediaService.getUrl(key)
-                .then((fresh) => { if (fresh) setResolvedSrc(fresh); })
-                .catch((err) => console.warn('⚠️ AvatarImageGlobal: refresh failed', err));
+              mediaService.clearCache(key);
+              mediaService.getUrl(key).then(setResolvedSrc).catch(() => {});
             }
-          } catch (err) {
-            console.warn('⚠️ AvatarImageGlobal: derive key failed', err);
-          }
+          } catch {}
         }
         onError?.(e);
       }}
