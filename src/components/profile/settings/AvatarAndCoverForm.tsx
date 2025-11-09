@@ -4,6 +4,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { Pencil, Move, Palette } from 'lucide-react';
 
 import { useGlobalCoverPhoto } from '@/hooks/useGlobalCoverPhoto';
 import { useCoverPhotoDrag } from '@/components/profile/layout/components/cover-photo/hooks/useCoverPhotoDrag';
@@ -296,13 +297,16 @@ useEffect(() => {
 
       {/* Cover Controls Toggle */}
       <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label htmlFor="cover-controls-toggle" className="text-sm font-medium">
             Show Cover Photo Controls
           </Label>
           <p className="text-xs text-muted-foreground">
-            When turned off, the edit, reposition, and color picker buttons will be hidden from your profile cover photo. 
+            When turned off, the <Pencil className="inline w-3 h-3 mx-0.5" /> edit, <Move className="inline w-3 h-3 mx-0.5" /> reposition, and <Palette className="inline w-3 h-3 mx-0.5" /> color picker buttons will be hidden from your profile cover photo. 
             This gives you a cleaner look when viewing your profile. You can turn them back on anytime from this settings page.
+          </p>
+          <p className="text-xs text-muted-foreground font-medium">
+            Note: These controls are only visible to you on your own profile. Other users never see these buttons.
           </p>
         </div>
         <Switch
