@@ -58,7 +58,7 @@ const SearchBar: React.FC = () => {
 
       {/* Dropdown overlay */}
       {isDropdownOpen && (
-        <div className="absolute top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-80 overflow-y-auto w-full -ml-6">
+        <div className="absolute top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-[10000] max-h-80 overflow-y-auto w-full -ml-6">
           <div className="p-4">
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-800">Kërko në Shqipet</h3>
