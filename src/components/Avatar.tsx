@@ -203,6 +203,8 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
           src={finalSrc}
           alt="User avatar"
           className="object-cover"
+          style={{ imageRendering: '-webkit-optimize-contrast' }}
+          loading="eager"
           onError={async () => {
             console.warn('Avatar image failed to load, attempting refresh');
             // Try to refresh if we have an underlying key and haven't retried too much

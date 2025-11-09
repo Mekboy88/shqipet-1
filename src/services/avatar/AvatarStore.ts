@@ -543,6 +543,15 @@ class AvatarStore {
       setState(userId, finalState);
       // NO LOCAL CACHE - Direct real-time cloud storage only
       
+      // Force clear all avatar caches to ensure fresh image loads
+      try {
+        mediaService.clearCache(key);
+        localStorage.removeItem(`media:last:${key}`);
+        localStorage.removeItem(`avatar_cache_${userId}`);
+      } catch (e) {
+        console.warn('Cache clear error:', e);
+      }
+      
       // Clean up preview URL
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);

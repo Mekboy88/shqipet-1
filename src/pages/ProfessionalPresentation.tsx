@@ -1389,6 +1389,8 @@ const PhotoStrip = React.memo(({
               src={displayUrl} 
               alt="Professional Profile" 
               className="h-full w-full object-cover animate-fade-in select-none"
+              style={{ imageRendering: '-webkit-optimize-contrast' }}
+              loading="eager"
               draggable={false}
             />
           </UploadAnimation> : <div className="h-full w-full">

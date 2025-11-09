@@ -74,6 +74,7 @@ const AvatarImage = React.forwardRef<
     <AvatarPrimitive.Image
       ref={ref}
       className={cn("aspect-square h-full w-full", className)}
+      style={{ imageRendering: '-webkit-optimize-contrast' }}
       src={resolvedSrc}
       onLoad={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
