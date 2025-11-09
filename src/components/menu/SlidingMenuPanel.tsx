@@ -49,7 +49,7 @@ const SlidingMenuPanel: React.FC<SlidingMenuPanelProps> = ({ isOpen, onClose }) 
                 {cardIndex === 0 ? (
                   <Link 
                     to="/tasks" 
-                    className="aspect-[5/4] xl:aspect-square bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 flex items-center justify-center w-full cursor-pointer"
+                    className="aspect-[6/5] xl:aspect-square bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 flex items-center justify-center w-full cursor-pointer"
                     style={{
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05)',
                       background: 'linear-gradient(45deg, #FFF0C4 0%, #FFF5D6 25%, #FFFAE8 50%, #FFFFFF 75%, #F0EFEF 100%)'
@@ -89,7 +89,7 @@ const SlidingMenuPanel: React.FC<SlidingMenuPanelProps> = ({ isOpen, onClose }) 
                   </Link>
                 ) : (
                   <div
-                    className="aspect-[5/4] xl:aspect-square bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 flex items-center justify-center w-full"
+                    className="aspect-[6/5] xl:aspect-square bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 flex items-center justify-center w-full"
                     style={{
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05)'
                     }}
