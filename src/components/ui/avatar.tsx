@@ -106,13 +106,13 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
-    const originalMatch = key.match(/^(avatars\/.+)-original\.[A-Za-z0-9]+$/i);
-    if (!originalMatch) {
+    const baseMatch = key.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
+    const base = baseMatch ? baseMatch[1] : null;
+    if (!base) {
       setComputedSrcSet(undefined);
       return;
     }
 
-    const base = originalMatch[1];
     const variants = [
       { suffix: 'thumbnail.jpg', w: 80 },
       { suffix: 'small.jpg', w: 160 },
