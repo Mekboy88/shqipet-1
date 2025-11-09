@@ -290,8 +290,8 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
         <LoadingDots message="Saving changes..." variant="light" size="md" />
       )}
 
-      {/* Cover Photo Controls - conditionally shown based on user preference */}
-      {isOwnProfile && showControls && (
+      {/* Cover Photo Controls - always shown in settings (miniMode), conditionally shown on profile page based on user preference */}
+      {isOwnProfile && (miniMode || showControls) && (
         <CoverPhotoControls
           isDragMode={isDragMode}
           isSaving={isSaving ?? false}
