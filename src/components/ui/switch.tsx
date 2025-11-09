@@ -11,7 +11,7 @@ const Switch = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SwitchPrimitives.Root
     className={cn(
-      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-green-100 data-[state=checked]:!border-green-300 data-[state=unchecked]:bg-gradient-to-r data-[state=unchecked]:from-red-500/10 data-[state=unchecked]:to-gray-800/10 data-[state=unchecked]:border-red-200 dark:data-[state=unchecked]:from-red-500/30 dark:data-[state=unchecked]:to-gray-600/30 dark:data-[state=unchecked]:border-red-300",
+      "group peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:shadow-sm hover:border-border/80 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-green-100 data-[state=checked]:!border-green-300 data-[state=unchecked]:bg-gradient-to-r data-[state=unchecked]:from-red-500/10 data-[state=unchecked]:to-gray-800/10 data-[state=unchecked]:border-red-200 dark:data-[state=unchecked]:from-red-500/30 dark:data-[state=unchecked]:to-gray-600/30 dark:data-[state=unchecked]:border-red-300",
       className
     )}
     {...props}
