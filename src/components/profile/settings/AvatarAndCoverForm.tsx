@@ -262,8 +262,12 @@ useEffect(() => {
   };
 
   const handleToggleCoverControls = async (checked: boolean) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.warn('Cannot toggle: user ID not available');
+      return;
+    }
     
+    console.log('Toggling cover controls to:', checked);
     setShowCoverControls(checked);
 
     // Persist instantly for other views and tabs
@@ -285,6 +289,7 @@ useEffect(() => {
         try { localStorage.setItem(controlsStorageKey, !checked ? '1' : '0'); } catch {}
       }
     } else {
+      console.log('Successfully updated cover controls to:', checked);
       toast.success(checked ? 'Cover controls enabled' : 'Cover controls hidden');
     }
   };
@@ -379,6 +384,8 @@ useEffect(() => {
             id="cover-controls-toggle"
             checked={showCoverControls}
             onCheckedChange={handleToggleCoverControls}
+            disabled={!user?.id}
+            className="cursor-pointer"
           />
         ) : (
           <div className="w-11 h-6 rounded-full bg-muted animate-pulse" aria-hidden="true" />
