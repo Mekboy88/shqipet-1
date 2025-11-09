@@ -7,6 +7,7 @@ import { useGlobalAvatar } from '@/hooks/useGlobalAvatar';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { mediaService } from '@/services/media/MediaService';
+import AvatarQualityIndicator from '@/components/debug/AvatarQualityIndicator';
 
 interface AvatarProps {
   userId?: string;
@@ -42,10 +43,15 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   isOwnProfile = true
 }) => {
   const [showPopup, setShowPopup] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [avatarSizes, setAvatarSizes] = useState<Record<string, string> | null>(null);
+  const [sourceImageSize, setSourceImageSize] = useState<{ width: number; height: number } | null>(null);
+  const [currentSizeKey, setCurrentSizeKey] = useState<string>('original');
   const { firstName, lastName, initials: derivedInitials, username, email, avatarUrl: universalAvatarUrl } = useUniversalUser(userId);
   const { user: authUser } = useAuth();
   const { avatarUrl: globalAvatarUrl, isLoading, uploadAvatar } = useGlobalAvatar(userId);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarContainerRef = useRef<HTMLDivElement>(null);
   
   // Memoize raw source to prevent unnecessary re-renders and re-resolutions
   const authAvatarUrl = (typeof authUser?.user_metadata?.avatar_url === 'string') 
@@ -80,6 +86,40 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   const rawKeyRef = useRef<string | null>(null);
   // Prevent infinite error loops by limiting retries
   const errorRetryRef = useRef<number>(0);
+
+  // Check for debug mode via URL param
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      setShowDebug(params.get('avatarDebug') === '1');
+    } catch {}
+  }, []);
+
+  // Fetch avatar sizes from database
+  useEffect(() => {
+    if (!userId && !authUser?.id) return;
+    const targetId = userId || authUser?.id;
+    if (!targetId) return;
+    
+    const fetchAvatarSizes = async () => {
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { data } = await supabase
+          .from('profiles')
+          .select('avatar_sizes')
+          .eq('id', targetId)
+          .maybeSingle();
+        
+        if (data?.avatar_sizes) {
+          setAvatarSizes(data.avatar_sizes as Record<string, string>);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch avatar sizes:', error);
+      }
+    };
+    
+    fetchAvatarSizes();
+  }, [userId, authUser?.id]);
 
   // Resolve Wasabi keys to URLs ONCE per unique source - prevent flickering
   useEffect(() => {
@@ -149,6 +189,39 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   }, [rawSrcRef.current, resolvedSrc, lastDisplayedSrc]);
 
   const finalSrc = resolvedSrc || lastDisplayedSrc;
+
+  // Determine which size variant is being used
+  useEffect(() => {
+    if (!finalSrc || !avatarSizes) {
+      setCurrentSizeKey('original');
+      return;
+    }
+
+    // Check which size key matches the current URL
+    for (const [key, value] of Object.entries(avatarSizes)) {
+      if (finalSrc.includes(encodeURIComponent(value as string))) {
+        setCurrentSizeKey(key);
+        return;
+      }
+    }
+    
+    setCurrentSizeKey('original');
+  }, [finalSrc, avatarSizes]);
+
+  // Measure source image dimensions when it loads
+  useEffect(() => {
+    if (!finalSrc) return;
+    
+    const img = new Image();
+    img.onload = () => {
+      setSourceImageSize({
+        width: img.naturalWidth,
+        height: img.naturalHeight
+      });
+    };
+    img.src = finalSrc;
+  }, [finalSrc]);
+
   
   // STRICT: Only use first name + last name initials (NEVER email)
   // Priority 1: From profile data (firstName, lastName)
@@ -256,8 +329,22 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
 
   return (
     <>
-      <div className="relative group cursor-pointer" onClick={handleClick}>
+      <div 
+        ref={avatarContainerRef}
+        className="relative group cursor-pointer" 
+        onClick={handleClick}
+      >
         {content}
+
+        {/* Debug Quality Indicator */}
+        {showDebug && (
+          <AvatarQualityIndicator
+            avatarRef={avatarContainerRef}
+            sourceSize={sourceImageSize}
+            sizeKey={currentSizeKey}
+            availableSizes={avatarSizes}
+          />
+        )}
 
         {showCameraOverlay && !isLoading && (
           <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
