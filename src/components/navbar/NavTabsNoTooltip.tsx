@@ -16,7 +16,6 @@ const NavTabsNoTooltip = React.memo(() => {
       className="flex items-center justify-center h-full w-full"
       style={{
         transition: 'none',
-        transform: 'translateZ(0)',
         willChange: 'auto'
       }}
     >
@@ -24,7 +23,7 @@ const NavTabsNoTooltip = React.memo(() => {
         className="flex justify-center items-center gap-1 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-6"
         style={{
           transition: 'transform 0.3s ease-in-out',
-          transform: currentPath === "/profile" ? 'translateX(-15%) translateZ(0)' : 'translateZ(0)',
+          transform: currentPath === "/profile" ? 'translateX(-15%)' : 'none',
           willChange: 'auto'
         }}
       >
