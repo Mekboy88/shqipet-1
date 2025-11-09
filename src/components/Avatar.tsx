@@ -7,7 +7,6 @@ import { useGlobalAvatar } from '@/hooks/useGlobalAvatar';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { mediaService } from '@/services/media/MediaService';
-import { supabase } from '@/integrations/supabase/client';
 
 interface AvatarProps {
   userId?: string;
@@ -151,78 +150,6 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
 
   const finalSrc = resolvedSrc || lastDisplayedSrc;
   
-  // Fetch avatar_sizes from the database for responsive srcset
-  const [avatarSizes, setAvatarSizes] = useState<Record<string, string> | null>(null);
-  useEffect(() => {
-    if (!userId) return;
-    const fetchSizes = async () => {
-      try {
-        const { data } = await supabase
-          .from('profiles')
-          .select('avatar_sizes')
-          .eq('id', userId)
-          .maybeSingle();
-        
-        if (data?.avatar_sizes && typeof data.avatar_sizes === 'object') {
-          setAvatarSizes(data.avatar_sizes as Record<string, string>);
-          console.log('🖼️ Avatar sizes loaded for srcset:', data.avatar_sizes);
-        }
-      } catch (e) {
-        console.warn('Failed to fetch avatar_sizes:', e);
-      }
-    };
-    fetchSizes();
-  }, [userId]);
-
-  // Generate srcset and sizes for automatic responsive loading (browser picks best size for DPR)
-  const { srcSet, sizes: sizesAttr } = React.useMemo(() => {
-    if (!avatarSizes || Object.keys(avatarSizes).length === 0) {
-      return { srcSet: undefined, sizes: undefined };
-    }
-
-    const sizeMap: Record<string, number> = {
-      thumbnail: 80,
-      small: 300,
-      medium: 800,
-      large: 1600,
-      original: 2400
-    };
-
-    const srcSetEntries: string[] = [];
-
-    // Build srcset with all available sizes
-    for (const [sizeKey, storageKey] of Object.entries(avatarSizes)) {
-      const width = sizeMap[sizeKey];
-      if (width && storageKey) {
-        // The key will be resolved by AvatarImage component
-        srcSetEntries.push(`${storageKey} ${width}w`);
-      }
-    }
-
-    if (srcSetEntries.length === 0) {
-      return { srcSet: undefined, sizes: undefined };
-    }
-
-    // Define sizes attribute for browser to select optimal image
-    // This tells browser: "use image closest to display size * devicePixelRatio"
-    const sizesAttribute = [
-      '(max-width: 80px) 80px',
-      '(max-width: 300px) 300px',
-      '(max-width: 800px) 800px',
-      '1600px'
-    ].join(', ');
-
-    console.log('🖼️ Generated avatar srcset for crisp display:', { 
-      srcSet: srcSetEntries.join(', ').substring(0, 100) + '...', 
-      sizes: sizesAttribute 
-    });
-
-    return {
-      srcSet: srcSetEntries.join(', '),
-      sizes: sizesAttribute
-    };
-  }, [avatarSizes]);
-  
   // STRICT: Only use first name + last name initials (NEVER email)
   // Priority 1: From profile data (firstName, lastName)
   const nameInitials = (firstName && lastName) 
@@ -274,8 +201,6 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
       {finalSrc && (
         <AvatarImage
           src={finalSrc}
-          srcSet={srcSet}
-          sizes={sizesAttr}
           alt="User avatar"
           className="object-cover"
           style={{ imageRendering: '-webkit-optimize-contrast' }}

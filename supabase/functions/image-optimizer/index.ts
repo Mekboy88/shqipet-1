@@ -8,37 +8,26 @@ const corsHeaders = {
 
 // Image size configurations
 const SIZES = {
-  thumbnail: { width: 80, height: 80 },
-  small: { width: 300, height: 300 },
-  medium: { width: 800, height: 800 },
-  large: { width: 1600, height: 1600 },
+  thumbnail: { width: 64, height: 64 },
+  small: { width: 128, height: 128 },
+  medium: { width: 256, height: 256 },
+  large: { width: 512, height: 512 },
 } as const;
 
 /**
- * Resize image using canvas with intelligent aspect ratio handling
+ * Resize image using canvas
  */
 async function resizeImage(
   imageBlob: Blob,
   width: number,
-  height: number,
-  isCover: boolean = false
+  height: number
 ): Promise<Blob> {
   try {
     // Create an ImageBitmap from the blob
     const imageBitmap = await createImageBitmap(imageBlob);
     
-    let targetWidth = width;
-    let targetHeight = height;
-    
-    // For cover photos, maintain aspect ratio and use width as max dimension
-    if (isCover) {
-      const aspectRatio = imageBitmap.width / imageBitmap.height;
-      targetWidth = width;
-      targetHeight = Math.round(width / aspectRatio);
-    }
-    
     // @ts-ignore - OffscreenCanvas is available in Deno but not in types
-    const canvas = new OffscreenCanvas(targetWidth, targetHeight);
+    const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
     
     if (!ctx) {
@@ -46,13 +35,13 @@ async function resizeImage(
     }
     
     // Draw the resized image
-    ctx.drawImage(imageBitmap, 0, 0, targetWidth, targetHeight);
+    ctx.drawImage(imageBitmap, 0, 0, width, height);
     
     // Convert to blob
     // @ts-ignore
     const resizedBlob = await canvas.convertToBlob({
       type: 'image/jpeg',
-      quality: 0.90,
+      quality: 0.85,
     });
     
     return resizedBlob;
@@ -129,8 +118,7 @@ Deno.serve(async (req) => {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(7);
     const extension = 'jpg'; // Always use jpg for optimized images
-    const isCover = /cover/i.test(mediaType);
-    const folder = isCover ? 'covers' : 'avatars';
+    const folder = /cover/i.test(mediaType) ? 'covers' : 'avatars';
     const baseKey = `${folder}/${userId}/${timestamp}-${random}`;
 
     // Upload original
@@ -143,7 +131,7 @@ Deno.serve(async (req) => {
     
     const resizePromises = Object.entries(SIZES).map(async ([sizeName, dimensions]) => {
       console.log(`🔧 Creating ${sizeName} (${dimensions.width}x${dimensions.height})`);
-      const resizedBlob = await resizeImage(file, dimensions.width, dimensions.height, isCover);
+      const resizedBlob = await resizeImage(file, dimensions.width, dimensions.height);
       const sizeKey = `${baseKey}-${sizeName}.${extension}`;
       
       await uploadToWasabi(aws, bucket, region, sizeKey, resizedBlob, 'image/jpeg');

@@ -290,7 +290,7 @@ export const useCover = (userId?: string) => {
       let position = 'center';
       
       try {
-        const baseSelect = 'cover_url, cover_position, cover_sizes, id, updated_at';
+        const baseSelect = 'cover_url, cover_position, id, updated_at';
 
         const tryFetch = async () => {
           try {
