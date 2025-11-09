@@ -87,6 +87,7 @@ const AvatarAndCoverForm: React.FC = () => {
 
   const [showCoverControls, setShowCoverControls] = useState(true);
   const controlsStorageKey = React.useMemo(() => user?.id ? `profile:showCoverControls:${user.id}` : null, [user?.id]);
+  const [controlsLoaded, setControlsLoaded] = useState(false);
 
 const { resolvedUrl: coverResolvedUrl, updateCover: updateCoverV2, refresh: refreshCoverV2 } = useCover();
 
@@ -174,6 +175,16 @@ useEffect(() => {
     
     loadControlsPreference();
   }, [user?.id]);
+
+  // Read from localStorage immediately to avoid UI flicker
+  useEffect(() => {
+    if (!controlsStorageKey) return;
+    try {
+      const v = localStorage.getItem(controlsStorageKey);
+      if (v !== null) setShowCoverControls(v === '1' || v === 'true');
+    } catch {}
+    setControlsLoaded(true);
+  }, [controlsStorageKey]);
 
   useEffect(() => {
     if (coverRef.current && coverPosition) {
@@ -344,11 +355,15 @@ useEffect(() => {
             Note: These controls are only visible to you on your own profile. Other users never see these buttons.
           </p>
         </div>
-        <Switch
-          id="cover-controls-toggle"
-          checked={showCoverControls}
-          onCheckedChange={handleToggleCoverControls}
-        />
+        {controlsLoaded ? (
+          <Switch
+            id="cover-controls-toggle"
+            checked={showCoverControls}
+            onCheckedChange={handleToggleCoverControls}
+          />
+        ) : (
+          <div className="w-11 h-6 rounded-full bg-muted animate-pulse" aria-hidden="true" />
+        )}
       </div>
 
       <input
