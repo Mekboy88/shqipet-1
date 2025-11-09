@@ -329,6 +329,11 @@ useEffect(() => {
         onClose={() => setIsSettingsPanelOpen(false)}
         buttonColor={buttonColor}
         onButtonColorChange={handleButtonColorChange}
+        isDragMode={isDragMode}
+        onDragModeToggle={handleDragModeToggle}
+        onSaveChanges={handleSaveChanges}
+        onCancelChanges={handleCancelChanges}
+        isSaving={isSaving}
       />
 
       {/* Cover Controls Toggle - with smooth transition */}

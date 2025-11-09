@@ -1,11 +1,17 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, MoveVertical } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface CoverSettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   buttonColor: string;
   onButtonColorChange: (color: string) => void;
+  isDragMode: boolean;
+  onDragModeToggle: () => void;
+  onSaveChanges: () => void;
+  onCancelChanges: () => void;
+  isSaving?: boolean;
 }
 
 const CoverSettingsPanel: React.FC<CoverSettingsPanelProps> = ({
@@ -13,6 +19,11 @@ const CoverSettingsPanel: React.FC<CoverSettingsPanelProps> = ({
   onClose,
   buttonColor,
   onButtonColorChange,
+  isDragMode,
+  onDragModeToggle,
+  onSaveChanges,
+  onCancelChanges,
+  isSaving = false,
 }) => {
   const colorOptions = [
     { name: 'White (transparent)', value: 'rgba(255, 255, 255, 0.1)', description: 'A subtle white overlay that blends naturally with your cover photo' },
@@ -50,6 +61,79 @@ const CoverSettingsPanel: React.FC<CoverSettingsPanelProps> = ({
           <p className="text-sm text-muted-foreground">
             Customize how your cover photo appears on your profile. These settings help you create the perfect presentation for visitors to your profile.
           </p>
+        </div>
+
+        {/* Cover Photo Position Settings */}
+        <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
+          <div className="space-y-2">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <MoveVertical className="w-4 h-4" />
+              Cover Photo Position
+            </h4>
+            <p className="text-xs text-muted-foreground">
+              Adjust the vertical position of your cover photo to show the most important part. Click the button below to enter reposition mode, then drag the photo up or down.
+            </p>
+          </div>
+
+          {!isDragMode ? (
+            <Button
+              onClick={onDragModeToggle}
+              variant="outline"
+              className="w-full"
+            >
+              <MoveVertical className="w-4 h-4 mr-2" />
+              Start Repositioning
+            </Button>
+          ) : (
+            <div className="space-y-3">
+              <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-md">
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                  📌 Reposition mode active! Scroll up to the cover photo and drag it to adjust the position.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={onSaveChanges}
+                  disabled={isSaving}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  {isSaving ? 'Saving...' : 'Save Position'}
+                </Button>
+                <Button
+                  onClick={onCancelChanges}
+                  disabled={isSaving}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2 pt-2 border-t border-border">
+            <p className="text-xs text-muted-foreground">
+              <strong>How to use:</strong>
+            </p>
+            <ul className="space-y-1 text-xs text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">1.</span>
+                <span>Click "Start Repositioning" to enable drag mode</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">2.</span>
+                <span>Scroll back up to your cover photo at the top of the page</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">3.</span>
+                <span>Click and drag the cover photo vertically to adjust position</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">4.</span>
+                <span>Return here and click "Save Position" when you're happy with it</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Button Color Settings */}
