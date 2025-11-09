@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import NewCoverPhoto from '@/components/ui/NewCoverPhoto';
 import LoadingDots from '@/components/ui/LoadingDots';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useCoverControlsPreference } from '@/hooks/useCoverControlsPreference';
 
 interface NewCoverUploaderProps {
   height?: number;
@@ -33,6 +34,7 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
   const [viewerOpen, setViewerOpen] = useState(false);
   const [showSavedChip, setShowSavedChip] = useState(false);
   const [DebugHUD, setDebugHUD] = useState<React.ComponentType | null>(null);
+  const { value: showCoverControls } = useCoverControlsPreference();
 
   useEffect(() => {
     const handler = () => {
@@ -143,59 +145,61 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
         )}
 
         {/* Controls overlay - top right */}
-        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          {isDragMode ? (
-            <>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={saveDragPosition}
-                className="bg-white/90 text-black hover:bg-white"
-              >
-                <Save className="w-4 h-4 mr-1" />
-                Save
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={toggleDragMode}
-                className="bg-white/90 text-black hover:bg-white"
-              >
-                Cancel
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setViewerOpen(true)}
-                className="bg-white/90 text-black hover:bg-white"
-              >
-                <Eye className="w-4 h-4 mr-1" />
-                View
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={triggerUpload}
-                className="bg-white/90 text-black hover:bg-white"
-              >
-                <Camera className="w-4 h-4 mr-1" />
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={toggleDragMode}
-                className="bg-white/90 text-black hover:bg-white"
-              >
-                <Move className="w-4 h-4 mr-1" />
-                Reposition
-              </Button>
-            </>
-          )}
-        </div>
+        {showCoverControls && (
+          <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {isDragMode ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={saveDragPosition}
+                  className="bg-white/90 text-black hover:bg-white"
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={toggleDragMode}
+                  className="bg-white/90 text-black hover:bg-white"
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setViewerOpen(true)}
+                  className="bg-white/90 text-black hover:bg-white"
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  View
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={triggerUpload}
+                  className="bg-white/90 text-black hover:bg-white"
+                >
+                  <Camera className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={toggleDragMode}
+                  className="bg-white/90 text-black hover:bg-white"
+                >
+                  <Move className="w-4 h-4 mr-1" />
+                  Reposition
+                </Button>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Saving overlay after clicking Save */}
         {isSaving && (
