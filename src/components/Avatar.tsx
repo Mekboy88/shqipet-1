@@ -190,7 +190,55 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
 
   const finalSrc = resolvedSrc || lastDisplayedSrc;
 
-  // Determine which size variant is being used
+  // Generate srcset and sizes for automatic responsive loading
+  const { srcSet, sizes } = React.useMemo(() => {
+    if (!avatarSizes || Object.keys(avatarSizes).length === 0) {
+      return { srcSet: undefined, sizes: undefined };
+    }
+    
+    const sizeMap: Record<string, number> = {
+      thumbnail: 40,
+      small: 150,
+      medium: 400,
+      large: 800,
+      original: 1200
+    };
+    
+    // Generate srcset entries with width descriptors for browser to choose
+    const srcSetEntries: string[] = [];
+    
+    for (const [sizeKey, storageKey] of Object.entries(avatarSizes)) {
+      const width = sizeMap[sizeKey];
+      if (width && storageKey) {
+        // Check if it's already a URL or needs resolution
+        const url = /^https?:/.test(storageKey) 
+          ? storageKey 
+          : storageKey; // Will be resolved by AvatarImage component
+        srcSetEntries.push(`${url} ${width}w`);
+      }
+    }
+    
+    if (srcSetEntries.length === 0) {
+      return { srcSet: undefined, sizes: undefined };
+    }
+    
+    // sizes attribute helps browser pick the right image from srcset
+    // Based on viewport and actual rendered size
+    const sizesAttr = [
+      '(max-width: 40px) 40px',
+      '(max-width: 150px) 150px', 
+      '(max-width: 400px) 400px',
+      '(max-width: 800px) 800px',
+      '1200px'
+    ].join(', ');
+    
+    return { 
+      srcSet: srcSetEntries.join(', '),
+      sizes: sizesAttr
+    };
+  }, [avatarSizes]);
+
+  // Determine which size variant is being used (for debug indicator)
   useEffect(() => {
     if (!finalSrc || !avatarSizes) {
       setCurrentSizeKey('original');
@@ -274,6 +322,8 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
       {finalSrc && (
         <AvatarImage
           src={finalSrc}
+          srcSet={srcSet}
+          sizes={sizes}
           alt="User avatar"
           className="object-cover"
           style={{ imageRendering: '-webkit-optimize-contrast' }}

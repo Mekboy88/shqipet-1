@@ -22,13 +22,18 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, src, onError, onLoad, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & {
+    srcSet?: string;
+    sizes?: string;
+  }
+>(({ className, src, srcSet: rawSrcSet, sizes, onError, onLoad, ...props }, ref) => {
   const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
+  const [resolvedSrcSet, setResolvedSrcSet] = React.useState<string | undefined>(rawSrcSet);
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
   const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
 
+  // Resolve main src
   React.useEffect(() => {
     const raw = typeof src === 'string' ? src : '';
     try { (window as any).__avatarImageGlobalLast = { raw, ts: Date.now() }; } catch {}
@@ -57,10 +62,8 @@ const AvatarImage = React.forwardRef<
         } catch (e) {
           console.warn(`⚠️ AvatarImageGlobal: resolve failed (attempt ${attempt}):`, e);
           if (attempt < 3 && !canceled) {
-            // Retry with exponential backoff
             setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
           }
-          // On final failure, keep the previous resolvedSrc (don't clear it)
         }
       };
       
@@ -71,6 +74,52 @@ const AvatarImage = React.forwardRef<
     // Unknown format, pass through
     setResolvedSrc(raw);
   }, [src]);
+
+  // Resolve srcSet keys to URLs
+  React.useEffect(() => {
+    if (!rawSrcSet) {
+      setResolvedSrcSet(undefined);
+      return;
+    }
+
+    const resolveSrcSet = async () => {
+      try {
+        // Parse srcSet entries (format: "url1 100w, url2 200w")
+        const entries = rawSrcSet.split(',').map(entry => entry.trim());
+        const resolvedEntries: string[] = [];
+
+        for (const entry of entries) {
+          const parts = entry.split(/\s+/);
+          if (parts.length < 2) continue;
+
+          const keyOrUrl = parts[0];
+          const descriptor = parts[1]; // e.g., "100w"
+
+          // Check if it's a Wasabi key that needs resolution
+          if (/^(uploads|avatars|covers)\//i.test(keyOrUrl)) {
+            try {
+              const url = await mediaService.getUrl(keyOrUrl);
+              resolvedEntries.push(`${url} ${descriptor}`);
+            } catch (e) {
+              console.warn('Failed to resolve srcSet key:', keyOrUrl, e);
+            }
+          } else {
+            // Already a URL or doesn't need resolution
+            resolvedEntries.push(entry);
+          }
+        }
+
+        if (resolvedEntries.length > 0) {
+          setResolvedSrcSet(resolvedEntries.join(', '));
+        }
+      } catch (e) {
+        console.warn('Failed to process srcSet:', e);
+        setResolvedSrcSet(rawSrcSet); // Fallback to raw srcSet
+      }
+    };
+
+    resolveSrcSet();
+  }, [rawSrcSet]);
 
   // Measure container size and set integer dimensions for crisp rendering
   React.useLayoutEffect(() => {
@@ -104,6 +153,8 @@ const AvatarImage = React.forwardRef<
       }}
       className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
       src={resolvedSrc}
+      srcSet={resolvedSrcSet}
+      sizes={sizes}
       width={dimensions?.width}
       height={dimensions?.height}
       loading="eager"
