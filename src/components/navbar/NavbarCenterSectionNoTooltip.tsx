@@ -8,9 +8,7 @@ const NavbarCenterSectionNoTooltip = React.memo(() => {
       className="h-full flex items-center justify-center"
       style={{
         transition: 'none',
-        transform: 'translateZ(0)',
         willChange: 'auto',
-        zIndex: 10,
         position: 'relative'
       }}
     >
