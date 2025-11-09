@@ -262,35 +262,37 @@ useEffect(() => {
   };
 
   const handleToggleCoverControls = async (checked: boolean) => {
-    if (!user?.id) {
-      console.warn('Cannot toggle: user ID not available');
-      return;
-    }
-    
     console.log('Toggling cover controls to:', checked);
     setShowCoverControls(checked);
 
-    // Persist instantly for other views and tabs
+    // Persist instantly for other views and tabs (local only if no user)
     if (controlsStorageKey) {
       try { localStorage.setItem(controlsStorageKey, checked ? '1' : '0'); } catch {}
     }
-    try { window.dispatchEvent(new CustomEvent('cover-controls-changed', { detail: { value: checked, userId: user.id } })); } catch {}
-    
-    const { error } = await supabase
-      .from('profiles')
-      .update({ show_cover_controls: checked })
-      .eq('id', user.id);
-    
-    if (error) {
-      console.error('Error updating cover controls preference:', error);
-      toast.error('Failed to update preference');
-      setShowCoverControls(!checked); // Revert on error
-      if (controlsStorageKey) {
-        try { localStorage.setItem(controlsStorageKey, !checked ? '1' : '0'); } catch {}
+    try {
+      window.dispatchEvent(
+        new CustomEvent('cover-controls-changed', { detail: { value: checked, userId: user?.id || null } })
+      );
+    } catch {}
+
+    // Persist to backend only when user is available
+    if (user?.id) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ show_cover_controls: checked })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating cover controls preference:', error);
+        toast.error('Failed to update preference');
+        setShowCoverControls(!checked); // Revert on error
+        if (controlsStorageKey) {
+          try { localStorage.setItem(controlsStorageKey, !checked ? '1' : '0'); } catch {}
+        }
+      } else {
+        console.log('Successfully updated cover controls to:', checked);
+        toast.success(checked ? 'Cover controls enabled' : 'Cover controls hidden');
       }
-    } else {
-      console.log('Successfully updated cover controls to:', checked);
-      toast.success(checked ? 'Cover controls enabled' : 'Cover controls hidden');
     }
   };
 
@@ -384,7 +386,6 @@ useEffect(() => {
             id="cover-controls-toggle"
             checked={showCoverControls}
             onCheckedChange={handleToggleCoverControls}
-            disabled={!user?.id}
             className="cursor-pointer"
           />
         ) : (
