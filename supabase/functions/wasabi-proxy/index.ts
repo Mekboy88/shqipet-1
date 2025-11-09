@@ -11,11 +11,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    let key = url.searchParams.get('key') || '';
-    if (!key && req.headers.get('content-type')?.includes('application/json')) {
-      const body = await req.json().catch(() => ({}));
+    // Try to get key from JSON body first (for supabase.functions.invoke calls)
+    let key = '';
+    try {
+      const body = await req.json();
       key = body.key || '';
+    } catch {
+      // If JSON parsing fails, try query params (for direct URL calls)
+      const url = new URL(req.url);
+      key = url.searchParams.get('key') || '';
     }
 
     if (!key) {
