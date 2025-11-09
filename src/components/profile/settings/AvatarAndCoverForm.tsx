@@ -271,24 +271,6 @@ useEffect(() => {
         isUploading={isCoverLoading} 
         progress={isCoverLoading ? coverProgress : 0} 
       />
-
-      {/* Cover Controls Toggle */}
-      <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
-        <div className="space-y-1">
-          <Label htmlFor="cover-controls-toggle" className="text-sm font-medium">
-            Show Cover Photo Controls
-          </Label>
-          <p className="text-xs text-muted-foreground">
-            When turned off, the edit, reposition, and color picker buttons will be hidden from your profile cover photo. 
-            This gives you a cleaner look when viewing your profile. You can turn them back on anytime from this settings page.
-          </p>
-        </div>
-        <Switch
-          id="cover-controls-toggle"
-          checked={showCoverControls}
-          onCheckedChange={handleToggleCoverControls}
-        />
-      </div>
       
       <CoverPhotoContent
           coverPhotoUrl={displayedUrl || ''}
@@ -312,6 +294,23 @@ useEffect(() => {
           showControls={showCoverControls}
         />
 
+      {/* Cover Controls Toggle */}
+      <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
+        <div className="space-y-1">
+          <Label htmlFor="cover-controls-toggle" className="text-sm font-medium">
+            Show Cover Photo Controls
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            When turned off, the edit, reposition, and color picker buttons will be hidden from your profile cover photo. 
+            This gives you a cleaner look when viewing your profile. You can turn them back on anytime from this settings page.
+          </p>
+        </div>
+        <Switch
+          id="cover-controls-toggle"
+          checked={showCoverControls}
+          onCheckedChange={handleToggleCoverControls}
+        />
+      </div>
 
       <input
         ref={avatarFileInputRef}
