@@ -43,7 +43,7 @@ const SlidingMenuPanel: React.FC<SlidingMenuPanelProps> = ({ isOpen, onClose }) 
         
         {/* Content Area */}
         <div className="flex-1 p-3 overflow-hidden h-full">
-          <div className="grid grid-cols-4 gap-x-1.5 gap-y-2 h-full">
+          <div className="grid grid-cols-4 gap-x-1.5 gap-y-1 h-full">
             {emptyCards.map((cardIndex) => (
               <div key={cardIndex} className="flex flex-col items-center">
                 {cardIndex === 0 ? (
