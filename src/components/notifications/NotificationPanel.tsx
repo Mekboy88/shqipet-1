@@ -395,7 +395,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
               placeholder="Search notifications..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-9 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none border-x-0 border-b-0 focus:border-x-0 focus:border-b-0 focus:border-t-2 focus:border-t-gray-400"
+              className="pl-10 h-9"
             />
           </div>
           
