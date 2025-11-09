@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Popover, PopoverContent } from '@/components/ui/popover';
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 const SearchBar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,6 +19,17 @@ const SearchBar: React.FC = () => {
     }
   }, [isDropdownOpen]);
 
+  // Keep width in sync on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (inputRef.current) {
+        setDropdownWidth(inputRef.current.offsetWidth);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleFocus = () => {
     setIsDropdownOpen(true);
   };
@@ -28,8 +40,8 @@ const SearchBar: React.FC = () => {
 
   return (
     <div ref={searchRef} className="relative w-80 max-w-md">
-      <Popover open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-        <PopoverTrigger asChild>
+      <Popover open={isDropdownOpen} onOpenChange={setIsDropdownOpen} modal={false}>
+        <PopoverPrimitive.Anchor asChild>
           <div className="relative">
             {/* Search icon positioned inside the input field */}
             <div className="absolute inset-y-0 -left-1 flex items-center pointer-events-none z-10">
@@ -52,11 +64,31 @@ const SearchBar: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:ring-0 focus:border-gray-400 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none hover:border-gray-400 transition-colors bg-white -ml-6"
             />
           </div>
-        </PopoverTrigger>
+        </PopoverPrimitive.Anchor>
         <PopoverContent 
           side="bottom" 
           align="start" 
           sideOffset={6}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+          onInteractOutside={(e) => {
+            const target = e.target as Node;
+            if (searchRef.current?.contains(target)) {
+              e.preventDefault();
+            }
+          }}
+          onFocusOutside={(e) => {
+            const target = e.target as Node;
+            if (searchRef.current?.contains(target)) {
+              e.preventDefault();
+            }
+          }}
+          onPointerDownOutside={(e) => {
+            const target = e.target as Node;
+            if (searchRef.current?.contains(target)) {
+              e.preventDefault();
+            }
+          }}
           className="z-[110000] p-0 border border-gray-200 rounded-lg shadow-lg bg-white"
           style={{ width: dropdownWidth > 0 ? `${dropdownWidth}px` : '320px' }}
         >
