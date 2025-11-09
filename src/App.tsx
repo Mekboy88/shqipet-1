@@ -50,6 +50,7 @@ import LiveConnectionTopology from './pages/admin/core-platform/LiveConnectionTo
 import AIAPIsConnection from './components/admin/AIAPIsConnection';
 import AdminUserDashboard from './components/admin/users/AdminUserDashboard';
 import AdminUploadMonitoring from './pages/AdminUploadMonitoring';
+import BackfillAvatars from './pages/admin/BackfillAvatars';
 import CloudMonitoring from './pages/admin/cloud/CloudMonitoring';
 import LiveOperationCounter from './pages/admin/cloud/LiveOperationCounter';
 import CostEstimator from './pages/admin/cloud/CostEstimator';
@@ -279,11 +280,15 @@ function App() {
                          <Route path="/admin/api/ai" element={<AdminDashboard />}>
                            <Route index element={<AIAPIsConnection />} />
                          </Route>
-                         {/* Upload Monitoring */}
-                         <Route path="/admin/uploads" element={<AdminDashboard />}>
-                           <Route index element={<AdminUploadMonitoring />} />
-                         </Route>
-                         {/* Cloud Monitoring */}
+                          {/* Upload Monitoring */}
+                          <Route path="/admin/uploads" element={<AdminDashboard />}>
+                            <Route index element={<AdminUploadMonitoring />} />
+                          </Route>
+                          {/* Backfill Avatars & Covers */}
+                          <Route path="/admin/backfill" element={<AdminDashboard />}>
+                            <Route index element={<BackfillAvatars />} />
+                          </Route>
+                          {/* Cloud Monitoring */}
                          <Route path="/admin/cloud" element={<AdminDashboard />}>
                            <Route index element={<CloudMonitoring />} />
                            <Route path="operations" element={<LiveOperationCounter />} />

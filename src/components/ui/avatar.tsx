@@ -33,6 +33,57 @@ const AvatarImage = React.forwardRef<
   const imgRef = React.useRef<HTMLImageElement>(null);
   const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
 
+  // Auto-fetch avatar_sizes from database if src is an avatar key without srcSet
+  React.useEffect(() => {
+    if (rawSrcSet) return; // Already has srcSet provided
+    
+    const raw = typeof src === 'string' ? src : '';
+    if (!raw || !raw.startsWith('avatars/')) return;
+
+    const parseUserId = (key: string): string | null => {
+      const match = key.match(/^avatars\/([a-f0-9-]+)\//);
+      return match ? match[1] : null;
+    };
+
+    const userId = parseUserId(raw);
+    if (!userId) return;
+
+    let canceled = false;
+    const fetchAndBuildSrcSet = async () => {
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { data } = await supabase
+          .from('profiles')
+          .select('avatar_sizes')
+          .eq('id', userId)
+          .single();
+
+        if (canceled) return;
+
+        if (data?.avatar_sizes && typeof data.avatar_sizes === 'object') {
+          const sizes = data.avatar_sizes as Record<string, string>;
+          const srcSetParts: string[] = [];
+
+          if (sizes.thumbnail) srcSetParts.push(`${sizes.thumbnail} 80w`);
+          if (sizes.small) srcSetParts.push(`${sizes.small} 300w`);
+          if (sizes.medium) srcSetParts.push(`${sizes.medium} 800w`);
+          if (sizes.large) srcSetParts.push(`${sizes.large} 1600w`);
+          if (sizes.original) srcSetParts.push(`${sizes.original} 2400w`);
+
+          if (srcSetParts.length > 0) {
+            setResolvedSrcSet(srcSetParts.join(', '));
+            console.log('🖼️ Auto-fetched avatar srcSet:', srcSetParts.join(', '));
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to auto-fetch avatar_sizes:', err);
+      }
+    };
+
+    fetchAndBuildSrcSet();
+    return () => { canceled = true; };
+  }, [src, rawSrcSet]);
+
   React.useEffect(() => {
     const raw = typeof src === 'string' ? src : '';
     try { (window as any).__avatarImageGlobalLast = { raw, ts: Date.now() }; } catch {}
