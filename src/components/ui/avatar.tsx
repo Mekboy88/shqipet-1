@@ -26,6 +26,8 @@ const AvatarImage = React.forwardRef<
 >(({ className, src, onError, onLoad, ...props }, ref) => {
   const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
   const retriedOnceRef = React.useRef(false);
+  const imgRef = React.useRef<HTMLImageElement>(null);
+  const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
 
   React.useEffect(() => {
     const raw = typeof src === 'string' ? src : '';
@@ -70,12 +72,40 @@ const AvatarImage = React.forwardRef<
     setResolvedSrc(raw);
   }, [src]);
 
+  // Measure container size and set integer dimensions for crisp rendering
+  React.useLayoutEffect(() => {
+    const img = imgRef.current;
+    if (!img || !img.parentElement) return;
+
+    const updateDimensions = () => {
+      const parent = img.parentElement;
+      const rect = parent.getBoundingClientRect();
+      const w = Math.round(rect.width);
+      const h = Math.round(rect.height);
+      if (w > 0 && h > 0) {
+        setDimensions({ width: w, height: h });
+      }
+    };
+
+    updateDimensions();
+    
+    const observer = new ResizeObserver(updateDimensions);
+    observer.observe(img.parentElement);
+    
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <AvatarPrimitive.Image
-      ref={ref}
-      className={cn("aspect-square h-full w-full", className)}
-      style={{ imageRendering: '-webkit-optimize-contrast', transform: 'translateZ(0)' }}
+      ref={(node) => {
+        imgRef.current = node;
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+      }}
+      className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
       src={resolvedSrc}
+      width={dimensions?.width}
+      height={dimensions?.height}
       loading="eager"
       decoding="sync"
       // @ts-ignore - not in TS types but supported by browsers
