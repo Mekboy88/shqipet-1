@@ -114,10 +114,10 @@ const AvatarImage = React.forwardRef<
     }
 
     const variants = [
-      { suffix: 'thumbnail.jpg', w: 80 },
-      { suffix: 'small.jpg', w: 160 },
-      { suffix: 'medium.jpg', w: 320 },
-      { suffix: 'large.jpg', w: 640 },
+      { suffix: 'thumbnail.jpg', x: 1 },
+      { suffix: 'small.jpg', x: 2 },
+      { suffix: 'medium.jpg', x: 3 },
+      { suffix: 'large.jpg', x: 4 },
     ];
 
     let canceled = false;
@@ -128,7 +128,7 @@ const AvatarImage = React.forwardRef<
       const parts: string[] = [];
       settled.forEach((res, i) => {
         if (res.status === 'fulfilled' && typeof res.value === 'string') {
-          parts.push(`${res.value} ${variants[i].w}w`);
+          parts.push(`${res.value} ${variants[i].x}x`);
         }
       });
       if (!canceled) {
