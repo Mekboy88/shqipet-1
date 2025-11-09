@@ -47,33 +47,51 @@ const AvatarImage = React.forwardRef<
       setResolvedSrc(raw);
       // Try to derive key from URL for srcset
       try {
-        const m = raw.match(/\/(uploads|avatars|covers)\/([^?#\s]+)/i);
-        const key = m ? `${m[1]}/${decodeURIComponent(m[2])}` : null;
+        // Extract storage key from various URL formats
+        let key: string | null = null;
+        const m1 = raw.match(/\/(uploads|avatars|covers)\/([^?#\s]+)/i);
+        if (m1 && m1[1] && m1[2]) {
+          key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
+        } else {
+          const m2 = raw.match(/\/shqipet\/([^?#\s]+)/i);
+          if (m2 && m2[1]) key = decodeURIComponent(m2[1]);
+        }
         if (key && key.startsWith('avatars/')) {
-          // Build srcset from known derivative keys
-          const baseKey = key
-            .replace(/-original\.[^/.]+$/i, '')
-            .replace(/-(thumbnail|small|medium|large)\.[^.]+$/i, '');
+          // Derive base (without variant suffix) and gather extension candidates
+          const baseNoExt = key
+            .replace(/\.[^./?#]+$/i, '') // strip extension
+            .replace(/-(original|thumbnail|small|medium|large)$/i, '');
+          const extMatch = key.match(/\.([^./?#]+)(?:$|[?#])/i);
+          const primaryExt = (extMatch?.[1] || 'jpg').toLowerCase();
+          const extCandidates = Array.from(new Set([primaryExt, 'jpg', 'jpeg', 'png', 'webp']));
           const names = ['thumbnail','small','medium','large'] as const;
-          Promise.all(
-            names.map(async (n) => {
-              const k = `${baseKey}-${n}.jpg`;
-              try { const u = await mediaService.getUrl(k); return [n, u] as const; } catch { return null; }
-            })
-           ).then((pairs) => {
-             const map = new Map(pairs.filter(Boolean) as Array<readonly [string, string]>);
-             if (map.size) {
-               const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
-               const set = names
-                 .filter((n) => map.has(n))
-                 .map((n) => `${map.get(n)} ${widthMap[n]}w`)
-                 .join(', ');
-               setComputedSrcSet(set);
-             }
-           });
+
+          (async () => {
+            const results = await Promise.all(
+              names.map(async (n) => {
+                for (const ext of extCandidates) {
+                  const k = `${baseNoExt}-${n}.${ext}`;
+                  try {
+                    const u = await mediaService.getUrl(k);
+                    return [n, u] as const;
+                  } catch {}
+                }
+                return null;
+              })
+            );
+
+            const map = new Map(results.filter(Boolean) as Array<readonly [string, string]>);
+            if (map.size) {
+              const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
+              const set = names
+                .filter((n) => map.has(n))
+                .map((n) => `${map.get(n)} ${widthMap[n]}w`)
+                .join(', ');
+              setComputedSrcSet(set);
+            }
+          })();
         }
       } catch {}
-      return;
     }
 
     // If looks like a Wasabi key (uploads|avatars|covers), resolve it via mediaService with retry
@@ -98,26 +116,38 @@ const AvatarImage = React.forwardRef<
       // Build srcset for avatar keys
       try {
         if (raw.startsWith('avatars/')) {
-          const baseKey = raw
-            .replace(/-original\.[^/.]+$/i, '')
-            .replace(/-(thumbnail|small|medium|large)\.[^.]+$/i, '');
+          const baseNoExt = raw
+            .replace(/\.[^./?#]+$/i, '') // strip extension
+            .replace(/-(original|thumbnail|small|medium|large)$/i, '');
+          const extMatch = raw.match(/\.([^./?#]+)(?:$|[?#])/i);
+          const primaryExt = (extMatch?.[1] || 'jpg').toLowerCase();
+          const extCandidates = Array.from(new Set([primaryExt, 'jpg', 'jpeg', 'png', 'webp']));
           const names = ['thumbnail','small','medium','large'] as const;
-          Promise.all(
-            names.map(async (n) => {
-              const k = `${baseKey}-${n}.jpg`;
-              try { const u = await mediaService.getUrl(k); return [n, u] as const; } catch { return null; }
-            })
-           ).then((pairs) => {
-             const map = new Map(pairs.filter(Boolean) as Array<readonly [string, string]>);
-             if (map.size) {
-               const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
-               const set = names
-                 .filter((n) => map.has(n))
-                 .map((n) => `${map.get(n)} ${widthMap[n]}w`)
-                 .join(', ');
-               setComputedSrcSet(set);
-             }
-           });
+
+          (async () => {
+            const results = await Promise.all(
+              names.map(async (n) => {
+                for (const ext of extCandidates) {
+                  const k = `${baseNoExt}-${n}.${ext}`;
+                  try {
+                    const u = await mediaService.getUrl(k);
+                    return [n, u] as const;
+                  } catch {}
+                }
+                return null;
+              })
+            );
+
+            const map = new Map(results.filter(Boolean) as Array<readonly [string, string]>);
+            if (map.size) {
+              const widthMap: Record<string, number> = { thumbnail: 80, small: 160, medium: 320, large: 640 };
+              const set = names
+                .filter((n) => map.has(n))
+                .map((n) => `${map.get(n)} ${widthMap[n]}w`)
+                .join(', ');
+              setComputedSrcSet(set);
+            }
+          })();
         }
       } catch {}
       
