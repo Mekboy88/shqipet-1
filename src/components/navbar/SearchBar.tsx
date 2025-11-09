@@ -69,7 +69,7 @@ const SearchBar: React.FC = () => {
           side="bottom" 
           align="start" 
           sideOffset={6}
-          alignOffset={-20}
+          alignOffset={-22}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           onInteractOutside={(e) => {
