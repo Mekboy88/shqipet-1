@@ -347,7 +347,7 @@ const CreatePostDesktop: React.FC = () => {
                   <span className="text-sm">Allow Comments</span>
                   <Switch checked={allowComments} onCheckedChange={setAllowComments} />
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <span className="text-sm flex items-center gap-0.5">
                     Allow Reactions
                     <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block" preserveAspectRatio="xMidYMid meet">
