@@ -87,8 +87,8 @@ const CoverPhotoControls: React.FC<CoverPhotoControlsProps> = ({
       className="absolute bottom-4 right-4 flex gap-2"
       onClick={(e) => e.stopPropagation()} // Prevent cover photo click when clicking anywhere in this area
     >
-      {/* Redakto Button - Only show when not in drag mode */}
-      {!isDragMode && (
+      {/* Redakto Button - Only show when not in drag mode and not in settings page (miniMode) */}
+      {!isDragMode && !miniMode && (
         <div 
           className={`bg-black bg-opacity-30 rounded-lg cursor-pointer hover:bg-opacity-50 transition-all duration-200 ${miniMode ? 'p-2' : 'p-3'}`}
           onClick={handleRedaktoClick}
