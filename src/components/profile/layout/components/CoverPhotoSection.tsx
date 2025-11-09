@@ -40,7 +40,7 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
 
   return (
     <>
-      <div className="w-full relative my-[56px]">
+      <div className="w-full relative my-[56px] group">
         {/* Cover Photo - SIMPLE FLEXIBLE WIDTH */}
         <CoverPhotoContent
           coverPhotoUrl={coverPhotoUrl}
@@ -66,7 +66,9 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
           showCoverControls ? (
             <button
               onClick={() => setShowCoverControls(false)}
-              className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-background/90 transition-all text-xs font-medium flex items-center gap-1.5 shadow-sm"
+              aria-pressed={true}
+              title="Hide cover controls"
+              className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full border text-xs font-medium flex items-center gap-1.5 bg-background/80 backdrop-blur-sm border-border shadow-sm hover:bg-background/90 hover:shadow transition-all md:opacity-0 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto"
             >
               <EyeOff className="w-3.5 h-3.5" />
               Hide cover controls
@@ -74,7 +76,9 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
           ) : (
             <button
               onClick={() => setShowCoverControls(true)}
-              className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-background/90 transition-all text-xs font-medium flex items-center gap-1.5 shadow-sm"
+              aria-pressed={false}
+              title="Show cover controls"
+              className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full border text-xs font-medium flex items-center gap-1.5 bg-background/80 backdrop-blur-sm border-border shadow-sm hover:bg-background/90 hover:shadow transition-all md:opacity-0 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto"
             >
               <Eye className="w-3.5 h-3.5" />
               Show cover controls
