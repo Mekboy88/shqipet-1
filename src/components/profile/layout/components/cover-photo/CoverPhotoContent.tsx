@@ -37,6 +37,8 @@ interface CoverPhotoContentProps {
   isOwnProfile?: boolean; // Pass down to controls
   miniMode?: boolean; // Pass down to controls
   showControls?: boolean; // Control visibility of edit buttons
+  isSettingsPanelOpen?: boolean; // Track if settings panel is open
+  onToggleSettingsPanel?: () => void; // Toggle settings panel
 }
 
 const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
@@ -58,7 +60,9 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
   containerClassName,
   isOwnProfile = true,
   miniMode = false,
-  showControls = true
+  showControls = true,
+  isSettingsPanelOpen = false,
+  onToggleSettingsPanel
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -299,7 +303,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
           onDragModeToggle={onDragModeToggle}
           onSaveChanges={onSaveChanges}
           onCancelChanges={onCancelChanges}
-          onEditCoverClick={onEditCoverClick}
+          onEditCoverClick={miniMode ? onToggleSettingsPanel : onEditCoverClick}
           onMouseDown={onMouseDown}
           onButtonColorChange={onButtonColorChange}
           isOwnProfile={isOwnProfile}

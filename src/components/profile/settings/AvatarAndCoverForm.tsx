@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { mediaService } from '@/services/media/MediaService';
 import { useAuth } from '@/contexts/AuthContext';
+import CoverSettingsPanel from './CoverSettingsPanel';
 
 /* --------------------------- helpers & utilities -------------------------- */
 
@@ -88,6 +89,7 @@ const AvatarAndCoverForm: React.FC = () => {
   const [showCoverControls, setShowCoverControls] = useState(true);
   const controlsStorageKey = React.useMemo(() => user?.id ? `profile:showCoverControls:${user.id}` : null, [user?.id]);
   const [controlsLoaded, setControlsLoaded] = useState(false);
+  const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
 
 const { resolvedUrl: coverResolvedUrl, updateCover: updateCoverV2, refresh: refreshCoverV2 } = useCover();
 
@@ -317,10 +319,22 @@ useEffect(() => {
           isOwnProfile={true}
           miniMode={true}
           showControls={showCoverControls}
+          isSettingsPanelOpen={isSettingsPanelOpen}
+          onToggleSettingsPanel={() => setIsSettingsPanelOpen(!isSettingsPanelOpen)}
         />
 
-      {/* Cover Controls Toggle */}
-      <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
+      {/* Cover Settings Panel */}
+      <CoverSettingsPanel
+        isOpen={isSettingsPanelOpen}
+        onClose={() => setIsSettingsPanelOpen(false)}
+        buttonColor={buttonColor}
+        onButtonColorChange={handleButtonColorChange}
+      />
+
+      {/* Cover Controls Toggle - with smooth transition */}
+      <div className={`flex items-center justify-between p-4 border border-border rounded-lg bg-card transition-all duration-500 ${
+        isSettingsPanelOpen ? 'mt-6' : 'mt-0'
+      }`}>
         <div className="space-y-2">
           <Label htmlFor="cover-controls-toggle" className="text-sm font-medium">
             Show Cover Photo Controls
