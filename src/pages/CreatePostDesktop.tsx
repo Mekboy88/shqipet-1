@@ -552,7 +552,9 @@ const CreatePostDesktop: React.FC = () => {
               <CollapsibleTrigger className="w-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0">
                 <div className="flex items-center justify-between w-full p-3 bg-muted/50 rounded-lg hover:bg-accent transition-all focus:outline-none focus-visible:outline-none">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-600" fill="none">
+                      <path d="M4,18.9999905 L7.75407946,11.491832 C7.8680565,11.2638231 8.06482016,11.0879651 8.30413884,11.0001847 C9.11356935,10.7032911 9.60000359,10.8000012 9.76344156,11.2903152 L11.1190224,15.3570574 C11.1996482,15.5988744 11.3695623,15.8007859 11.5940587,15.9215227 C12.3533352,16.3298705 12.8485386,16.3029137 13.079669,15.8406525 L18,5.99999082 M13,6.46409237 L17.2774408,5.31795559 C17.4347269,5.27579637 17.5999292,5.27269863 17.7586883,5.30891799 C18.3183612,5.43660193 18.6397719,5.65560146 18.7229204,5.96591657 L19.9282036,10.4640923" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
                     <span className="font-medium text-sm">Engagement Analytics</span>
                   </div>
                   <ChevronDown className="w-4 h-4" />
