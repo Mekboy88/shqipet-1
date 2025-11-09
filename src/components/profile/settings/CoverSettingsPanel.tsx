@@ -25,14 +25,14 @@ const CoverSettingsPanel: React.FC<CoverSettingsPanelProps> = ({
 
   return (
     <div 
-      className={`overflow-hidden transition-all duration-500 ease-in-out ${
-        isOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+      className={`transition-all duration-500 ease-in-out ${
+        isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
       }`}
     >
       {/* Border Line */}
       <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-4" />
       
-      <div className="bg-card border border-border rounded-lg p-6 space-y-6">
+      <div className="bg-card border border-border rounded-lg p-6 space-y-6 overflow-y-auto max-h-[700px]">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Cover Photo Settings</h3>
