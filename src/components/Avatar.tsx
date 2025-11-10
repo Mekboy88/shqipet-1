@@ -33,12 +33,12 @@ const sizeClasses: Record<AvatarProps['size'] & string, string> = {
 // Exact pixel widths for sizes attribute - all avatars use 160×160 px resolution for maximum sharpness
 // Small avatar UI size: 40 × 40 px → Correct resolution: 160 × 160 px (4x for perfect clarity)
 const sizePx: Record<NonNullable<AvatarProps['size']>, number> = {
-  xs: 160,
-  sm: 160,  
-  md: 160,
-  lg: 160,
-  xl: 160,
-  '2xl': 160,
+  xs: 24,   // 24px (w-6 h-6)
+  sm: 32,   // 32px (w-8 h-8)
+  md: 40,   // 40px (w-10 h-10)
+  lg: 48,   // 48px (w-12 h-12)
+  xl: 64,   // 64px (w-16 h-16)
+  '2xl': 80, // 80px (w-20 h-20)
 };
 
 const Avatar: React.FC<AvatarProps> = React.memo(({
@@ -122,7 +122,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   };
 
   const content = (
-    <BaseAvatar className={cn(sizeClass, className)} style={style}>
+    <BaseAvatar className={cn(sizeClass, className)} style={{ width: sizePx[size], height: sizePx[size], ...style }}>
       {finalSrc && (
         <AvatarImage
           src={finalSrc || undefined}
@@ -141,7 +141,9 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     </BaseAvatar>
   );
 
-  if (!enableUpload && !showCameraOverlay) return content;
+  const allowOverlayLarge = showCameraOverlay && (size === 'lg' || size === 'xl' || size === '2xl');
+
+  if (!enableUpload && !allowOverlayLarge) return content;
 
   // Eye icon SVG from user
   const EyeIcon = () => (
@@ -160,16 +162,22 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     </svg>
   );
 
+  const wrapperClass = cn(
+    'relative img-locked-wrapper',
+    enableUpload ? 'cursor-pointer' : '',
+    allowOverlayLarge ? 'group' : ''
+  );
+
   return (
     <>
       <div 
-        className="relative group cursor-pointer img-locked-wrapper" 
+        className={wrapperClass}
         onClick={handleClick}
       >
         {content}
 
-        {/* Hover overlay - only animate opacity, no transforms, no blur */}
-        {showCameraOverlay && !isLoading && (
+        {/* Hover overlay - only on large avatars to avoid GPU rasterization on small ones */}
+        {allowOverlayLarge && !isLoading && (
           <div 
             className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center pointer-events-none"
             style={{ 

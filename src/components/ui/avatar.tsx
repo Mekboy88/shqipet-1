@@ -26,7 +26,12 @@ const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   AvatarImageProps
 >(({ className, src, onError, onLoad, priority, sizes = '160px', style, ...props }, ref) => {
-  const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
+  const initialSrc = React.useMemo(() => {
+    const s = typeof src === 'string' ? src : '';
+    return /^(https?:|blob:|data:)/i.test(s) ? (s as any) : undefined;
+  }, [src]);
+  const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(initialSrc);
+  const [resolvedSrcSet, setResolvedSrcSet] = React.useState<string | undefined>(undefined);
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
   const lockedRef = React.useRef<boolean>(false);
@@ -43,6 +48,9 @@ const AvatarImage = React.forwardRef<
     if (lockedRef.current) return; // Never change after first resolve
     
     const raw = typeof src === 'string' ? src : '';
+    
+    // Reset srcset on new source
+    setResolvedSrcSet(undefined);
     
     if (!raw) {
       setResolvedSrc(undefined);
@@ -84,6 +92,18 @@ const AvatarImage = React.forwardRef<
                 // Fallback to original key
                 finalUrl = await mediaService.getUrl(raw);
               }
+
+              // Build crisp srcset for browser selection (80w,160w,320w,640w)
+              try {
+                const keys = ['thumbnail.jpg','small.jpg','medium.jpg','large.jpg'].map(v => `${base}-${v}`);
+                const urls = await Promise.all(keys.map(k => mediaService.getUrl(k).catch(() => '')));
+                const widths = [80,160,320,640];
+                const set = urls
+                  .map((u, i) => (u ? `${u} ${widths[i]}w` : ''))
+                  .filter(Boolean)
+                  .join(', ');
+                if (set) setResolvedSrcSet(set);
+              } catch {}
             } else {
               // Not a variant key, resolve directly
               finalUrl = await mediaService.getUrl(raw);
@@ -123,6 +143,7 @@ const AvatarImage = React.forwardRef<
       }}
       className={cn("aspect-square h-full w-full object-cover object-center select-none img-locked", className)}
       src={resolvedSrc}
+      srcSet={resolvedSrcSet}
       width={explicitPx || undefined}
       height={explicitPx || undefined}
       loading={isHighPriority ? "eager" : "lazy"}
