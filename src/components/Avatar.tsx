@@ -134,7 +134,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   // NEVER use email or username for initials
   const finalInitials = (initials || derivedInitials || nameInitials || fromAuth || '??').trim();
 
-  const finalSrc = resolvedSrc || lastDisplayedSrc;
+  const finalSrc = resolvedSrc;
 
   // Handle file upload with instant local preview and progress
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,34 +226,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
             src={finalSrc}
             alt="User avatar"
             className="object-cover img-locked"
-          onError={async () => {
-            console.warn('Avatar image failed to load');
-            const key = rawKeyRef.current;
-            
-            // First, try switching to original if we were using variant
-            if (key && !useOriginal && errorRetryRef.current === 0) {
-              console.log('⚠️ Variant failed to display, switching to original');
-              errorRetryRef.current += 1;
-              setUseOriginal(true);
-              return;
-            }
-            
-            // If already using original or second failure, try cache refresh
-            if (key && errorRetryRef.current < 2) {
-              try {
-                errorRetryRef.current += 1;
-                mediaService.clearCache(key);
-                const freshUrl = await mediaService.getUrl(key);
-                await mediaService.preloadImage(freshUrl).catch(() => {});
-                setResolvedSrc(freshUrl);
-                setLastDisplayedSrc(freshUrl);
-                return;
-              } catch (e) {
-                console.warn('Avatar refresh failed:', e);
-              }
-            }
-          }}
-        />
+          />
       )}
       <AvatarFallback className={cn(
         'font-bold',
