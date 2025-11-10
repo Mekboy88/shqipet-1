@@ -80,7 +80,7 @@ const AvatarImage = React.forwardRef<
   return (
     <AvatarPrimitive.Image
       ref={ref}
-      className={cn("aspect-square h-full w-full img-locked", className)}
+      className={cn("aspect-square h-full w-full object-cover object-center img-locked", className)}
       src={resolvedSrc}
       srcSet={srcSet}
       sizes="(max-width: 48px) 160w, (max-width: 96px) 320w, 640w"
