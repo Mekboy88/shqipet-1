@@ -247,15 +247,23 @@ img, video, canvas {
   transform: translateZ(0) !important;
   backface-visibility: hidden !important;
   -webkit-font-smoothing: subpixel-antialiased !important;
+  -webkit-backface-visibility: hidden !important;
+  -moz-backface-visibility: hidden !important;
+  -ms-transform: translateZ(0) !important;
+  transform-style: preserve-3d !important;
 }
 
-/* Avatar-specific protection */
+/* Avatar-specific maximum quality enforcement */
 [class*="avatar"] img,
 img[alt*="avatar" i],
 img[alt*="profile" i] {
   image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: high-quality !important;
   transform: translate3d(0, 0, 0) !important;
   will-change: auto !important;
+  -webkit-transform: translate3d(0, 0, 0) !important;
+  filter: none !important;
+  -webkit-filter: none !important;
 }
 
 @layer base {

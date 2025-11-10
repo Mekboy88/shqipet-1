@@ -126,11 +126,12 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
+    // ALWAYS prioritize largest variants for maximum sharpness
     const variantMeta = [
-      { suffix: 'thumbnail.jpg', w: 80 },
-      { suffix: 'small.jpg', w: 160 },
-      { suffix: 'medium.jpg', w: 320 },
       { suffix: 'large.jpg', w: 640 },
+      { suffix: 'medium.jpg', w: 320 },
+      { suffix: 'small.jpg', w: 160 },
+      { suffix: 'thumbnail.jpg', w: 80 },
     ];
 
     let canceled = false;
@@ -148,27 +149,21 @@ const AvatarImage = React.forwardRef<
 
       if (canceled) return;
 
-      // Choose best initial variant; if width unknown, pick largest to avoid blur
-      const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
-      const sorted = available.sort((a, b) => a.w - b.w);
-      let chosen = sorted[sorted.length - 1];
-      if (dimensions?.width && dimensions.width > 0) {
-        const neededPixels = Math.round(dimensions.width * dpr);
-        chosen = sorted.find(v => v.w >= neededPixels) || sorted[sorted.length - 1];
+      // ALWAYS use the largest available variant for maximum quality
+      const sorted = available.sort((a, b) => b.w - a.w);
+      const largest = sorted[0];
+
+      if (!canceled && largest?.url) {
+        setResolvedSrc(largest.url);
       }
 
-      if (!canceled && chosen?.url) {
-        // Set initial src to the best-fit variant to prevent low-res lock-in
-        setResolvedSrc(chosen.url);
-      }
-
-      // Build width-based srcset AFTER setting initial src
+      // Build srcset with all available variants
       const parts = available.map(v => `${v.url} ${v.w}w`).join(', ');
       setComputedSrcSet(parts || undefined);
     })();
 
     return () => { canceled = true; };
-  }, [src, resolvedSrc, dimensions]);
+  }, [src, resolvedSrc]);
 
   // Measure container size and set integer dimensions for crisp rendering
   React.useLayoutEffect(() => {
@@ -206,18 +201,21 @@ const AvatarImage = React.forwardRef<
       className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
       src={resolvedSrc}
       srcSet={computedSrcSet}
-      sizes={computedSizes ?? "40px"}
+      sizes={computedSizes ?? "640px"}
       width={dimensions?.width}
       height={dimensions?.height}
-      loading={isHighPriority ? "eager" : "lazy"}
-      decoding="async"
+      loading="eager"
+      decoding="sync"
       // @ts-ignore - not in TS types but supported by browsers
-      fetchpriority={isHighPriority ? "high" : "low"}
+      fetchpriority="high"
       draggable={false}
       style={{ 
-        imageRendering: '-webkit-optimize-contrast',
+        imageRendering: 'high-quality',
         transform: 'translate3d(0,0,0)',
-        backfaceVisibility: 'hidden'
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+        perspective: 1000,
+        filter: 'none'
       } as any}
       onLoad={onLoad}
       onError={(e) => {
