@@ -26,17 +26,17 @@ interface ValidationRules {
 const VALIDATION_RULES: Record<MediaType, ValidationRules> = {
   avatar: {
     maxSizeMB: 10,
-    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic'],
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'],
     dimensions: { minWidth: 100, minHeight: 100, maxWidth: 2000, maxHeight: 2000 }
   },
   cover: {
     maxSizeMB: 10,
-    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic'],
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'],
     dimensions: { minWidth: 800, minHeight: 300, maxWidth: 4000, maxHeight: 4000 }
   },
   'post-image': {
     maxSizeMB: 20,
-    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic']
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif']
   },
   'post-video': {
     maxSizeMB: 50,

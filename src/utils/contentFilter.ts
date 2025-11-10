@@ -66,7 +66,7 @@ const SUSPICIOUS_FILE_PATTERNS = [
 // MIME type validation - SAFE FORMATS ONLY
 const ALLOWED_MIME_TYPES = [
   // Images - Safe formats only
-  'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif',
+  'image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif',
   // Videos - Safe formats only
   'video/mp4', 'video/webm', 'video/quicktime',
   // Audio

@@ -179,9 +179,9 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     try {
       await uploadAvatar(file);
       toast.success('Profile photo updated successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Avatar upload error:', error);
-      toast.error('Failed to update profile photo');
+      toast.error(error?.message || 'Failed to update profile photo');
     } finally {
       // Reset input value to allow re-selecting the same file later
       event.target.value = '';

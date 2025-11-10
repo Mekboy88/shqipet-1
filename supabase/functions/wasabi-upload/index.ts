@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // SAFE FORMAT VALIDATION - Industry Standard
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 const BLOCKED_EXTENSIONS = ['.bmp', '.tiff', '.tif', '.gif', '.svg', '.ico', '.nef', '.cr2', '.arw', '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv'];
 
