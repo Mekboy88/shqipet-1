@@ -30,6 +30,7 @@ const AvatarImage = React.forwardRef<
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
   const lockedWidthRef = React.useRef<number>(0);
+  const lockedSrcRef = React.useRef<boolean>(false);
   const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
   const [computedSizes, setComputedSizes] = React.useState<string | undefined>(undefined);
   const [computedSrcSet, setComputedSrcSet] = React.useState<string | undefined>(undefined);
@@ -40,6 +41,7 @@ const AvatarImage = React.forwardRef<
   }, [sizes]);
 
   React.useEffect(() => {
+    lockedSrcRef.current = false; // allow a new lock cycle for new src
     const raw = typeof src === 'string' ? src : '';
     
     if (!raw) {
@@ -57,9 +59,10 @@ const AvatarImage = React.forwardRef<
       }
     } catch {}
 
-    // If already a direct URL/blob/data without a storage key, use as-is
+    // If already a direct URL/blob/data without a storage key, use as-is and lock
     if (/^(https?:|blob:|data:)/i.test(raw)) {
       setResolvedSrc(raw);
+      lockedSrcRef.current = true;
       return;
     }
 
@@ -69,8 +72,9 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
-    // Unknown format, pass through
+    // Unknown format, pass through and lock
     setResolvedSrc(raw);
+    lockedSrcRef.current = true;
   }, [src]);
 
 
@@ -243,10 +247,11 @@ const AvatarImage = React.forwardRef<
       const sorted = available.sort((a, b) => a.w - b.w);
       let chosen = sorted.find(v => v.w >= target) || sorted[sorted.length - 1];
 
-      if (!canceled && chosen?.url) {
+      if (!canceled && chosen?.url && !lockedSrcRef.current) {
         setResolvedSrc(prev => {
           if (lockedWidthRef.current && chosen.w < lockedWidthRef.current) return prev;
           lockedWidthRef.current = Math.max(lockedWidthRef.current, chosen.w);
+          lockedSrcRef.current = true;
           return chosen.url;
         });
       }
