@@ -53,6 +53,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   isOwnProfile = true
 }) => {
   const [showPopup, setShowPopup] = useState(false);
+  const [qaInfo, setQaInfo] = useState<{ naturalWidth?: number; naturalHeight?: number } | null>(null);
   const { firstName, lastName, initials: derivedInitials, username, email, avatarUrl: universalAvatarUrl } = useUniversalUser(userId);
   const { user: authUser } = useAuth();
   const { avatarUrl: globalAvatarUrl, avatarKey, isLoading, uploadAvatar } = useGlobalAvatar(userId);
@@ -121,6 +122,12 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
           className="object-cover object-center"
           sizes={`${sizePx[size]}px`}
           priority={['lg','xl','2xl'].includes(size)}
+          expectedWidth={sizePx[size]}
+          dpr={typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1}
+          onLoad={(e) => {
+            const img = e.currentTarget as HTMLImageElement;
+            setQaInfo({ naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight });
+          }}
         />
       )}
       <AvatarFallback className={cn(
@@ -190,8 +197,11 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
 
         {/* Dev QA badge */}
         {showQA && (
-          <div className="absolute bottom-0 right-0 m-0.5 rounded bg-black/60 text-white text-[10px] px-1 py-0.5 pointer-events-none">
-            {qaPx}px @ {qaDpr}x
+          <div className="absolute bottom-0 right-0 m-0.5 rounded bg-black/80 text-white text-[9px] px-1 py-0.5 pointer-events-none whitespace-nowrap font-mono leading-tight">
+            <div>{qaPx}px @ {qaDpr}x DPR</div>
+            {qaInfo?.naturalWidth && (
+              <div className="text-green-400">loaded: {qaInfo.naturalWidth}px</div>
+            )}
           </div>
         )}
 

@@ -249,7 +249,6 @@ img {
 .img-locked {
   isolation: isolate !important;
   backface-visibility: hidden !important;
-  image-rendering: -webkit-optimize-contrast !important;
   contain: layout paint style !important;
 }
 

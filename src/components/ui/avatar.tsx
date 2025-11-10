@@ -43,12 +43,16 @@ const Avatar = React.forwardRef<
 })
 Avatar.displayName = AvatarPrimitive.Root.displayName
 
-type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { priority?: boolean };
+type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { 
+  priority?: boolean;
+  expectedWidth?: number;
+  dpr?: number;
+};
 
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   AvatarImageProps
->(({ className, src, onError, onLoad, priority, sizes, style, ...props }, ref) => {
+>(({ className, src, onError, onLoad, priority, sizes, style, expectedWidth, dpr, ...props }, ref) => {
   const initialSrc = React.useMemo(() => {
     const s = typeof src === 'string' ? src : '';
     return /^(https?:|blob:|data:)/i.test(s) ? (s as any) : undefined;
@@ -205,7 +209,19 @@ const AvatarImage = React.forwardRef<
       fetchpriority={isHighPriority ? "high" : "auto"}
       draggable={false}
       data-locked={process.env.NODE_ENV === 'development' ? String(lockedRef.current) : undefined}
-      onLoad={onLoad}
+      onLoad={(e) => {
+        // Quality check: ensure naturalWidth meets DPR requirement
+        const img = e.currentTarget as HTMLImageElement;
+        const targetDpr = dpr || (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1;
+        const targetPx = (expectedWidth || explicitPx || 40);
+        const requiredWidth = targetPx * targetDpr;
+        
+        if (img.naturalWidth < requiredWidth && resolvedSrcSet) {
+          console.warn(`[Avatar QA] Loaded ${img.naturalWidth}px but need ${requiredWidth}px (${targetPx}px × ${targetDpr}x DPR). Browser may have selected wrong srcSet candidate.`);
+        }
+        
+        onLoad?.(e);
+      }}
       onError={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
         // Attempt one-time recovery
