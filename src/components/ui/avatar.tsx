@@ -138,6 +138,27 @@ const AvatarImage = React.forwardRef<React.ElementRef<typeof AvatarPrimitive.Ima
       };
     }, [base, dims]);
 
+    // Fallback: if no recognizable variant base, load key or original src
+    React.useEffect(() => {
+      if (base) return; // Variants effect will handle when base exists
+      let cancelled = false;
+      (async () => {
+        if (typeof src === "string") {
+          try {
+            if (key) {
+              const url = await mediaService.getUrl(key);
+              if (!cancelled) setFinalSrc(url);
+            } else {
+              if (!cancelled) setFinalSrc(src);
+            }
+          } catch {}
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [base, key, src]);
+
     const high = priority || (dims?.w || 0) >= 64;
 
     return (
