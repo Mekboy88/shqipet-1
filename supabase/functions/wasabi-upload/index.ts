@@ -12,7 +12,7 @@ const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 const BLOCKED_EXTENSIONS = ['.bmp', '.tiff', '.tif', '.gif', '.svg', '.ico', '.nef', '.cr2', '.arw', '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv'];
 
 const MAX_SIZES = {
-  avatar: 5 * 1024 * 1024,      // 5MB
+  avatar: 10 * 1024 * 1024,     // 10MB (align with frontend and cover)
   cover: 10 * 1024 * 1024,       // 10MB
   'post-image': 20 * 1024 * 1024, // 20MB
   'post-video': 50 * 1024 * 1024  // 50MB
@@ -42,8 +42,8 @@ Deno.serve(async (req) => {
     let VIDEO_MIME_ALLOW = ALLOWED_VIDEO_TYPES as string[];
     let BLOCKED_EXTS = BLOCKED_EXTENSIONS as string[];
     let MAX_LIMITS = MAX_SIZES as Record<string, number>;
-    let allowedImageExts = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
-    let allowedVideoExts = ['mp4', 'webm', 'mov'];
+let allowedImageExts = ['jpg', 'jpeg', 'jfif', 'pjpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
+let allowedVideoExts = ['mp4', 'webm', 'mov'];
 
     try {
       const supabase = createClient(
