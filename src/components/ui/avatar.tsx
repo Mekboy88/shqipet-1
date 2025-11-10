@@ -178,12 +178,6 @@ const AvatarImage = React.forwardRef<
       const sorted = available.sort((a, b) => a.w - b.w);
       let chosen = sorted.find(v => v.w >= target) || sorted[sorted.length - 1];
 
-      // For very small avatars, never swap source and omit srcSet entirely
-      if (isSmallAvatar) {
-        setComputedSrcSet(undefined);
-        return;
-      }
-
       if (!canceled && chosen?.url) {
         setResolvedSrc(prev => {
           if (lockedWidthRef.current && chosen.w < lockedWidthRef.current) return prev;
@@ -192,10 +186,15 @@ const AvatarImage = React.forwardRef<
         });
       }
 
-      // Only expose candidates >= chosen width to prevent downshifts
-      const filtered = available.filter(v => v.w >= (lockedWidthRef.current || chosen.w));
-      const parts = filtered.map(v => `${v.url} ${v.w}w`).join(', ');
-      setComputedSrcSet(parts || undefined);
+      // For very small avatars, omit srcSet entirely to prevent browser downshifts
+      if (isSmallAvatar) {
+        setComputedSrcSet(undefined);
+      } else {
+        // Only expose candidates >= chosen width to prevent downshifts
+        const filtered = available.filter(v => v.w >= (lockedWidthRef.current || chosen.w));
+        const parts = filtered.map(v => `${v.url} ${v.w}w`).join(', ');
+        setComputedSrcSet(parts || undefined);
+      }
     })();
 
     return () => { canceled = true; };
