@@ -13,8 +13,6 @@
   isolation: isolate !important;
   backface-visibility: hidden !important;
   contain: layout paint style !important;
-  image-rendering: -webkit-optimize-contrast !important;
-  image-rendering: crisp-edges !important;
 }
 
 .img-locked-wrapper {
