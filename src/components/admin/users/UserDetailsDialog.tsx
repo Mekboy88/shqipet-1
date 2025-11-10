@@ -41,7 +41,7 @@ import {
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 
@@ -100,15 +100,11 @@ export function UserDetailsDialog({
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage 
-                src={user.profile_image_url || user.profile_photo_url || ''} 
-                alt={user.username || 'User'} 
-              />
-              <AvatarFallback>
-                {(user.first_name?.[0] || '') + (user.last_name?.[0] || '') || 'U'}
-              </AvatarFallback>
-            </Avatar>
+            <Avatar 
+              src={user.profile_image_url || user.profile_photo_url || ''}
+              size="md"
+              initials={(user.first_name?.[0] || '') + (user.last_name?.[0] || '') || 'U'}
+            />
             {fullName}
             <Badge variant={user.account_status === 'active' ? 'default' : 'destructive'} className="ml-2">
               {user.account_status}

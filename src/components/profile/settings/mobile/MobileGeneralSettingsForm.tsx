@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Camera, Shield, Check, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useBreakpoint } from '@/hooks/use-mobile';
@@ -99,12 +99,12 @@ const MobileGeneralSettingsForm: React.FC<MobileGeneralSettingsFormProps> = ({
       {/* Profile Header - Mobile Optimized */}
       <div className="text-center space-y-4 pb-6 border-b">
         <div className="relative inline-block">
-          <Avatar className="h-24 w-24 mx-auto">
-            <AvatarImage src={userInfo.avatar_url} alt="Profile" />
-            <AvatarFallback className="text-xl">
-              {userInfo.firstName?.[0]}{userInfo.lastName?.[0]}
-            </AvatarFallback>
-          </Avatar>
+          <Avatar 
+            src={userInfo.avatar_url}
+            size="2xl"
+            initials={`${userInfo.firstName?.[0] || ''}${userInfo.lastName?.[0] || ''}`}
+            className="mx-auto"
+          />
           <Button 
             size="sm" 
             className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0"

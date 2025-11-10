@@ -5,7 +5,7 @@ import { TableRow, TableCell } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,12 +96,11 @@ export function AdminTableRow({
         
         <TableCell>
           <div className="flex items-center space-x-3">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user.profile_image_url || ''} />
-              <AvatarFallback className="bg-blue-100 text-blue-600">
-                {user.first_name?.[0]}{user.last_name?.[0]}
-              </AvatarFallback>
-            </Avatar>
+            <Avatar 
+              src={user.profile_image_url || ''}
+              size="sm"
+              initials={`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`}
+            />
             <div className="min-w-0">
               <p className="font-medium text-gray-900 truncate">
                 {user.first_name} {user.last_name}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { FileText, Clock, Shield, AlertTriangle, Eye, User } from 'lucide-react';
 
@@ -190,9 +190,10 @@ const AuditTrailDashboard: React.FC = () => {
             <div className="space-y-4">
               {recentActions.map((action) => (
                 <div key={action.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs">{action.avatar}</AvatarFallback>
-                  </Avatar>
+                  <Avatar 
+                    size="sm"
+                    initials={action.avatar}
+                  />
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">{action.admin}</p>

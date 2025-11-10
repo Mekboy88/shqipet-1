@@ -14,7 +14,7 @@ import { Role, ALL_PERMISSIONS, PERMISSION_CATEGORIES, PermissionCategory } from
 import { formatDistanceToNow } from 'date-fns';
 import { Shield, Calendar, User, CheckCircle, XCircle, File, Users } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 
 interface RoleDetailsProps {
   isOpen: boolean;
@@ -185,9 +185,10 @@ export const RoleDetails: React.FC<RoleDetailsProps> = ({ isOpen, onClose, role 
                     <TableRow key={user.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
+                          <Avatar 
+                            size="sm"
+                            initials={user.name.charAt(0)}
+                          />
                           <span>{user.name}</span>
                         </div>
                       </TableCell>
