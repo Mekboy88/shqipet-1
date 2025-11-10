@@ -91,27 +91,53 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   // Prevent infinite error loops by limiting retries
   const errorRetryRef = useRef<number>(0);
 
-  // Resolve Wasabi keys to URLs ONCE per unique source - prevent flickering
+  // Get exact pixel dimensions and text class (needed early for variant selection)
+  const pixelSize = sizePixels[size] || sizePixels.md;
+  const textClass = textSizeClasses[size] || textSizeClasses.md;
+
+  // Smart variant selection based on display size (4x DPR for retina)
+  const getVariantKey = (key: string, displaySize: number): string => {
+    // Calculate required resolution for 4x DPR
+    const requiredRes = displaySize * 4;
+    
+    // Select appropriate variant
+    let variantSuffix = 'small'; // Default for 40px (160px = 40×4)
+    if (requiredRes <= 80) variantSuffix = 'thumbnail';      // 20px or smaller
+    else if (requiredRes <= 160) variantSuffix = 'small';    // 40px
+    else if (requiredRes <= 320) variantSuffix = 'medium';   // 80px
+    else variantSuffix = 'large';                            // 160px+
+    
+    // Replace -original with variant, or append if no suffix exists
+    if (key.includes('-original.')) {
+      return key.replace('-original.', `-${variantSuffix}.`);
+    }
+    
+    // If key already has variant suffix, replace it
+    const hasVariant = /-(?:thumbnail|small|medium|large)\./i.test(key);
+    if (hasVariant) {
+      return key.replace(/-(?:thumbnail|small|medium|large)\./i, `-${variantSuffix}.`);
+    }
+    
+    // No suffix - insert variant before extension
+    return key.replace(/\.([^.]+)$/, `-${variantSuffix}.$1`);
+  };
+
+  // Resolve Wasabi keys to URLs with intelligent variant selection
   useEffect(() => {
     const currentRawSrc = rawSrcRef.current;
     
     if (!currentRawSrc) {
-      // Keep last good image to avoid flicker/disappear during updates
       return;
     }
 
-    // Skip if we already resolved this exact source
     if (resolvedSrc && lastDisplayedSrc && 
         (currentRawSrc === resolvedSrc || currentRawSrc === lastDisplayedSrc)) {
       return;
     }
 
-    // Reset error retries whenever the source changes
     errorRetryRef.current = 0;
-    // Default: no key known
     rawKeyRef.current = null;
 
-    // If already a proper URL, use as-is
     if (/^(https?:|blob:|data:)/.test(currentRawSrc)) {
       if (resolvedSrc !== currentRawSrc) {
         setResolvedSrc(currentRawSrc);
@@ -120,29 +146,28 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
       return;
     }
 
-    // If it looks like a storage key, remember it and resolve with retry logic
     if (/^(uploads|avatars|covers)\//i.test(currentRawSrc)) {
       rawKeyRef.current = currentRawSrc;
       
-      // Check if we already have this in state (prevents re-resolution)
-      if (lastDisplayedSrc && lastDisplayedSrc.includes(encodeURIComponent(currentRawSrc))) {
+      // ✅ CRITICAL: Select correct variant based on display size
+      const variantKey = getVariantKey(currentRawSrc, pixelSize);
+      
+      if (lastDisplayedSrc && lastDisplayedSrc.includes(encodeURIComponent(variantKey))) {
         return;
       }
       
       const resolveWithRetry = async (attempt = 1): Promise<void> => {
         try {
-          const url = await mediaService.getUrl(currentRawSrc);
-          // Preload to prevent flicker
-          await mediaService.preloadImage(url).catch(() => {}); // Ignore preload failures
+          const url = await mediaService.getUrl(variantKey);
+          await mediaService.preloadImage(url).catch(() => {});
           setResolvedSrc(url);
           setLastDisplayedSrc(url);
+          console.log(`✅ Loaded variant for ${pixelSize}px avatar:`, variantKey);
         } catch (e) {
-          console.warn(`Failed to resolve avatar key (attempt ${attempt}):`, currentRawSrc, e);
+          console.warn(`Failed to resolve avatar variant (attempt ${attempt}):`, variantKey, e);
           if (attempt < 3) {
-            // Retry with exponential backoff
             setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
           } else {
-            // On final failure, keep the last displayed src (don't clear it)
             console.warn('All avatar resolve attempts failed, keeping last good URL');
           }
         }
@@ -151,14 +176,12 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
       return;
     }
 
-    // Unknown format, pass through
     if (resolvedSrc !== currentRawSrc) {
       setResolvedSrc(currentRawSrc);
       setLastDisplayedSrc(currentRawSrc);
     }
-  }, [rawSrcRef.current, resolvedSrc, lastDisplayedSrc]);
+  }, [rawSrcRef.current, resolvedSrc, lastDisplayedSrc, pixelSize]);
 
-  const finalSrc = resolvedSrc || lastDisplayedSrc;
   
   // STRICT: Only use first name + last name initials (NEVER email)
   // Priority 1: From profile data (firstName, lastName)
@@ -178,9 +201,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   // NEVER use email or username for initials
   const finalInitials = (initials || derivedInitials || nameInitials || fromAuth || '??').trim();
 
-  // Get exact pixel dimensions and text class
-  const pixelSize = sizePixels[size] || sizePixels.md;
-  const textClass = textSizeClasses[size] || textSizeClasses.md;
+  const finalSrc = resolvedSrc || lastDisplayedSrc;
 
   // Handle file upload with instant local preview and progress
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
