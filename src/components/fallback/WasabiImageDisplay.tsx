@@ -153,7 +153,7 @@ export const WasabiImageDisplay: React.FC<WasabiImageDisplayProps> = ({
       <img
         src={cleanUrl}
         alt={alt}
-        className="w-full h-full object-contain img-locked"
+        className="w-full h-full object-contain"
         onError={handleImageError}
         onLoad={() => {
           handleImageLoad();

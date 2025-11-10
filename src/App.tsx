@@ -100,9 +100,7 @@ import { setVideoSecurityNotificationCallback } from '@/utils/videoSecurity';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
 import { sessionPersistenceService } from '@/services/sessionPersistence';
 import GlobalAvatarBootstrap from '@/components/avatar/GlobalAvatarBootstrap';
-import { AvatarQAOverlay } from '@/components/avatar/AvatarQAOverlay';
 import { useGlobalElasticScrolling } from '@/hooks/useGlobalElasticScrolling';
-import { initImageGuardChecker } from '@/utils/imageGuardChecker';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -181,11 +179,6 @@ function App() {
   React.useEffect(() => {
     setVideoSecurityNotificationCallback(reportBlockedVideo);
   }, [reportBlockedVideo]);
-  
-  // Initialize image guard checker in development
-  React.useEffect(() => {
-    initImageGuardChecker();
-  }, []);
 
   return (
     <ErrorRecoveryProvider>
@@ -220,9 +213,6 @@ function App() {
                      
                      {/* Global avatar bootstrap - ensures avatar system is initialized */}
                      <GlobalAvatarBootstrap />
-                     
-                     {/* Avatar QA overlay - dev mode only with ?avatarQA=1 */}
-                     <AvatarQAOverlay />
                      
                      <Routes>
                       {/* Public routes - NO AUTH CHECK */}

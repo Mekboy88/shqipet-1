@@ -41,9 +41,31 @@ const GlobalAvatarBootstrap = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [user?.id]);
 
-  // Setup global debug commands (removed for security)
+  // Setup global debug commands
   useEffect(() => {
-    // No browser console access for security reasons
+    if (typeof window !== 'undefined') {
+      (window as any).__avatarV2 = {
+        reload: (userId?: string) => {
+          const targetId = userId || user?.id;
+          if (targetId) {
+            console.log('🔄 Manual avatar reload for:', targetId);
+            avatarStore.load(targetId);
+          }
+        },
+        print: (userId?: string) => {
+          const targetId = userId || user?.id;
+          if (targetId) {
+            console.log('📊 Avatar state for user:', targetId);
+            console.table((window as any).__avatarV2Debug?.[targetId] || 'No state found');
+          }
+        },
+        clearCache: () => {
+          const keys = Object.keys(localStorage).filter(k => k.startsWith('avatar_cache_'));
+          keys.forEach(k => localStorage.removeItem(k));
+          console.log('🧹 Cleared avatar cache:', keys.length, 'items');
+        }
+      };
+    }
   }, [user?.id]);
 
   return null; // This is a bootstrap component, renders nothing

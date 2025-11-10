@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Send, Paperclip, Smile, Flag, Archive, MoreHorizontal, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Avatar from '@/components/Avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 
 interface Message {
@@ -74,11 +74,12 @@ const ThreadView: React.FC<ThreadViewProps> = ({
       <div className="p-4 border-b border-[#272C30] bg-[#1A1E22] flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Avatar 
-              src={currentUser?.avatar}
-              size="sm"
-              initials={currentUser?.user?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U'}
-            />
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={currentUser?.avatar} />
+              <AvatarFallback className="text-xs bg-[#272C30] text-[#F4F5F6]">
+                {currentUser?.user?.split(' ').map((n: string) => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <h3 className="text-sm font-medium text-[#F4F5F6] flex items-center gap-2">
                 {currentUser?.user || 'User'}

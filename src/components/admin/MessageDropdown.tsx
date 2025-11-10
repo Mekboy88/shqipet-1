@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MessageSquare, Bot, User, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import Avatar from '@/components/Avatar';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AdminInbox from './AdminInbox';
 interface MessageDropdownProps {
   open: boolean;
@@ -90,14 +90,15 @@ const MessageDropdown: React.FC<MessageDropdownProps> = ({
             </div>
             
             <div className="max-h-96 overflow-y-auto pb-4">
-              {messages.map(message => <div key={message.id} className={`p-4 border-b border-gray-50 hover:bg-blue-50 transition-all duration-300 cursor-pointer ${message.unread ? 'bg-blue-50/50' : ''}`}>
+              {messages.map(message => <div key={message.id} className={`p-4 border-b border-gray-50 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-105 transition-all duration-300 cursor-pointer ${message.unread ? 'bg-blue-50/50' : ''}`}>
                   <div className="flex items-start gap-3">
                     <div className="relative">
-                      <Avatar 
-                        size="md" 
-                        src={message.avatar || undefined}
-                        initials={getInitials(message.sender)}
-                      />
+                      <Avatar className="h-10 w-10">
+                        {message.avatar && <AvatarImage src={message.avatar} alt={message.sender} />}
+                        <AvatarFallback className="text-xs">
+                          {getInitials(message.sender)}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
                         {getTypeIcon(message.type)}
                       </div>
@@ -123,7 +124,7 @@ const MessageDropdown: React.FC<MessageDropdownProps> = ({
             <div className="p-3 border-t border-gray-200 bg-white">
               <Button 
                 variant="ghost" 
-                className="w-full text-sm text-gray-700 transition-all duration-300 font-medium"
+                className="w-full text-sm text-gray-700 hover:shadow-lg hover:shadow-[#517DF3]/30 hover:scale-105 transition-all duration-300 font-medium"
                 onClick={() => {
                   onOpenChange(false);
                   setInboxOpen(true);

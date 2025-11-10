@@ -78,7 +78,7 @@ export const SimpleImageDisplay: React.FC<SimpleImageDisplayProps> = ({
       <img
         src={cleanUrl}
         alt={alt}
-        className="w-full h-full object-cover img-locked"
+        className="w-full h-full object-cover"
         onError={handleError}
         onLoad={handleLoad}
         style={{ display: loading ? 'none' : 'block' }}

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Crown } from 'lucide-react';
-import Avatar from '@/components/Avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
 const proMembers: Array<{ name: string; image: string }> = [];
@@ -24,12 +24,10 @@ const ProMembersCard = () => {
           <div className="grid grid-cols-2 gap-4">
             {proMembers.map((member) => (
               <div key={member.name} className="flex flex-col items-center text-center">
-                <Avatar 
-                  src={member.image}
-                  size="xl"
-                  initials={member.name.charAt(0)}
-                  className="mb-2"
-                />
+                <Avatar className="w-16 h-16 mb-2">
+                  <AvatarImage src={member.image} />
+                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                </Avatar>
                 <p className="text-sm font-semibold truncate w-full">{member.name}</p>
               </div>
             ))}

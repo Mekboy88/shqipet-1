@@ -25,14 +25,14 @@ interface ValidationRules {
 
 const VALIDATION_RULES: Record<MediaType, ValidationRules> = {
   avatar: {
-    maxSizeMB: 10,
-    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-    dimensions: { minWidth: 80, minHeight: 80, maxWidth: 6000, maxHeight: 6000 }
+    maxSizeMB: 5,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    dimensions: { minWidth: 100, minHeight: 100, maxWidth: 2000, maxHeight: 2000 }
   },
   cover: {
-    maxSizeMB: 15,
-    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-    dimensions: { minWidth: 800, minHeight: 300, maxWidth: 6000, maxHeight: 6000 }
+    maxSizeMB: 10,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    dimensions: { minWidth: 800, minHeight: 300, maxWidth: 4000, maxHeight: 4000 }
   },
   'post-image': {
     maxSizeMB: 20,
@@ -97,16 +97,10 @@ class UploadService {
         formData.append('userId', userId);
       }
 
-      // Use image-optimizer for avatar and cover photos, wasabi-upload for others
+      // Upload directly to wasabi-upload edge function using multipart/form-data
       const baseUrl = import.meta.env.VITE_SUPABASE_URL as string;
       const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-      const edgeFunction = (mediaType === 'avatar' || mediaType === 'cover') 
-        ? 'image-optimizer' 
-        : 'wasabi-upload';
-      
-      console.log(`📤 Using ${edgeFunction} for ${mediaType} upload`);
-      
-      const response = await fetch(`${baseUrl}/functions/v1/${edgeFunction}`, {
+      const response = await fetch(`${baseUrl}/functions/v1/wasabi-upload`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${session.access_token}`,

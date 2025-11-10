@@ -58,7 +58,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         <img
           src={src}
           alt={alt}
-          className="w-full h-full object-cover img-locked"
+          className="w-full h-full object-cover"
           loading="lazy"
         />
       ) : (

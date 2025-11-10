@@ -8,247 +8,102 @@ import { mediaService } from "@/services/media/MediaService"
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, style, ...props }, ref) => {
-  const innerRef = React.useRef<HTMLSpanElement | null>(null);
-  const mergedRef = (node: any) => {
-    innerRef.current = node;
-    if (typeof ref === 'function') ref(node);
-    else if (ref) (ref as any).current = node;
-  };
-  const [roundedSize, setRoundedSize] = React.useState<{ w?: number; h?: number }>({});
-  React.useLayoutEffect(() => {
-    const el = innerRef.current as HTMLElement | null;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const w = r.width, h = r.height;
-    if (w > 0 && h > 0) {
-      const rw = Math.round(w);
-      const rh = Math.round(h);
-      if (Math.abs(rw - w) > 0.01 || Math.abs(rh - h) > 0.01) {
-        setRoundedSize({ w: rw, h: rh });
-      }
-    }
-  }, [className, style]);
-  return (
-    <AvatarPrimitive.Root
-      ref={mergedRef}
-      className={cn(
-        "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full img-locked-wrapper",
-        className
-      )}
-      style={roundedSize.w && roundedSize.h ? { ...style, width: roundedSize.w, height: roundedSize.h } : style}
-      {...props}
-    />
-  );
-})
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
+      className
+    )}
+    {...props}
+  />
+))
 Avatar.displayName = AvatarPrimitive.Root.displayName
-
-type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { 
-  priority?: boolean;
-  expectedWidth?: number;
-  dpr?: number;
-};
 
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
-  AvatarImageProps
->(({ className, src, onError, onLoad, priority, sizes, style, expectedWidth, dpr, ...props }, ref) => {
-  const initialSrc = React.useMemo(() => {
-    const s = typeof src === 'string' ? src : '';
-    return /^(https?:|blob:|data:)/i.test(s) ? (s as any) : undefined;
-  }, [src]);
-  const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(initialSrc);
-  const [resolvedSrcSet, setResolvedSrcSet] = React.useState<string | undefined>(undefined);
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, src, onError, onLoad, ...props }, ref) => {
+  const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
   const retriedOnceRef = React.useRef(false);
-  const imgRef = React.useRef<HTMLImageElement>(null);
-  const lockedRef = React.useRef<boolean>(false);
-  
-  // Parse explicit pixel size from sizes prop
-  const explicitPx = React.useMemo(() => {
-    if (!sizes) return null;
-    const m = String(sizes).match(/(\d+(?:\.\d+)?)px/);
-    return m ? Math.round(parseFloat(m[1])) : null;
-  }, [sizes]);
 
-  // Measure the container width to derive integer pixel size when sizes is not provided
-  const [measuredPx, setMeasuredPx] = React.useState<number | null>(null);
-  React.useLayoutEffect(() => {
-    if (explicitPx) return; // respect explicit sizes
-    const node = imgRef.current?.parentElement as HTMLElement | null;
-    if (!node) return;
-    const r = node.getBoundingClientRect();
-    if (r && r.width) {
-      setMeasuredPx(Math.round(r.width));
-    }
-  }, [explicitPx]);
-
-  // Use explicit sizes if provided, else measured px
-  const computedSizes = React.useMemo(() => {
-    return sizes || (measuredPx ? `${measuredPx}px` : undefined);
-  }, [sizes, measuredPx]);
-
-  // Resolve src synchronously for direct URLs, async for storage keys
   React.useEffect(() => {
-    if (lockedRef.current) return;
-    
     const raw = typeof src === 'string' ? src : '';
-    
+    try { (window as any).__avatarImageGlobalLast = { raw, ts: Date.now() }; } catch {}
+
     if (!raw) {
+      console.warn('🧪 AvatarImageGlobal: empty src', { props });
       setResolvedSrc(undefined);
-      setResolvedSrcSet(undefined);
       return;
     }
 
-    // Direct URLs: use as-is and lock immediately
+    // If already a direct URL/blob/data use as-is
     if (/^(https?:|blob:|data:)/i.test(raw)) {
       setResolvedSrc(raw);
-      lockedRef.current = true;
       return;
     }
 
-    // Storage keys: resolve with srcSet
+    // If looks like a Wasabi key (uploads|avatars|covers), resolve it via mediaService with retry
     if (/^(uploads|avatars|covers)\//i.test(raw)) {
-      const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
-      const baseWidth = explicitPx || 40;
-      const targetPx = Math.ceil(baseWidth * dpr);
+      let canceled = false;
+      console.log('🧪 AvatarImageGlobal: resolving key', raw.slice(0, 140));
       
-      (async () => {
+      const resolveWithRetry = async (attempt = 1): Promise<void> => {
         try {
-          let finalUrl: string;
-          let srcSetStr = '';
-          
-          if (/^avatars\//i.test(raw)) {
-            const baseMatch = raw.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
-            const base = baseMatch ? baseMatch[1] : null;
-            
-            if (base) {
-              // Build full srcSet: 80w, 160w, 320w, 640w
-              const variants = [
-                { key: `${base}-thumbnail.jpg`, width: 80 },
-                { key: `${base}-small.jpg`, width: 160 },
-                { key: `${base}-medium.jpg`, width: 320 },
-                { key: `${base}-large.jpg`, width: 640 }
-              ];
-              
-              const resolved = await Promise.allSettled(
-                variants.map(v => mediaService.getUrl(v.key).then(url => ({ url, width: v.width })))
-              );
-              
-              const srcSetParts: string[] = [];
-              resolved.forEach((result) => {
-                if (result.status === 'fulfilled' && result.value.url) {
-                  srcSetParts.push(`${result.value.url} ${result.value.width}w`);
-                }
-              });
-              
-              if (srcSetParts.length > 0) {
-                srcSetStr = srcSetParts.join(', ');
-              }
-              
-              // Pick default src based on target
-              let suffix: string;
-              if (targetPx >= 320) suffix = 'large.jpg';
-              else if (targetPx >= 160) suffix = 'medium.jpg';
-              else suffix = 'medium.jpg';
-              
-              try {
-                finalUrl = await mediaService.getUrl(`${base}-${suffix}`);
-              } catch {
-                finalUrl = await mediaService.getUrl(raw);
-              }
-            } else {
-              finalUrl = await mediaService.getUrl(raw);
-            }
-          } else {
-            finalUrl = await mediaService.getUrl(raw);
+          const url = await mediaService.getUrl(raw);
+          if (!canceled) setResolvedSrc(url);
+        } catch (e) {
+          console.warn(`⚠️ AvatarImageGlobal: resolve failed (attempt ${attempt}):`, e);
+          if (attempt < 3 && !canceled) {
+            // Retry with exponential backoff
+            setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
           }
-          
-          if (!lockedRef.current) {
-            setResolvedSrc(finalUrl);
-            if (srcSetStr) setResolvedSrcSet(srcSetStr);
-            lockedRef.current = true;
-          }
-        } catch (err) {
-          console.error('Avatar resolve failed:', err);
+          // On final failure, keep the previous resolvedSrc (don't clear it)
         }
-      })();
-      return;
+      };
+      
+      resolveWithRetry();
+      return () => { canceled = true; };
     }
 
-    // Unknown format: use as-is
+    // Unknown format, pass through
     setResolvedSrc(raw);
-    lockedRef.current = true;
-  }, [src, explicitPx]);
-
-
-
-
-  const isHighPriority = priority || (explicitPx && explicitPx >= 64);
-
-  // Avoid initial empty image render for storage keys to prevent blur from double-rasterization
-  if (!resolvedSrc) {
-    return null;
-  }
+  }, [src]);
 
   return (
     <AvatarPrimitive.Image
-      ref={(node) => {
-        imgRef.current = node;
-        if (typeof ref === 'function') ref(node);
-        else if (ref) ref.current = node;
-      }}
-      className={cn("aspect-square h-full w-full object-cover object-center select-none img-locked", className)}
+      ref={ref}
+      className={cn("aspect-square h-full w-full", className)}
       src={resolvedSrc}
-      srcSet={resolvedSrcSet}
-      sizes={computedSizes}
-      width={explicitPx || measuredPx || undefined}
-      height={explicitPx || measuredPx || undefined}
-      loading={isHighPriority ? "eager" : "lazy"}
-      decoding="async"
-      // @ts-ignore
-      fetchpriority={isHighPriority ? "high" : "auto"}
-      draggable={false}
-      data-locked={process.env.NODE_ENV === 'development' ? String(lockedRef.current) : undefined}
       onLoad={(e) => {
-        // Quality check: ensure naturalWidth meets DPR requirement
-        const img = e.currentTarget as HTMLImageElement;
-        const targetDpr = dpr || (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1;
-        const targetPx = (expectedWidth || explicitPx || 40);
-        const requiredWidth = targetPx * targetDpr;
-        
-        if (img.naturalWidth < requiredWidth && resolvedSrcSet) {
-          console.warn(`[Avatar QA] Loaded ${img.naturalWidth}px but need ${requiredWidth}px (${targetPx}px × ${targetDpr}x DPR). Browser may have selected wrong srcSet candidate.`);
-        }
-        
+        const s = (e.currentTarget as HTMLImageElement).currentSrc;
+        console.log('🧪 AvatarImageGlobal onLoad', { src: s.slice(0, 140) });
         onLoad?.(e);
       }}
       onError={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
-        // Attempt one-time recovery
-        if (!retriedOnceRef.current && typeof s === 'string') {
+        console.warn('🧪 AvatarImageGlobal onError', { src: s, origSrc: src });
+        // Attempt one-time recovery by deriving key and refreshing a fresh URL
+        if (!retriedOnceRef.current && typeof s === 'string' && /wasabi|s3/i.test(s)) {
           retriedOnceRef.current = true;
           try {
             let key: string | null = null;
-            // Try query parameter first
-            try {
-              const url = new URL(s, window.location.origin);
-              const qpKey = url.searchParams.get('key');
-              if (qpKey && /^(uploads|avatars|covers)\//i.test(qpKey)) {
-                key = decodeURIComponent(qpKey);
-              }
-            } catch {}
-            // Try path extraction
-            if (!key) {
-              const m1 = s.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
-              if (m1 && m1[1] && m1[2]) {
-                key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
-              }
+            const m1 = s.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
+            if (m1 && m1[1] && m1[2]) {
+              key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
+            } else {
+              const m2 = s.match(/\/shqipet\/([^?#\s]+)/i);
+              if (m2 && m2[1]) key = decodeURIComponent(m2[1]);
             }
             if (key) {
-              mediaService.clearCache(key);
-              mediaService.getUrl(key).then(setResolvedSrc).catch(() => {});
+              try { mediaService.clearCache(key); } catch {}
+              mediaService.getUrl(key)
+                .then((fresh) => { if (fresh) setResolvedSrc(fresh); })
+                .catch((err) => console.warn('⚠️ AvatarImageGlobal: refresh failed', err));
             }
-          } catch {}
+          } catch (err) {
+            console.warn('⚠️ AvatarImageGlobal: derive key failed', err);
+          }
         }
         onError?.(e);
       }}

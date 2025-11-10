@@ -128,20 +128,6 @@ const setState = (userId: string, patch: Partial<AvatarV2State>) => {
 };
 
 const deriveKeyFromUrl = (url: string): string | null => {
-  if (!url) return null;
-  
-  // Priority 1: Check for ?key= query parameter (most reliable)
-  try {
-    const urlObj = new URL(url, window.location.origin);
-    const keyParam = urlObj.searchParams.get('key');
-    if (keyParam && /^(uploads|avatars|covers)\//i.test(keyParam)) {
-      return decodeURIComponent(keyParam);
-    }
-  } catch (e) {
-    // Not a valid URL, continue to other methods
-  }
-  
-  // Priority 2: Extract from URL path
   try {
     const m1 = url.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
     if (m1 && m1[1] && m1[2]) return `${m1[1]}/${decodeURIComponent(m1[2])}`;
@@ -296,29 +282,19 @@ class AvatarStore {
 
       let key: string | null = null;
       let url: string | null = null;
-      let lastGood: string | null = null;
       const avatarUrl: string | null = profile?.avatar_url || null;
 
       console.log('Profile data:', { avatarUrl });
 
       // Priority 1: Use avatar_url if available
       if (avatarUrl && /^https?:/i.test(avatarUrl)) {
-        // Try to derive key from URL for srcSet support
+        url = avatarUrl;
+        // Try to derive key from URL
         const derived = deriveKeyFromUrl(avatarUrl);
         if (derived) {
           key = derived;
-          url = derived; // Use key as URL so wrapper generates srcSet
-          lastGood = avatarUrl; // Keep original as backup
-          console.log('✅ Avatar loaded with key:', { key, originalUrl: avatarUrl });
-        } else {
-          // Fallback: use URL directly but warn about missing srcSet
-          url = avatarUrl;
-          lastGood = avatarUrl;
-          if (import.meta.env.DEV) {
-            console.warn('[AvatarStore] Absolute URL without derivable key - srcSet disabled:', avatarUrl);
-          }
-          console.log('⚠️ Avatar loaded without key:', { url });
         }
+        console.log('✅ Avatar loaded:', { url, key });
       }
 
       // Priority 2: Check if avatar_url is a key format
@@ -367,7 +343,7 @@ class AvatarStore {
         userId,
         key: key ?? null,
         url: (url ?? current.url ?? current.lastGoodUrl ?? null),
-        lastGoodUrl: (lastGood ?? url ?? current.lastGoodUrl ?? null),
+        lastGoodUrl: (url ?? current.lastGoodUrl ?? null),
         loading: false, // NEVER show loading
         uploading: false,
         uploadProgress: 0,
@@ -566,15 +542,6 @@ class AvatarStore {
 
       setState(userId, finalState);
       // NO LOCAL CACHE - Direct real-time cloud storage only
-      
-      // Force clear all avatar caches to ensure fresh image loads
-      try {
-        mediaService.clearCache(key);
-        localStorage.removeItem(`media:last:${key}`);
-        localStorage.removeItem(`avatar_cache_${userId}`);
-      } catch (e) {
-        console.warn('Cache clear error:', e);
-      }
       
       // Clean up preview URL
       if (previewUrl) {
