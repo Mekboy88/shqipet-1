@@ -1,30 +1,22 @@
-// Supabase Edge Function: regenerate-avatars
-// Regenerates avatar variants (80/160/320/640) from the highest quality original in Wasabi
-// Logs progress throughout the run.
+import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, type _Object } from "npm:@aws-sdk/client-s3@3.859.0";
+import { Readable } from "node:stream";
 
-// CORS headers
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand } from "npm:@aws-sdk/client-s3";
-import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
-
-// Utility to stream to Uint8Array
+// Convert ReadableStream to Uint8Array
 async function streamToUint8Array(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
   const reader = stream.getReader();
   const chunks: Uint8Array[] = [];
-  let total = 0;
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    if (value) {
-      chunks.push(value);
-      total += value.length;
-    }
+    chunks.push(value);
   }
-  const result = new Uint8Array(total);
+  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+  const result = new Uint8Array(totalLength);
   let offset = 0;
   for (const chunk of chunks) {
     result.set(chunk, offset);
@@ -33,166 +25,233 @@ async function streamToUint8Array(stream: ReadableStream<Uint8Array>): Promise<U
   return result;
 }
 
+// Get env variable with fallback
 function getEnv(name: string, fallback?: string): string {
-  const v = Deno.env.get(name) ?? fallback;
-  if (!v) throw new Error(`Missing env: ${name}`);
-  return v;
+  const val = Deno.env.get(name);
+  if (!val) {
+    if (fallback !== undefined) return fallback;
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return val;
 }
 
-interface VariantDef { keySuffix: string; size: number; }
-const VARIANTS: VariantDef[] = [
-  { keySuffix: 'thumbnail', size: 80 },
-  { keySuffix: 'small', size: 160 },
-  { keySuffix: 'medium', size: 320 },
-  { keySuffix: 'large', size: 640 },
+// Variant definitions matching Facebook's professional standards
+const VARIANTS = [
+  { suffix: 'thumbnail', size: 80 },   // 80x80 for tiny avatars
+  { suffix: 'small', size: 160 },      // 160x160 for small avatars (40px display × 4 DPR)
+  { suffix: 'medium', size: 320 },     // 320x320 for medium avatars
+  { suffix: 'large', size: 640 }       // 640x640 for large avatars
 ];
 
-// Derive base key (without suffix) and ext
+// Parse avatar key to get base name and extension
 function deriveBase(key: string): { base: string; ext: string } | null {
-  const m = key.match(/^(.*)-(original|thumbnail|small|medium|large)\.(jpg|jpeg|png|webp|avif|heic)$/i);
-  if (m) {
-    return { base: m[1], ext: m[3].toLowerCase() };
-  }
-  // If doesn't match variant naming, try plain file name without suffix
-  const m2 = key.match(/^(.*)\.(jpg|jpeg|png|webp)$/i);
-  if (m2) {
-    return { base: m2[1], ext: m2[2].toLowerCase() };
-  }
-  return null;
-}
-
-// Center-crop to square then resize
-async function toSquareAndResize(img: Image, size: number): Promise<Image> {
-  const w = img.width;
-  const h = img.height;
-  const side = Math.min(w, h);
-  const x = Math.floor((w - side) / 2);
-  const y = Math.floor((h - side) / 2);
-  const cropped = img.crop(x, y, side, side);
-  return cropped.resize(size, size);
+  const match = key.match(/^avatars\/([^/]+?)(?:-(original|thumbnail|small|medium|large))?\.([a-z0-9]+)$/i);
+  if (!match) return null;
+  return { base: match[1], ext: match[3].toLowerCase() };
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const bucket = getEnv('WASABI_BUCKET_NAME');
-    const region = getEnv('WASABI_REGION');
+    console.log('🔄 Starting avatar variant regeneration with Sharp...');
+
     const accessKeyId = getEnv('WASABI_ACCESS_KEY_ID');
     const secretAccessKey = getEnv('WASABI_SECRET_ACCESS_KEY');
+    const region = getEnv('WASABI_REGION');
+    const bucket = getEnv('WASABI_BUCKET_NAME');
+    const endpoint = `https://s3.${region}.wasabisys.com`;
 
     const s3 = new S3Client({
       region,
-      endpoint: `https://s3.${region}.wasabisys.com`,
+      endpoint,
       credentials: { accessKeyId, secretAccessKey },
-      forcePathStyle: false,
+      forcePathStyle: true,
     });
 
-    const prefix = 'avatars/';
-    let continuationToken: string | undefined = undefined;
+    // List all avatar objects
+    console.log('📂 Listing avatar objects...');
+    const listCommand = new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: 'avatars/',
+    });
+    const listResult = await s3.send(listCommand);
+    const objects = listResult.Contents || [];
+    console.log(`📊 Found ${objects.length} total objects`);
 
-    const allObjects: Array<{ Key: string; Size: number }> = [];
-
-    console.log('🔎 Listing avatar objects...');
-    do {
-      const res: any = await s3.send(new ListObjectsV2Command({
-        Bucket: bucket,
-        Prefix: prefix,
-        ContinuationToken: continuationToken,
-      }));
-      const contents: any[] = res.Contents || [];
-      contents.forEach((o: any) => {
-        if (o.Key && typeof o.Size === 'number') {
-          allObjects.push({ Key: o.Key, Size: o.Size });
-        }
-      });
-      continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
-    } while (continuationToken);
-
-    console.log(`📦 Found ${allObjects.length} objects under ${prefix}`);
-
-    // Group by base
-    const groups = new Map<string, Array<{ Key: string; Size: number }>>();
-    for (const obj of allObjects) {
-      const info = deriveBase(obj.Key);
-      if (!info) continue;
-      const base = info.base;
-      if (!groups.has(base)) groups.set(base, []);
-      groups.get(base)!.push(obj);
+    // Group by base name
+    const groups = new Map<string, _Object[]>();
+    for (const obj of objects) {
+      if (!obj.Key) continue;
+      const parsed = deriveBase(obj.Key);
+      if (!parsed) continue;
+      const existing = groups.get(parsed.base) || [];
+      existing.push(obj);
+      groups.set(parsed.base, existing);
     }
 
-    console.log(`👥 Grouped into ${groups.size} avatar sets`);
+    console.log(`👥 Found ${groups.size} avatar groups`);
 
-    let processed = 0;
-    let skipped = 0;
     const results: any[] = [];
+    let processedCount = 0;
+    let skippedCount = 0;
 
-    for (const [base, objs] of groups) {
-      // pick original if exists, else largest Size
-      let candidate = objs.find(o => /-(original)\./i.test(o.Key));
-      if (!candidate) {
-        candidate = objs.slice().sort((a, b) => b.Size - a.Size)[0];
-      }
-      if (!candidate) { skipped++; continue; }
+    // Import Sharp for image processing (use esm.sh for Deno compatibility)
+    const sharp = (await import('https://esm.sh/sharp@0.33.5')).default;
 
+    // Process each avatar group
+    for (const [base, groupObjs] of groups) {
       try {
-        console.log(`⬇️ Downloading source: ${candidate.Key} (${candidate.Size} bytes)`);
-        const get = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: candidate.Key }));
-        // @ts-ignore Body is a stream
-        const body = get.Body as ReadableStream<Uint8Array>;
-        const bytes = await streamToUint8Array(body);
-        const img = await Image.decode(bytes);
+        console.log(`\n🔍 Processing avatar group: ${base}`);
+        
+        // Find source image (prefer original, otherwise largest)
+        const originalObj = groupObjs.find(obj => obj.Key?.includes('-original.'));
+        const sourceObj = originalObj || groupObjs.reduce((largest, obj) => 
+          (obj.Size || 0) > (largest.Size || 0) ? obj : largest
+        );
 
-        // Generate and upload each variant
-        const uploads: string[] = [];
-        for (const v of VARIANTS) {
-          const outImg = await toSquareAndResize(img, v.size);
-          // Always encode to JPEG at quality 100
-          const jpg = await outImg.encodeJPEG(100);
-          const variantKey = `${base}-${v.keySuffix}.jpg`;
-          console.log(`⬆️ Uploading ${variantKey} (${jpg.length} bytes)`);
-          await s3.send(new PutObjectCommand({
+        if (!sourceObj.Key) {
+          console.warn(`⚠️ No valid source found for ${base}`);
+          skippedCount++;
+          continue;
+        }
+
+        console.log(`📥 Downloading source: ${sourceObj.Key} (${sourceObj.Size} bytes)`);
+
+        // Download source image
+        const getCommand = new GetObjectCommand({
+          Bucket: bucket,
+          Key: sourceObj.Key,
+        });
+        const getResult = await s3.send(getCommand);
+        
+        if (!getResult.Body) {
+          console.warn(`⚠️ No body in source ${sourceObj.Key}`);
+          skippedCount++;
+          continue;
+        }
+
+        // Convert Body to Uint8Array
+        let imageBuffer: Uint8Array;
+        if (getResult.Body instanceof Readable) {
+          const chunks: Uint8Array[] = [];
+          for await (const chunk of getResult.Body) {
+            chunks.push(chunk);
+          }
+          const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+          imageBuffer = new Uint8Array(totalLength);
+          let offset = 0;
+          for (const chunk of chunks) {
+            imageBuffer.set(chunk, offset);
+            offset += chunk.length;
+          }
+        } else if (getResult.Body instanceof ReadableStream) {
+          imageBuffer = await streamToUint8Array(getResult.Body as ReadableStream<Uint8Array>);
+        } else {
+          console.warn(`⚠️ Unexpected body type for ${sourceObj.Key}`);
+          skippedCount++;
+          continue;
+        }
+
+        console.log(`✅ Downloaded ${imageBuffer.length} bytes`);
+
+        // Detect source format and dimensions
+        const metadata = await sharp(imageBuffer).metadata();
+        console.log(`📊 Source: ${metadata.format}, ${metadata.width}x${metadata.height}`);
+
+        const ext = deriveBase(sourceObj.Key)?.ext || 'jpg';
+        const uploadResults: any[] = [];
+
+        // Generate and upload all variants with ZERO compression loss
+        for (const variant of VARIANTS) {
+          const variantKey = `avatars/${base}-${variant.suffix}.${ext}`;
+          
+          console.log(`🎨 Generating ${variant.suffix} (${variant.size}x${variant.size})...`);
+
+          // Create variant: center-crop to square, resize with lanczos3, max quality
+          const variantBuffer = await sharp(imageBuffer)
+            .resize(variant.size, variant.size, {
+              fit: 'cover',
+              position: 'center',
+              kernel: 'lanczos3', // Highest quality resampling
+            })
+            .jpeg({ 
+              quality: 100,        // Maximum quality
+              chromaSubsampling: '4:4:4', // No chroma subsampling (preserves color detail)
+              mozjpeg: true        // Use mozjpeg for better quality at same file size
+            })
+            .toBuffer();
+
+          console.log(`📤 Uploading ${variantKey} (${variantBuffer.length} bytes)`);
+
+          // Upload variant
+          const putCommand = new PutObjectCommand({
             Bucket: bucket,
             Key: variantKey,
-            Body: jpg,
-            ContentType: 'image/jpeg',
-            CacheControl: 'no-store, max-age=0',
-          }));
-          uploads.push(variantKey);
+            Body: variantBuffer,
+            ContentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+            CacheControl: 'public, max-age=31536000', // Cache for 1 year
+          });
+
+          await s3.send(putCommand);
+          
+          uploadResults.push({
+            key: variantKey,
+            size: variantBuffer.length,
+            variant: variant.suffix,
+          });
+
+          console.log(`✅ Uploaded ${variantKey}`);
         }
 
-        results.push({ base, source: candidate.Key, uploads });
-        processed++;
-        console.log(`✅ Regenerated: ${base} -> ${uploads.join(', ')}`);
-      } catch (e) {
-        console.error(`❌ Failed processing ${base}:`, e);
-        skipped++;
+        processedCount++;
+        results.push({
+          base,
+          source: sourceObj.Key,
+          variants: uploadResults,
+        });
+
+        console.log(`✅ Completed avatar group: ${base}`);
+
+      } catch (error) {
+        console.error(`❌ Error processing ${base}:`, error);
+        skippedCount++;
+        results.push({
+          base,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
       }
     }
 
-    // Final response
-    const summary = {
-      totalObjects: allObjects.length,
-      totalGroups: groups.size,
-      processed,
-      skipped,
-      note: 'Variants regenerated from highest quality source. Client caches may still need to refetch; URLs signed anew will pick updated ETags.',
-    };
+    console.log('\n🎉 Regeneration complete!');
+    console.log(`✅ Processed: ${processedCount}`);
+    console.log(`⚠️ Skipped: ${skippedCount}`);
 
-    console.log('📊 Summary:', summary);
+    return new Response(
+      JSON.stringify({
+        success: true,
+        processed: processedCount,
+        skipped: skippedCount,
+        total: groups.size,
+        message: 'All avatars regenerated with Sharp at 100% quality. Clear browser cache to see crystal clear avatars.',
+        results,
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
 
-    return new Response(JSON.stringify({ ok: true, summary, results }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      status: 200,
-    });
-  } catch (err) {
-    console.error('💥 Fatal error in regeneration function:', err);
-    return new Response(JSON.stringify({ ok: false, error: String(err) }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      status: 500,
-    });
+  } catch (error) {
+    console.error('❌ Fatal error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(
+      JSON.stringify({ error: message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });

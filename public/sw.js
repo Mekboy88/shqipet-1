@@ -34,17 +34,26 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // Only cache avatar-related requests (Wasabi presigned URLs and blob URLs)
+  // CRITICAL: DO NOT CACHE AVATARS, UPLOADS, OR COVERS
+  // Service Worker caching causes persistent blur by serving low-res cached variants
+  // All avatar requests must bypass SW cache for dynamic srcSet variant selection
   const isAvatarRequest = 
-    url.hostname.includes('wasabisys.com') || 
     url.pathname.includes('/avatars/') ||
     url.pathname.includes('/uploads/') ||
-    url.pathname.includes('/covers/') ||
+    url.pathname.includes('/covers/');
+  
+  if (isAvatarRequest) {
+    return; // Let browser handle avatar requests directly (no SW cache)
+  }
+  
+  // Only cache non-avatar Wasabi requests
+  const isWasabiNonAvatar = 
+    url.hostname.includes('wasabisys.com') || 
     event.request.url.includes('wasabi-proxy') ||
     event.request.url.includes('wasabi-get-url');
   
-  if (!isAvatarRequest) {
-    return; // Let browser handle non-avatar requests
+  if (!isWasabiNonAvatar) {
+    return; // Let browser handle non-Wasabi requests
   }
 
   event.respondWith(
