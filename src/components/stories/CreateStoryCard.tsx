@@ -50,12 +50,8 @@ const CreateStoryCard: React.FC<CreateStoryCardProps> = ({ user }) => {
         </div>
 
         <div className="absolute bottom-2 left-1 right-1 z-10">
-          <div className="flex items-center bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 w-full border border-white/30">
-            <Avatar 
-              size="xs"
-              className="w-5 h-5 mr-2 flex-shrink-0"
-            />
-            <p className="text-white text-xs font-medium truncate flex-1">{user.name}</p>
+          <div className="flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 w-full border border-white/30">
+            <p className="text-white text-xs font-medium truncate">Ndaj një Moment</p>
           </div>
         </div>
       </div>
