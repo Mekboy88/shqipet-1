@@ -17,9 +17,12 @@ interface UploadResult {
 }
 
 class AvatarUploadService {
-  private readonly MIN_RESOLUTION = 200; // Minimum 200x200px
-  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-  private readonly ALLOWED_FORMATS = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  private readonly MIN_RESOLUTION = 400; // Minimum 400x400px to match backend
+  private readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per project policy
+  private readonly ALLOWED_FORMATS = [
+    'image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif',
+    'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'
+  ];
 
   /**
    * Validate image meets quality standards
@@ -27,12 +30,17 @@ class AvatarUploadService {
   async validate(file: File): Promise<void> {
     // Check file size
     if (file.size > this.MAX_FILE_SIZE) {
-      throw new Error(`File too large. Maximum size is 5MB.`);
+      const maxMb = (this.MAX_FILE_SIZE / (1024 * 1024)).toFixed(0);
+      throw new Error(`File too large. Maximum size is ${maxMb}MB.`);
     }
 
-    // Check format
-    if (!this.ALLOWED_FORMATS.includes(file.type)) {
-      throw new Error(`Invalid format. Use JPEG, PNG, or WebP only.`);
+    // Check format (tolerate unknown MIME on some devices by falling back to extension)
+    const nameExt = (file.name.split('.').pop() || '').toLowerCase();
+    const allowedExts = ['jpg','jpeg','jfif','pjpeg','png','webp','avif','heic','heif'];
+    const mimeOk = this.ALLOWED_FORMATS.includes(file.type);
+    const extOk = allowedExts.includes(nameExt);
+    if (!mimeOk && !extOk) {
+      throw new Error(`Invalid format. Allowed: JPG, PNG, WEBP, AVIF, HEIC.`);
     }
 
     // Check resolution
@@ -67,10 +75,11 @@ class AvatarUploadService {
     formData.append('file', file);
     formData.append('mediaType', 'avatar');
     formData.append('userId', userId);
+    formData.append('updateProfile', 'true');
 
-    // Upload to Wasabi via edge function
+    // Upload to Wasabi via edge function (use full functions URL)
     const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wasabi-upload`,
+      `https://uaiwjxojbpeljzxcvgof.functions.supabase.co/wasabi-upload`,
       {
         method: 'POST',
         headers: {
@@ -90,16 +99,7 @@ class AvatarUploadService {
 
     console.log('✅ Avatar uploaded successfully:', data.key);
 
-    // Update user profile with new avatar
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ avatar_url: data.key })
-      .eq('id', userId);
-
-    if (updateError) {
-      console.error('Failed to update profile:', updateError);
-      throw updateError;
-    }
+    // Profile is updated by the backend (updateProfile=true); no client-side update needed
 
     return {
       key: data.key,

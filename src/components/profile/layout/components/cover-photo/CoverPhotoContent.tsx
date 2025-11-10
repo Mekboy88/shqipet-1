@@ -364,10 +364,10 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
           type="avatar"
         >
           <div 
-            className="relative cursor-pointer hover:opacity-90 transition-opacity"
+            className="relative group cursor-pointer hover:opacity-100 transition-opacity"
             role="button"
             tabIndex={0}
-            aria-label="Click to change profile photo"
+            aria-label="Change profile photo"
             onClick={(e) => {
               e.stopPropagation();
               if (isOwnProfile && !avatarUploading) {
@@ -388,6 +388,18 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
               className="shadow-lg rounded-full"
               style={{ width: 160, height: 160, minWidth: 160, minHeight: 160 }}
             />
+            {isOwnProfile && !avatarUploading && (
+              <div 
+                className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                role="button"
+                aria-label="Upload avatar photo"
+              >
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white">
+                  <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            )}
           </div>
         </UploadAnimation>
         {/* Hidden file input for avatar upload */}
