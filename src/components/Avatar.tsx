@@ -161,17 +161,24 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
 
   return (
     <>
-      <div className="relative group cursor-pointer" onClick={handleClick}>
+      <div 
+        className="relative group cursor-pointer" 
+        onClick={handleClick}
+        style={{ 
+          isolation: 'isolate',
+          transform: 'translateZ(0)',
+          willChange: 'auto'
+        }}
+      >
         {content}
 
-        {/* Hover overlay - only animate opacity, no transforms */}
+        {/* Hover overlay - only animate opacity, no transforms, no blur */}
         {showCameraOverlay && !isLoading && (
           <div 
             className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center pointer-events-none"
             style={{ 
               transition: 'opacity 0.2s ease-in-out',
-              willChange: 'opacity',
-              isolation: 'isolate'
+              willChange: 'opacity'
             }}
           >
             {isOwnProfile ? (
