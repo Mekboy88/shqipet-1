@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Settings, User, Link, Bell, Palette, Shield, Lock, Users, ShieldCheck, UserCheck, MapPin, Verified, DollarSign, Gift, CreditCard, Trash2 } from 'lucide-react';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
 import MyEarningsForm from '../settings/MyEarningsForm';
@@ -170,10 +170,11 @@ const GeneralSettingsDialog: React.FC<GeneralSettingsDialogProps> = ({
                 <div className="border-2 border-gray-300 rounded-lg p-4 flex items-center gap-6 bg-gray-100">
                   {/* Avatar with Settings Icon Overlay */}
                   <div className="relative flex-shrink-0">
-                    <Avatar className="w-20 h-20 border-4 border-orange-200">
-                      <AvatarImage src="" />
-                      <AvatarFallback className="bg-orange-400 text-white text-2xl font-bold">{displayName?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
-                    </Avatar>
+                    <Avatar 
+                      size="2xl"
+                      initials={displayName?.[0]?.toUpperCase() || 'U'}
+                      className="border-4 border-orange-200"
+                    />
                     {/* Small settings icon overlay */}
                     <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-black rounded-full flex items-center justify-center">
                       <Settings className="w-4 h-4 text-white" />

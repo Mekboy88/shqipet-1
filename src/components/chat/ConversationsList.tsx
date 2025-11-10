@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
@@ -224,12 +224,12 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
                   <div className="flex items-start gap-3">
                     {/* Avatar */}
                     <div className="relative">
-                      <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-                        <AvatarImage src={conversation.avatar} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20">
-                          {getInitials(conversation.name)}
-                        </AvatarFallback>
-                      </Avatar>
+              <Avatar 
+                src={conversation.avatar}
+                size="lg"
+                initials={getInitials(conversation.name)}
+                className="ring-2 ring-primary/20"
+              />
                       {conversation.isOnline && (
                         <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 border-2 border-background rounded-full"></div>
                       )}

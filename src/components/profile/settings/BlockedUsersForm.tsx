@@ -2,7 +2,7 @@
 import React from 'react';
 import { UserX, ShieldX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface BlockedUser {
@@ -49,10 +49,11 @@ const BlockedUsersForm: React.FC<BlockedUsersFormProps> = ({ userInfo, setUserIn
               {blockedUsers.map((user) => (
                 <div key={user.id} className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-200/50 transition-all duration-200 hover:shadow-md">
                   <div className="flex items-center gap-4">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback className="bg-gray-200 text-gray-600 font-medium">{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                    <Avatar 
+                      src={user.avatar}
+                      size="lg"
+                      initials={user.name.charAt(0)}
+                    />
                     <div>
                       <p className="font-semibold text-gray-800">{user.name}</p>
                       <p className="text-sm text-gray-500">{user.time}</p>

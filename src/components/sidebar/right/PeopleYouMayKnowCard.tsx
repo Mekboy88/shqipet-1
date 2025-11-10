@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Button } from '@/components/ui/button';
 
 const people: Array<{ name: string; image: string }> = [];
@@ -21,10 +21,12 @@ const PeopleYouMayKnowCard = () => {
           <div className="grid grid-cols-2 gap-4">
             {people.map((person) => (
               <div key={person.name} className="flex flex-col items-center text-center p-2 border rounded-lg">
-                <Avatar className="w-16 h-16 mb-2">
-                  <AvatarImage src={person.image} />
-                  <AvatarFallback>{person.name.charAt(0)}</AvatarFallback>
-                </Avatar>
+                <Avatar 
+                  src={person.image}
+                  size="xl"
+                  initials={person.name.charAt(0)}
+                  className="mb-2"
+                />
                 <p className="text-sm font-semibold truncate w-full mb-2">{person.name}</p>
                 <Button 
                   className="w-full text-xs font-semibold py-0.5 shadow-sm border" 

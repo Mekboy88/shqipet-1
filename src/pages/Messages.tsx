@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
   Search, 
@@ -269,10 +269,11 @@ const Messages: React.FC = () => {
         <div className="px-4 py-6 bg-white text-foreground border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback>RS</AvatarFallback>
-              </Avatar>
+              <Avatar 
+                src="/placeholder.svg"
+                size="md"
+                initials="RS"
+              />
               <div>
                 <h3 className="font-semibold text-sm">Rohini Sharma</h3>
                 <p className="text-xs text-muted-foreground">Busy</p>
@@ -294,10 +295,12 @@ const Messages: React.FC = () => {
             {statuses.map((status) => (
               <div key={status.id} className="flex flex-col items-center gap-1 min-w-[60px]">
                 <div className="relative">
-                  <Avatar className="h-14 w-14 border-2 border-[#4682B4]">
-                    <AvatarImage src={status.avatar} />
-                    <AvatarFallback>{status.name[0]}</AvatarFallback>
-                  </Avatar>
+                  <Avatar 
+                    src={status.avatar}
+                    size="lg"
+                    initials={status.name[0]}
+                    className="border-2 border-[#4682B4]"
+                  />
                 </div>
                 <span className="text-[10px] text-gray-600 truncate w-full text-center">
                   {status.name}
@@ -351,10 +354,11 @@ const Messages: React.FC = () => {
               }`}
             >
               <div className="relative">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={contact.avatar} />
-                  <AvatarFallback>{contact.name[0]}</AvatarFallback>
-                </Avatar>
+                <Avatar 
+                  src={contact.avatar}
+                  size="lg"
+                  initials={contact.name[0]}
+                />
                 {contact.online && (
                   <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white" />
                 )}
@@ -378,10 +382,11 @@ const Messages: React.FC = () => {
         {/* Chat Header */}
         <div className="bg-[#E8F0F8] px-4 py-6 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={selectedContact.avatar} />
-              <AvatarFallback>{selectedContact.name[0]}</AvatarFallback>
-            </Avatar>
+            <Avatar 
+              src={selectedContact.avatar}
+              size="md"
+              initials={selectedContact.name[0]}
+            />
             <div>
               <h3 className="text-sm font-semibold text-gray-900">{selectedContact.name}</h3>
               <p className="text-xs text-green-600">Online</p>
@@ -407,10 +412,11 @@ const Messages: React.FC = () => {
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
               <MoreVertical className="h-5 w-5 text-gray-600" />
             </Button>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
+            <Avatar 
+              src="/placeholder.svg"
+              size="sm"
+              initials="U"
+            />
           </div>
         </div>
 
@@ -422,10 +428,12 @@ const Messages: React.FC = () => {
               className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {message.sender === 'contact' && (
-                <Avatar className="h-8 w-8 mr-2">
-                  <AvatarImage src={selectedContact.avatar} />
-                  <AvatarFallback>{selectedContact.name[0]}</AvatarFallback>
-                </Avatar>
+                <Avatar 
+                  src={selectedContact.avatar}
+                  size="sm"
+                  initials={selectedContact.name[0]}
+                  className="mr-2"
+                />
               )}
               
               <div className={`max-w-[65%] ${message.sender === 'user' ? 'ml-auto' : ''}`}>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Badge } from '@/components/ui/badge';
 
 interface Conversation {
@@ -132,12 +132,11 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
           >
             <div className="flex items-start gap-3">
               <div className="relative">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={conversation.avatar} alt={conversation.user} />
-                  <AvatarFallback className="text-xs bg-[#272C30] text-[#F4F5F6]">
-                    {conversation.user.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
+            <Avatar 
+              src={conversation.avatar}
+              size="md"
+              initials={conversation.user.split(' ').map(n => n[0]).join('').toUpperCase()}
+            />
                 {conversation.unread && (
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#517DF3] rounded-full animate-pulse" />
                 )}

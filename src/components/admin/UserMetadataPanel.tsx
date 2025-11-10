@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 
@@ -79,12 +79,12 @@ const UserMetadataPanel: React.FC<UserMetadataPanelProps> = ({
           <>
             {/* User Profile */}
             <div className="text-center">
-              <Avatar className="h-16 w-16 mx-auto mb-3">
-                <AvatarImage src={user?.avatar} />
-                <AvatarFallback className="bg-[#272C30] text-[#F4F5F6] text-lg">
-                  {user?.user?.split(' ').map((n: string) => n[0]).join('') || 'U'}
-                </AvatarFallback>
-              </Avatar>
+              <Avatar 
+                src={user?.avatar}
+                size="xl"
+                initials={user?.user?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U'}
+                className="mx-auto mb-3"
+              />
               <h3 className="text-lg font-semibold text-[#F4F5F6] mb-1">{user?.user || 'Unknown User'}</h3>
               <div className="flex items-center justify-center gap-2 mb-2">
                 <span className="text-sm">{user?.country || '🌍'}</span>

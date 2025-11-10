@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
@@ -480,10 +480,12 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
         <Card className="w-80 bg-primary/10 border border-primary/20 shadow-2xl shadow-primary/20">
           <div className="p-3">
             <div className="flex items-center gap-2 mb-2">
-              <Avatar className="h-8 w-8 ring-2 ring-primary/30">
-                <AvatarImage src={avatarUrl || "/placeholder.svg"} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">{getInitials(displayName || "User")}</AvatarFallback>
-              </Avatar>
+              <Avatar 
+                src={avatarUrl || "/placeholder.svg"}
+                size="sm"
+                initials={getInitials(displayName || "User")}
+                className="ring-2 ring-primary/30"
+              />
               <span className="text-sm font-medium text-primary">
                 {displayName || "User"}
               </span>
@@ -598,12 +600,12 @@ const SlidingChatWindow: React.FC<SlidingChatWindowProps> = ({
               <div className="absolute top-4 left-0 right-0 bg-primary/10 border-b border-border p-4 z-10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 ring-2 ring-border">
-                      <AvatarImage src={avatarUrl || "/placeholder.svg"} />
-                      <AvatarFallback className="bg-muted text-foreground font-semibold">
-                        {getInitials(displayName || "User")}
-                      </AvatarFallback>
-                    </Avatar>
+                    <Avatar 
+                      src={avatarUrl || "/placeholder.svg"}
+                      size="md"
+                      initials={getInitials(displayName || "User")}
+                      className="ring-2 ring-border"
+                    />
                     <div>
                       <h3 className="font-semibold text-foreground">
                         {displayName || "Messages"}
