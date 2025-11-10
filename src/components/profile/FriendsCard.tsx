@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 
 interface FriendItem {
   id: number;
@@ -44,11 +43,12 @@ const FriendsCard: React.FC<FriendsCardProps> = ({
       <div className="grid grid-cols-3 gap-2">
         {displayFriends.map(friend => (
           <div key={friend.id} className="text-center">
-            <div className="aspect-square mb-1 overflow-hidden rounded-md">
-              <img
+            <div className="flex justify-center mb-1">
+              <Avatar
                 src={friend.image}
-                alt={friend.name}
-                className="w-full h-full object-cover"
+                initials={friend.name.slice(0, 2).toUpperCase()}
+                size="xl"
+                className="img-locked"
               />
             </div>
             <p className="text-sm font-medium truncate">{friend.name}</p>

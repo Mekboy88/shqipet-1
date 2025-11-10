@@ -207,8 +207,57 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     }
   };
 
+  // Runtime integer pixel detector for debugging blur issues
+  const avatarRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (!avatarRef.current) return;
+    
+    const checkPixelAlignment = () => {
+      const rect = avatarRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      
+      const widthFractional = Math.abs(rect.width - Math.round(rect.width));
+      const heightFractional = Math.abs(rect.height - Math.round(rect.height));
+      
+      if (widthFractional > 0.01 || heightFractional > 0.01) {
+        console.warn('⚠️ Avatar fractional pixels detected:', {
+          size,
+          expectedPx: pixelSize,
+          actualWidth: rect.width,
+          actualHeight: rect.height,
+          widthDiff: widthFractional,
+          heightDiff: heightFractional,
+          element: avatarRef.current
+        });
+      }
+      
+      // Check for parent transforms that could cause blur
+      let parent = avatarRef.current?.parentElement;
+      let depth = 0;
+      while (parent && depth < 5) {
+        const transform = window.getComputedStyle(parent).transform;
+        if (transform && transform !== 'none' && transform.includes('scale')) {
+          console.warn('⚠️ Avatar parent has scale transform:', {
+            size,
+            depth,
+            transform,
+            parent
+          });
+        }
+        parent = parent.parentElement;
+        depth++;
+      }
+    };
+    
+    checkPixelAlignment();
+    window.addEventListener('resize', checkPixelAlignment);
+    return () => window.removeEventListener('resize', checkPixelAlignment);
+  }, [size, pixelSize]);
+
   const content = (
     <BaseAvatar 
+      ref={avatarRef}
       className={cn('img-locked-wrapper', textClass, className)} 
       style={{
         width: `${pixelSize}px`,

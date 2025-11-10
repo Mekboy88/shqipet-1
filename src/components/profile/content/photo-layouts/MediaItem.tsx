@@ -26,7 +26,7 @@ const MediaItem: React.FC<Props> = ({
   });
 
   return (
-    <div className={`relative h-full overflow-hidden cursor-pointer rounded-md group transition-transform duration-200 hover:scale-105`}>
+    <div className={`relative h-full overflow-hidden cursor-pointer rounded-md group transition-opacity duration-200 hover:opacity-90`}>
       {/* Shimmer background - only visible while loading */}
       <div className="facebook-skeleton absolute inset-0" />
       

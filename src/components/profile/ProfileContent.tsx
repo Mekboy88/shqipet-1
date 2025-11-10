@@ -472,7 +472,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                               {groupPhotos.slice(0, 32).map((photo, index) => (
                                 <div 
                                   key={`${groupIndex}-small-${index}`} 
-                                  className={`aspect-square overflow-hidden rounded-lg bg-gray-100 hover:scale-105 transition-transform duration-200 cursor-pointer ${
+                                  className={`aspect-square overflow-hidden rounded-lg bg-gray-100 hover:opacity-90 transition-opacity duration-200 cursor-pointer ${
                                     selectedPhoto === photo ? 'ring-4 ring-blue-500' : ''
                                   }`}
                                   onClick={() => setSelectedPhoto(photo)}
