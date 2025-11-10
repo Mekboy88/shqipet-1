@@ -43,6 +43,23 @@ const AvatarImage = React.forwardRef<
     return m ? Math.round(parseFloat(m[1])) : null;
   }, [sizes]);
 
+  // Measure the container width to derive integer pixel size when sizes is not provided
+  const [measuredPx, setMeasuredPx] = React.useState<number | null>(null);
+  React.useLayoutEffect(() => {
+    if (explicitPx) return; // respect explicit sizes
+    const node = imgRef.current?.parentElement as HTMLElement | null;
+    if (!node) return;
+    const r = node.getBoundingClientRect();
+    if (r && r.width) {
+      setMeasuredPx(Math.round(r.width));
+    }
+  }, [explicitPx]);
+
+  // Use explicit sizes if provided, else measured px
+  const computedSizes = React.useMemo(() => {
+    return sizes || (measuredPx ? `${measuredPx}px` : undefined);
+  }, [sizes, measuredPx]);
+
   // Resolve src synchronously for direct URLs, async for storage keys
   React.useEffect(() => {
     if (lockedRef.current) return;
@@ -141,6 +158,11 @@ const AvatarImage = React.forwardRef<
 
   const isHighPriority = priority || (explicitPx && explicitPx >= 64);
 
+  // Avoid initial empty image render for storage keys to prevent blur from double-rasterization
+  if (!resolvedSrc) {
+    return null;
+  }
+
   return (
     <AvatarPrimitive.Image
       ref={(node) => {
@@ -151,8 +173,9 @@ const AvatarImage = React.forwardRef<
       className={cn("aspect-square h-full w-full object-cover object-center select-none img-locked", className)}
       src={resolvedSrc}
       srcSet={resolvedSrcSet}
-      width={explicitPx || undefined}
-      height={explicitPx || undefined}
+      sizes={computedSizes}
+      width={explicitPx || measuredPx || undefined}
+      height={explicitPx || measuredPx || undefined}
       loading={isHighPriority ? "eager" : "lazy"}
       decoding="async"
       // @ts-ignore
