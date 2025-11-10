@@ -142,13 +142,13 @@ const deriveKeyFromUrl = (url: string): string | null => {
 const validateImageFile = (file: File): void => {
   // Follow platform policy: allow JPG, PNG, WEBP, AVIF, HEIC; max 10MB for avatars
   const maxSize = 10 * 1024 * 1024; // 10MB
-  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
   const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
 
   const fileName = file.name.toLowerCase();
   const ext = fileName.includes('.') ? fileName.split('.').pop() || '' : '';
 
-  const mimeOk = allowedMimeTypes.includes(file.type);
+  const mimeOk = !!file.type && allowedMimeTypes.includes(file.type);
   const extOk = allowedExtensions.includes(ext);
 
   if (!mimeOk && !extOk) {
