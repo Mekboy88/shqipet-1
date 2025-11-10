@@ -125,7 +125,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   // SmallCrispAvatar - brand new, minimal, crystal-clear 40×40 avatar pipeline
   const SmallCrispAvatar: React.FC<{ src?: string | null } & Pick<AvatarProps, 'className' | 'style'>> = ({ src, className, style }) => {
     return (
-      <div className={cn('relative w-10 h-10 rounded-full overflow-hidden img-locked-wrapper', className)} style={style}>
+      <BaseAvatar className={cn('w-10 h-10 img-locked-wrapper', className)} style={style}>
         {src ? (
           <CrystalAvatarImage
             src={src || undefined}
@@ -135,11 +135,11 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
             priority={false}
           />
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center rounded-full">
-            <span className="text-xs text-muted-foreground">?</span>
-          </div>
+          <AvatarFallback className="text-xs">
+            <span>{finalInitials}</span>
+          </AvatarFallback>
         )}
-      </div>
+      </BaseAvatar>
     );
   };
   const defaultContent = (
