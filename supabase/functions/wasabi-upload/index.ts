@@ -6,6 +6,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// SAFE FORMAT VALIDATION - Industry Standard
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
+const BLOCKED_EXTENSIONS = ['.bmp', '.tiff', '.tif', '.gif', '.svg', '.ico', '.nef', '.cr2', '.arw', '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv'];
+
+const MAX_SIZES = {
+  avatar: 5 * 1024 * 1024,      // 5MB
+  cover: 10 * 1024 * 1024,       // 10MB
+  'post-image': 20 * 1024 * 1024, // 20MB
+  'post-video': 50 * 1024 * 1024  // 50MB
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,7 +37,57 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Upload request:', { fileName: file.name, mediaType, userId });
+    // SECURITY: Validate file extension
+    const fileName = file.name.toLowerCase();
+    const fileExtension = '.' + fileName.split('.').pop();
+    if (BLOCKED_EXTENSIONS.includes(fileExtension)) {
+      return new Response(JSON.stringify({ 
+        error: `File type ${fileExtension} not allowed. Only safe formats: JPG, PNG, WEBP, AVIF, HEIC for images; MP4, WEBM, MOV for videos.`,
+        success: false
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // SECURITY: Validate MIME type
+    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
+    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+    if (!isImage && !isVideo) {
+      return new Response(JSON.stringify({ 
+        error: `File format ${file.type} not allowed. Only safe formats are allowed.`,
+        success: false
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // SECURITY: Validate file size based on media type
+    const maxSize = MAX_SIZES[mediaType as keyof typeof MAX_SIZES] || MAX_SIZES['post-image'];
+    if (file.size > maxSize) {
+      const maxMB = (maxSize / (1024 * 1024)).toFixed(0);
+      return new Response(JSON.stringify({ 
+        error: `File too large. Maximum size for ${mediaType}: ${maxMB}MB`,
+        success: false
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // SECURITY: No video avatars allowed
+    if ((mediaType === 'avatar' || mediaType === 'profile') && isVideo) {
+      return new Response(JSON.stringify({ 
+        error: 'Video avatars are not allowed. Please use an image file.',
+        success: false
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log('✅ Upload validation passed:', { fileName: file.name, type: file.type, size: file.size, mediaType, userId });
 
     const region = Deno.env.get('WASABI_REGION')!;
     const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;

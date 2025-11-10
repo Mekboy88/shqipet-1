@@ -23,18 +23,28 @@ const DANGEROUS_EXTENSIONS = [
   '.hta', '.wsf', '.wsh', '.reg', '.scf', '.lnk', '.url', '.desktop'
 ];
 
-// Allowed safe file extensions
+// Allowed safe file extensions - INDUSTRY STANDARD SAFE FORMATS ONLY
 const ALLOWED_EXTENSIONS = [
-  // Images
-  '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico', '.tiff', '.tif',
-  // Videos
-  '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp', '.ogv',
+  // Images - Safe formats only
+  '.jpg', '.jpeg', '.png', '.webp', '.avif', '.heic',
+  // Videos - Safe formats only
+  '.mp4', '.webm', '.mov',
   // Audio
-  '.mp3', '.wav', '.aac', '.ogg', '.flac', '.m4a', '.wma',
+  '.mp3', '.wav', '.aac', '.ogg', '.flac', '.m4a',
   // Documents
-  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.rtf', '.odt', '.ods', '.odp',
+  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.rtf',
   // Archives (safe ones)
   '.zip'
+];
+
+// BLOCKED DANGEROUS IMAGE/VIDEO FORMATS
+const BLOCKED_MEDIA_EXTENSIONS = [
+  // Dangerous image formats
+  '.bmp', '.tiff', '.tif', '.gif', '.svg', '.ico',
+  // RAW camera formats
+  '.nef', '.cr2', '.arw', '.dng', '.raw', '.orf', '.rw2',
+  // Dangerous video formats
+  '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv', '.3gp', '.m4v'
 ];
 
 // Malicious content patterns (simplified version)
@@ -53,23 +63,31 @@ const SUSPICIOUS_FILE_PATTERNS = [
   /\.exe\.zip$/i, /\.scr\.zip$/i, /\.bat\.zip$/i, /\.cmd\.zip$/i
 ];
 
-// MIME type validation
+// MIME type validation - SAFE FORMATS ONLY
 const ALLOWED_MIME_TYPES = [
-  // Images
-  'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
-  'image/bmp', 'image/x-icon', 'image/tiff',
-  // Videos
-  'video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo', 'video/x-flv', 
-  'video/webm', 'video/x-matroska', 'video/3gpp', 'video/ogg',
+  // Images - Safe formats only
+  'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif',
+  // Videos - Safe formats only
+  'video/mp4', 'video/webm', 'video/quicktime',
   // Audio
-  'audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp4', 'audio/x-ms-wma',
+  'audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp4',
   // Documents
   'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'text/plain', 'application/rtf', 'application/vnd.oasis.opendocument.text',
+  'text/plain', 'application/rtf',
   // Archives
   'application/zip', 'application/x-zip-compressed'
+];
+
+// BLOCKED DANGEROUS MIME TYPES
+const BLOCKED_MIME_TYPES = [
+  // Dangerous image formats
+  'image/bmp', 'image/x-ms-bmp', 'image/tiff', 'image/x-tiff', 'image/gif', 'image/svg+xml', 'image/x-icon',
+  // RAW camera formats
+  'image/x-nikon-nef', 'image/x-canon-cr2', 'image/x-sony-arw', 'image/x-adobe-dng',
+  // Dangerous video formats
+  'video/x-matroska', 'video/x-msvideo', 'video/x-ms-wmv', 'video/x-flv', 'video/mpeg', 'video/ogg', 'video/3gpp'
 ];
 
 export const validateFileContent = async (file: File): Promise<ContentFilterResult> => {
@@ -86,11 +104,20 @@ export const validateFileContent = async (file: File): Promise<ContentFilterResu
   const fileName = file.name.toLowerCase();
   const fileExtension = '.' + fileName.split('.').pop();
 
-  // Check against dangerous extensions
+  // FIRST: Check against blocked media extensions (dangerous image/video formats)
+  if (BLOCKED_MEDIA_EXTENSIONS.includes(fileExtension)) {
+    return {
+      isAllowed: false,
+      reason: `File type '${fileExtension}' is not allowed. Only safe formats: JPG, PNG, WEBP, AVIF, HEIC for images; MP4, WEBM, MOV for videos.`,
+      category: 'security'
+    };
+  }
+
+  // Check against dangerous executable extensions
   if (DANGEROUS_EXTENSIONS.includes(fileExtension)) {
     return {
       isAllowed: false,
-      reason: `File type '${fileExtension}' is not allowed for security reasons.`,
+      reason: `File type '${fileExtension}' is blocked for security reasons.`,
       category: 'malicious'
     };
   }
@@ -104,7 +131,16 @@ export const validateFileContent = async (file: File): Promise<ContentFilterResu
     };
   }
 
-  // Check MIME type
+  // Check blocked MIME types
+  if (BLOCKED_MIME_TYPES.includes(file.type)) {
+    return {
+      isAllowed: false,
+      reason: `File format '${file.type}' is not allowed for security reasons.`,
+      category: 'security'
+    };
+  }
+
+  // Check allowed MIME types
   if (!ALLOWED_MIME_TYPES.includes(file.type)) {
     return {
       isAllowed: false,

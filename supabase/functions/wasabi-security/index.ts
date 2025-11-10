@@ -3,13 +3,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// SAFE FORMATS ONLY - Industry Standard
 const ALLOWED_MIME_TYPES = [
+  // Images - Safe formats only
   'image/jpeg',
   'image/jpg',
   'image/png',
-  'image/gif',
   'image/webp',
-  'image/svg+xml',
+  'image/avif',
+  'image/heic',
+  'image/heif',
+  // Videos - Safe formats only
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
 ];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
