@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { mediaService } from '@/services/media/MediaService';
 import { uploadService } from '@/services/media/UploadService';
 import { userPhotosService } from '@/services/photos/UserPhotosService';
+import { avatarCacheService } from './AvatarCacheService';
 
 export interface AvatarV2State {
   userId: string;
@@ -349,6 +350,13 @@ class AvatarStore {
         }
       }
 
+      // Preload avatar to eliminate flicker
+      if (url) {
+        avatarCacheService.preload(url).catch(err => {
+          console.warn('Avatar preload failed (non-blocking):', err);
+        });
+      }
+
       // Final state update - never downgrade a good URL
       const finalState = {
         userId,
@@ -538,6 +546,11 @@ class AvatarStore {
       } catch (e) {
         console.error('❌ Failed to save profile photo to collection:', e);
       }
+
+      // Preload uploaded avatar to eliminate flicker
+      avatarCacheService.preload(finalUrl).catch(err => {
+        console.warn('Uploaded avatar preload failed (non-blocking):', err);
+      });
 
       // FINAL STATE UPDATE - This is critical!
       const finalState = {

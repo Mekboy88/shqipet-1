@@ -5,6 +5,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { avatarStore } from '@/services/avatar/AvatarStore';
+import { avatarCacheService } from '@/services/avatar/AvatarCacheService';
 
 const GlobalAvatarBootstrap = () => {
   const { user } = useAuth();
@@ -49,21 +50,30 @@ const GlobalAvatarBootstrap = () => {
           const targetId = userId || user?.id;
           if (targetId) {
             console.log('🔄 Manual avatar reload for:', targetId);
-            avatarStore.load(targetId);
+            avatarStore.load(targetId, true);
           }
         },
         print: (userId?: string) => {
           const targetId = userId || user?.id;
           if (targetId) {
-            console.log('📊 Avatar state for user:', targetId);
-            console.table((window as any).__avatarV2Debug?.[targetId] || 'No state found');
+            const state = avatarStore.getState(targetId);
+            console.log('📊 Avatar state for:', targetId, state);
           }
         },
         clearCache: () => {
+          console.log('🗑️ Clearing all avatar caches...');
+          avatarStore.clearAllCache();
+          avatarCacheService.clear();
+          avatarCacheService.clearServiceWorkerCache();
           const keys = Object.keys(localStorage).filter(k => k.startsWith('avatar_cache_'));
           keys.forEach(k => localStorage.removeItem(k));
-          console.log('🧹 Cleared avatar cache:', keys.length, 'items');
-        }
+          console.log('✅ All avatar caches cleared');
+        },
+        preload: (url: string) => {
+          console.log('🎯 Manual preload:', url);
+          return avatarCacheService.preload(url);
+        },
+        cache: avatarCacheService
       };
     }
   }, [user?.id]);

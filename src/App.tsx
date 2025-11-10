@@ -100,6 +100,7 @@ import { setVideoSecurityNotificationCallback } from '@/utils/videoSecurity';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
 import { sessionPersistenceService } from '@/services/sessionPersistence';
 import GlobalAvatarBootstrap from '@/components/avatar/GlobalAvatarBootstrap';
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 import { useGlobalElasticScrolling } from '@/hooks/useGlobalElasticScrolling';
 
 const queryClient = new QueryClient({
@@ -213,6 +214,9 @@ function App() {
                      
                      {/* Global avatar bootstrap - ensures avatar system is initialized */}
                      <GlobalAvatarBootstrap />
+                     
+                     {/* Service worker registration for avatar caching */}
+                     <ServiceWorkerRegistration />
                      
                      <Routes>
                       {/* Public routes - NO AUTH CHECK */}
