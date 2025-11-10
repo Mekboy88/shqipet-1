@@ -267,17 +267,32 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
       ref={coverRef}
       className={`p-4 rounded-b-xl relative mx-auto overflow-hidden border border-border shadow-sm bg-muted ${containerClassName ?? 'h-[500px] max-w-[1200px] w-full'}`}
       style={{
-        ...(displayUrl ? { backgroundImage: `url(${displayUrl})` } : {}),
-        backgroundSize: 'cover',
-        backgroundPosition: lastPositionRef.current,
-        backgroundRepeat: 'no-repeat',
         cursor: isDragMode ? (isDragging ? 'grabbing' : 'grab') : 'default',
-        transition: isDragging ? 'none' : 'cursor 0.2s ease'
+        transition: isDragging ? 'none' : 'cursor 0.2s ease',
+        isolation: 'isolate',
+        transform: 'translateZ(0)'
       }}
       onMouseDown={handleCoverMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
     >
+      {/* Render as real image to avoid background resampling blur */}
+      {displayUrl && (
+        <img
+          src={displayUrl}
+          alt="Cover photo"
+          className="absolute inset-0 w-full h-full object-cover select-none"
+          style={{ 
+            objectPosition: lastPositionRef.current,
+            imageRendering: '-webkit-optimize-contrast'
+          }}
+          loading="eager"
+          decoding="async"
+          // @ts-ignore
+          fetchpriority="high"
+          draggable={false}
+        />
+      )}
       {showDebug && resolverDown && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 rounded-md border bg-background/90 backdrop-blur px-3 py-1 text-xs shadow">
           Media resolver failed; using fallback if available
