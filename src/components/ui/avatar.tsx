@@ -73,13 +73,17 @@ const AvatarImage = React.forwardRef<
             
             if (base) {
               // Choose variant: >=640w if target >=320, else >=320w if target >=160, else medium as floor
-              let suffix: string;
-              if (targetPx >= 320) suffix = 'large.jpg'; // 640w
-              else if (targetPx >= 160) suffix = 'medium.jpg'; // 320w
-              else suffix = 'medium.jpg'; // 320w floor for sharpness
+              let variantName: string;
+              if (targetPx >= 320) variantName = 'large'; // 640w
+              else if (targetPx >= 160) variantName = 'medium'; // 320w
+              else variantName = 'medium'; // 320w floor for sharpness
+              
+              // Preserve original extension (e.g., PNG stays PNG). Fallback to jpg if unknown
+              const extMatch = raw.match(/\.([A-Za-z0-9]+)(?:[?#]|$)/);
+              const ext = (extMatch ? extMatch[1] : 'jpg').toLowerCase();
               
               try {
-                finalUrl = await mediaService.getUrl(`${base}-${suffix}`);
+                finalUrl = await mediaService.getUrl(`${base}-${variantName}.${ext}`);
               } catch {
                 // Fallback to original key
                 finalUrl = await mediaService.getUrl(raw);
