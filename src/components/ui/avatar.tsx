@@ -125,16 +125,37 @@ const AvatarImage = React.forwardRef<
       }
     }
 
-    if (!key || !/^avatars\//i.test(key)) {
+    if (!key) {
       setComputedSrcSet(undefined);
       return;
+    }
+
+    // If key is not an avatars/ key, resolve it directly and avoid variants
+    if (!/^avatars\//i.test(key)) {
+      let canceled = false;
+      (async () => {
+        try {
+          const url = await mediaService.getUrl(key!);
+          if (!canceled) setResolvedSrc(url);
+        } catch {}
+      })();
+      setComputedSrcSet(undefined);
+      return () => { canceled = true; };
     }
 
     const baseMatch = key.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
     const base = baseMatch ? baseMatch[1] : null;
     if (!base) {
+      // Fallback: resolve the key directly without variants
+      let canceled2 = false;
+      (async () => {
+        try {
+          const url = await mediaService.getUrl(key!);
+          if (!canceled2) setResolvedSrc(url);
+        } catch {}
+      })();
       setComputedSrcSet(undefined);
-      return;
+      return () => { canceled2 = true; };
     }
 
     // Clear cache before resolving to avoid stale URLs
@@ -160,6 +181,16 @@ const AvatarImage = React.forwardRef<
       }
 
       if (canceled) return;
+
+      // Fallback if no variants available: resolve the provided key directly
+      if (available.length === 0) {
+        try {
+          const direct = await mediaService.getUrl(key!);
+          if (!canceled && direct) setResolvedSrc(direct);
+        } catch {}
+        setComputedSrcSet(undefined);
+        return;
+      }
 
       const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
       const parsePx = (s?: string): number | null => {
