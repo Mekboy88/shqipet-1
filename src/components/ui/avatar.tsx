@@ -60,6 +60,7 @@ const AvatarImage = React.forwardRef<React.ElementRef<typeof AvatarPrimitive.Ima
     const [srcset, setSrcset] = React.useState<string | undefined>(undefined);
     const [sizes, setSizes] = React.useState<string>("40px");
     const [dims, setDims] = React.useState<{ w: number; h: number } | null>(null);
+    const fallbackStepRef = React.useRef<number>(0);
 
     const key = extractKey(typeof src === "string" ? src : undefined);
     const base = key ? normalizeBase(key) : null;
@@ -197,7 +198,41 @@ const AvatarImage = React.forwardRef<React.ElementRef<typeof AvatarPrimitive.Ima
         fetchPriority={high ? "high" : "low"}
         draggable={false}
         onLoad={onLoad}
-        onError={onError}
+        onError={async (e) => {
+          try {
+            // Prevent infinite loops: try at most 3 fallback steps
+            if (fallbackStepRef.current > 2) return;
+            const step = fallbackStepRef.current++;
+
+            if (base && step === 0) {
+              // Try original
+              const orig = await mediaService.getUrl(`${base}-original.jpg`);
+              setFinalSrc(orig);
+              return;
+            }
+
+            if (key && step <= 1) {
+              // Try resolving the raw key
+              try {
+                const k = await mediaService.getUrl(key);
+                setFinalSrc(k);
+                return;
+              } catch {}
+              try {
+                const blob = await mediaService.getProxyBlob(key);
+                setFinalSrc(blob);
+                return;
+              } catch {}
+            }
+
+            if (typeof src === 'string') {
+              setFinalSrc(src);
+              return;
+            }
+          } finally {
+            try { onError?.(e as any); } catch {}
+          }
+        }}
         {...props}
       />
     );
