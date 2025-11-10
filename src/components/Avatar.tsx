@@ -30,15 +30,15 @@ const sizeClasses: Record<AvatarProps['size'] & string, string> = {
   '2xl': 'w-20 h-20 text-xl'
 };
 
-// Exact pixel widths for sizes attribute - using 2x base size for crisp rendering on all displays
-// This ensures high-quality variants are selected even on standard displays
+// Exact pixel widths for sizes attribute - all avatars use 160×160 px resolution for maximum sharpness
+// Small avatar UI size: 40 × 40 px → Correct resolution: 160 × 160 px (4x for perfect clarity)
 const sizePx: Record<NonNullable<AvatarProps['size']>, number> = {
-  xs: 48,   // 2x of 24px base
-  sm: 64,   // 2x of 32px base  
-  md: 80,   // 2x of 40px base
-  lg: 96,   // 2x of 48px base
-  xl: 160,  // Match actual w-40 h-40 rendering
-  '2xl': 160, // High quality for largest avatars
+  xs: 160,
+  sm: 160,  
+  md: 160,
+  lg: 160,
+  xl: 160,
+  '2xl': 160,
 };
 
 const Avatar: React.FC<AvatarProps> = React.memo(({
