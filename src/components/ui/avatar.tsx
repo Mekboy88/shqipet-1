@@ -20,10 +20,12 @@ const Avatar = React.forwardRef<
 ))
 Avatar.displayName = AvatarPrimitive.Root.displayName
 
+type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { priority?: boolean };
+
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, src, onError, onLoad, ...props }, ref) => {
+  AvatarImageProps
+>(({ className, src, onError, onLoad, priority, ...props }, ref) => {
   const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
@@ -63,6 +65,21 @@ const AvatarImage = React.forwardRef<
 
     // Unknown format, pass through
     setResolvedSrc(raw);
+  }, [src]);
+
+  // If src is a full URL but includes a storage path, defer resolution too
+  React.useEffect(() => {
+    const raw = typeof src === 'string' ? src : '';
+    if (!raw) return;
+    if (/^https?:/i.test(raw)) {
+      try {
+        const u = new URL(raw, window.location.origin);
+        if (/(?:^|\/)(uploads|avatars|covers)\/[^?#\s]+/i.test(u.pathname)) {
+          setResolvedSrc(undefined);
+          return;
+        }
+      } catch {}
+    }
   }, [src]);
 
   // Build responsive srcset from variant keys when available
@@ -177,6 +194,8 @@ const AvatarImage = React.forwardRef<
     return () => observer.disconnect();
   }, []);
 
+  const isHighPriority = priority || (dimensions?.width || 0) >= 64;
+
   return (
     <AvatarPrimitive.Image
       ref={(node) => {
@@ -190,10 +209,10 @@ const AvatarImage = React.forwardRef<
       sizes={computedSizes ?? "40px"}
       width={dimensions?.width}
       height={dimensions?.height}
-      loading={(dimensions?.width || 0) >= 64 ? "eager" : "lazy"}
+      loading={isHighPriority ? "eager" : "lazy"}
       decoding="async"
       // @ts-ignore - not in TS types but supported by browsers
-      fetchpriority={(dimensions?.width || 0) >= 64 ? "high" : "low"}
+      fetchpriority={isHighPriority ? "high" : "low"}
       draggable={false}
       onLoad={onLoad}
       onError={(e) => {

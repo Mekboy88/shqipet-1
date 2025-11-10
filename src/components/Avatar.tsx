@@ -117,6 +117,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
           src={finalSrc || undefined}
           alt="User avatar"
           className="object-cover"
+          priority={['lg','xl','2xl'].includes(size)}
         />
       )}
       <AvatarFallback className={cn(
