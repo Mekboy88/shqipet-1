@@ -33,6 +33,11 @@ const AvatarImage = React.forwardRef<
   const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
   const [computedSizes, setComputedSizes] = React.useState<string | undefined>(undefined);
   const [computedSrcSet, setComputedSrcSet] = React.useState<string | undefined>(undefined);
+  const explicitPx = React.useMemo(() => {
+    if (!sizes) return null;
+    const m = String(sizes).match(/(\d+(?:\.\d+)?)px/);
+    return m ? Math.round(parseFloat(m[1])) : null;
+  }, [sizes]);
 
   React.useEffect(() => {
     const raw = typeof src === 'string' ? src : '';
@@ -173,10 +178,10 @@ const AvatarImage = React.forwardRef<
       const sorted = available.sort((a, b) => a.w - b.w);
       let chosen = sorted.find(v => v.w >= target) || sorted[sorted.length - 1];
 
-      // Crispness lock: never go smaller than a previously chosen width
-      if (lockedWidthRef.current && chosen.w < lockedWidthRef.current) {
-        const locked = sorted.find(v => v.w === lockedWidthRef.current);
-        if (locked) chosen = locked;
+      // For very small avatars, never swap source and omit srcSet entirely
+      if (isSmallAvatar) {
+        setComputedSrcSet(undefined);
+        return;
       }
 
       if (!canceled && chosen?.url) {
@@ -187,15 +192,10 @@ const AvatarImage = React.forwardRef<
         });
       }
 
-      // For very small avatars, omit srcSet to prevent browser downshifts entirely
-      if (isSmallAvatar) {
-        setComputedSrcSet(undefined);
-      } else {
-        // Only expose candidates >= chosen width to prevent downshifts
-        const filtered = available.filter(v => v.w >= (lockedWidthRef.current || chosen.w));
-        const parts = filtered.map(v => `${v.url} ${v.w}w`).join(', ');
-        setComputedSrcSet(parts || undefined);
-      }
+      // Only expose candidates >= chosen width to prevent downshifts
+      const filtered = available.filter(v => v.w >= (lockedWidthRef.current || chosen.w));
+      const parts = filtered.map(v => `${v.url} ${v.w}w`).join(', ');
+      setComputedSrcSet(parts || undefined);
     })();
 
     return () => { canceled = true; };
@@ -241,8 +241,8 @@ const AvatarImage = React.forwardRef<
       src={resolvedSrc}
       srcSet={computedSrcSet}
       sizes={sizes ?? computedSizes ?? "40px"}
-      width={dimensions?.width}
-      height={dimensions?.height}
+      width={explicitPx ?? dimensions?.width ?? undefined}
+      height={explicitPx ?? dimensions?.height ?? undefined}
       loading={isHighPriority ? "eager" : "lazy"}
       decoding="async"
       // @ts-ignore - not in TS types but supported by browsers
