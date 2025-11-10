@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Avatar } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, MoreHorizontal } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -56,9 +56,7 @@ const ProfileNavigation: React.FC<ProfileNavigationProps> = ({
         {/* Show profile circle and name when sticky, otherwise show navigation tabs */}
         {isNavigationSticky ? (
           <div className="flex items-center animate-fade-in">
-            <Avatar className="w-8 h-8 mr-3 bg-gradient-to-r from-red-500 via-red-600 to-red-900">
-              <img src="" alt="" className="object-cover w-full h-full rounded-full" />
-            </Avatar>
+            <Avatar size="sm" className="mr-3" />
             <h2 className="text-lg font-semibold">{name}</h2>
           </div>
         ) : (

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Globe } from 'lucide-react';
-import { Avatar } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import UniversalPhotoGrid from '@/components/shared/UniversalPhotoGrid';
 import { MonthGroup } from './types';
 import { Post as PostData } from '@/contexts/posts/types';
@@ -38,13 +38,7 @@ const GridView: React.FC<GridViewProps> = ({ postsByMonth }) => {
                 {/* User info and post details with compact design */}
                 <div className="p-2 border-t border-gray-200">
                   <div className="flex items-start space-x-2">
-                    <Avatar className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                      <img 
-                        src={post.user.image} 
-                        alt={post.user.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    </Avatar>
+                    <Avatar size="sm" src={post.user.image} className="flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center flex-wrap">
                         <span className="font-medium text-sm truncate">{post.user.name}</span>
