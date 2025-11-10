@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Globe, Check } from 'lucide-react';
 import PhotoGrid from './PhotoGrid';
 import { Post } from './types';
@@ -34,10 +34,12 @@ const PostCard: React.FC<PostProps> = ({ post }) => {
       
       {/* Post Info - Moved below photos like in Facebook */}
       <div className="flex items-center mt-3">
-        <Avatar className="h-8 w-8 mr-2">
-          <AvatarImage src={post.user.image} alt={post.user.name} />
-          <AvatarFallback>{post.user.name.charAt(0)}{post.user.name.split(' ')[1]?.charAt(0)}</AvatarFallback>
-        </Avatar>
+        <Avatar 
+          size="sm"
+          src={post.user.image}
+          initials={`${post.user.name.charAt(0)}${post.user.name.split(' ')[1]?.charAt(0) || ''}`}
+          className="mr-2 img-locked"
+        />
         <div className="flex-1">
           <div className="text-sm font-semibold">{post.content}</div>
           <div className="flex items-center text-xs text-gray-500">

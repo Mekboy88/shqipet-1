@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import ChatThemeWrapper from './ChatThemeWrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import VoiceMessagePlayer from './VoiceMessagePlayer';
@@ -319,12 +319,12 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
         >
           <div className="p-3">
             <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8 ring-2 ring-primary/30">
-                <AvatarImage src={conversation.avatar || "/placeholder.svg"} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  {getInitials(conversation.name)}
-                </AvatarFallback>
-              </Avatar>
+              <Avatar 
+                size="sm"
+                src={conversation.avatar || "/placeholder.svg"}
+                initials={getInitials(conversation.name)}
+                className="ring-2 ring-primary/30 img-locked"
+              />
               <span className="text-sm font-medium text-foreground flex-1">
                 {conversation.name}
               </span>
@@ -398,12 +398,12 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
       <div className="absolute top-4 left-0 right-0 bg-primary/10 border-b border-border p-4 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 ring-2 ring-border">
-              <AvatarImage src={conversation.avatar || "/placeholder.svg"} />
-              <AvatarFallback className="bg-muted text-foreground font-semibold">
-                {getInitials(conversation.name)}
-              </AvatarFallback>
-            </Avatar>
+            <Avatar 
+              size="md"
+              src={conversation.avatar || "/placeholder.svg"}
+              initials={getInitials(conversation.name)}
+              className="ring-2 ring-border img-locked"
+            />
             <div>
               <h3 className="font-semibold text-foreground">{conversation.name}</h3>
               <p className="text-xs text-foreground/70">Online now</p>
@@ -531,12 +531,12 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
                 </div>
               </div>
               {message.sender === 'contact' && (
-                <Avatar className="h-8 w-8 order-1 mr-2 ring-1 ring-border">
-                  <AvatarImage src={conversation.avatar || "/placeholder.svg"} />
-                  <AvatarFallback className="bg-primary/20 text-xs text-primary">
-                    {getInitials(conversation.name)}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar 
+                  size="sm"
+                  src={conversation.avatar || "/placeholder.svg"}
+                  initials={getInitials(conversation.name)}
+                  className="order-1 mr-2 ring-1 ring-border img-locked"
+                />
               )}
             </div>
           ))}

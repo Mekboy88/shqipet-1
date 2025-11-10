@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { RefreshCw } from 'lucide-react';
 
 const activities: Array<{
@@ -29,10 +29,12 @@ const LatestActivitiesCard = () => {
                         {activities.map((activity, index) => (
                             <li key={index} className="flex items-center space-x-3 bg-secondary dark:bg-muted/20 p-2 rounded-lg border border-border/50">
                                 <div className="relative">
-                                    <Avatar className="w-10 h-10">
-                                        <AvatarImage src={activity.avatar} alt={activity.user} />
-                                        <AvatarFallback>{activity.user.charAt(0)}</AvatarFallback>
-                                    </Avatar>
+                                    <Avatar 
+                                      size="md"
+                                      src={activity.avatar}
+                                      initials={activity.user.charAt(0)}
+                                      className="img-locked"
+                                    />
                                     <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 flex items-center justify-center border">
                                         <span className="text-xs">{activity.icon}</span>
                                     </div>
