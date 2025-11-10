@@ -112,10 +112,28 @@ const AvatarImage = React.forwardRef<React.ElementRef<typeof AvatarPrimitive.Ima
       let cancelled = false;
 
       (async () => {
-        const full = `${base}-${chosen.file}`;
-        const url = await mediaService.getUrl(full);
-
-        if (!cancelled) setFinalSrc(url);
+        try {
+          const full = `${base}-${chosen.file}`;
+          const url = await mediaService.getUrl(full);
+          if (!cancelled) setFinalSrc(url);
+        } catch {
+          try {
+            const fallbackFull = `${base}-original.jpg`;
+            const fbUrl = await mediaService.getUrl(fallbackFull);
+            if (!cancelled) setFinalSrc(fbUrl);
+          } catch {
+            if (key) {
+              try {
+                const kUrl = await mediaService.getUrl(key);
+                if (!cancelled) setFinalSrc(kUrl);
+              } catch {
+                if (typeof src === "string" && !cancelled) setFinalSrc(src);
+              }
+            } else if (typeof src === "string" && !cancelled) {
+              setFinalSrc(src);
+            }
+          }
+        }
 
         const all = await Promise.all(
           variants.map(async (v) => {
