@@ -62,18 +62,30 @@ class AvatarUploadService {
       throw new Error('Authentication required');
     }
 
-    // Upload to Wasabi via edge function
-    const { data, error } = await supabase.functions.invoke('wasabi-upload', {
-      body: {
-        file: await this.fileToBase64(file),
-        fileName: file.name,
-        mimeType: file.type,
-        mediaType: 'avatar',
-        userId: userId
-      }
-    });
+    // Create FormData for wasabi-upload edge function
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('mediaType', 'avatar');
+    formData.append('userId', userId);
 
-    if (error) throw error;
+    // Upload to Wasabi via edge function
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wasabi-upload`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: formData
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Upload failed: ${errorText}`);
+    }
+
+    const data = await response.json();
     if (!data?.key) throw new Error('Upload failed - no key returned');
 
     console.log('✅ Avatar uploaded successfully:', data.key);
@@ -118,17 +130,6 @@ class AvatarUploadService {
     });
   }
 
-  /**
-   * Convert file to base64
-   */
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
 }
 
 export const avatarUploadService = new AvatarUploadService();
