@@ -168,7 +168,7 @@ const CoverPhotoDialog: React.FC<CoverPhotoDialogProps> = ({
             <div className="relative">
               <input 
                 type="file" 
-                accept="image/*" 
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif" 
                 onChange={handleFileChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 id="cover-photo-input"
@@ -183,7 +183,7 @@ const CoverPhotoDialog: React.FC<CoverPhotoDialogProps> = ({
                   <Upload className="w-8 h-8" />
                   <div className="text-center">
                     <p className="text-sm font-medium">Kliko për të ngarkuar</p>
-                    <p className="text-xs">PNG, JPG ose GIF deri në 10MB</p>
+                    <p className="text-xs">JPG, PNG, WEBP, AVIF, HEIC deri në 10MB</p>
                   </div>
                 </div>
               </div>

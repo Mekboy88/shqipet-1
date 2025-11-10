@@ -33,7 +33,7 @@ const CoverPhotoDialog: React.FC<CoverPhotoDialogProps> = ({
             <label className="text-sm font-medium">Upload New Photo</label>
             <input 
               type="file" 
-              accept="image/*"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif"
               onChange={onCoverPhotoChange}
               className="border p-2 rounded-md" 
             />

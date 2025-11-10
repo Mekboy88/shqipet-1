@@ -552,7 +552,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
             ref={fileInputRef}
             onChange={handleFileUpload}
             className="hidden"
-            accept="image/*,application/pdf,.doc,.docx,.txt"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif,application/pdf,.doc,.docx,.txt"
           />
           <Button 
             variant="ghost" 

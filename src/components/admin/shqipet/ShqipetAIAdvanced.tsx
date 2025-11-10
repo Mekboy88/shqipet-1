@@ -395,7 +395,7 @@ export default function ShqipetAIAdvanced({ onSwitchBack }: ShqipetAIAdvancedPro
 
             <div className="flex items-end gap-2">
               <label className="shrink-0">
-                <input type="file" multiple className="hidden" accept="image/*,video/*" onChange={(e) => handleFiles(e.target.files)} />
+                <input type="file" multiple className="hidden" accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" onChange={(e) => handleFiles(e.target.files)} />
                 <div className="h-8 px-2 rounded border flex items-center gap-1 cursor-pointer hover:bg-gray-50 text-xs">➕</div>
               </label>
 

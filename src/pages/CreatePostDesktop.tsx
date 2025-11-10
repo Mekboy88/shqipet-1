@@ -846,7 +846,7 @@ const CreatePostDesktop: React.FC = () => {
           <input
             ref={photoInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif"
             multiple
             className="hidden"
             onChange={handlePhotoChange}
@@ -854,7 +854,7 @@ const CreatePostDesktop: React.FC = () => {
           <input
             ref={videoInputRef}
             type="file"
-            accept="video/*"
+            accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
             multiple
             className="hidden"
             onChange={handleVideoChange}
