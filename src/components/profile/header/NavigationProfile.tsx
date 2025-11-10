@@ -22,22 +22,14 @@ const NavigationProfile: React.FC<NavigationProfileProps> = ({
       paddingLeft: '17px', // Match the NavigationTabs padding
       height: '40px', // Match navigation height
       display: 'flex',
-      alignItems: 'center',
-      transition: 'all 0.2s ease-in-out'
+      alignItems: 'center'
     }}>
-      <div className="flex items-center" style={{
-        transition: 'all 0.2s ease-in-out'
-      }}>
+      <div className="flex items-center">
         <Avatar 
           size="sm"
           className="mr-3"
-          style={{
-            transition: 'all 0.2s ease-in-out'
-          }}
         />
-        <span className="text-lg font-semibold" style={{
-          transition: 'all 0.2s ease-in-out'
-        }}>{displayName || "User"}</span>
+        <span className="text-lg font-semibold">{displayName || "User"}</span>
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Im
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   AvatarImageProps
->(({ className, src, onError, onLoad, priority, ...props }, ref) => {
+>(({ className, src, onError, onLoad, priority, sizes, ...props }, ref) => {
   const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
@@ -126,68 +126,77 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
-    // ALWAYS prioritize largest variants for maximum sharpness
+    // Clear cache before resolving to avoid stale URLs
+    mediaService.clearCache(base);
+
     const variantMeta = [
-      { suffix: 'large.jpg', w: 640 },
-      { suffix: 'medium.jpg', w: 320 },
-      { suffix: 'small.jpg', w: 160 },
       { suffix: 'thumbnail.jpg', w: 80 },
+      { suffix: 'small.jpg', w: 160 },
+      { suffix: 'medium.jpg', w: 320 },
+      { suffix: 'large.jpg', w: 640 },
     ];
 
     let canceled = false;
     (async () => {
-      const settled = await Promise.allSettled(
-        variantMeta.map(v => mediaService.getUrl(`${base}-${v.suffix}`))
-      );
-
-      const available: { w: number; url: string }[] = [];
-      settled.forEach((res, i) => {
-        if (res.status === 'fulfilled' && typeof res.value === 'string') {
-          available.push({ w: variantMeta[i].w, url: res.value });
+      const available = [];
+      for (const v of variantMeta) {
+        try {
+          const url = await mediaService.getUrl(`${base}-${v.suffix}`);
+          if (url) available.push({ ...v, url });
+        } catch (err) {
+          console.warn(`Variant ${v.suffix} not available for ${base}`);
         }
-      });
+      }
 
       if (canceled) return;
 
-      // ALWAYS use the largest available variant for maximum quality
-      const sorted = available.sort((a, b) => b.w - a.w);
-      const largest = sorted[0];
-
-      if (!canceled && largest?.url) {
-        setResolvedSrc(largest.url);
+      // Select best-fit variant based on measured width * DPR
+      const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
+      const sorted = available.sort((a, b) => a.w - b.w);
+      
+      let chosen = sorted[sorted.length - 1]; // default to largest
+      if (dimensions?.width && dimensions.width > 0) {
+        const neededPixels = Math.ceil(dimensions.width * dpr);
+        // Pick smallest variant >= needed pixels to avoid soft downscaling
+        chosen = sorted.find(v => v.w >= neededPixels) || sorted[sorted.length - 1];
       }
 
-      // Build srcset with all available variants
+      if (!canceled && chosen?.url) {
+        setResolvedSrc(chosen.url);
+      }
+
+      // Build srcset with ascending widths
       const parts = available.map(v => `${v.url} ${v.w}w`).join(', ');
       setComputedSrcSet(parts || undefined);
     })();
 
     return () => { canceled = true; };
-  }, [src, resolvedSrc]);
+  }, [src, resolvedSrc, dimensions]);
 
   // Measure container size and set integer dimensions for crisp rendering
   React.useLayoutEffect(() => {
-    const img = imgRef.current;
-    if (!img || !img.parentElement) return;
+    const el = imgRef.current;
+    if (!el) return;
 
-    const updateDimensions = () => {
-      const parent = img.parentElement;
-      const rect = parent.getBoundingClientRect();
-      const w = Math.round(rect.width);
-      const h = Math.round(rect.height);
-      if (w > 0 && h > 0) {
-        setDimensions({ width: w, height: h });
-        setComputedSizes(`${w}px`);
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        const rounded = {
+          width: Math.round(width),
+          height: Math.round(height)
+        };
+        setDimensions(rounded);
+        
+        // Update sizes hint based on actual rendered size (only if not provided by parent)
+        if (rounded.width > 0 && !sizes) {
+          setComputedSizes(`${rounded.width}px`);
+        }
       }
-    };
+    });
 
-    updateDimensions();
-    
-    const observer = new ResizeObserver(updateDimensions);
-    observer.observe(img.parentElement);
-    
+    observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [sizes]);
 
   const isHighPriority = priority || (dimensions?.width || 0) >= 64;
 
@@ -201,22 +210,19 @@ const AvatarImage = React.forwardRef<
       className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
       src={resolvedSrc}
       srcSet={computedSrcSet}
-      sizes={computedSizes ?? "640px"}
+      sizes={sizes ?? computedSizes ?? "40px"}
       width={dimensions?.width}
       height={dimensions?.height}
-      loading="eager"
-      decoding="sync"
+      loading={isHighPriority ? "eager" : "lazy"}
+      decoding="async"
       // @ts-ignore - not in TS types but supported by browsers
-      fetchpriority="high"
+      fetchpriority={isHighPriority ? "high" : "auto"}
       draggable={false}
-      style={{ 
-        imageRendering: 'high-quality',
-        transform: 'translate3d(0,0,0)',
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden',
-        perspective: 1000,
-        filter: 'none'
-      } as any}
+      data-variant-selected={process.env.NODE_ENV === 'development' && resolvedSrc ? 
+        (resolvedSrc.includes('large') ? '640' : 
+         resolvedSrc.includes('medium') ? '320' : 
+         resolvedSrc.includes('small') ? '160' : 
+         resolvedSrc.includes('thumbnail') ? '80' : 'unknown') : undefined}
       onLoad={onLoad}
       onError={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
