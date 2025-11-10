@@ -140,15 +140,23 @@ const deriveKeyFromUrl = (url: string): string | null => {
 };
 
 const validateImageFile = (file: File): void => {
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  
-  if (!allowedTypes.includes(file.type)) {
-    throw new Error('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
+  // Follow platform policy: allow JPG, PNG, WEBP, AVIF, HEIC; max 5MB for avatars
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
+  const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
+
+  const fileName = file.name.toLowerCase();
+  const ext = fileName.includes('.') ? fileName.split('.').pop() || '' : '';
+
+  const mimeOk = allowedMimeTypes.includes(file.type);
+  const extOk = allowedExtensions.includes(ext);
+
+  if (!mimeOk && !extOk) {
+    throw new Error('Invalid image type. Allowed: JPG, PNG, WEBP, AVIF, HEIC.');
   }
-  
+
   if (file.size > maxSize) {
-    throw new Error('File too large. Please upload an image smaller than 10MB.');
+    throw new Error('File too large. Maximum size for avatars is 5MB.');
   }
 };
 
