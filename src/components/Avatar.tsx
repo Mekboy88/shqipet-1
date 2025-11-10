@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
+import { mediaService } from '@/services/media/MediaService';
 
 interface AvatarProps {
   userId?: string;
@@ -45,9 +46,35 @@ const Avatar: React.FC<AvatarProps> = ({
 }) => {
   const { firstName, lastName, initials: derivedInitials, avatarUrl } = useUniversalUser(userId);
   const [imageError, setImageError] = useState(false);
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
 
-  // Determine final image URL
-  const finalImageUrl = src || avatarUrl;
+  // Determine final image URL (could be a storage key or a full URL)
+  const finalImageUrl = (src || avatarUrl || null) as string | null;
+
+  // Resolve storage keys (avatars/, uploads/, covers/) to displayable URLs
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      if (!finalImageUrl) {
+        setResolvedUrl(null);
+        return;
+      }
+      // If it's already a full URL or blob/data, use directly
+      if (/^(https?:|blob:|data:)/i.test(finalImageUrl)) {
+        setResolvedUrl(finalImageUrl);
+        return;
+      }
+      try {
+        const url = await mediaService.getUrl(finalImageUrl);
+        if (!cancelled) setResolvedUrl(url);
+      } catch (e) {
+        console.warn('Failed to resolve media URL for avatar:', finalImageUrl, e);
+        if (!cancelled) setResolvedUrl(null);
+      }
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [finalImageUrl]);
   
   // Determine final initials
   const nameInitials = firstName && lastName
@@ -58,8 +85,8 @@ const Avatar: React.FC<AvatarProps> = ({
   const pixelSize = sizePixels[size] || sizePixels.md;
   const textClass = textSizeClasses[size] || textSizeClasses.md;
 
-  // Show image if we have a URL and no error
-  const shouldShowImage = finalImageUrl && !imageError;
+  // Show image if we have a resolved URL and no error
+  const shouldShowImage = !!resolvedUrl && !imageError;
 
   return (
     <div
@@ -80,7 +107,7 @@ const Avatar: React.FC<AvatarProps> = ({
     >
       {shouldShowImage ? (
         <img
-          src={finalImageUrl}
+          src={resolvedUrl || undefined}
           alt="Avatar"
           className="w-full h-full object-cover"
           style={{
