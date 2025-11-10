@@ -12,16 +12,9 @@ const Avatar = React.forwardRef<
   <AvatarPrimitive.Root
     ref={ref}
     className={cn(
-      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
+      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full img-locked-wrapper",
       className
     )}
-    style={{
-      ...(style as React.CSSProperties),
-      isolation: 'isolate',
-      transform: 'translateZ(0)',
-      backfaceVisibility: 'hidden',
-      contain: 'layout paint style'
-    }}
     {...props}
   />
 ))
@@ -128,7 +121,7 @@ const AvatarImage = React.forwardRef<
         if (typeof ref === 'function') ref(node);
         else if (ref) ref.current = node;
       }}
-      className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
+      className={cn("aspect-square h-full w-full object-cover object-center select-none img-locked", className)}
       src={resolvedSrc}
       width={explicitPx || undefined}
       height={explicitPx || undefined}
@@ -138,10 +131,6 @@ const AvatarImage = React.forwardRef<
       fetchpriority={isHighPriority ? "high" : "auto"}
       draggable={false}
       data-locked={process.env.NODE_ENV === 'development' ? String(lockedRef.current) : undefined}
-      style={{
-        ...(style as React.CSSProperties),
-        imageRendering: '-webkit-optimize-contrast'
-      }}
       onLoad={onLoad}
       onError={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;

@@ -281,10 +281,9 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
         <img
           src={displayUrl}
           alt="Cover photo"
-          className="absolute inset-0 w-full h-full object-cover select-none"
+          className="absolute inset-0 w-full h-full object-cover select-none img-locked"
           style={{ 
-            objectPosition: lastPositionRef.current,
-            imageRendering: '-webkit-optimize-contrast'
+            objectPosition: lastPositionRef.current
           }}
           loading="eager"
           decoding="async"

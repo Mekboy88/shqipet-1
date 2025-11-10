@@ -162,13 +162,8 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   return (
     <>
       <div 
-        className="relative group cursor-pointer" 
+        className="relative group cursor-pointer img-locked-wrapper" 
         onClick={handleClick}
-        style={{ 
-          isolation: 'isolate',
-          transform: 'translateZ(0)',
-          willChange: 'auto'
-        }}
       >
         {content}
 

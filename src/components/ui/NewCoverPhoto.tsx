@@ -64,10 +64,9 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
         <img
           src={displayUrl}
           alt="Cover photo"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover img-locked"
           style={{ 
-            objectPosition: position,
-            imageRendering: '-webkit-optimize-contrast'
+            objectPosition: position
           }}
           loading="eager"
           onError={() => { try { loadCover?.(); } catch {} }}

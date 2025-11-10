@@ -245,6 +245,24 @@ img {
   image-rendering: auto;
 }
 
+/* Image Guard Utility - Prevents blur from layout/opacity/transform inheritance */
+.img-locked {
+  isolation: isolate !important;
+  backface-visibility: hidden !important;
+  image-rendering: -webkit-optimize-contrast !important;
+  transform: translateZ(0) !important;
+  will-change: auto !important;
+  contain: layout paint style !important;
+}
+
+/* Wrapper variant for containers holding images */
+.img-locked-wrapper {
+  isolation: isolate !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  contain: layout paint style !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
