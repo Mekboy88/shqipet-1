@@ -1,22 +1,86 @@
 import { AwsClient } from "https://esm.sh/aws4fetch@1.0.17";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// SAFE FORMAT VALIDATION - Industry Standard
+// PROFESSIONAL AVATAR STANDARDS (Facebook/Instagram quality)
+const MIN_RESOLUTION = 400; // Reject anything smaller than 400×400
+const TARGET_MAX_SIZE = 1024; // Always upscale/process to 1024px max for perfect quality
+const AVATAR_VARIANTS = [
+  { suffix: 'thumbnail', size: 80 },   // For tiny avatars
+  { suffix: 'small', size: 160 },      // For 40px retina (40 × 4 DPR)
+  { suffix: 'medium', size: 320 },     // For 80px retina
+  { suffix: 'large', size: 640 }       // For 160px retina
+];
+
+// Format validation
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 const BLOCKED_EXTENSIONS = ['.bmp', '.tiff', '.tif', '.gif', '.svg', '.ico', '.nef', '.cr2', '.arw', '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv'];
 
 const MAX_SIZES = {
-  avatar: 10 * 1024 * 1024,     // 10MB (align with frontend and cover)
-  cover: 10 * 1024 * 1024,       // 10MB
-  'post-image': 20 * 1024 * 1024, // 20MB
-  'post-video': 50 * 1024 * 1024  // 50MB
+  avatar: 10 * 1024 * 1024,
+  cover: 10 * 1024 * 1024,
+  'post-image': 20 * 1024 * 1024,
+  'post-video': 50 * 1024 * 1024
 };
+
+// Process image with ImageScript for maximum quality
+async function processImage(buffer: Uint8Array): Promise<Image> {
+  try {
+    return await Image.decode(buffer);
+  } catch (error) {
+    console.error('Image decode error:', error);
+    throw new Error('Failed to decode image. Please upload a valid image file.');
+  }
+}
+
+// Resize with high-quality resampling
+async function resizeImage(image: Image, maxSize: number): Promise<Uint8Array> {
+  const { width, height } = image;
+  
+  // If image is smaller than target, upscale it
+  if (Math.max(width, height) < maxSize) {
+    console.log(`📈 Upscaling from ${width}×${height} to ${maxSize}×${maxSize}`);
+    const scale = maxSize / Math.max(width, height);
+    const newWidth = Math.round(width * scale);
+    const newHeight = Math.round(height * scale);
+    return await image.resize(newWidth, newHeight).encodeJPEG(100);
+  }
+  
+  // If image is larger, downscale it
+  if (Math.max(width, height) > maxSize) {
+    console.log(`📉 Downscaling from ${width}×${height} to fit ${maxSize}px`);
+    const scale = maxSize / Math.max(width, height);
+    const newWidth = Math.round(width * scale);
+    const newHeight = Math.round(height * scale);
+    return await image.resize(newWidth, newHeight).encodeJPEG(100);
+  }
+  
+  // Perfect size - just encode
+  return await image.encodeJPEG(100);
+}
+
+// Generate square variant (center crop + resize)
+async function generateVariant(image: Image, targetSize: number): Promise<Uint8Array> {
+  const { width, height } = image;
+  const sourceSize = Math.min(width, height);
+  const sx = Math.floor((width - sourceSize) / 2);
+  const sy = Math.floor((height - sourceSize) / 2);
+  
+  // Crop to square first
+  const cropped = image.crop(sx, sy, sourceSize, sourceSize);
+  
+  // Resize to target
+  const resized = cropped.resize(targetSize, targetSize);
+  
+  // Encode with maximum quality
+  return await resized.encodeJPEG(100);
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -28,7 +92,7 @@ Deno.serve(async (req) => {
     const file = formData.get('file') as File;
     const mediaType = (formData.get('mediaType') as string) || 'profile';
     const userId = formData.get('userId') as string;
-    const updateProfile = formData.get('updateProfile') as string; // 'true' to update profiles table
+    const updateProfile = formData.get('updateProfile') as string;
 
     if (!file) {
       return new Response(JSON.stringify({ error: 'No file provided' }), {
@@ -37,13 +101,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Load dynamic upload configuration from database (fallback to defaults)
+    // Load config
     let IMAGE_MIME_ALLOW = ALLOWED_IMAGE_TYPES as string[];
     let VIDEO_MIME_ALLOW = ALLOWED_VIDEO_TYPES as string[];
     let BLOCKED_EXTS = BLOCKED_EXTENSIONS as string[];
     let MAX_LIMITS = MAX_SIZES as Record<string, number>;
-let allowedImageExts = ['jpg', 'jpeg', 'jfif', 'pjpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
-let allowedVideoExts = ['mp4', 'webm', 'mov'];
+    let allowedImageExts = ['jpg', 'jpeg', 'jfif', 'pjpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
+    let allowedVideoExts = ['mp4', 'webm', 'mov'];
 
     try {
       const supabase = createClient(
@@ -67,16 +131,15 @@ let allowedVideoExts = ['mp4', 'webm', 'mov'];
         } as Record<string, number>;
       }
     } catch (e) {
-      console.warn('⚠️ Using default upload configuration due to fetch error', e);
+      console.warn('⚠️ Using default upload configuration', e);
     }
 
-    // SECURITY: Validate file extension
+    // Validate extension
     const fileName = file.name.toLowerCase();
     const fileExtension = '.' + (fileName.split('.').pop() || '');
     if (BLOCKED_EXTS.includes(fileExtension)) {
-      console.error('🚫 BLOCKED: File extension not allowed:', { fileName, extension: fileExtension });
       return new Response(JSON.stringify({ 
-        error: `File type ${fileExtension} not allowed. Only safe formats are permitted.`,
+        error: `File type ${fileExtension} not allowed.`,
         success: false
       }), {
         status: 400,
@@ -84,11 +147,9 @@ let allowedVideoExts = ['mp4', 'webm', 'mov'];
       });
     }
 
-    // SECURITY: Validate MIME type (with extension fallback for mobile formats)
+    // Validate MIME
     const isImage = IMAGE_MIME_ALLOW.includes(file.type);
     const isVideo = VIDEO_MIME_ALLOW.includes(file.type);
-    
-    // HEIC/AVIF may have inconsistent MIME types, check extension as fallback
     const ext = (fileName.split('.').pop() || '').toLowerCase();
     const isImageByExtension = allowedImageExts.includes(ext);
     const isVideoByExtension = allowedVideoExts.includes(ext);
@@ -96,17 +157,14 @@ let allowedVideoExts = ['mp4', 'webm', 'mov'];
     let isValidImage = isImage || isImageByExtension;
     let isValidVideo = isVideo || isVideoByExtension;
 
-    // FINAL GUARD: If both false but intent is image (avatar/cover/post-image), allow unknown MIME/extension
     const imageIntent = /avatar|profile|cover|post-image/i.test(mediaType);
     if (!isValidImage && !isValidVideo && imageIntent) {
-      // Permit if not explicitly blocked and not a known video extension
       if (!BLOCKED_EXTS.includes(`.${ext}`) && !isVideoByExtension) {
         isValidImage = true;
       }
     }
 
     if (!isValidImage && !isValidVideo) {
-      console.error('🚫 BLOCKED: Invalid MIME/extension:', { fileName, mimeType: file.type, ext, mediaType });
       return new Response(JSON.stringify({ 
         error: `File format ${file.type || '(unknown)'} not allowed.`,
         success: false
@@ -116,12 +174,12 @@ let allowedVideoExts = ['mp4', 'webm', 'mov'];
       });
     }
     
-    // SECURITY: Validate file size based on media type
+    // Validate size
     const maxSize = MAX_LIMITS[mediaType as keyof typeof MAX_SIZES] || MAX_LIMITS['post-image'];
     if (file.size > maxSize) {
       const maxMB = (maxSize / (1024 * 1024)).toFixed(0);
       return new Response(JSON.stringify({ 
-        error: `File too large. Maximum size for ${mediaType}: ${maxMB}MB`,
+        error: `File too large. Maximum: ${maxMB}MB`,
         success: false
       }), {
         status: 400,
@@ -129,26 +187,22 @@ let allowedVideoExts = ['mp4', 'webm', 'mov'];
       });
     }
 
-    // SECURITY: No video avatars allowed
+    // No video avatars
     if ((mediaType === 'avatar' || mediaType === 'profile') && isValidVideo) {
-      console.error('🚫 BLOCKED: Video avatar not allowed:', { fileName, mediaType });
       return new Response(JSON.stringify({ 
-        error: 'Video avatars are not allowed. Please use an image file.',
+        error: 'Video avatars not allowed.',
         success: false
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
-
-    console.log('✅ Upload validation passed:', { fileName: file.name, type: file.type, size: file.size, mediaType, userId, isImage: isValidImage, isVideo: isValidVideo });
 
     const region = Deno.env.get('WASABI_REGION')!;
     const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
     const accessKeyId = Deno.env.get('WASABI_ACCESS_KEY_ID')!;
     const secretAccessKey = Deno.env.get('WASABI_SECRET_ACCESS_KEY')!;
 
-    // Initialize AwsClient (no Node fs dependencies)
     const aws = new AwsClient({
       accessKeyId,
       secretAccessKey,
@@ -156,10 +210,8 @@ let allowedVideoExts = ['mp4', 'webm', 'mov'];
       region,
     });
 
-    // Generate unique key
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(7);
-    const extension = file.name.split('.').pop();
     const folder = /cover/i.test(mediaType)
       ? 'covers'
       : (/avatar|profile/i.test(mediaType)
@@ -167,70 +219,147 @@ let allowedVideoExts = ['mp4', 'webm', 'mov'];
           : (/post-image/i.test(mediaType)
               ? 'posts/images'
               : (/post-video/i.test(mediaType) ? 'posts/videos' : 'uploads')));
-    const key = `${folder}/${userId}/${timestamp}-${random}.${extension}`;
-
-    // Upload to Wasabi via signed PUT
-    const arrayBuffer = await file.arrayBuffer();
+    
     const s3Base = region === 'us-east-1'
       ? 'https://s3.wasabisys.com'
       : `https://s3.${region}.wasabisys.com`;
-    const putUrl = `${s3Base}/${bucket}/${key}`;
 
-    const putRes = await aws.fetch(putUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': file.type || 'application/octet-stream',
-      },
-      body: new Uint8Array(arrayBuffer),
-    });
+    // PROFESSIONAL IMAGE PROCESSING PIPELINE
+    const isAvatarOrCover = /avatar|profile|cover/i.test(mediaType);
+    
+    if (isValidImage && isAvatarOrCover) {
+      console.log('🎨 Processing image with quality pipeline...');
+      
+      // Decode image
+      const arrayBuffer = await file.arrayBuffer();
+      const imageBuffer = new Uint8Array(arrayBuffer);
+      const image = await processImage(imageBuffer);
+      
+      // ✅ CRITICAL: Validate minimum resolution
+      if (image.width < MIN_RESOLUTION || image.height < MIN_RESOLUTION) {
+        return new Response(JSON.stringify({ 
+          error: `Image too small. Minimum resolution: ${MIN_RESOLUTION}×${MIN_RESOLUTION}px. Your image: ${image.width}×${image.height}px. Please upload a higher quality photo.`,
+          success: false
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      console.log(`✅ Image validation passed: ${image.width}×${image.height}px`);
+      
+      // Process to 1024px max (upscale if needed, downscale if too large)
+      const processedBuffer = await resizeImage(image, TARGET_MAX_SIZE);
+      const baseKey = `${folder}/${userId}/${timestamp}-${random}`;
+      
+      // Upload original processed version
+      const originalKey = `${baseKey}-original.jpg`;
+      const putUrlOriginal = `${s3Base}/${bucket}/${originalKey}`;
+      
+      const putResOriginal = await aws.fetch(putUrlOriginal, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: new Uint8Array(processedBuffer),
+      });
 
-    if (!putRes.ok) {
-      const text = await putRes.text().catch(() => '');
-      console.error('Wasabi PUT failed:', putRes.status, text);
+      if (!putResOriginal.ok) {
+        const text = await putResOriginal.text().catch(() => '');
+        console.error('Wasabi PUT failed:', putResOriginal.status, text);
+        return new Response(JSON.stringify({ 
+          error: `Upload failed: ${putResOriginal.status}`,
+          success: false
+        }), {
+          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      console.log(`✅ Uploaded original: ${originalKey}`);
+      
+      // Generate and upload all variants
+      const variantKeys: string[] = [];
+      for (const variant of AVATAR_VARIANTS) {
+        const variantBuffer = await generateVariant(image, variant.size);
+        const variantKey = `${baseKey}-${variant.suffix}.jpg`;
+        const putUrlVariant = `${s3Base}/${bucket}/${variantKey}`;
+        
+        const putResVariant = await aws.fetch(putUrlVariant, {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'image/jpeg',
+            'Cache-Control': 'public, max-age=31536000'
+          },
+          body: new Uint8Array(variantBuffer),
+        });
+
+        if (putResVariant.ok) {
+          console.log(`✅ Generated variant: ${variant.suffix} (${variant.size}px)`);
+          variantKeys.push(variantKey);
+        }
+      }
+
+      // Update profile if requested
+      if (updateProfile === 'true') {
+        const supabase = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
+
+        const field = /cover/i.test(mediaType) ? 'cover_url' : 'avatar_url';
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ [field]: originalKey })
+          .eq('id', userId);
+
+        if (updateError) {
+          console.error('Profile update error:', updateError);
+        } else {
+          console.log(`✅ Updated profiles.${field}`);
+        }
+      }
+
       return new Response(JSON.stringify({ 
-        error: `Wasabi upload failed: ${putRes.status} ${text}`,
-        success: false
+        key: originalKey,
+        url: originalKey,
+        variants: variantKeys,
+        dimensions: { width: image.width, height: image.height },
+        success: true,
+        message: 'Image processed at maximum quality with crisp variants'
       }), {
-        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+
+    } else {
+      // Non-avatar/cover files - upload directly
+      const key = `${folder}/${userId}/${timestamp}-${random}.${ext}`;
+      const arrayBuffer = await file.arrayBuffer();
+      const putUrl = `${s3Base}/${bucket}/${key}`;
+
+      const putRes = await aws.fetch(putUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        body: new Uint8Array(arrayBuffer),
+      });
+
+      if (!putRes.ok) {
+        const text = await putRes.text().catch(() => '');
+        return new Response(JSON.stringify({ 
+          error: `Upload failed: ${putRes.status}`,
+          success: false
+        }), {
+          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      return new Response(JSON.stringify({ 
+        key,
+        url: key,
+        success: true 
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
-
-    console.log('✅ Upload successful:', key);
-
-    // Only update profiles table if explicitly requested and file is an image
-    const shouldUpdateProfile = updateProfile === 'true';
-    const isImageFile = file.type.startsWith('image/');
-    const isProfileMedia = /avatar|profile/i.test(mediaType) || /cover/i.test(mediaType);
-
-    if (shouldUpdateProfile && isImageFile && isProfileMedia) {
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      );
-
-      const field = /cover/i.test(mediaType) ? 'cover_url' : 'avatar_url';
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ [field]: key })
-        .eq('id', userId);
-
-      if (updateError) {
-        console.error('Error updating profile:', updateError);
-      } else {
-        console.log(`✅ Updated profiles.${field} for user ${userId}`);
-      }
-    } else {
-      console.log('⏭️ Skipping profile update:', { shouldUpdateProfile, isImageFile, isProfileMedia });
-    }
-
-    return new Response(JSON.stringify({ 
-      key,
-      url: key, // Consumers should resolve this via wasabi-get-url/wasabi-proxy
-      success: true 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 
   } catch (error) {
     console.error('Upload error:', error);
