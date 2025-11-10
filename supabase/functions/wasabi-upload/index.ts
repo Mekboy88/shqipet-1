@@ -37,13 +37,46 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Load dynamic upload configuration from database (fallback to defaults)
+    let IMAGE_MIME_ALLOW = ALLOWED_IMAGE_TYPES as string[];
+    let VIDEO_MIME_ALLOW = ALLOWED_VIDEO_TYPES as string[];
+    let BLOCKED_EXTS = BLOCKED_EXTENSIONS as string[];
+    let MAX_LIMITS = MAX_SIZES as Record<string, number>;
+    let allowedImageExts = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
+    let allowedVideoExts = ['mp4', 'webm', 'mov'];
+
+    try {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      const { data: cfg, error: cfgError } = await supabase.rpc('get_upload_configuration');
+      if (!cfgError && cfg) {
+        IMAGE_MIME_ALLOW = Array.isArray(cfg.allowed_image_mime_types) ? cfg.allowed_image_mime_types : IMAGE_MIME_ALLOW;
+        VIDEO_MIME_ALLOW = Array.isArray(cfg.allowed_video_mime_types) ? cfg.allowed_video_mime_types : VIDEO_MIME_ALLOW;
+        allowedImageExts = Array.isArray(cfg.allowed_image_extensions) ? cfg.allowed_image_extensions.map((s: string) => (s || '').toLowerCase().replace(/^\./, '')) : allowedImageExts;
+        allowedVideoExts = Array.isArray(cfg.allowed_video_extensions) ? cfg.allowed_video_extensions.map((s: string) => (s || '').toLowerCase().replace(/^\./, '')) : allowedVideoExts;
+        const blockedImages = Array.isArray(cfg.blocked_image_extensions) ? cfg.blocked_image_extensions : [];
+        const blockedVideos = Array.isArray(cfg.blocked_video_extensions) ? cfg.blocked_video_extensions : [];
+        BLOCKED_EXTS = Array.from(new Set([ ...BLOCKED_EXTS, ...blockedImages, ...blockedVideos ]));
+        MAX_LIMITS = {
+          avatar: typeof cfg.max_avatar_size === 'number' ? cfg.max_avatar_size : MAX_SIZES.avatar,
+          cover: typeof cfg.max_cover_size === 'number' ? cfg.max_cover_size : MAX_SIZES.cover,
+          'post-image': typeof cfg.max_post_image_size === 'number' ? cfg.max_post_image_size : MAX_SIZES['post-image'],
+          'post-video': typeof cfg.max_post_video_size === 'number' ? cfg.max_post_video_size : MAX_SIZES['post-video'],
+        } as Record<string, number>;
+      }
+    } catch (e) {
+      console.warn('⚠️ Using default upload configuration due to fetch error', e);
+    }
+
     // SECURITY: Validate file extension
     const fileName = file.name.toLowerCase();
-    const fileExtension = '.' + fileName.split('.').pop();
-    if (BLOCKED_EXTENSIONS.includes(fileExtension)) {
+    const fileExtension = '.' + (fileName.split('.').pop() || '');
+    if (BLOCKED_EXTS.includes(fileExtension)) {
       console.error('🚫 BLOCKED: File extension not allowed:', { fileName, extension: fileExtension });
       return new Response(JSON.stringify({ 
-        error: `File type ${fileExtension} not allowed. Only safe formats: JPG, PNG, WEBP, AVIF, HEIC for images; MP4, WEBM, MOV for videos.`,
+        error: `File type ${fileExtension} not allowed. Only safe formats are permitted.`,
         success: false
       }), {
         status: 400,
@@ -51,19 +84,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // SECURITY: Validate MIME type (with extension fallback for HEIC/AVIF)
-    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
-    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+    // SECURITY: Validate MIME type (with extension fallback for mobile formats)
+    const isImage = IMAGE_MIME_ALLOW.includes(file.type);
+    const isVideo = VIDEO_MIME_ALLOW.includes(file.type);
     
     // HEIC/AVIF may have inconsistent MIME types, check extension as fallback
-    const ext = fileName.split('.').pop() || '';
-    const isImageByExtension = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'].includes(ext);
-    const isVideoByExtension = ['mp4', 'webm', 'mov'].includes(ext);
+    const ext = (fileName.split('.').pop() || '').toLowerCase();
+    const isImageByExtension = allowedImageExts.includes(ext);
+    const isVideoByExtension = allowedVideoExts.includes(ext);
     
     if (!isImage && !isVideo && !isImageByExtension && !isVideoByExtension) {
       console.error('🚫 BLOCKED: Invalid MIME type:', { fileName, mimeType: file.type, extension: ext });
       return new Response(JSON.stringify({ 
-        error: `File format ${file.type} not allowed. Only safe formats are allowed.`,
+        error: `File format ${file.type} not allowed.`,
         success: false
       }), {
         status: 400,
@@ -75,7 +108,7 @@ Deno.serve(async (req) => {
     const isValidVideo = isVideo || isVideoByExtension;
 
     // SECURITY: Validate file size based on media type
-    const maxSize = MAX_SIZES[mediaType as keyof typeof MAX_SIZES] || MAX_SIZES['post-image'];
+    const maxSize = MAX_LIMITS[mediaType as keyof typeof MAX_SIZES] || MAX_LIMITS['post-image'];
     if (file.size > maxSize) {
       const maxMB = (maxSize / (1024 * 1024)).toFixed(0);
       return new Response(JSON.stringify({ 
