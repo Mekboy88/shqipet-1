@@ -25,7 +25,7 @@ interface ValidationRules {
 
 const VALIDATION_RULES: Record<MediaType, ValidationRules> = {
   avatar: {
-    maxSizeMB: 5,
+    maxSizeMB: 10,
     allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic'],
     dimensions: { minWidth: 100, minHeight: 100, maxWidth: 2000, maxHeight: 2000 }
   },

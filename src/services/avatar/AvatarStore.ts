@@ -140,8 +140,8 @@ const deriveKeyFromUrl = (url: string): string | null => {
 };
 
 const validateImageFile = (file: File): void => {
-  // Follow platform policy: allow JPG, PNG, WEBP, AVIF, HEIC; max 5MB for avatars
-  const maxSize = 5 * 1024 * 1024; // 5MB
+  // Follow platform policy: allow JPG, PNG, WEBP, AVIF, HEIC; max 10MB for avatars
+  const maxSize = 10 * 1024 * 1024; // 10MB
   const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
   const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
 
@@ -156,7 +156,7 @@ const validateImageFile = (file: File): void => {
   }
 
   if (file.size > maxSize) {
-    throw new Error('File too large. Maximum size for avatars is 5MB.');
+    throw new Error('File too large. Maximum size for avatars is 10MB.');
   }
 };
 

@@ -420,7 +420,7 @@ export const AvatarUploadZone: React.FC<AvatarUploadZoneProps> = ({
             </div>
             <div>
               <p className="text-sm font-medium text-gray-700">Upload an avatar</p>
-              <p className="text-xs text-gray-500">JPG, PNG, WEBP, AVIF, HEIC up to 5MB</p>
+              <p className="text-xs text-gray-500">JPG, PNG, WEBP, AVIF, HEIC up to 10MB</p>
             </div>
           </div>
         )}
