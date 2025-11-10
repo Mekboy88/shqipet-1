@@ -44,7 +44,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   const [showPopup, setShowPopup] = useState(false);
   const { firstName, lastName, initials: derivedInitials, username, email, avatarUrl: universalAvatarUrl } = useUniversalUser(userId);
   const { user: authUser } = useAuth();
-  const { avatarUrl: globalAvatarUrl, isLoading, uploadAvatar } = useGlobalAvatar(userId);
+  const { avatarUrl: globalAvatarUrl, avatarKey, isLoading, uploadAvatar } = useGlobalAvatar(userId);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Memoize raw source to prevent unnecessary re-renders and re-resolutions
@@ -53,7 +53,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     : null;
   
   const rawSrcRef = useRef<string | null>(null);
-  const rawSrc = src || globalAvatarUrl || authAvatarUrl || universalAvatarUrl || null;
+  const rawSrc = avatarKey || src || globalAvatarUrl || authAvatarUrl || universalAvatarUrl || null;
   
   // Only update if actually changed to prevent flickering
   if (rawSrc !== rawSrcRef.current && rawSrc) {

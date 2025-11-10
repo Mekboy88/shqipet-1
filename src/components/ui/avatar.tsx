@@ -39,7 +39,17 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
-    // If already a direct URL/blob/data use as-is
+    // If URL contains a storage key (?key=avatars/... etc), defer resolution
+    try {
+      const u = new URL(raw, window.location.origin);
+      const qp = u.searchParams.get('key');
+      if (qp && /^(uploads|avatars|covers)\//i.test(qp)) {
+        setResolvedSrc(undefined);
+        return;
+      }
+    } catch {}
+
+    // If already a direct URL/blob/data without a storage key, use as-is
     if (/^(https?:|blob:|data:)/i.test(raw)) {
       setResolvedSrc(raw);
       return;
