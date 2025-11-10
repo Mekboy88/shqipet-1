@@ -44,8 +44,8 @@ const AvatarImage = React.forwardRef<
       try {
         const u = new URL(raw, window.location.origin);
         const qp = u.searchParams.get('key');
-        if ((qp && /^avatars\//i.test(qp)) || /\/(uploads|covers|avatars)\//i.test(raw)) {
-          // Defer resolution to layout-based selector for avatars (and known keys)
+        if ((qp && /^avatars\//i.test(qp)) || /\/avatars\//i.test(raw)) {
+          // Defer resolution to layout-based selector for avatars only
           setResolvedSrc(undefined);
           return;
         }
