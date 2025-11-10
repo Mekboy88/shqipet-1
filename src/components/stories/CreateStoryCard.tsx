@@ -35,9 +35,10 @@ const CreateStoryCard: React.FC<CreateStoryCardProps> = ({ user }) => {
         
         <div className="w-full h-full relative overflow-hidden">
           {avatarUrl ? (
-            <div 
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${avatarUrl})` }}
+            <img 
+              src={avatarUrl}
+              alt="User avatar"
+              className="absolute inset-0 w-full h-full object-cover"
             />
           ) : (
             <div className="absolute inset-0 bg-muted flex items-center justify-center">
