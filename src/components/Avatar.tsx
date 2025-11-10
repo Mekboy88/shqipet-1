@@ -30,6 +30,16 @@ const sizeClasses: Record<AvatarProps['size'] & string, string> = {
   '2xl': 'w-20 h-20 text-xl'
 };
 
+// Exact pixel widths used for sizes attribute to keep DPR selection stable
+const sizePx: Record<NonNullable<AvatarProps['size']>, number> = {
+  xs: 24,
+  sm: 32,
+  md: 40,
+  lg: 48,
+  xl: 64,
+  '2xl': 80,
+};
+
 const Avatar: React.FC<AvatarProps> = React.memo(({
   userId,
   src,
@@ -117,6 +127,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
           src={finalSrc || undefined}
           alt="User avatar"
           className="object-cover object-center"
+          sizes={`${sizePx[size]}px`}
           priority={['lg','xl','2xl'].includes(size)}
         />
       )}
@@ -154,7 +165,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
         {content}
 
         {showCameraOverlay && !isLoading && (
-          <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
             {isOwnProfile ? (
               <Camera className="w-5 h-5 text-white" />
             ) : (
