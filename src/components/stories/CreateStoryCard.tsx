@@ -51,7 +51,7 @@ const CreateStoryCard: React.FC<CreateStoryCardProps> = ({ user }) => {
 
         <div className="absolute bottom-2 left-1 right-1 z-10">
           <div className="flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full px-3 h-8 w-full border border-white/30">
-            <p className="text-white text-[10px] font-medium whitespace-nowrap">Ndaj një Moment</p>
+            <p className="text-white text-[10px] font-semibold whitespace-nowrap">Ndaj një Moment</p>
           </div>
         </div>
       </div>
