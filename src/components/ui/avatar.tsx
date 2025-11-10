@@ -39,8 +39,17 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
-    // If already a direct URL/blob/data use as-is
+    // If already a direct URL/blob/data use as-is, unless it encodes an avatars key
     if (/^(https?:|blob:|data:)/i.test(raw)) {
+      try {
+        const u = new URL(raw, window.location.origin);
+        const qp = u.searchParams.get('key');
+        if ((qp && /^avatars\//i.test(qp)) || /\/(uploads|covers|avatars)\//i.test(raw)) {
+          // Defer resolution to layout-based selector for avatars (and known keys)
+          setResolvedSrc(undefined);
+          return;
+        }
+      } catch {}
       setResolvedSrc(raw);
       return;
     }
@@ -114,10 +123,10 @@ const AvatarImage = React.forwardRef<
     }
 
     const variants = [
-      { suffix: 'thumbnail.jpg', x: 1 },
-      { suffix: 'small.jpg', x: 2 },
-      { suffix: 'medium.jpg', x: 3 },
-      { suffix: 'large.jpg', x: 4 },
+      { suffix: 'thumbnail.jpg', w: 80 },
+      { suffix: 'small.jpg', w: 160 },
+      { suffix: 'medium.jpg', w: 320 },
+      { suffix: 'large.jpg', w: 640 },
     ];
 
     let canceled = false;
@@ -128,7 +137,7 @@ const AvatarImage = React.forwardRef<
       const parts: string[] = [];
       settled.forEach((res, i) => {
         if (res.status === 'fulfilled' && typeof res.value === 'string') {
-          parts.push(`${res.value} ${variants[i].x}x`);
+          parts.push(`${res.value} ${variants[i].w}w`);
         }
       });
       if (!canceled) {
@@ -162,6 +171,124 @@ const AvatarImage = React.forwardRef<
     
     return () => observer.disconnect();
   }, []);
+
+  // Choose the correct initial avatar variant based on measured width and DPR
+  React.useLayoutEffect(() => {
+    const raw = typeof src === 'string' ? src : '';
+    if (!raw) return;
+
+    const width = dimensions?.width;
+    if (!width) return; // wait until we know the rendered width
+
+    // Extract media key from raw or resolvedSrc
+    let key: string | null = null;
+    try {
+      const u = new URL(raw, window.location.origin);
+      const qp = u.searchParams.get('key');
+      if (qp) key = decodeURIComponent(qp);
+    } catch {}
+    if (!key) {
+      const m = raw.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
+      if (m && m[1] && m[2]) key = `${m[1]}/${decodeURIComponent(m[2])}`;
+    }
+    if (!key && resolvedSrc) {
+      try {
+        const u2 = new URL(resolvedSrc, window.location.origin);
+        const qp2 = u2.searchParams.get('key');
+        if (qp2) key = decodeURIComponent(qp2);
+      } catch {}
+      if (!key && resolvedSrc) {
+        const m2 = resolvedSrc.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
+        if (m2 && m2[1] && m2[2]) key = `${m2[1]}/${decodeURIComponent(m2[2])}`;
+      }
+    }
+
+    if (!key || !/^avatars\//i.test(key)) return; // only for avatars
+
+    const baseMatch = key.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
+    const base = baseMatch ? baseMatch[1] : null;
+    if (!base) return;
+
+    const dpr = typeof window !== 'undefined' && window.devicePixelRatio ? window.devicePixelRatio : 1;
+    const targetPixels = Math.round((width || 40) * dpr);
+
+    let chosen: 'thumbnail.jpg' | 'small.jpg' | 'medium.jpg' | 'large.jpg' = 'large.jpg';
+    if (targetPixels <= 80) chosen = 'thumbnail.jpg';
+    else if (targetPixels <= 160) chosen = 'small.jpg';
+    else if (targetPixels <= 320) chosen = 'medium.jpg';
+    else chosen = 'large.jpg';
+
+    let canceled = false;
+    (async () => {
+      try {
+        const url = await mediaService.getUrl(`${base}-${chosen}`);
+        if (!canceled) setResolvedSrc(url);
+      } catch {
+        // ignore: srcset may still provide alternatives
+      }
+    })();
+
+    return () => { canceled = true; };
+  }, [src, resolvedSrc, dimensions?.width]);
+
+  // Choose the correct initial avatar variant based on measured width and DPR
+  React.useLayoutEffect(() => {
+    const raw = typeof src === 'string' ? src : '';
+    if (!raw) return;
+
+    const width = dimensions?.width;
+    if (!width) return; // wait until we know the rendered width
+
+    // Extract media key from raw or resolvedSrc
+    let key: string | null = null;
+    try {
+      const u = new URL(raw, window.location.origin);
+      const qp = u.searchParams.get('key');
+      if (qp) key = decodeURIComponent(qp);
+    } catch {}
+    if (!key) {
+      const m = raw.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
+      if (m && m[1] && m[2]) key = `${m[1]}/${decodeURIComponent(m[2])}`;
+    }
+    if (!key && resolvedSrc) {
+      try {
+        const u2 = new URL(resolvedSrc, window.location.origin);
+        const qp2 = u2.searchParams.get('key');
+        if (qp2) key = decodeURIComponent(qp2);
+      } catch {}
+      if (!key && resolvedSrc) {
+        const m2 = resolvedSrc.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
+        if (m2 && m2[1] && m2[2]) key = `${m2[1]}/${decodeURIComponent(m2[2])}`;
+      }
+    }
+
+    if (!key || !/^avatars\//i.test(key)) return; // only for avatars
+
+    const baseMatch = key.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
+    const base = baseMatch ? baseMatch[1] : null;
+    if (!base) return;
+
+    const dpr = typeof window !== 'undefined' && window.devicePixelRatio ? window.devicePixelRatio : 1;
+    const targetPixels = Math.round(width * dpr);
+
+    let chosen: 'thumbnail.jpg' | 'small.jpg' | 'medium.jpg' | 'large.jpg' = 'large.jpg';
+    if (targetPixels <= 80) chosen = 'thumbnail.jpg';
+    else if (targetPixels <= 160) chosen = 'small.jpg';
+    else if (targetPixels <= 320) chosen = 'medium.jpg';
+    else chosen = 'large.jpg';
+
+    let canceled = false;
+    (async () => {
+      try {
+        const url = await mediaService.getUrl(`${base}-${chosen}`);
+        if (!canceled) setResolvedSrc(url);
+      } catch {
+        // ignore: srcset may still provide alternatives
+      }
+    })();
+
+    return () => { canceled = true; };
+  }, [src, resolvedSrc, dimensions?.width]);
 
   return (
     <AvatarPrimitive.Image
