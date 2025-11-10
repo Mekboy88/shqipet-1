@@ -25,7 +25,7 @@ type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Im
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   AvatarImageProps
->(({ className, src, onError, onLoad, priority, sizes, style, ...props }, ref) => {
+>(({ className, src, onError, onLoad, priority, sizes = '160px', style, ...props }, ref) => {
   const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
