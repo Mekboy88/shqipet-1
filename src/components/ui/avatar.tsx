@@ -25,6 +25,7 @@ const AvatarImage = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
 >(({ className, src, onError, onLoad, ...props }, ref) => {
   const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
+  const [srcSet, setSrcSet] = React.useState<string | undefined>(undefined);
   const retriedOnceRef = React.useRef(false);
 
   React.useEffect(() => {
@@ -32,33 +33,38 @@ const AvatarImage = React.forwardRef<
     try { (window as any).__avatarImageGlobalLast = { raw, ts: Date.now() }; } catch {}
 
     if (!raw) {
-      console.warn('🧪 AvatarImageGlobal: empty src', { props });
       setResolvedSrc(undefined);
+      setSrcSet(undefined);
       return;
     }
 
     // If already a direct URL/blob/data use as-is
     if (/^(https?:|blob:|data:)/i.test(raw)) {
       setResolvedSrc(raw);
+      setSrcSet(undefined);
       return;
     }
 
-    // If looks like a Wasabi key (uploads|avatars|covers), resolve it via mediaService with retry
+    // If looks like a Wasabi key (uploads|avatars|covers), resolve it via mediaService with srcSet
     if (/^(uploads|avatars|covers)\//i.test(raw)) {
       let canceled = false;
-      console.log('🧪 AvatarImageGlobal: resolving key', raw.slice(0, 140));
       
       const resolveWithRetry = async (attempt = 1): Promise<void> => {
         try {
           const url = await mediaService.getUrl(raw);
-          if (!canceled) setResolvedSrc(url);
+          if (!canceled) {
+            setResolvedSrc(url);
+            // Generate srcSet for 4x resolution support (80w, 160w, 320w, 640w)
+            const generatedSrcSet = [80, 160, 320, 640]
+              .map(w => `${url} ${w}w`)
+              .join(', ');
+            setSrcSet(generatedSrcSet);
+          }
         } catch (e) {
           console.warn(`⚠️ AvatarImageGlobal: resolve failed (attempt ${attempt}):`, e);
           if (attempt < 3 && !canceled) {
-            // Retry with exponential backoff
             setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
           }
-          // On final failure, keep the previous resolvedSrc (don't clear it)
         }
       };
       
@@ -68,22 +74,24 @@ const AvatarImage = React.forwardRef<
 
     // Unknown format, pass through
     setResolvedSrc(raw);
+    setSrcSet(undefined);
   }, [src]);
 
   return (
     <AvatarPrimitive.Image
       ref={ref}
-      className={cn("aspect-square h-full w-full", className)}
+      className={cn("aspect-square h-full w-full img-locked", className)}
       src={resolvedSrc}
+      srcSet={srcSet}
+      sizes="(max-width: 48px) 160w, (max-width: 96px) 320w, 640w"
       onLoad={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
-        console.log('🧪 AvatarImageGlobal onLoad', { src: s.slice(0, 140) });
+        console.log('✅ Avatar loaded sharp:', { src: s.slice(0, 80), srcSet });
         onLoad?.(e);
       }}
       onError={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
-        console.warn('🧪 AvatarImageGlobal onError', { src: s, origSrc: src });
-        // Attempt one-time recovery by deriving key and refreshing a fresh URL
+        console.warn('❌ Avatar load failed:', { src: s, origSrc: src });
         if (!retriedOnceRef.current && typeof s === 'string' && /wasabi|s3/i.test(s)) {
           retriedOnceRef.current = true;
           try {
@@ -98,11 +106,19 @@ const AvatarImage = React.forwardRef<
             if (key) {
               try { mediaService.clearCache(key); } catch {}
               mediaService.getUrl(key)
-                .then((fresh) => { if (fresh) setResolvedSrc(fresh); })
-                .catch((err) => console.warn('⚠️ AvatarImageGlobal: refresh failed', err));
+                .then((fresh) => { 
+                  if (fresh) {
+                    setResolvedSrc(fresh);
+                    const generatedSrcSet = [80, 160, 320, 640]
+                      .map(w => `${fresh} ${w}w`)
+                      .join(', ');
+                    setSrcSet(generatedSrcSet);
+                  }
+                })
+                .catch((err) => console.warn('⚠️ Avatar refresh failed', err));
             }
           } catch (err) {
-            console.warn('⚠️ AvatarImageGlobal: derive key failed', err);
+            console.warn('⚠️ Derive key failed', err);
           }
         }
         onError?.(e);

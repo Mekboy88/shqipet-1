@@ -20,14 +20,24 @@ interface AvatarProps {
   isOwnProfile?: boolean;
 }
 
-// Size classes mapping for consistent sizing
-const sizeClasses: Record<AvatarProps['size'] & string, string> = {
-  xs: 'w-6 h-6 text-xs',
-  sm: 'w-8 h-8 text-sm', 
-  md: 'w-10 h-10 text-sm',
-  lg: 'w-12 h-12 text-base',
-  xl: 'w-16 h-16 text-lg',
-  '2xl': 'w-20 h-20 text-xl'
+// Integer pixel sizes for crystal clear rendering (prevents fractional pixels causing blur)
+const sizePixels: Record<AvatarProps['size'] & string, number> = {
+  xs: 24,
+  sm: 32,
+  md: 40,
+  lg: 48,
+  xl: 64,
+  '2xl': 80
+};
+
+// Text size classes only (no width/height)
+const textSizeClasses: Record<AvatarProps['size'] & string, string> = {
+  xs: 'text-xs',
+  sm: 'text-sm',
+  md: 'text-sm',
+  lg: 'text-base',
+  xl: 'text-lg',
+  '2xl': 'text-xl'
 };
 
 const Avatar: React.FC<AvatarProps> = React.memo(({
@@ -168,8 +178,9 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   // NEVER use email or username for initials
   const finalInitials = (initials || derivedInitials || nameInitials || fromAuth || '??').trim();
 
-  // Get size classes
-  const sizeClass = sizeClasses[size] || sizeClasses.md;
+  // Get exact pixel dimensions and text class
+  const pixelSize = sizePixels[size] || sizePixels.md;
+  const textClass = textSizeClasses[size] || textSizeClasses.md;
 
   // Handle file upload with instant local preview and progress
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,7 +208,16 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   };
 
   const content = (
-    <BaseAvatar className={cn(sizeClass, className)} style={style}>
+    <BaseAvatar 
+      className={cn('img-locked-wrapper', textClass, className)} 
+      style={{
+        width: `${pixelSize}px`,
+        height: `${pixelSize}px`,
+        minWidth: `${pixelSize}px`,
+        minHeight: `${pixelSize}px`,
+        ...style
+      }}
+    >
       {finalSrc && (
         <AvatarImage
           src={finalSrc}
@@ -205,7 +225,6 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
           className="object-cover"
           onError={async () => {
             console.warn('Avatar image failed to load, attempting refresh');
-            // Try to refresh if we have an underlying key and haven't retried too much
             const key = rawKeyRef.current;
             if (key && errorRetryRef.current < 2) {
               try {
@@ -220,7 +239,6 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
                 console.warn('Avatar refresh failed:', e);
               }
             }
-            // Fall back to last good src (keeps fallback visible)
           }}
         />
       )}

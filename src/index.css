@@ -8,6 +8,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* CSS Guard Utilities - Prevent avatar blur from transforms/compositing */
+.img-locked {
+  isolation: isolate !important;
+  backface-visibility: hidden !important;
+  contain: layout paint style !important;
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+}
+
+.img-locked-wrapper {
+  isolation: isolate !important;
+  backface-visibility: hidden !important;
+  contain: layout paint style !important;
+}
+
 /* Re-enable transform transition for the theme toggle knob */
 .theme-toggle-knob {
   transition: transform 400ms ease-in-out !important;
