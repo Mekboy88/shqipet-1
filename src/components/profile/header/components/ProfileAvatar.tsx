@@ -224,7 +224,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         <>
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif"
             onChange={handleFileInput}
             className="hidden"
             id={`avatar-upload-${currentUserId}`}
@@ -428,7 +428,7 @@ export const AvatarUploadZone: React.FC<AvatarUploadZoneProps> = ({
 
       <input
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif"
         onChange={handleFileInput}
         className="hidden"
         id={`avatar-file-${currentUserId}`}

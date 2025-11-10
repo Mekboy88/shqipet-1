@@ -271,7 +271,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif"
             onChange={handleFileChange}
             className="hidden"
             aria-label="Select avatar image"
