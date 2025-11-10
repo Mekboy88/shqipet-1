@@ -30,14 +30,15 @@ const sizeClasses: Record<AvatarProps['size'] & string, string> = {
   '2xl': 'w-20 h-20 text-xl'
 };
 
-// Exact pixel widths used for sizes attribute to keep DPR selection stable
+// Exact pixel widths for sizes attribute - using 2x base size for crisp rendering on all displays
+// This ensures high-quality variants are selected even on standard displays
 const sizePx: Record<NonNullable<AvatarProps['size']>, number> = {
-  xs: 24,
-  sm: 32,
-  md: 40,
-  lg: 48,
-  xl: 64,
-  '2xl': 80,
+  xs: 48,   // 2x of 24px base
+  sm: 64,   // 2x of 32px base  
+  md: 80,   // 2x of 40px base
+  lg: 96,   // 2x of 48px base
+  xl: 160,  // Match actual w-40 h-40 rendering
+  '2xl': 160, // High quality for largest avatars
 };
 
 const Avatar: React.FC<AvatarProps> = React.memo(({
