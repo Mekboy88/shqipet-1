@@ -21,7 +21,7 @@ const Avatar = React.forwardRef<
     if (!el) return;
     const r = el.getBoundingClientRect();
     const w = r.width, h = r.height;
-    if (w > 0 && h > 0 && Math.max(w, h) <= 48) {
+    if (w > 0 && h > 0) {
       const rw = Math.round(w);
       const rh = Math.round(h);
       if (Math.abs(rw - w) > 0.01 || Math.abs(rh - h) > 0.01) {

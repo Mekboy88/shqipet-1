@@ -133,6 +133,10 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   );
 
   const allowOverlayLarge = showCameraOverlay && (size === 'lg' || size === 'xl' || size === '2xl');
+  const __DEV__ = import.meta.env.DEV;
+  const showQA = __DEV__ && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('avatarQA') === '1';
+  const qaPx = sizePx[size];
+  const qaDpr = (typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1);
 
   if (!enableUpload && !allowOverlayLarge) return content;
 
@@ -181,6 +185,13 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
             ) : (
               <EyeIcon />
             )}
+          </div>
+        )}
+
+        {/* Dev QA badge */}
+        {showQA && (
+          <div className="absolute bottom-0 right-0 m-0.5 rounded bg-black/60 text-white text-[10px] px-1 py-0.5 pointer-events-none">
+            {qaPx}px @ {qaDpr}x
           </div>
         )}
 
