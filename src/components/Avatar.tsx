@@ -1,7 +1,8 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Camera } from 'lucide-react';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
+import { useGlobalAvatar } from '@/hooks/useGlobalAvatar';
+import { Avatar as RadixAvatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface AvatarProps {
   userId?: string;
@@ -33,7 +34,7 @@ const textSizeClasses: Record<NonNullable<AvatarProps['size']>, string> = {
   '2xl': 'text-[20px]',
 };
 
-// Minimal, photo-free Avatar. Renders initials only. No network calls, no uploads.
+// Avatar with image support: resolves URLs and falls back to initials.
 const Avatar: React.FC<AvatarProps> = ({
   userId,
   initials,
@@ -42,6 +43,7 @@ const Avatar: React.FC<AvatarProps> = ({
   style,
 }) => {
   const { firstName, lastName, initials: derivedInitials } = useUniversalUser(userId);
+  const { avatarUrl } = useGlobalAvatar(userId);
 
   const nameInitials = firstName && lastName
     ? `${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}`
@@ -53,7 +55,7 @@ const Avatar: React.FC<AvatarProps> = ({
   const textClass = textSizeClasses[size] || textSizeClasses.md;
 
   return (
-    <div
+    <RadixAvatar
       className={cn(
         'rounded-full bg-muted text-muted-foreground flex items-center justify-center select-none img-locked-wrapper',
         textClass,
@@ -66,10 +68,15 @@ const Avatar: React.FC<AvatarProps> = ({
         minHeight: `${pixelSize}px`,
         ...style,
       }}
-      aria-label="User avatar placeholder"
+      aria-label="User avatar"
     >
-      <span className="font-semibold img-locked" style={{ lineHeight: 1 }}>{finalInitials}</span>
-    </div>
+      {avatarUrl ? (
+        <AvatarImage src={avatarUrl as any} alt="User avatar photo" />
+      ) : null}
+      <AvatarFallback className={cn('font-semibold', textClass)} style={{ lineHeight: 1 }}>
+        {finalInitials}
+      </AvatarFallback>
+    </RadixAvatar>
   );
 };
 
