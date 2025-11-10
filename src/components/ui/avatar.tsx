@@ -68,20 +68,19 @@ const AvatarImage = React.forwardRef<
     setResolvedSrc(raw);
   }, [src]);
 
-  // If src is a full URL but includes a storage path, defer resolution too
+
+  // Original-quality lock: treat original/PNG/unknown as >=640w to prevent downshift
   React.useEffect(() => {
-    const raw = typeof src === 'string' ? src : '';
-    if (!raw) return;
-    if (/^https?:/i.test(raw)) {
-      try {
-        const u = new URL(raw, window.location.origin);
-        if (/(?:^|\/)(uploads|avatars|covers)\/[^?#\s]+/i.test(u.pathname)) {
-          setResolvedSrc(undefined);
-          return;
-        }
-      } catch {}
+    const s = resolvedSrc || '';
+    if (!s) return;
+    const isOriginalOrPngOrUnknown =
+      /-(original)\./i.test(s) ||
+      /\.png(\?|$)/i.test(s) ||
+      !/-(thumbnail|small|medium|large)\./i.test(s);
+    if (isOriginalOrPngOrUnknown && lockedWidthRef.current < 640) {
+      lockedWidthRef.current = 640;
     }
-  }, [src]);
+  }, [resolvedSrc]);
 
   // Build responsive srcset from variant keys when available
   React.useEffect(() => {
@@ -103,7 +102,13 @@ const AvatarImage = React.forwardRef<
       if (m && m[1] && m[2]) key = `${m[1]}/${m[2]}`;
     }
 
-    if (!key && resolvedSrc) {
+    const isDirect = /^(https?:|blob:|data:)/i.test(raw);
+    if (isDirect && !key) {
+      setComputedSrcSet(undefined);
+      return;
+    }
+
+    if (!key && !isDirect && resolvedSrc) {
       try {
         const u2 = new URL(resolvedSrc);
         const qp2 = u2.searchParams.get('key');
@@ -194,7 +199,7 @@ const AvatarImage = React.forwardRef<
     })();
 
     return () => { canceled = true; };
-  }, [src, resolvedSrc, dimensions, sizes]);
+  }, [src, dimensions, sizes]);
 
   // Measure container size and set integer dimensions for crisp rendering
   React.useLayoutEffect(() => {
