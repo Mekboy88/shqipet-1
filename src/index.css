@@ -240,6 +240,24 @@
 }
 
 
+/* GLOBAL IMAGE QUALITY PROTECTION */
+img, video, canvas {
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  -webkit-font-smoothing: subpixel-antialiased !important;
+}
+
+/* Avatar-specific protection */
+[class*="avatar"] img,
+img[alt*="avatar" i],
+img[alt*="profile" i] {
+  image-rendering: -webkit-optimize-contrast !important;
+  transform: translate3d(0, 0, 0) !important;
+  will-change: auto !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

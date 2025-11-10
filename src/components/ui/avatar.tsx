@@ -214,6 +214,11 @@ const AvatarImage = React.forwardRef<
       // @ts-ignore - not in TS types but supported by browsers
       fetchpriority={isHighPriority ? "high" : "low"}
       draggable={false}
+      style={{ 
+        imageRendering: '-webkit-optimize-contrast',
+        transform: 'translate3d(0,0,0)',
+        backfaceVisibility: 'hidden'
+      } as any}
       onLoad={onLoad}
       onError={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
