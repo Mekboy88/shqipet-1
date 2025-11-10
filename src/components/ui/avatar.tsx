@@ -1,40 +1,9 @@
-import * as React from "react";
-import * as AvatarPrimitive from "@radix-ui/react-avatar";
 
-import { cn } from "@/lib/utils";
-import { mediaService } from "@/services/media/MediaService";
+import * as React from "react"
+import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
-/**
- * Extract Wasabi storage key from:
- * - raw key: avatars/abc-original.jpg
- * - presigned URL with ?key=avatars/abc-original.jpg
- * - path-based URL .../avatars/abc-original.jpg
- */
-function extractKey(raw?: string): string | null {
-  if (!raw) return null;
-
-  try {
-    const u = new URL(raw, window.location.origin);
-    const qp = u.searchParams.get("key");
-    if (qp && /^(avatars|uploads|covers)\//i.test(qp)) return qp;
-    const m2 = u.pathname.match(/\/(avatars|uploads|covers)\/([^?#]+)/i);
-    if (m2) return `${m2[1]}/${m2[2]}`;
-  } catch {}
-
-  const m1 = raw.match(/^(avatars|uploads|covers)\/([^?#]+)/i);
-  if (m1) return `${m1[1]}/${m1[2]}`;
-
-  return null;
-}
-
-/**
- * Normalize storage key:
- * avatars/abc-original.jpg → avatars/abc
- */
-function normalizeBase(key: string): string | null {
-  const m = key.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
-  return m ? m[1] : null;
-}
+import { cn } from "@/lib/utils"
+import { mediaService } from "@/services/media/MediaService"
 
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
@@ -42,221 +11,245 @@ const Avatar = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Root
     ref={ref}
-    className={cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full", className)}
+    className={cn(
+      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
+      className
+    )}
     {...props}
   />
-));
-Avatar.displayName = AvatarPrimitive.Root.displayName;
+))
+Avatar.displayName = AvatarPrimitive.Root.displayName
 
-type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & {
-  priority?: boolean;
-};
+type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { priority?: boolean };
 
-const AvatarImage = React.forwardRef<React.ElementRef<typeof AvatarPrimitive.Image>, AvatarImageProps>(
-  ({ className, src, priority, onError, onLoad, ...props }, ref) => {
-    const imgRef = React.useRef<HTMLImageElement | null>(null);
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  AvatarImageProps
+>(({ className, src, onError, onLoad, priority, ...props }, ref) => {
+  const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
+  const retriedOnceRef = React.useRef(false);
+  const imgRef = React.useRef<HTMLImageElement>(null);
+  const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
+  const [computedSizes, setComputedSizes] = React.useState<string | undefined>(undefined);
+  const [computedSrcSet, setComputedSrcSet] = React.useState<string | undefined>(undefined);
 
-    const [finalSrc, setFinalSrc] = React.useState<string | undefined>(undefined);
-    const [srcset, setSrcset] = React.useState<string | undefined>(undefined);
-    const [sizes, setSizes] = React.useState<string>("40px");
-    const [dims, setDims] = React.useState<{ w: number; h: number } | null>(null);
-    const fallbackStepRef = React.useRef<number>(0);
+  React.useEffect(() => {
+    const raw = typeof src === 'string' ? src : '';
+    
+    if (!raw) {
+      setResolvedSrc(undefined);
+      return;
+    }
 
-    const key = extractKey(typeof src === "string" ? src : undefined);
-    const base = key ? normalizeBase(key) : null;
+    // If URL contains a storage key (?key=avatars/... etc), defer resolution
+    try {
+      const u = new URL(raw, window.location.origin);
+      const qp = u.searchParams.get('key');
+      if (qp && /^(uploads|avatars|covers)\//i.test(qp)) {
+        setResolvedSrc(undefined);
+        return;
+      }
+    } catch {}
 
-    /**
-     * Measure width synchronously.
-     */
-    React.useLayoutEffect(() => {
-      const el = imgRef.current;
-      if (!el || !el.parentElement) return;
+    // If already a direct URL/blob/data without a storage key, use as-is
+    if (/^(https?:|blob:|data:)/i.test(raw)) {
+      setResolvedSrc(raw);
+      return;
+    }
 
-      const update = () => {
-        const rect = el.parentElement!.getBoundingClientRect();
-        const w = Math.round(rect.width);
-        const h = Math.round(rect.height);
-        if (w > 0 && h > 0) {
-          setDims({ w, h });
-          setSizes(`${w}px`);
+    // If looks like a storage key, defer resolution until after we know dimensions
+    if (/^(uploads|avatars|covers)\//i.test(raw)) {
+      setResolvedSrc(undefined);
+      return;
+    }
+
+    // Unknown format, pass through
+    setResolvedSrc(raw);
+  }, [src]);
+
+  // If src is a full URL but includes a storage path, defer resolution too
+  React.useEffect(() => {
+    const raw = typeof src === 'string' ? src : '';
+    if (!raw) return;
+    if (/^https?:/i.test(raw)) {
+      try {
+        const u = new URL(raw, window.location.origin);
+        if (/(?:^|\/)(uploads|avatars|covers)\/[^?#\s]+/i.test(u.pathname)) {
+          setResolvedSrc(undefined);
+          return;
         }
-      };
+      } catch {}
+    }
+  }, [src]);
 
-      update();
+  // Build responsive srcset from variant keys when available
+  React.useEffect(() => {
+    const raw = typeof src === 'string' ? src : '';
+    if (!raw) {
+      setComputedSrcSet(undefined);
+      return;
+    }
 
-      const ro = new ResizeObserver(update);
-      ro.observe(el.parentElement);
-      return () => ro.disconnect();
-    }, []);
+    let key: string | null = null;
+    try {
+      const u = new URL(raw, window.location.origin);
+      const qp = u.searchParams.get('key');
+      if (qp) key = decodeURIComponent(qp);
+    } catch {}
 
-    /**
-     * Select correct variant BEFORE rendering any image.
-     * No original loads.
-     */
-    React.useEffect(() => {
-      if (!base || !dims) return;
+    if (!key) {
+      const m = raw.match(/^(uploads|avatars|covers)\/([^?#\s]+)/i);
+      if (m && m[1] && m[2]) key = `${m[1]}/${m[2]}`;
+    }
 
-      const w = dims.w;
+    if (!key && resolvedSrc) {
+      try {
+        const u2 = new URL(resolvedSrc);
+        const qp2 = u2.searchParams.get('key');
+        if (qp2) key = decodeURIComponent(qp2);
+      } catch {}
+      if (!key) {
+        const m2 = resolvedSrc.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
+        if (m2 && m2[1] && m2[2]) key = `${m2[1]}/${decodeURIComponent(m2[2])}`;
+      }
+    }
+
+    if (!key || !/^avatars\//i.test(key)) {
+      setComputedSrcSet(undefined);
+      return;
+    }
+
+    const baseMatch = key.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
+    const base = baseMatch ? baseMatch[1] : null;
+    if (!base) {
+      setComputedSrcSet(undefined);
+      return;
+    }
+
+    const variantMeta = [
+      { suffix: 'thumbnail.jpg', w: 80 },
+      { suffix: 'small.jpg', w: 160 },
+      { suffix: 'medium.jpg', w: 320 },
+      { suffix: 'large.jpg', w: 640 },
+    ];
+
+    let canceled = false;
+    (async () => {
+      const settled = await Promise.allSettled(
+        variantMeta.map(v => mediaService.getUrl(`${base}-${v.suffix}`))
+      );
+
+      const available: { w: number; url: string }[] = [];
+      settled.forEach((res, i) => {
+        if (res.status === 'fulfilled' && typeof res.value === 'string') {
+          available.push({ w: variantMeta[i].w, url: res.value });
+        }
+      });
+
+      if (canceled) return;
+
+      // Choose best initial variant based on measured width * DPR
       const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
-      const needed = w * dpr;
+      const targetWidth = Math.max(1, dimensions?.width || 40);
+      const neededPixels = Math.round(targetWidth * dpr);
 
-      const variants = [
-        { file: "thumbnail.jpg", px: 80 },
-        { file: "small.jpg", px: 160 },
-        { file: "medium.jpg", px: 320 },
-        { file: "large.jpg", px: 640 },
-      ];
+      // Find the smallest available >= neededPixels, else fall back to largest
+      const sorted = available.sort((a, b) => a.w - b.w);
+      const chosen = sorted.find(v => v.w >= neededPixels) || sorted[sorted.length - 1];
 
-      const sorted = variants.sort((a, b) => a.px - b.px);
-      const chosen = sorted.find((v) => v.px >= needed) || sorted[sorted.length - 1];
+      if (!canceled && chosen?.url) {
+        // Set initial src FIRST to avoid any early wrong candidate fetch
+        setResolvedSrc(prev => prev || chosen.url);
+      }
 
-      let cancelled = false;
+      // Build width-based srcset AFTER setting initial src
+      const parts = available.map(v => `${v.url} ${v.w}w`).join(', ');
+      setComputedSrcSet(parts || undefined);
+    })();
 
-      (async () => {
-        try {
-          const full = `${base}-${chosen.file}`;
-          const url = await mediaService.getUrl(full);
-          if (!cancelled) setFinalSrc(url);
-        } catch {
+    return () => { canceled = true; };
+  }, [src, resolvedSrc, dimensions]);
+
+  // Measure container size and set integer dimensions for crisp rendering
+  React.useLayoutEffect(() => {
+    const img = imgRef.current;
+    if (!img || !img.parentElement) return;
+
+    const updateDimensions = () => {
+      const parent = img.parentElement;
+      const rect = parent.getBoundingClientRect();
+      const w = Math.round(rect.width);
+      const h = Math.round(rect.height);
+      if (w > 0 && h > 0) {
+        setDimensions({ width: w, height: h });
+        setComputedSizes(`${w}px`);
+      }
+    };
+
+    updateDimensions();
+    
+    const observer = new ResizeObserver(updateDimensions);
+    observer.observe(img.parentElement);
+    
+    return () => observer.disconnect();
+  }, []);
+
+  const isHighPriority = priority || (dimensions?.width || 0) >= 64;
+
+  return (
+    <AvatarPrimitive.Image
+      ref={(node) => {
+        imgRef.current = node;
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+      }}
+      className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
+      src={resolvedSrc}
+      srcSet={computedSrcSet}
+      sizes={computedSizes ?? "40px"}
+      width={dimensions?.width}
+      height={dimensions?.height}
+      loading={isHighPriority ? "eager" : "lazy"}
+      decoding="async"
+      // @ts-ignore - not in TS types but supported by browsers
+      fetchpriority={isHighPriority ? "high" : "low"}
+      draggable={false}
+      onLoad={onLoad}
+      onError={(e) => {
+        const s = (e.currentTarget as HTMLImageElement).currentSrc;
+        // Attempt one-time recovery
+        if (!retriedOnceRef.current && typeof s === 'string') {
+          retriedOnceRef.current = true;
           try {
-            const fallbackFull = `${base}-original.jpg`;
-            const fbUrl = await mediaService.getUrl(fallbackFull);
-            if (!cancelled) setFinalSrc(fbUrl);
-          } catch {
-            if (key) {
-              try {
-                const kUrl = await mediaService.getUrl(key);
-                if (!cancelled) setFinalSrc(kUrl);
-              } catch {
-                if (typeof src === "string" && !cancelled) setFinalSrc(src);
-              }
-            } else if (typeof src === "string" && !cancelled) {
-              setFinalSrc(src);
-            }
-          }
-        }
-
-        const all = await Promise.all(
-          variants.map(async (v) => {
+            let key: string | null = null;
+            // Try query parameter first
             try {
-              const u = await mediaService.getUrl(`${base}-${v.file}`);
-              return `${u} ${v.px}w`;
-            } catch {
-              return null;
+              const url = new URL(s, window.location.origin);
+              const qpKey = url.searchParams.get('key');
+              if (qpKey && /^(uploads|avatars|covers)\//i.test(qpKey)) {
+                key = decodeURIComponent(qpKey);
+              }
+            } catch {}
+            // Try path extraction
+            if (!key) {
+              const m1 = s.match(/\/(uploads|covers|avatars)\/([^?#\s]+)/i);
+              if (m1 && m1[1] && m1[2]) {
+                key = `${m1[1]}/${decodeURIComponent(m1[2])}`;
+              }
             }
-          }),
-        );
-
-        if (!cancelled) {
-          setSrcset(all.filter(Boolean).join(", ") || undefined);
-        }
-      })();
-
-      return () => {
-        cancelled = true;
-      };
-    }, [base, dims]);
-
-    // Fallback: if no recognizable variant base, load key or original src
-    React.useEffect(() => {
-      if (base) return; // Variants effect will handle when base exists
-      let cancelled = false;
-      (async () => {
-        if (typeof src === "string") {
-          try {
             if (key) {
-              const url = await mediaService.getUrl(key);
-              if (!cancelled) setFinalSrc(url);
-            } else {
-              if (!cancelled) setFinalSrc(src);
+              mediaService.clearCache(key);
+              mediaService.getUrl(key).then(setResolvedSrc).catch(() => {});
             }
           } catch {}
         }
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }, [base, key, src]);
-
-    // Timeout safety: if nothing loaded within 800ms, resolve the raw key/url to avoid blank avatars
-    React.useEffect(() => {
-      if (finalSrc || !key) return;
-      let cancelled = false;
-      const t = setTimeout(async () => {
-        try {
-          const u = await mediaService.getUrl(key);
-          if (!cancelled) setFinalSrc(u);
-        } catch {
-          if (typeof src === 'string' && !cancelled) setFinalSrc(src);
-        }
-      }, 800);
-      return () => {
-        cancelled = true;
-        clearTimeout(t);
-      };
-    }, [finalSrc, key, src]);
-
-    const high = priority || (dims?.w || 0) >= 64;
-
-    return (
-      <AvatarPrimitive.Image
-        ref={(node) => {
-          imgRef.current = node;
-          if (typeof ref === "function") ref(node);
-          else if (ref) (ref as any).current = node;
-        }}
-        className={cn("aspect-square h-full w-full object-cover object-center select-none", className)}
-        src={finalSrc}
-        srcSet={srcset}
-        sizes={sizes}
-        width={dims?.w}
-        height={dims?.h}
-        loading={high ? "eager" : "lazy"}
-        decoding="async"
-        fetchPriority={high ? "high" : "low"}
-        draggable={false}
-        onLoad={onLoad}
-        onError={async (e) => {
-          try {
-            // Prevent infinite loops: try at most 3 fallback steps
-            if (fallbackStepRef.current > 2) return;
-            const step = fallbackStepRef.current++;
-
-            if (base && step === 0) {
-              // Try original
-              const orig = await mediaService.getUrl(`${base}-original.jpg`);
-              setFinalSrc(orig);
-              return;
-            }
-
-            if (key && step <= 1) {
-              // Try resolving the raw key
-              try {
-                const k = await mediaService.getUrl(key);
-                setFinalSrc(k);
-                return;
-              } catch {}
-              try {
-                const blob = await mediaService.getProxyBlob(key);
-                setFinalSrc(blob);
-                return;
-              } catch {}
-            }
-
-            if (typeof src === 'string') {
-              setFinalSrc(src);
-              return;
-            }
-          } finally {
-            try { onError?.(e as any); } catch {}
-          }
-        }}
-        {...props}
-      />
-    );
-  },
-);
-AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+        onError?.(e);
+      }}
+      {...props}
+    />
+  );
+})
+AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
 const AvatarFallback = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Fallback>,
@@ -264,10 +257,13 @@ const AvatarFallback = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Fallback
     ref={ref}
-    className={cn("flex h-full w-full items-center justify-center rounded-full bg-muted", className)}
+    className={cn(
+      "flex h-full w-full items-center justify-center rounded-full bg-muted",
+      className
+    )}
     {...props}
   />
-));
-AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
+))
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
 
-export { Avatar, AvatarImage, AvatarFallback };
+export { Avatar, AvatarImage, AvatarFallback }
