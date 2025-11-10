@@ -7,6 +7,7 @@ import { useGlobalAvatar } from '@/hooks/useGlobalAvatar';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { mediaService } from '@/services/media/MediaService';
+import { CrystalAvatarImage } from '@/components/avatar/CrystalAvatarImage';
 
 interface AvatarProps {
   userId?: string;
@@ -121,7 +122,27 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     }
   };
 
-  const content = (
+  // SmallCrispAvatar - brand new, minimal, crystal-clear 40×40 avatar pipeline
+  const SmallCrispAvatar: React.FC<{ src?: string | null } & Pick<AvatarProps, 'className' | 'style'>> = ({ src, className, style }) => {
+    return (
+      <div className={cn('relative w-10 h-10 rounded-full overflow-hidden img-locked-wrapper', className)} style={style}>
+        {src ? (
+          <CrystalAvatarImage
+            src={src || undefined}
+            alt="User avatar"
+            className="w-full h-full object-cover img-locked"
+            sizes="160px"
+            priority={false}
+          />
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center rounded-full">
+            <span className="text-xs text-muted-foreground">?</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+  const defaultContent = (
     <BaseAvatar className={cn(sizeClass, className)} style={style}>
       {finalSrc && (
         <AvatarImage
@@ -140,6 +161,10 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
       </AvatarFallback>
     </BaseAvatar>
   );
+
+  const content = size === 'md'
+    ? <SmallCrispAvatar src={finalSrc} className={className} style={style} />
+    : defaultContent;
 
   if (!enableUpload && !showCameraOverlay) return content;
 
