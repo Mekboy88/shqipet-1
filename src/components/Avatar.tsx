@@ -116,7 +116,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
         <AvatarImage
           src={finalSrc || undefined}
           alt="User avatar"
-          className="object-cover"
+          className="object-cover object-center"
           priority={['lg','xl','2xl'].includes(size)}
         />
       )}
