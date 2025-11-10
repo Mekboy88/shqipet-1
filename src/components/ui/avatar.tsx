@@ -8,16 +8,39 @@ import { mediaService } from "@/services/media/MediaService"
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, style, ...props }, ref) => (
-  <AvatarPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full img-locked-wrapper",
-      className
-    )}
-    {...props}
-  />
-))
+>(({ className, style, ...props }, ref) => {
+  const innerRef = React.useRef<HTMLSpanElement | null>(null);
+  const mergedRef = (node: any) => {
+    innerRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) (ref as any).current = node;
+  };
+  const [roundedSize, setRoundedSize] = React.useState<{ w?: number; h?: number }>({});
+  React.useLayoutEffect(() => {
+    const el = innerRef.current as HTMLElement | null;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const w = r.width, h = r.height;
+    if (w > 0 && h > 0 && Math.max(w, h) <= 48) {
+      const rw = Math.round(w);
+      const rh = Math.round(h);
+      if (Math.abs(rw - w) > 0.01 || Math.abs(rh - h) > 0.01) {
+        setRoundedSize({ w: rw, h: rh });
+      }
+    }
+  }, [className, style]);
+  return (
+    <AvatarPrimitive.Root
+      ref={mergedRef}
+      className={cn(
+        "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full img-locked-wrapper",
+        className
+      )}
+      style={roundedSize.w && roundedSize.h ? { ...style, width: roundedSize.w, height: roundedSize.h } : style}
+      {...props}
+    />
+  );
+})
 Avatar.displayName = AvatarPrimitive.Root.displayName
 
 type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { priority?: boolean };
@@ -25,7 +48,7 @@ type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Im
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   AvatarImageProps
->(({ className, src, onError, onLoad, priority, sizes = '160px', style, ...props }, ref) => {
+>(({ className, src, onError, onLoad, priority, sizes, style, ...props }, ref) => {
   const initialSrc = React.useMemo(() => {
     const s = typeof src === 'string' ? src : '';
     return /^(https?:|blob:|data:)/i.test(s) ? (s as any) : undefined;
