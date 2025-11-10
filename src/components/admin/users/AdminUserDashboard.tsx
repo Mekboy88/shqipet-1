@@ -1043,6 +1043,7 @@ const AdminUserDashboard = () => {
                                   userId={user.id}
                                   size="sm"
                                   className="h-8 w-8"
+                                  isOwnProfile={false}
                                   src={(user.avatar_url as string) || user.profile_image_url || user.profile_photo_url || null}
                                 />
                               </div>

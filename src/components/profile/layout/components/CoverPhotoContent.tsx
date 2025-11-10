@@ -91,6 +91,9 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
         <Avatar 
           size="2xl"
           className="w-40 h-40 border-4 border-white"
+          showCameraOverlay={true}
+          enableUpload={isOwnProfile}
+          isOwnProfile={isOwnProfile}
         />
       </div>
 
