@@ -43,17 +43,15 @@ const AvatarImage = React.forwardRef<
     return m ? Math.round(parseFloat(m[1])) : null;
   }, [sizes]);
 
-  // Resolve src only once: direct URLs stay, keys get resolved to single high-quality variant
+  // Resolve src synchronously for direct URLs, async for storage keys
   React.useEffect(() => {
-    if (lockedRef.current) return; // Never change after first resolve
+    if (lockedRef.current) return;
     
     const raw = typeof src === 'string' ? src : '';
     
-    // Reset srcset on new source
-    setResolvedSrcSet(undefined);
-    
     if (!raw) {
       setResolvedSrc(undefined);
+      setResolvedSrcSet(undefined);
       return;
     }
 
@@ -64,7 +62,7 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
-    // Storage keys: resolve to single best variant for this size × DPR
+    // Storage keys: resolve with srcSet
     if (/^(uploads|avatars|covers)\//i.test(raw)) {
       const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
       const baseWidth = explicitPx || 40;
@@ -73,48 +71,57 @@ const AvatarImage = React.forwardRef<
       (async () => {
         try {
           let finalUrl: string;
+          let srcSetStr = '';
           
-          // For avatars, pick the single best variant and lock it
           if (/^avatars\//i.test(raw)) {
             const baseMatch = raw.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
             const base = baseMatch ? baseMatch[1] : null;
             
             if (base) {
-              // Choose variant: >=640w if target >=320, else >=320w if target >=160, else medium as floor
+              // Build full srcSet: 80w, 160w, 320w, 640w
+              const variants = [
+                { key: `${base}-thumbnail.jpg`, width: 80 },
+                { key: `${base}-small.jpg`, width: 160 },
+                { key: `${base}-medium.jpg`, width: 320 },
+                { key: `${base}-large.jpg`, width: 640 }
+              ];
+              
+              const resolved = await Promise.allSettled(
+                variants.map(v => mediaService.getUrl(v.key).then(url => ({ url, width: v.width })))
+              );
+              
+              const srcSetParts: string[] = [];
+              resolved.forEach((result) => {
+                if (result.status === 'fulfilled' && result.value.url) {
+                  srcSetParts.push(`${result.value.url} ${result.value.width}w`);
+                }
+              });
+              
+              if (srcSetParts.length > 0) {
+                srcSetStr = srcSetParts.join(', ');
+              }
+              
+              // Pick default src based on target
               let suffix: string;
-              if (targetPx >= 320) suffix = 'large.jpg'; // 640w
-              else if (targetPx >= 160) suffix = 'medium.jpg'; // 320w
-              else suffix = 'medium.jpg'; // 320w floor for sharpness
+              if (targetPx >= 320) suffix = 'large.jpg';
+              else if (targetPx >= 160) suffix = 'medium.jpg';
+              else suffix = 'medium.jpg';
               
               try {
                 finalUrl = await mediaService.getUrl(`${base}-${suffix}`);
               } catch {
-                // Fallback to original key
                 finalUrl = await mediaService.getUrl(raw);
               }
-
-              // Build crisp srcset for browser selection (80w,160w,320w,640w)
-              try {
-                const keys = ['thumbnail.jpg','small.jpg','medium.jpg','large.jpg'].map(v => `${base}-${v}`);
-                const urls = await Promise.all(keys.map(k => mediaService.getUrl(k).catch(() => '')));
-                const widths = [80,160,320,640];
-                const set = urls
-                  .map((u, i) => (u ? `${u} ${widths[i]}w` : ''))
-                  .filter(Boolean)
-                  .join(', ');
-                if (set) setResolvedSrcSet(set);
-              } catch {}
             } else {
-              // Not a variant key, resolve directly
               finalUrl = await mediaService.getUrl(raw);
             }
           } else {
-            // Non-avatar key: resolve directly
             finalUrl = await mediaService.getUrl(raw);
           }
           
           if (!lockedRef.current) {
             setResolvedSrc(finalUrl);
+            if (srcSetStr) setResolvedSrcSet(srcSetStr);
             lockedRef.current = true;
           }
         } catch (err) {
@@ -124,7 +131,7 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
-    // Unknown format: use as-is and lock
+    // Unknown format: use as-is
     setResolvedSrc(raw);
     lockedRef.current = true;
   }, [src, explicitPx]);

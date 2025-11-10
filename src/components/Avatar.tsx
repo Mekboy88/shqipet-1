@@ -58,21 +58,12 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   const { avatarUrl: globalAvatarUrl, avatarKey, isLoading, uploadAvatar } = useGlobalAvatar(userId);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Memoize raw source to prevent unnecessary re-renders and re-resolutions
+  // Direct source resolution - no ref gating to prevent null first render
   const authAvatarUrl = (typeof authUser?.user_metadata?.avatar_url === 'string') 
     ? (authUser?.user_metadata?.avatar_url as string)
     : null;
   
-  const rawSrcRef = useRef<string | null>(null);
-  const rawSrc = avatarKey || src || globalAvatarUrl || authAvatarUrl || universalAvatarUrl || null;
-  
-  // Only update if actually changed to prevent flickering
-  if (rawSrc !== rawSrcRef.current && rawSrc) {
-    rawSrcRef.current = rawSrc;
-  }
-
-  // Use the raw source; AvatarImage will handle resolution and crisp variants
-  const finalSrc = (rawSrcRef.current ?? rawSrc ?? null);
+  const finalSrc = avatarKey || src || globalAvatarUrl || authAvatarUrl || universalAvatarUrl || null;
 
   
   // STRICT: Only use first name + last name initials (NEVER email)
