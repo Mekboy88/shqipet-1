@@ -45,24 +45,10 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
-    // If looks like a Wasabi key (uploads|avatars|covers), resolve it via mediaService
+    // If looks like a storage key, defer resolution until after we know dimensions
     if (/^(uploads|avatars|covers)\//i.test(raw)) {
-      let canceled = false;
-      
-      const resolveWithRetry = async (attempt = 1): Promise<void> => {
-        try {
-          const url = await mediaService.getUrl(raw);
-          if (!canceled) setResolvedSrc(url);
-        } catch (e) {
-          console.warn(`⚠️ AvatarImage: resolve failed (attempt ${attempt}):`, e);
-          if (attempt < 3 && !canceled) {
-            setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
-          }
-        }
-      };
-      
-      resolveWithRetry();
-      return () => { canceled = true; };
+      setResolvedSrc(undefined);
+      return;
     }
 
     // Unknown format, pass through
@@ -113,31 +99,51 @@ const AvatarImage = React.forwardRef<
       return;
     }
 
-    const variants = [
-      { suffix: 'thumbnail.jpg', x: 1 },
-      { suffix: 'small.jpg', x: 2 },
-      { suffix: 'medium.jpg', x: 3 },
-      { suffix: 'large.jpg', x: 4 },
+    const variantMeta = [
+      { suffix: 'thumbnail.jpg', w: 80 },
+      { suffix: 'small.jpg', w: 160 },
+      { suffix: 'medium.jpg', w: 320 },
+      { suffix: 'large.jpg', w: 640 },
     ];
 
     let canceled = false;
     (async () => {
       const settled = await Promise.allSettled(
-        variants.map(v => mediaService.getUrl(`${base}-${v.suffix}`))
+        variantMeta.map(v => mediaService.getUrl(`${base}-${v.suffix}`))
       );
-      const parts: string[] = [];
+
+      const available: { w: number; url: string }[] = [];
       settled.forEach((res, i) => {
         if (res.status === 'fulfilled' && typeof res.value === 'string') {
-          parts.push(`${res.value} ${variants[i].x}x`);
+          available.push({ w: variantMeta[i].w, url: res.value });
         }
       });
-      if (!canceled) {
-        setComputedSrcSet(parts.length ? parts.join(', ') : undefined);
+
+      if (canceled) return;
+
+      // Build width-based srcset
+      const parts = available.map(v => `${v.url} ${v.w}w`).join(', ');
+      setComputedSrcSet(parts || undefined);
+
+      // Choose best initial variant based on measured width * DPR
+      const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
+      const targetWidth = Math.max(1, dimensions?.width || 40);
+      const neededPixels = Math.round(targetWidth * dpr);
+
+      // Find the smallest available >= neededPixels, else fall back to largest
+      const sorted = available.sort((a, b) => a.w - b.w);
+      const chosen = sorted.find(v => v.w >= neededPixels) || sorted[sorted.length - 1];
+
+      if (chosen?.url) {
+        try { await (mediaService as any).preloadImage?.(chosen.url); } catch {}
+        if (!canceled) {
+          setResolvedSrc(prev => prev || chosen.url);
+        }
       }
     })();
 
     return () => { canceled = true; };
-  }, [src, resolvedSrc]);
+  }, [src, resolvedSrc, dimensions]);
 
   // Measure container size and set integer dimensions for crisp rendering
   React.useLayoutEffect(() => {
@@ -176,10 +182,10 @@ const AvatarImage = React.forwardRef<
       sizes={computedSizes ?? "40px"}
       width={dimensions?.width}
       height={dimensions?.height}
-      loading="eager"
-      decoding="sync"
+      loading={(dimensions?.width || 0) >= 64 ? "eager" : "lazy"}
+      decoding="async"
       // @ts-ignore - not in TS types but supported by browsers
-      fetchpriority="high"
+      fetchpriority={(dimensions?.width || 0) >= 64 ? "high" : "low"}
       draggable={false}
       onLoad={onLoad}
       onError={(e) => {

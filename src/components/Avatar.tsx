@@ -60,95 +60,9 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     rawSrcRef.current = rawSrc;
   }
 
-  const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
-  const [lastDisplayedSrc, setLastDisplayedSrc] = useState<string | null>(() => {
-    const candidate = rawSrc;
-    if (!candidate) return null;
-    if (/^(https?:|blob:|data:)/.test(candidate)) return candidate;
-    if (/^(uploads|avatars|covers)\//i.test(candidate)) {
-      try {
-        const raw = localStorage.getItem(`media:last:${candidate}`);
-        if (raw) {
-          const j = JSON.parse(raw);
-          if (typeof j?.url === 'string') return j.url as string;
-        }
-      } catch {}
-    }
-    return null;
-  });
-  // Keep the underlying storage key (when rawSrc is a key) to allow refresh on image error
-  const rawKeyRef = useRef<string | null>(null);
-  // Prevent infinite error loops by limiting retries
-  const errorRetryRef = useRef<number>(0);
+  // Use the raw source; AvatarImage will handle resolution and crisp variants
+  const finalSrc = (rawSrcRef.current ?? rawSrc ?? null);
 
-  // Resolve Wasabi keys to URLs ONCE per unique source - prevent flickering
-  useEffect(() => {
-    const currentRawSrc = rawSrcRef.current;
-    
-    if (!currentRawSrc) {
-      // Keep last good image to avoid flicker/disappear during updates
-      return;
-    }
-
-    // Skip if we already resolved this exact source
-    if (resolvedSrc && lastDisplayedSrc && 
-        (currentRawSrc === resolvedSrc || currentRawSrc === lastDisplayedSrc)) {
-      return;
-    }
-
-    // Reset error retries whenever the source changes
-    errorRetryRef.current = 0;
-    // Default: no key known
-    rawKeyRef.current = null;
-
-    // If already a proper URL, use as-is
-    if (/^(https?:|blob:|data:)/.test(currentRawSrc)) {
-      if (resolvedSrc !== currentRawSrc) {
-        setResolvedSrc(currentRawSrc);
-        setLastDisplayedSrc(currentRawSrc);
-      }
-      return;
-    }
-
-    // If it looks like a storage key, remember it and resolve with retry logic
-    if (/^(uploads|avatars|covers)\//i.test(currentRawSrc)) {
-      rawKeyRef.current = currentRawSrc;
-      
-      // Check if we already have this in state (prevents re-resolution)
-      if (lastDisplayedSrc && lastDisplayedSrc.includes(encodeURIComponent(currentRawSrc))) {
-        return;
-      }
-      
-      const resolveWithRetry = async (attempt = 1): Promise<void> => {
-        try {
-          const url = await mediaService.getUrl(currentRawSrc);
-          // Preload to prevent flicker
-          await mediaService.preloadImage(url).catch(() => {}); // Ignore preload failures
-          setResolvedSrc(url);
-          setLastDisplayedSrc(url);
-        } catch (e) {
-          console.warn(`Failed to resolve avatar key (attempt ${attempt}):`, currentRawSrc, e);
-          if (attempt < 3) {
-            // Retry with exponential backoff
-            setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
-          } else {
-            // On final failure, keep the last displayed src (don't clear it)
-            console.warn('All avatar resolve attempts failed, keeping last good URL');
-          }
-        }
-      };
-      resolveWithRetry();
-      return;
-    }
-
-    // Unknown format, pass through
-    if (resolvedSrc !== currentRawSrc) {
-      setResolvedSrc(currentRawSrc);
-      setLastDisplayedSrc(currentRawSrc);
-    }
-  }, [rawSrcRef.current, resolvedSrc, lastDisplayedSrc]);
-
-  const finalSrc = resolvedSrc || lastDisplayedSrc;
   
   // STRICT: Only use first name + last name initials (NEVER email)
   // Priority 1: From profile data (firstName, lastName)
@@ -200,30 +114,9 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     <BaseAvatar className={cn(sizeClass, className)} style={style}>
       {finalSrc && (
         <AvatarImage
-          src={finalSrc}
+          src={finalSrc || undefined}
           alt="User avatar"
           className="object-cover"
-          style={{ imageRendering: '-webkit-optimize-contrast' }}
-          loading="eager"
-          onError={async () => {
-            console.warn('Avatar image failed to load, attempting refresh');
-            // Try to refresh if we have an underlying key and haven't retried too much
-            const key = rawKeyRef.current;
-            if (key && errorRetryRef.current < 2) {
-              try {
-                errorRetryRef.current += 1;
-                mediaService.clearCache(key);
-                const freshUrl = await mediaService.getUrl(key);
-                await mediaService.preloadImage(freshUrl).catch(() => {});
-                setResolvedSrc(freshUrl);
-                setLastDisplayedSrc(freshUrl);
-                return;
-              } catch (e) {
-                console.warn('Avatar refresh failed:', e);
-              }
-            }
-            // Fall back to last good src (keeps fallback visible)
-          }}
         />
       )}
       <AvatarFallback className={cn(
