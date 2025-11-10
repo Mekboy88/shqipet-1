@@ -1,22 +1,23 @@
 /**
- * useGlobalAvatar - Routes to unified AvatarV2 system
- * Single source of truth for all avatar functionality
+ * useGlobalAvatar - Simple avatar hook
+ * Direct access to avatar URL from user profile
  */
 
-import { useAvatarV2 } from './avatar/useAvatarV2';
-import { useEffect } from 'react';
+import { useUniversalUser } from './useUniversalUser';
 
 export const useGlobalAvatar = (userId?: string) => {
-  const { url, lastGoodUrl, loading, uploading, upload, uploadProgress } = useAvatarV2(userId);
-  
+  const { avatarUrl } = useUniversalUser(userId);
   
   return {
-    avatarUrl: url || lastGoodUrl,
-    isLoading: loading || uploading,
-    uploadProgress,
-    uploadAvatar: upload,
+    avatarUrl,
+    isLoading: false,
+    uploadProgress: 0,
+    uploadAvatar: async (file: File) => {
+      console.warn('Use useAvatarUpload hook for uploading');
+      return null;
+    },
     updateAvatar: async (newUrl: string | null) => {
-      console.warn('updateAvatar with URL not supported - use uploadAvatar with File');
+      console.warn('Use useAvatarUpload hook for updating');
     }
   };
 };

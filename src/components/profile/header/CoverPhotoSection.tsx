@@ -33,8 +33,6 @@ const CoverPhotoSection: React.FC<CoverPhotoSectionProps> = ({
               userId={targetUserId}
               size="xl"
               className="w-40 h-40 shadow-lg"
-              enableUpload={true}
-              showCameraOverlay={true}
             />
           </div>
         </NewCoverUploader>
