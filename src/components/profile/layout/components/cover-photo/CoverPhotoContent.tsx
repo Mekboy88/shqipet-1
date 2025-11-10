@@ -294,7 +294,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
         />
       )}
       {showDebug && resolverDown && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 rounded-md border bg-background/90 backdrop-blur px-3 py-1 text-xs shadow">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 rounded-md border bg-background px-3 py-1 text-xs shadow" style={{backdropFilter: 'none'}}>
           Media resolver failed; using fallback if available
         </div>
       )}

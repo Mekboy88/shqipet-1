@@ -8,13 +8,20 @@ import { mediaService } from "@/services/media/MediaService"
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <AvatarPrimitive.Root
     ref={ref}
     className={cn(
       "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
       className
     )}
+    style={{
+      ...(style as React.CSSProperties),
+      isolation: 'isolate',
+      transform: 'translateZ(0)',
+      backfaceVisibility: 'hidden',
+      contain: 'layout paint style'
+    }}
     {...props}
   />
 ))
@@ -25,7 +32,7 @@ type AvatarImageProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Im
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   AvatarImageProps
->(({ className, src, onError, onLoad, priority, sizes, ...props }, ref) => {
+>(({ className, src, onError, onLoad, priority, sizes, style, ...props }, ref) => {
   const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
@@ -131,6 +138,10 @@ const AvatarImage = React.forwardRef<
       fetchpriority={isHighPriority ? "high" : "auto"}
       draggable={false}
       data-locked={process.env.NODE_ENV === 'development' ? String(lockedRef.current) : undefined}
+      style={{
+        ...(style as React.CSSProperties),
+        imageRendering: '-webkit-optimize-contrast'
+      }}
       onLoad={onLoad}
       onError={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
