@@ -143,7 +143,7 @@ const AvatarImage = React.forwardRef<
       return () => { canceled = true; };
     }
 
-    // Early path for small avatars: resolve key directly and skip variants
+    // Early path for small avatars: pick a high-quality single src and skip srcSet
     const parsePxEarly = (s?: string): number | null => {
       if (!s) return null;
       const m = String(s).match(/(\d+(?:\.\d+)?)px/);
@@ -155,8 +155,22 @@ const AvatarImage = React.forwardRef<
       let canceledSmall = false;
       (async () => {
         try {
-          const direct = await mediaService.getUrl(key!);
-          if (!canceledSmall && direct) setResolvedSrc(direct);
+          // Try to derive avatars base for quality variant
+          const baseMatchEarly = key!.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
+          const baseEarly = baseMatchEarly ? baseMatchEarly[1] : null;
+          const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
+          const target = Math.max(Math.ceil(baseWidthEarly * dpr), 320);
+          const pickSuffix = target >= 640 ? 'large.jpg' : 'medium.jpg';
+          let url: string | null = null;
+          if (baseEarly) {
+            try {
+              url = await mediaService.getUrl(`${baseEarly}-${pickSuffix}`);
+            } catch {}
+          }
+          if (!url) {
+            url = await mediaService.getUrl(key!);
+          }
+          if (!canceledSmall && url) setResolvedSrc(url);
         } catch {}
       })();
       setComputedSrcSet(undefined);
