@@ -298,12 +298,10 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
       }}
     >
       {finalSrc && (
-        <AvatarImage
-          src={finalSrc}
-          srcSet={`${finalSrc} 1x, ${finalSrc} 2x, ${finalSrc} 3x, ${finalSrc} 4x`}
-          sizes={`${pixelSize}px`}
-          alt="User avatar"
-          className="object-cover img-locked"
+          <AvatarImage
+            src={finalSrc}
+            alt="User avatar"
+            className="object-cover img-locked"
           onError={async () => {
             console.warn('Avatar image failed to load');
             const key = rawKeyRef.current;
