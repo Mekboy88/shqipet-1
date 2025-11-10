@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
-import { processWasabiUrl } from '@/services/media/LegacyMediaService';
+
 import CreateStoryModal from './CreateStoryModal';
 
 interface CreateStoryCardProps {
@@ -12,48 +12,18 @@ interface CreateStoryCardProps {
 }
 
 const CreateStoryCard: React.FC<CreateStoryCardProps> = ({ user }) => {
-  const { avatarUrl } = useUniversalUser();
+  const { firstName, lastName, initials: userInitials } = useUniversalUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [resolvedAvatarUrl, setResolvedAvatarUrl] = useState<string | null>(null);
+
+  const nameInitials = firstName && lastName
+    ? `${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}`
+    : '';
+  const finalInitials = (userInitials || nameInitials || (user?.name ? user.name.slice(0,2).toUpperCase() : '??')).trim();
 
   const handleCreateStory = () => {
     setIsModalOpen(true);
   };
 
-  useEffect(() => {
-    let canceled = false;
-    const resolve = async () => {
-      try {
-        if (!avatarUrl) { if (!canceled) setResolvedAvatarUrl(null); return; }
-        if (avatarUrl.startsWith('http') || avatarUrl.startsWith('blob:') || avatarUrl.startsWith('data:')) {
-          if (!canceled) setResolvedAvatarUrl(avatarUrl);
-        } else {
-          const signed = await processWasabiUrl(avatarUrl);
-          if (!canceled) setResolvedAvatarUrl(signed);
-        }
-      } catch (e) {
-        console.warn('CreateStoryCard: failed to resolve avatar:', e);
-        if (!canceled) setResolvedAvatarUrl(null);
-      }
-    };
-    resolve();
-    return () => { canceled = true; };
-  }, [avatarUrl]);
-
-  useEffect(() => {
-    if (!avatarUrl) return;
-    const id = setInterval(async () => {
-      try {
-        if (avatarUrl && !avatarUrl.startsWith('http')) {
-          const signed = await processWasabiUrl(avatarUrl);
-          setResolvedAvatarUrl(signed);
-        }
-      } catch (e) {
-        console.warn('CreateStoryCard: auto-refresh failed:', e);
-      }
-    }, 12 * 60 * 1000);
-    return () => clearInterval(id);
-  }, [avatarUrl]);
 
   return (
     <>
@@ -62,16 +32,11 @@ const CreateStoryCard: React.FC<CreateStoryCardProps> = ({ user }) => {
         <div className="absolute inset-0 rounded-[10px] border-[3px] border-black z-20 pointer-events-none"></div>
         
         <div className="h-[75%] relative overflow-hidden">
-          {(resolvedAvatarUrl || user.image) ? (
-            <img 
-              src={resolvedAvatarUrl || user.image}
-              alt={user.name} 
-              className="w-full h-full object-cover sharp-image" 
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-r from-red-500/10 to-gray-800/10" />
-          )}
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            <span className="text-3xl font-bold text-muted-foreground select-none">
+              {finalInitials}
+            </span>
+          </div>
         </div>
         <div className="bg-white h-[25%] flex flex-col items-start justify-center pb-1 pl-1">
           <div className="flex items-center gap-1">
