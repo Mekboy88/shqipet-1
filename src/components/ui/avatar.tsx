@@ -148,18 +148,18 @@ const AvatarImage = React.forwardRef<
 
       if (canceled) return;
 
-      // Choose best initial variant based on measured width * DPR
+      // Choose best initial variant; if width unknown, pick largest to avoid blur
       const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
-      const targetWidth = Math.max(1, dimensions?.width || 40);
-      const neededPixels = Math.round(targetWidth * dpr);
-
-      // Find the smallest available >= neededPixels, else fall back to largest
       const sorted = available.sort((a, b) => a.w - b.w);
-      const chosen = sorted.find(v => v.w >= neededPixels) || sorted[sorted.length - 1];
+      let chosen = sorted[sorted.length - 1];
+      if (dimensions?.width && dimensions.width > 0) {
+        const neededPixels = Math.round(dimensions.width * dpr);
+        chosen = sorted.find(v => v.w >= neededPixels) || sorted[sorted.length - 1];
+      }
 
       if (!canceled && chosen?.url) {
-        // Set initial src FIRST to avoid any early wrong candidate fetch
-        setResolvedSrc(prev => prev || chosen.url);
+        // Set initial src to the best-fit variant to prevent low-res lock-in
+        setResolvedSrc(chosen.url);
       }
 
       // Build width-based srcset AFTER setting initial src
