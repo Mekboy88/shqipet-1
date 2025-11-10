@@ -143,6 +143,26 @@ const AvatarImage = React.forwardRef<
       return () => { canceled = true; };
     }
 
+    // Early path for small avatars: resolve key directly and skip variants
+    const parsePxEarly = (s?: string): number | null => {
+      if (!s) return null;
+      const m = String(s).match(/(\d+(?:\.\d+)?)px/);
+      return m ? Math.round(parseFloat(m[1])) : null;
+    };
+    const sizedPxEarly = parsePxEarly(sizes as any);
+    const baseWidthEarly = (sizedPxEarly ?? dimensions?.width ?? 0) || 40;
+    if (baseWidthEarly <= 48) {
+      let canceledSmall = false;
+      (async () => {
+        try {
+          const direct = await mediaService.getUrl(key!);
+          if (!canceledSmall && direct) setResolvedSrc(direct);
+        } catch {}
+      })();
+      setComputedSrcSet(undefined);
+      return () => { canceledSmall = true; };
+    }
+
     const baseMatch = key.match(/^(avatars\/.+?)-(?:original|thumbnail|small|medium|large)\.[A-Za-z0-9]+$/i);
     const base = baseMatch ? baseMatch[1] : null;
     if (!base) {
