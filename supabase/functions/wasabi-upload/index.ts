@@ -41,6 +41,7 @@ Deno.serve(async (req) => {
     const fileName = file.name.toLowerCase();
     const fileExtension = '.' + fileName.split('.').pop();
     if (BLOCKED_EXTENSIONS.includes(fileExtension)) {
+      console.error('🚫 BLOCKED: File extension not allowed:', { fileName, extension: fileExtension });
       return new Response(JSON.stringify({ 
         error: `File type ${fileExtension} not allowed. Only safe formats: JPG, PNG, WEBP, AVIF, HEIC for images; MP4, WEBM, MOV for videos.`,
         success: false
@@ -50,10 +51,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // SECURITY: Validate MIME type
+    // SECURITY: Validate MIME type (with extension fallback for HEIC/AVIF)
     const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
     const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
-    if (!isImage && !isVideo) {
+    
+    // HEIC/AVIF may have inconsistent MIME types, check extension as fallback
+    const ext = fileName.split('.').pop() || '';
+    const isImageByExtension = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'].includes(ext);
+    const isVideoByExtension = ['mp4', 'webm', 'mov'].includes(ext);
+    
+    if (!isImage && !isVideo && !isImageByExtension && !isVideoByExtension) {
+      console.error('🚫 BLOCKED: Invalid MIME type:', { fileName, mimeType: file.type, extension: ext });
       return new Response(JSON.stringify({ 
         error: `File format ${file.type} not allowed. Only safe formats are allowed.`,
         success: false
@@ -62,6 +70,9 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+    
+    const isValidImage = isImage || isImageByExtension;
+    const isValidVideo = isVideo || isVideoByExtension;
 
     // SECURITY: Validate file size based on media type
     const maxSize = MAX_SIZES[mediaType as keyof typeof MAX_SIZES] || MAX_SIZES['post-image'];
@@ -77,7 +88,8 @@ Deno.serve(async (req) => {
     }
 
     // SECURITY: No video avatars allowed
-    if ((mediaType === 'avatar' || mediaType === 'profile') && isVideo) {
+    if ((mediaType === 'avatar' || mediaType === 'profile') && isValidVideo) {
+      console.error('🚫 BLOCKED: Video avatar not allowed:', { fileName, mediaType });
       return new Response(JSON.stringify({ 
         error: 'Video avatars are not allowed. Please use an image file.',
         success: false
@@ -87,7 +99,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('✅ Upload validation passed:', { fileName: file.name, type: file.type, size: file.size, mediaType, userId });
+    console.log('✅ Upload validation passed:', { fileName: file.name, type: file.type, size: file.size, mediaType, userId, isImage: isValidImage, isVideo: isValidVideo });
 
     const region = Deno.env.get('WASABI_REGION')!;
     const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;

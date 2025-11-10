@@ -1426,7 +1426,7 @@ const PhotoStrip = React.memo(({
       </div>
 
       {/* Hidden file input */}
-      <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileSelect} className="hidden" />
+      <input ref={fileInputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif" onChange={handleFileSelect} className="hidden" />
     </div>;
 });
 

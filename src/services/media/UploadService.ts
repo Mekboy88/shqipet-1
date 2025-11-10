@@ -57,9 +57,28 @@ class UploadService {
       throw new Error(`File too large. Maximum size: ${rules.maxSizeMB}MB`);
     }
 
-    // Check file type
-    if (!rules.allowedTypes.includes(file.type)) {
-      throw new Error(`Invalid file type. Allowed: ${rules.allowedTypes.join(', ')}`);
+    // Extract file extension
+    const extension = file.name.toLowerCase().split('.').pop();
+    
+    // Check file type - with extension fallback for HEIC/AVIF/iPhone photos
+    const isValidMimeType = rules.allowedTypes.includes(file.type);
+    const isValidExtension = extension && (
+      (mediaType === 'avatar' || mediaType === 'cover' || mediaType === 'post-image') && 
+      ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'].includes(extension)
+    ) || (
+      mediaType === 'post-video' && 
+      ['mp4', 'webm', 'mov'].includes(extension)
+    );
+    
+    // HEIC/AVIF files may have inconsistent MIME types, so check extension as fallback
+    if (!isValidMimeType && !isValidExtension) {
+      console.error('File validation failed:', { 
+        fileName: file.name, 
+        mimeType: file.type, 
+        extension, 
+        allowedTypes: rules.allowedTypes 
+      });
+      throw new Error(`Invalid file type. Allowed formats: JPG, PNG, WEBP, AVIF, HEIC for images; MP4, WEBM, MOV for videos.`);
     }
 
     // Check dimensions for images

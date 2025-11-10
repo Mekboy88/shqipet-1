@@ -214,7 +214,7 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif"
         onChange={handleFileSelect}
         className="hidden"
       />
