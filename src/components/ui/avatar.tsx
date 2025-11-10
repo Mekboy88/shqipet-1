@@ -131,10 +131,6 @@ const AvatarImage = React.forwardRef<
 
       if (canceled) return;
 
-      // Build width-based srcset
-      const parts = available.map(v => `${v.url} ${v.w}w`).join(', ');
-      setComputedSrcSet(parts || undefined);
-
       // Choose best initial variant based on measured width * DPR
       const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
       const targetWidth = Math.max(1, dimensions?.width || 40);
@@ -144,12 +140,14 @@ const AvatarImage = React.forwardRef<
       const sorted = available.sort((a, b) => a.w - b.w);
       const chosen = sorted.find(v => v.w >= neededPixels) || sorted[sorted.length - 1];
 
-      if (chosen?.url) {
-        try { await (mediaService as any).preloadImage?.(chosen.url); } catch {}
-        if (!canceled) {
-          setResolvedSrc(prev => prev || chosen.url);
-        }
+      if (!canceled && chosen?.url) {
+        // Set initial src FIRST to avoid any early wrong candidate fetch
+        setResolvedSrc(prev => prev || chosen.url);
       }
+
+      // Build width-based srcset AFTER setting initial src
+      const parts = available.map(v => `${v.url} ${v.w}w`).join(', ');
+      setComputedSrcSet(parts || undefined);
     })();
 
     return () => { canceled = true; };
