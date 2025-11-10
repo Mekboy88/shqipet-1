@@ -94,8 +94,13 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
     const file = event.target.files?.[0];
     try {
       if (!file) return;
-      if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
-        toast.error('Unsupported format. Please use JPEG, PNG, or WEBP.');
+      // Accept broader set of safe image formats (MIME or extension), tolerate unknown mobile MIME
+      const allowedMime = ['image/jpeg','image/jpg','image/pjpeg','image/jfif','image/png','image/webp','image/avif','image/heic','image/heif'];
+      const allowedExt = ['jpg','jpeg','jfif','pjpeg','png','webp','avif','heic','heif'];
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      const isOk = allowedMime.includes(file.type) || allowedExt.includes(ext) || file.type === '' || file.type === 'application/octet-stream';
+      if (!isOk) {
+        toast.error('Unsupported format. Allowed: JPG, PNG, WEBP, AVIF, HEIC.');
         return;
       }
       await uploadAvatar(file);
