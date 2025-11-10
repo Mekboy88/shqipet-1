@@ -50,46 +50,35 @@ function deriveBase(key: string): { base: string; ext: string } | null {
   return { base: match[1], ext: match[3].toLowerCase() };
 }
 
-// Process image using Canvas API (works in Deno)
-async function resizeImage(imageBuffer: Uint8Array, targetSize: number): Promise<Uint8Array> {
-  // Create a blob from the buffer
-  const blob = new Blob([imageBuffer]);
+// Use Imgproxy API for image resizing (professional-grade quality)
+async function resizeImageViaProxy(imageBuffer: Uint8Array, targetSize: number): Promise<Uint8Array> {
+  // For now, we'll use a direct approach with image-rs wasm
+  // Import image manipulation library that works in Deno
+  const { Image } = await import('https://deno.land/x/imagescript@1.3.0/mod.ts');
   
-  // Create an ImageBitmap from the blob
-  const imageBitmap = await createImageBitmap(blob);
-  
-  // Calculate crop dimensions to make square (center crop)
-  const sourceSize = Math.min(imageBitmap.width, imageBitmap.height);
-  const sx = (imageBitmap.width - sourceSize) / 2;
-  const sy = (imageBitmap.height - sourceSize) / 2;
-  
-  // Create canvas
-  const canvas = new OffscreenCanvas(targetSize, targetSize);
-  const ctx = canvas.getContext('2d');
-  
-  if (!ctx) {
-    throw new Error('Failed to get canvas context');
+  try {
+    // Decode the image
+    const image = await Image.decode(imageBuffer);
+    
+    // Calculate crop dimensions to make square (center crop)
+    const sourceSize = Math.min(image.width, image.height);
+    const sx = Math.floor((image.width - sourceSize) / 2);
+    const sy = Math.floor((image.height - sourceSize) / 2);
+    
+    // Crop to square first
+    const cropped = image.crop(sx, sy, sourceSize, sourceSize);
+    
+    // Resize with high-quality algorithm
+    const resized = cropped.resize(targetSize, targetSize);
+    
+    // Encode to JPEG with maximum quality
+    const encoded = await resized.encodeJPEG(100);
+    
+    return encoded;
+  } catch (error) {
+    console.error('Image processing error:', error);
+    throw error;
   }
-  
-  // Enable high-quality image rendering
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  
-  // Draw the cropped and resized image
-  ctx.drawImage(
-    imageBitmap,
-    sx, sy, sourceSize, sourceSize,  // source crop
-    0, 0, targetSize, targetSize      // destination
-  );
-  
-  // Convert to blob (JPEG with max quality)
-  const resizedBlob = await canvas.convertToBlob({
-    type: 'image/jpeg',
-    quality: 1.0  // Maximum quality
-  });
-  
-  // Convert blob to Uint8Array
-  return new Uint8Array(await resizedBlob.arrayBuffer());
 }
 
 Deno.serve(async (req) => {
@@ -205,8 +194,8 @@ Deno.serve(async (req) => {
           
           console.log(`🎨 Generating ${variant.suffix} (${variant.size}x${variant.size})...`);
 
-          // Create variant using Canvas API
-          const variantBuffer = await resizeImage(imageBuffer, variant.size);
+          // Create variant using ImageScript
+          const variantBuffer = await resizeImageViaProxy(imageBuffer, variant.size);
 
           console.log(`📤 Uploading ${variantKey} (${variantBuffer.length} bytes)`);
 
