@@ -178,6 +178,24 @@ const AvatarImage = React.forwardRef<React.ElementRef<typeof AvatarPrimitive.Ima
       };
     }, [base, key, src]);
 
+    // Timeout safety: if nothing loaded within 800ms, resolve the raw key/url to avoid blank avatars
+    React.useEffect(() => {
+      if (finalSrc || !key) return;
+      let cancelled = false;
+      const t = setTimeout(async () => {
+        try {
+          const u = await mediaService.getUrl(key);
+          if (!cancelled) setFinalSrc(u);
+        } catch {
+          if (typeof src === 'string' && !cancelled) setFinalSrc(src);
+        }
+      }, 800);
+      return () => {
+        cancelled = true;
+        clearTimeout(t);
+      };
+    }, [finalSrc, key, src]);
+
     const high = priority || (dims?.w || 0) >= 64;
 
     return (
