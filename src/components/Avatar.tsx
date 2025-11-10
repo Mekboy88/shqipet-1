@@ -86,6 +86,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     }
     return null;
   });
+  const [useOriginal, setUseOriginal] = useState(false);
   // Keep the underlying storage key (when rawSrc is a key) to allow refresh on image error
   const rawKeyRef = useRef<string | null>(null);
   // Prevent infinite error loops by limiting retries
@@ -149,22 +150,30 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
     if (/^(uploads|avatars|covers)\//i.test(currentRawSrc)) {
       rawKeyRef.current = currentRawSrc;
       
-      // ✅ CRITICAL: Select correct variant based on display size
-      const variantKey = getVariantKey(currentRawSrc, pixelSize);
+      // ✅ Use original if variant failed previously, otherwise try variant
+      const keyToResolve = useOriginal ? currentRawSrc : getVariantKey(currentRawSrc, pixelSize);
       
-      if (lastDisplayedSrc && lastDisplayedSrc.includes(encodeURIComponent(variantKey))) {
+      if (lastDisplayedSrc && lastDisplayedSrc.includes(encodeURIComponent(keyToResolve))) {
         return;
       }
       
       const resolveWithRetry = async (attempt = 1): Promise<void> => {
         try {
-          const url = await mediaService.getUrl(variantKey);
+          const url = await mediaService.getUrl(keyToResolve);
           await mediaService.preloadImage(url).catch(() => {});
           setResolvedSrc(url);
           setLastDisplayedSrc(url);
-          console.log(`✅ Loaded variant for ${pixelSize}px avatar:`, variantKey);
+          console.log(`✅ Loaded ${useOriginal ? 'original' : 'variant'} for ${pixelSize}px avatar:`, keyToResolve);
         } catch (e) {
-          console.warn(`Failed to resolve avatar variant (attempt ${attempt}):`, variantKey, e);
+          console.warn(`Failed to resolve avatar (attempt ${attempt}):`, keyToResolve, e);
+          
+          // If variant failed and we haven't tried original yet, switch to original
+          if (!useOriginal && attempt === 1) {
+            console.log('⚠️ Variant not found, falling back to original');
+            setUseOriginal(true);
+            return;
+          }
+          
           if (attempt < 3) {
             setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
           } else {
@@ -180,7 +189,7 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
       setResolvedSrc(currentRawSrc);
       setLastDisplayedSrc(currentRawSrc);
     }
-  }, [rawSrcRef.current, resolvedSrc, lastDisplayedSrc, pixelSize]);
+  }, [rawSrcRef.current, resolvedSrc, lastDisplayedSrc, pixelSize, useOriginal]);
 
   
   // STRICT: Only use first name + last name initials (NEVER email)
@@ -296,8 +305,18 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
           alt="User avatar"
           className="object-cover img-locked"
           onError={async () => {
-            console.warn('Avatar image failed to load, attempting refresh');
+            console.warn('Avatar image failed to load');
             const key = rawKeyRef.current;
+            
+            // First, try switching to original if we were using variant
+            if (key && !useOriginal && errorRetryRef.current === 0) {
+              console.log('⚠️ Variant failed to display, switching to original');
+              errorRetryRef.current += 1;
+              setUseOriginal(true);
+              return;
+            }
+            
+            // If already using original or second failure, try cache refresh
             if (key && errorRetryRef.current < 2) {
               try {
                 errorRetryRef.current += 1;
