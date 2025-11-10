@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useUniversalUser } from '@/hooks/useUniversalUser';
+import { useGlobalAvatar } from '@/hooks/useGlobalAvatar';
 import CreateStoryModal from './CreateStoryModal';
 import Avatar from '@/components/Avatar';
 
@@ -12,8 +13,14 @@ interface CreateStoryCardProps {
 }
 
 const CreateStoryCard: React.FC<CreateStoryCardProps> = ({ user }) => {
-  const { displayName } = useUniversalUser();
+  const { displayName, firstName, lastName, initials: userInitials } = useUniversalUser();
+  const { avatarUrl } = useGlobalAvatar();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const nameInitials = firstName && lastName
+    ? `${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}`
+    : '';
+  const finalInitials = (userInitials || nameInitials || '??').trim();
 
   const handleCreateStory = () => {
     setIsModalOpen(true);
@@ -27,10 +34,18 @@ const CreateStoryCard: React.FC<CreateStoryCardProps> = ({ user }) => {
         <div className="absolute inset-0 rounded-[10px] border-[3px] border-black z-20 pointer-events-none"></div>
         
         <div className="w-full h-full relative overflow-hidden">
-          <Avatar 
-            size="2xl"
-            className="w-full h-full rounded-none"
-          />
+          {avatarUrl ? (
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${avatarUrl})` }}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-muted flex items-center justify-center">
+              <span className="text-4xl font-bold text-muted-foreground select-none">
+                {finalInitials}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="absolute bottom-2 left-1 right-1 z-10">
