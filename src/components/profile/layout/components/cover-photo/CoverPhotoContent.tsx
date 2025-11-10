@@ -382,7 +382,7 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
             <Avatar 
               size="2xl"
               className="shadow-lg rounded-full"
-              style={{ width: 180, height: 180, minWidth: 180, minHeight: 180 }}
+              style={{ width: 160, height: 160, minWidth: 160, minHeight: 160 }}
             />
             {/* Hover camera overlay */}
             <div 
