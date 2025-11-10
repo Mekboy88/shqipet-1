@@ -251,15 +251,8 @@ const AvatarImage = React.forwardRef<
         });
       }
 
-      // For very small avatars, omit srcSet entirely to prevent browser downshifts
-      if (isSmallAvatar) {
-        setComputedSrcSet(undefined);
-      } else {
-        // Only expose candidates >= chosen width to prevent downshifts
-        const filtered = available.filter(v => v.w >= (lockedWidthRef.current || chosen.w));
-        const parts = filtered.map(v => `${v.url} ${v.w}w`).join(', ');
-        setComputedSrcSet(parts || undefined);
-      }
+      // Disable srcset globally to prevent any browser-initiated swaps on hover/layout
+      setComputedSrcSet(undefined);
     })();
 
     return () => { canceled = true; };
