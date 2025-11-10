@@ -29,6 +29,7 @@ const AvatarImage = React.forwardRef<
   const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(src as any);
   const retriedOnceRef = React.useRef(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
+  const lockedWidthRef = React.useRef<number>(0);
   const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);
   const [computedSizes, setComputedSizes] = React.useState<string | undefined>(undefined);
   const [computedSrcSet, setComputedSrcSet] = React.useState<string | undefined>(undefined);
@@ -138,7 +139,7 @@ const AvatarImage = React.forwardRef<
 
     let canceled = false;
     (async () => {
-      const available = [];
+      const available: Array<{ suffix: string; w: number; url: string }> = [];
       for (const v of variantMeta) {
         try {
           const url = await mediaService.getUrl(`${base}-${v.suffix}`);
@@ -150,31 +151,55 @@ const AvatarImage = React.forwardRef<
 
       if (canceled) return;
 
-      // Select best-fit variant based on measured width * DPR
       const dpr = Math.min(4, Math.max(1, window.devicePixelRatio || 1));
+      const parsePx = (s?: string): number | null => {
+        if (!s) return null;
+        const m = s.match(/(\d+(?:\.\d+)?)px/);
+        return m ? Math.round(parseFloat(m[1])) : null;
+      };
+
+      const sizedPx = parsePx(sizes as any);
+      const baseWidth = (sizedPx ?? dimensions?.width ?? 0) || 40; // fallback to 40px
+      const neededPixels = Math.ceil(baseWidth * dpr);
+      const isSmallAvatar = baseWidth <= 48; // xs/sm/md buckets
+      const minFloor = isSmallAvatar ? 320 : 640;
+      const target = Math.max(neededPixels, minFloor);
+
       const sorted = available.sort((a, b) => a.w - b.w);
-      
-      let chosen = sorted[sorted.length - 1]; // default to largest
-      if (dimensions?.width && dimensions.width > 0) {
-        const neededPixels = Math.ceil(dimensions.width * dpr);
-        // Pick smallest variant >= needed pixels to avoid soft downscaling
-        chosen = sorted.find(v => v.w >= neededPixels) || sorted[sorted.length - 1];
+      let chosen = sorted.find(v => v.w >= target) || sorted[sorted.length - 1];
+
+      // Crispness lock: never go smaller than a previously chosen width
+      if (lockedWidthRef.current && chosen.w < lockedWidthRef.current) {
+        const locked = sorted.find(v => v.w === lockedWidthRef.current);
+        if (locked) chosen = locked;
       }
 
       if (!canceled && chosen?.url) {
-        setResolvedSrc(chosen.url);
+        setResolvedSrc(prev => {
+          if (lockedWidthRef.current && chosen.w < lockedWidthRef.current) return prev;
+          lockedWidthRef.current = Math.max(lockedWidthRef.current, chosen.w);
+          return chosen.url;
+        });
       }
 
-      // Build srcset with ascending widths
-      const parts = available.map(v => `${v.url} ${v.w}w`).join(', ');
-      setComputedSrcSet(parts || undefined);
+      // For very small avatars, omit srcSet to prevent browser downshifts entirely
+      if (isSmallAvatar) {
+        setComputedSrcSet(undefined);
+      } else {
+        // Only expose candidates >= chosen width to prevent downshifts
+        const filtered = available.filter(v => v.w >= (lockedWidthRef.current || chosen.w));
+        const parts = filtered.map(v => `${v.url} ${v.w}w`).join(', ');
+        setComputedSrcSet(parts || undefined);
+      }
     })();
 
     return () => { canceled = true; };
-  }, [src, resolvedSrc, dimensions]);
+  }, [src, resolvedSrc, dimensions, sizes]);
 
   // Measure container size and set integer dimensions for crisp rendering
   React.useLayoutEffect(() => {
+    if (sizes) return; // Skip observing when explicit sizes are provided
+
     const el = imgRef.current;
     if (!el) return;
 
@@ -186,7 +211,7 @@ const AvatarImage = React.forwardRef<
           height: Math.round(height)
         };
         setDimensions(rounded);
-        
+
         // Update sizes hint based on actual rendered size (only if not provided by parent)
         if (rounded.width > 0 && !sizes) {
           setComputedSizes(`${rounded.width}px`);
@@ -218,6 +243,7 @@ const AvatarImage = React.forwardRef<
       // @ts-ignore - not in TS types but supported by browsers
       fetchpriority={isHighPriority ? "high" : "auto"}
       draggable={false}
+      data-quality-locked={process.env.NODE_ENV === 'development' ? (lockedWidthRef.current ? 'true' : 'false') : undefined}
       data-variant-selected={process.env.NODE_ENV === 'development' && resolvedSrc ? 
         (resolvedSrc.includes('large') ? '640' : 
          resolvedSrc.includes('medium') ? '320' : 
