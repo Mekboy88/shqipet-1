@@ -50,13 +50,55 @@ function deriveBase(key: string): { base: string; ext: string } | null {
   return { base: match[1], ext: match[3].toLowerCase() };
 }
 
+// Process image using Canvas API (works in Deno)
+async function resizeImage(imageBuffer: Uint8Array, targetSize: number): Promise<Uint8Array> {
+  // Create a blob from the buffer
+  const blob = new Blob([imageBuffer]);
+  
+  // Create an ImageBitmap from the blob
+  const imageBitmap = await createImageBitmap(blob);
+  
+  // Calculate crop dimensions to make square (center crop)
+  const sourceSize = Math.min(imageBitmap.width, imageBitmap.height);
+  const sx = (imageBitmap.width - sourceSize) / 2;
+  const sy = (imageBitmap.height - sourceSize) / 2;
+  
+  // Create canvas
+  const canvas = new OffscreenCanvas(targetSize, targetSize);
+  const ctx = canvas.getContext('2d');
+  
+  if (!ctx) {
+    throw new Error('Failed to get canvas context');
+  }
+  
+  // Enable high-quality image rendering
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  
+  // Draw the cropped and resized image
+  ctx.drawImage(
+    imageBitmap,
+    sx, sy, sourceSize, sourceSize,  // source crop
+    0, 0, targetSize, targetSize      // destination
+  );
+  
+  // Convert to blob (JPEG with max quality)
+  const resizedBlob = await canvas.convertToBlob({
+    type: 'image/jpeg',
+    quality: 1.0  // Maximum quality
+  });
+  
+  // Convert blob to Uint8Array
+  return new Uint8Array(await resizedBlob.arrayBuffer());
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('🔄 Starting avatar variant regeneration with Sharp...');
+    console.log('🔄 Starting avatar variant regeneration...');
 
     const accessKeyId = getEnv('WASABI_ACCESS_KEY_ID');
     const secretAccessKey = getEnv('WASABI_SECRET_ACCESS_KEY');
@@ -97,9 +139,6 @@ Deno.serve(async (req) => {
     const results: any[] = [];
     let processedCount = 0;
     let skippedCount = 0;
-
-    // Import Sharp for image processing (use esm.sh for Deno compatibility)
-    const sharp = (await import('https://esm.sh/sharp@0.33.5')).default;
 
     // Process each avatar group
     for (const [base, groupObjs] of groups) {
@@ -157,32 +196,17 @@ Deno.serve(async (req) => {
 
         console.log(`✅ Downloaded ${imageBuffer.length} bytes`);
 
-        // Detect source format and dimensions
-        const metadata = await sharp(imageBuffer).metadata();
-        console.log(`📊 Source: ${metadata.format}, ${metadata.width}x${metadata.height}`);
-
         const ext = deriveBase(sourceObj.Key)?.ext || 'jpg';
         const uploadResults: any[] = [];
 
-        // Generate and upload all variants with ZERO compression loss
+        // Generate and upload all variants
         for (const variant of VARIANTS) {
           const variantKey = `avatars/${base}-${variant.suffix}.${ext}`;
           
           console.log(`🎨 Generating ${variant.suffix} (${variant.size}x${variant.size})...`);
 
-          // Create variant: center-crop to square, resize with lanczos3, max quality
-          const variantBuffer = await sharp(imageBuffer)
-            .resize(variant.size, variant.size, {
-              fit: 'cover',
-              position: 'center',
-              kernel: 'lanczos3', // Highest quality resampling
-            })
-            .jpeg({ 
-              quality: 100,        // Maximum quality
-              chromaSubsampling: '4:4:4', // No chroma subsampling (preserves color detail)
-              mozjpeg: true        // Use mozjpeg for better quality at same file size
-            })
-            .toBuffer();
+          // Create variant using Canvas API
+          const variantBuffer = await resizeImage(imageBuffer, variant.size);
 
           console.log(`📤 Uploading ${variantKey} (${variantBuffer.length} bytes)`);
 
@@ -191,7 +215,7 @@ Deno.serve(async (req) => {
             Bucket: bucket,
             Key: variantKey,
             Body: variantBuffer,
-            ContentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+            ContentType: 'image/jpeg',
             CacheControl: 'public, max-age=31536000', // Cache for 1 year
           });
 
@@ -235,7 +259,7 @@ Deno.serve(async (req) => {
         processed: processedCount,
         skipped: skippedCount,
         total: groups.size,
-        message: 'All avatars regenerated with Sharp at 100% quality. Clear browser cache to see crystal clear avatars.',
+        message: 'All avatars regenerated at maximum quality. Clear browser cache and Service Worker cache to see crystal clear avatars.',
         results,
       }),
       {
