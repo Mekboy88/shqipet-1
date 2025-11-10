@@ -999,10 +999,12 @@ export type Database = {
       profiles: {
         Row: {
           auth_user_id: string | null
+          avatar_sizes: Json | null
           avatar_url: string | null
           bio: string | null
           cover_gradient: string | null
           cover_position: string | null
+          cover_sizes: Json | null
           cover_url: string | null
           created_at: string
           date_of_birth: string | null
@@ -1029,10 +1031,12 @@ export type Database = {
         }
         Insert: {
           auth_user_id?: string | null
+          avatar_sizes?: Json | null
           avatar_url?: string | null
           bio?: string | null
           cover_gradient?: string | null
           cover_position?: string | null
+          cover_sizes?: Json | null
           cover_url?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1059,10 +1063,12 @@ export type Database = {
         }
         Update: {
           auth_user_id?: string | null
+          avatar_sizes?: Json | null
           avatar_url?: string | null
           bio?: string | null
           cover_gradient?: string | null
           cover_position?: string | null
+          cover_sizes?: Json | null
           cover_url?: string | null
           created_at?: string
           date_of_birth?: string | null
