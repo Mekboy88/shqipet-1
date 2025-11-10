@@ -80,15 +80,13 @@ const AvatarImage = React.forwardRef<
   return (
     <AvatarPrimitive.Image
       ref={ref}
-      className={cn("aspect-square h-full w-full object-cover object-center img-locked", className)}
+      className={cn("aspect-square h-full w-full img-locked", className)}
       src={resolvedSrc}
-      decoding="async"
-      loading="eager"
-      draggable={false}
-      style={{ imageRendering: 'auto' }}
+      srcSet={srcSet}
+      sizes="(max-width: 48px) 160w, (max-width: 96px) 320w, 640w"
       onLoad={(e) => {
         const s = (e.currentTarget as HTMLImageElement).currentSrc;
-        console.log('✅ Avatar loaded sharp:', { src: s.slice(0, 80) });
+        console.log('✅ Avatar loaded sharp:', { src: s.slice(0, 80), srcSet });
         onLoad?.(e);
       }}
       onError={(e) => {
@@ -111,6 +109,10 @@ const AvatarImage = React.forwardRef<
                 .then((fresh) => { 
                   if (fresh) {
                     setResolvedSrc(fresh);
+                    const generatedSrcSet = [80, 160, 320, 640]
+                      .map(w => `${fresh} ${w}w`)
+                      .join(', ');
+                    setSrcSet(generatedSrcSet);
                   }
                 })
                 .catch((err) => console.warn('⚠️ Avatar refresh failed', err));
