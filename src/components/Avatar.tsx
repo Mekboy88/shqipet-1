@@ -6,7 +6,7 @@ import { useUniversalUser } from '@/hooks/useUniversalUser';
 import { useGlobalAvatar } from '@/hooks/useGlobalAvatar';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { mediaService } from '@/services/media/MediaService';
+
 
 interface AvatarProps {
   userId?: string;
@@ -71,125 +71,49 @@ const Avatar: React.FC<AvatarProps> = React.memo(({
   }
 
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
-  const [lastDisplayedSrc, setLastDisplayedSrc] = useState<string | null>(() => {
-    const candidate = rawSrc;
-    if (!candidate) return null;
-    if (/^(https?:|blob:|data:)/.test(candidate)) return candidate;
-    if (/^(uploads|avatars|covers)\//i.test(candidate)) {
-      try {
-        const raw = localStorage.getItem(`media:last:${candidate}`);
-        if (raw) {
-          const j = JSON.parse(raw);
-          if (typeof j?.url === 'string') return j.url as string;
-        }
-      } catch {}
-    }
-    return null;
-  });
-  const [useOriginal, setUseOriginal] = useState(false);
-  // Keep the underlying storage key (when rawSrc is a key) to allow refresh on image error
   const rawKeyRef = useRef<string | null>(null);
-  // Prevent infinite error loops by limiting retries
-  const errorRetryRef = useRef<number>(0);
 
-  // Get exact pixel dimensions and text class (needed early for variant selection)
+  // Get exact pixel dimensions and text class
   const pixelSize = sizePixels[size] || sizePixels.md;
   const textClass = textSizeClasses[size] || textSizeClasses.md;
 
-  // Smart variant selection based on display size (4x DPR for retina)
-  const getVariantKey = (key: string, displaySize: number): string => {
-    // Calculate required resolution for 4x DPR
-    const requiredRes = displaySize * 4;
-    
-    // Select appropriate variant
-    let variantSuffix = 'small'; // Default for 40px (160px = 40×4)
-    if (requiredRes <= 80) variantSuffix = 'thumbnail';      // 20px or smaller
-    else if (requiredRes <= 160) variantSuffix = 'small';    // 40px
-    else if (requiredRes <= 320) variantSuffix = 'medium';   // 80px
-    else variantSuffix = 'large';                            // 160px+
-    
-    // Replace -original with variant, or append if no suffix exists
-    if (key.includes('-original.')) {
-      return key.replace('-original.', `-${variantSuffix}.`);
-    }
-    
-    // If key already has variant suffix, replace it
-    const hasVariant = /-(?:thumbnail|small|medium|large)\./i.test(key);
-    if (hasVariant) {
-      return key.replace(/-(?:thumbnail|small|medium|large)\./i, `-${variantSuffix}.`);
-    }
-    
-    // No suffix - insert variant before extension
-    return key.replace(/\.([^.]+)$/, `-${variantSuffix}.$1`);
+  const ensureSmallKey = (key: string): string => {
+    if (/-small\./i.test(key)) return key;
+    if (/-original\./i.test(key)) return key.replace(/-original\./i, '-small.');
+    if (/-(?:thumbnail|medium|large)\./i.test(key)) return key.replace(/-(?:thumbnail|medium|large)\./i, '-small.');
+    return key.replace(/\.([^.]+)$/i, '-small.$1');
   };
 
-  // Resolve Wasabi keys to URLs with intelligent variant selection
+  const buildProxyUrl = (key: string): string => {
+    const base = import.meta.env.VITE_SUPABASE_URL as string;
+    return `${base}/functions/v1/wasabi-proxy?key=${encodeURIComponent(key)}`;
+  };
+
+  // Resolve avatars: always force -small key via wasabi-proxy
   useEffect(() => {
     const currentRawSrc = rawSrcRef.current;
-    
-    if (!currentRawSrc) {
-      return;
-    }
+    if (!currentRawSrc) { setResolvedSrc(null); return; }
 
-    if (resolvedSrc && lastDisplayedSrc && 
-        (currentRawSrc === resolvedSrc || currentRawSrc === lastDisplayedSrc)) {
-      return;
-    }
-
-    errorRetryRef.current = 0;
-    rawKeyRef.current = null;
-
-    if (/^(https?:|blob:|data:)/.test(currentRawSrc)) {
-      if (resolvedSrc !== currentRawSrc) {
-        setResolvedSrc(currentRawSrc);
-        setLastDisplayedSrc(currentRawSrc);
-      }
+    // If we received a full URL (legacy), just use it
+    if (/^(https?:|blob:|data:)/i.test(currentRawSrc)) {
+      setResolvedSrc(currentRawSrc);
+      rawKeyRef.current = null;
       return;
     }
 
     if (/^(uploads|avatars|covers)\//i.test(currentRawSrc)) {
-      rawKeyRef.current = currentRawSrc;
-      
-      // ✅ Use original if variant failed previously, otherwise try variant
-      const keyToResolve = useOriginal ? currentRawSrc : getVariantKey(currentRawSrc, pixelSize);
-      
-      if (lastDisplayedSrc && lastDisplayedSrc.includes(encodeURIComponent(keyToResolve))) {
-        return;
-      }
-      
-      const resolveWithRetry = async (attempt = 1): Promise<void> => {
-        try {
-          const url = await mediaService.getUrl(keyToResolve);
-          await mediaService.preloadImage(url).catch(() => {});
-          setResolvedSrc(url);
-          setLastDisplayedSrc(url);
-          console.log(`✅ Loaded ${useOriginal ? 'original' : 'variant'} for ${pixelSize}px avatar:`, keyToResolve);
-        } catch (e) {
-          console.warn(`Failed to resolve avatar (attempt ${attempt}):`, keyToResolve, e);
-          
-          // If variant failed and we haven't tried original yet, switch to original
-          if (!useOriginal && attempt === 1) {
-            console.log('⚠️ Variant not found, falling back to original');
-            setUseOriginal(true);
-            return;
-          }
-          
-          if (attempt < 3) {
-            setTimeout(() => resolveWithRetry(attempt + 1), Math.pow(2, attempt) * 1000);
-          } else {
-            console.warn('All avatar resolve attempts failed, keeping last good URL');
-          }
-        }
-      };
-      resolveWithRetry();
+      const key = ensureSmallKey(currentRawSrc);
+      rawKeyRef.current = key;
+      setResolvedSrc(buildProxyUrl(key));
       return;
     }
 
-    if (resolvedSrc !== currentRawSrc) {
-      setResolvedSrc(currentRawSrc);
-      setLastDisplayedSrc(currentRawSrc);
-    }
-  }, [rawSrcRef.current, resolvedSrc, lastDisplayedSrc, pixelSize, useOriginal]);
+    // Fallback: use the raw value
+    setResolvedSrc(currentRawSrc);
+  }, [rawSrcRef.current]);
+
+  // STRICT: Only use first name + last name initials (NEVER email)
+  // Priority 1: From profile data (firstName, lastName)
 
   
   // STRICT: Only use first name + last name initials (NEVER email)
