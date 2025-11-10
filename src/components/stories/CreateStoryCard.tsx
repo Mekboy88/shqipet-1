@@ -29,7 +29,7 @@ const CreateStoryCard: React.FC<CreateStoryCardProps> = ({ user }) => {
 
   return (
     <>
-      <div className="story-card create-story cursor-pointer relative" onClick={handleCreateStory}>
+      <div className="story-card create-story cursor-pointer relative h-[200px]" onClick={handleCreateStory}>
         {/* Phone frame border */}
         <div className="absolute inset-0 rounded-[10px] border-[3px] border-black z-20 pointer-events-none"></div>
         
