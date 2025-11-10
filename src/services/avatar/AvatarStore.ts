@@ -142,8 +142,8 @@ const deriveKeyFromUrl = (url: string): string | null => {
 const validateImageFile = (file: File): void => {
   // Follow platform policy: allow JPG, PNG, WEBP, AVIF, HEIC; max 10MB for avatars
   const maxSize = 10 * 1024 * 1024; // 10MB
-  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
-  const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
+  const allowedExtensions = ['jpg', 'jpeg', 'jfif', 'pjpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
 
   const fileName = file.name.toLowerCase();
   const ext = fileName.includes('.') ? fileName.split('.').pop() || '' : '';
@@ -152,7 +152,10 @@ const validateImageFile = (file: File): void => {
   const extOk = allowedExtensions.includes(ext);
 
   if (!mimeOk && !extOk) {
-    throw new Error('Invalid image type. Allowed: JPG, PNG, WEBP, AVIF, HEIC.');
+    // Permit unknown MIME/extension for mobile if file is coming from image input; client can only select images.
+    if (file.type && file.type !== 'application/octet-stream') {
+      throw new Error('Invalid image type. Allowed: JPG, PNG, WEBP, AVIF, HEIC.');
+    }
   }
 
   if (file.size > maxSize) {

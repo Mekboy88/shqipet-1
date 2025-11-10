@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // SAFE FORMAT VALIDATION - Industry Standard
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 const BLOCKED_EXTENSIONS = ['.bmp', '.tiff', '.tif', '.gif', '.svg', '.ico', '.nef', '.cr2', '.arw', '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv'];
 
@@ -93,10 +93,22 @@ Deno.serve(async (req) => {
     const isImageByExtension = allowedImageExts.includes(ext);
     const isVideoByExtension = allowedVideoExts.includes(ext);
     
-    if (!isImage && !isVideo && !isImageByExtension && !isVideoByExtension) {
-      console.error('🚫 BLOCKED: Invalid MIME type:', { fileName, mimeType: file.type, extension: ext });
+    let isValidImage = isImage || isImageByExtension;
+    let isValidVideo = isVideo || isVideoByExtension;
+
+    // FINAL GUARD: If both false but intent is image (avatar/cover/post-image), allow unknown MIME/extension
+    const imageIntent = /avatar|profile|cover|post-image/i.test(mediaType);
+    if (!isValidImage && !isValidVideo && imageIntent) {
+      // Permit if not explicitly blocked and not a known video extension
+      if (!BLOCKED_EXTS.includes(`.${ext}`) && !isVideoByExtension) {
+        isValidImage = true;
+      }
+    }
+
+    if (!isValidImage && !isValidVideo) {
+      console.error('🚫 BLOCKED: Invalid MIME/extension:', { fileName, mimeType: file.type, ext, mediaType });
       return new Response(JSON.stringify({ 
-        error: `File format ${file.type} not allowed.`,
+        error: `File format ${file.type || '(unknown)'} not allowed.`,
         success: false
       }), {
         status: 400,
@@ -104,9 +116,6 @@ Deno.serve(async (req) => {
       });
     }
     
-    const isValidImage = isImage || isImageByExtension;
-    const isValidVideo = isVideo || isVideoByExtension;
-
     // SECURITY: Validate file size based on media type
     const maxSize = MAX_LIMITS[mediaType as keyof typeof MAX_SIZES] || MAX_LIMITS['post-image'];
     if (file.size > maxSize) {
