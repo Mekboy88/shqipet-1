@@ -116,9 +116,10 @@ const CoverPhotoDialog: React.FC<CoverPhotoDialogProps> = ({
       setPreviewUrl(null);
       setSelectedFile(null);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Gabim në ngarkimin e fotos së kapakut:', error);
-      toast.error('Dështoi ngarkimi i fotos së kapakut');
+      const message = typeof error?.message === 'string' ? error.message : 'Dështoi ngarkimi i fotos së kapakut';
+      toast.error(message);
       // Revert optimistic state and stop loading
       notifyGlobalCoverLoadingChange(false);
       notifyGlobalCoverPhotoChange(currentCoverUrl || null, coverPosition);
