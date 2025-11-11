@@ -234,7 +234,7 @@ export const useCover = (userId?: string) => {
             const changedUserId = row.auth_user_id || row.user_id || row.id;
             if (changedUserId === targetUserId) {
               console.log('🔄 Cover real-time update:', payload);
-              loadCover();
+              loadCover(true);
             }
           } catch (e) {
             console.warn('Realtime handler error:', e);
@@ -248,7 +248,7 @@ export const useCover = (userId?: string) => {
     };
   }, [targetUserId]);
 
-  const loadCover = async () => {
+  const loadCover = async (force: boolean = false) => {
     if (!targetUserId) return;
 
     // CRITICAL: Don't reload during upload
@@ -258,35 +258,37 @@ export const useCover = (userId?: string) => {
       return;
     }
 
-    // ⚠️ CRITICAL OPTIMIZATION - DO NOT MODIFY ⚠️
-    // INSTANT: If we have cached data, show it and skip DB fetch entirely
-    // This ensures cover photos appear instantly on login with ZERO delay
-    // Removing this will cause visible loading delays and poor UX
-    try {
-      const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
-      if (cachedRaw) {
-        const cached = JSON.parse(cachedRaw);
-        const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
-        const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
-        const cachedPos = normalizePosition(cached?.position || coverState.position);
-        if (isValidUrl) {
-          console.log('⚡ Using cached cover instantly:', cachedUrl.substring(0, 80));
-          const cachedState: CoverState = { 
-            userId: targetUserId,
-            key: cached?.key || null,
-            resolvedUrl: cachedUrl as string, 
-            lastGoodUrl: cachedUrl as string, 
-            position: cachedPos, 
-            loading: false,
-            isPositionChanging: false,
-            isPositionSaving: false
-          };
-          setCoverState(cachedState);
-          notifyCoverChange(targetUserId, cachedState);
-          return; // INSTANT: Skip DB fetch, show cached immediately
+    // ⚠️ CRITICAL OPTIMIZATION - DO NOT MODIFY (bypass when force=true) ⚠️
+    if (!force) {
+      // INSTANT: If we have cached data, show it and skip DB fetch entirely
+      // This ensures cover photos appear instantly on login with ZERO delay
+      // Removing this will cause visible loading delays and poor UX
+      try {
+        const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
+          const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
+          const cachedPos = normalizePosition(cached?.position || coverState.position);
+          if (isValidUrl) {
+            console.log('⚡ Using cached cover instantly:', cachedUrl.substring(0, 80));
+            const cachedState: CoverState = { 
+              userId: targetUserId,
+              key: cached?.key || null,
+              resolvedUrl: cachedUrl as string, 
+              lastGoodUrl: cachedUrl as string, 
+              position: cachedPos, 
+              loading: false,
+              isPositionChanging: false,
+              isPositionSaving: false
+            };
+            setCoverState(cachedState);
+            notifyCoverChange(targetUserId, cachedState);
+            return; // INSTANT: Skip DB fetch, show cached immediately
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
     // ⚠️ END CRITICAL SECTION ⚠️
 
     try {
@@ -698,7 +700,7 @@ export const useCover = (userId?: string) => {
       notifyCoverChange(targetUserId, finalState);
 
       // Step 5: Background refresh to verify persistence
-      setTimeout(() => loadCover(), 100);
+      setTimeout(() => loadCover(true), 100);
 
       console.log('✅ Cover updated successfully:', key);
       toast.success('Cover updated successfully');
