@@ -223,13 +223,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data) {
         console.log('✅ fetchUserProfile: Profile found in', Math.round(performance.now() - started), 'ms');
-        // Map the profile data to match the interface
         setUserProfile({
           id: data.id,
           user_id: data.id,
           email: data.email || '',
-          first_name: data.full_name?.split(' ')[0],
-          last_name: data.full_name?.split(' ').slice(1).join(' '),
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
           profile_image_url: data.avatar_url
         } as UserProfile);
         setAuthDataCached(true);

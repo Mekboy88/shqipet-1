@@ -86,7 +86,7 @@ class UniversalUserService {
       displayName = 'User';
     }
     
-    // STRICT: Only use first name + last name initials (NEVER email or username)
+    // STRICT: Prefer first/last name for initials, but derive from username/email/display name if missing
     let initials = '';
     if (firstName && lastName) {
       initials = `${firstName[0]}${lastName[0]}`.toUpperCase();
@@ -95,7 +95,16 @@ class UniversalUserService {
     } else if (lastName) {
       initials = `${lastName[0]}${lastName[1] || ''}`.toUpperCase();
     } else {
-      initials = '??';
+      // Fallback: derive from username or email/local part or display name
+      const source = (username || email.split('@')[0] || displayName || '').trim();
+      if (source) {
+        const parts = source.split(/[\s._-]+/).filter(Boolean);
+        const a = parts[0]?.[0] || source[0];
+        const b = parts[1]?.[0] || source[1] || '';
+        initials = `${a || ''}${b || ''}`.toUpperCase();
+      } else {
+        initials = '??';
+      }
     }
 
     // Determine avatar URL from legacy columns
