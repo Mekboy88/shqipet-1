@@ -237,21 +237,19 @@ class AvatarStore {
   async load(userId: string, forceRefresh = false) {
     const current = ensureState(userId);
     
-    // CRITICAL: Don't reload during upload or if we have current data
+    // CRITICAL: Don't reload during upload
     if (current.uploading) {
       console.log('⏸️ Skipping load - upload in progress');
       return;
     }
     
-    if (current.loading) {
-      console.log('⏸️ Skipping load - already loading');
-      return;
-    }
-    
-    // Skip if we already have current URL (but not just lastGoodUrl - that needs refresh)
-    // ENHANCED: Also skip if we have a valid Wasabi URL to prevent redundant loads
-    if (!forceRefresh && current.url && (current.url.startsWith('http') || current.url.startsWith('blob:'))) {
-      console.log('⏸️ Skipping load - already have valid avatar URL');
+    // INSTANT: If we have cached data, show it immediately and skip DB fetch
+    if (!forceRefresh && current.lastGoodUrl && current.lastGoodUrl.startsWith('http')) {
+      console.log('⚡ Using cached avatar instantly:', current.lastGoodUrl.substring(0, 80));
+      setState(userId, { 
+        url: current.lastGoodUrl,
+        loading: false 
+      });
       return;
     }
     

@@ -10,28 +10,24 @@ class InstantMediaPreloader {
    * Preload all media for a user instantly on login
    */
   async preloadUserMedia(userId: string): Promise<void> {
-    if (this.preloadedUsers.has(userId)) {
-      return; // Already preloaded
-    }
+    console.log('⚡ InstantMediaPreloader: Aggressive parallel preload for', userId);
     
-    console.log('⚡ InstantMediaPreloader: Starting aggressive preload for', userId);
-    
-    // Mark as in progress immediately
+    // Don't skip - always preload to ensure instant display
     this.preloadedUsers.add(userId);
     
-    // Preload avatar from cache
-    this.preloadFromCache(`avatar_cache_${userId}`);
+    // PARALLEL: Preload both avatar and cover at exact same time
+    Promise.all([
+      this.preloadFromCache(`avatar_cache_${userId}`),
+      this.preloadFromCache(`cover:last:${userId}`)
+    ]).catch(() => {});
     
-    // Preload cover from cache
-    this.preloadFromCache(`cover:last:${userId}`);
-    
-    console.log('✅ InstantMediaPreloader: Media preload initiated');
+    console.log('✅ InstantMediaPreloader: Parallel preload initiated');
   }
   
   /**
    * Preload image from localStorage cache
    */
-  private preloadFromCache(cacheKey: string): void {
+  private async preloadFromCache(cacheKey: string): Promise<void> {
     try {
       const cached = localStorage.getItem(cacheKey);
       if (!cached) return;
@@ -41,11 +37,19 @@ class InstantMediaPreloader {
       
       if (!url || !url.startsWith('http')) return;
       
-      // Aggressive preload - don't wait for result
+      console.log('🎯 Instant preload:', url.substring(0, 80));
+      
+      // Synchronous preload - force browser to cache immediately
       const img = new Image();
       img.src = url;
       
-      console.log('🎯 Preloading from cache:', url.substring(0, 80));
+      // Also use fetch for aggressive caching
+      fetch(url, { 
+        method: 'GET',
+        cache: 'force-cache',
+        priority: 'high' 
+      } as any).catch(() => {});
+      
     } catch (e) {
       // Silent fail - preload is best-effort
     }

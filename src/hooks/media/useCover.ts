@@ -258,32 +258,35 @@ export const useCover = (userId?: string) => {
       return;
     }
 
+    // INSTANT: If we have cached data, show it and skip DB fetch entirely
     try {
-      console.log('🔄 Loading cover for user:', targetUserId);
-      // Optimistic: show last cached cover immediately while DB loads
-      try {
-        const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
-        if (cachedRaw) {
-          const cached = JSON.parse(cachedRaw);
-          const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
-          const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
-          const cachedPos = normalizePosition(cached?.position || coverState.position);
-          if (isValidUrl) {
-            const cachedState: CoverState = { 
-              userId: targetUserId,
-              key: cached?.key || null,
-              resolvedUrl: cachedUrl as string, 
-              lastGoodUrl: cachedUrl as string, 
-              position: cachedPos, 
-              loading: false, // INSTANT: Show cached immediately
-              isPositionChanging: false,
-              isPositionSaving: false
-            };
-            setCoverState(cachedState);
-            notifyCoverChange(targetUserId, cachedState);
-          }
+      const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw);
+        const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
+        const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
+        const cachedPos = normalizePosition(cached?.position || coverState.position);
+        if (isValidUrl) {
+          console.log('⚡ Using cached cover instantly:', cachedUrl.substring(0, 80));
+          const cachedState: CoverState = { 
+            userId: targetUserId,
+            key: cached?.key || null,
+            resolvedUrl: cachedUrl as string, 
+            lastGoodUrl: cachedUrl as string, 
+            position: cachedPos, 
+            loading: false,
+            isPositionChanging: false,
+            isPositionSaving: false
+          };
+          setCoverState(cachedState);
+          notifyCoverChange(targetUserId, cachedState);
+          return; // INSTANT: Skip DB fetch, show cached immediately
         }
-      } catch {}
+      }
+    } catch {}
+
+    try {
+      console.log('🔄 Loading cover from database for user:', targetUserId);
       
       // Always load fresh from database with comprehensive fallbacks
       let anyProfile: any = null;

@@ -12,14 +12,14 @@ const GlobalAvatarBootstrap = () => {
 
   useEffect(() => {
     if (user?.id) {
-      console.log('🚀 GlobalAvatarBootstrap: Aggressive preload for user', user.id);
-      // INSTANT LOAD: Load and preload avatar immediately, no delays
-      avatarStore.load(user.id, true).then(() => {
-        const state = avatarStore.getState(user.id);
-        if (state.url) {
-          avatarCacheService.preload(state.url).catch(() => {});
-        }
-      }).catch(() => {});
+      console.log('⚡ GlobalAvatarBootstrap: Instant display for user', user.id);
+      // INSTANT: Use cached avatar immediately, no database fetch
+      const state = avatarStore.getState(user.id);
+      if (state.lastGoodUrl) {
+        console.log('⚡ Showing cached avatar instantly');
+      }
+      // Load in background without blocking
+      avatarStore.load(user.id, false).catch(() => {});
     }
   }, [user?.id]);
 
