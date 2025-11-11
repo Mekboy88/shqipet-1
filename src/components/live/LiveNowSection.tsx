@@ -1,11 +1,10 @@
-import React, { useRef, useState, useEffect } from "react";
-import { liveVideos } from "./data/liveVideosData";
+import React, { useRef, useState } from "react";
 import LiveSectionHeader from "./components/LiveSectionHeader";
 import LiveVideoList from "./components/LiveVideoList";
 import LiveVideoGrid from "./components/LiveVideoGrid";
 import LiveEmptyState from "./LiveEmptyState";
 import { useLocalization } from '@/hooks/useLocalization';
-import { supabase } from '@/integrations/supabase/client';
+import { useLiveStreams } from '@/hooks/useLiveStreams';
 import "./styles/index.css";
 
 const LiveNowSection: React.FC = () => {
@@ -13,47 +12,10 @@ const LiveNowSection: React.FC = () => {
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [gridLayout, setGridLayout] = useState<"1x1" | "2x2" | "3x3" | "4x4">("1x1");
-  const [liveStreams, setLiveStreams] = useState(liveVideos);
+  const { liveStreams, loading } = useLiveStreams();
   const { t } = useLocalization();
-  
-  // Real-time subscription to avatar/cover updates
-  useEffect(() => {
-    const channel = supabase
-      .channel('live-section-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles'
-        },
-        () => {
-          console.log('🔄 Live section: profile update detected, refreshing data');
-          // Trigger re-render by updating state timestamp
-          setLiveStreams([...liveVideos]);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_photos'
-        },
-        () => {
-          console.log('🔄 Live section: user photo update detected, refreshing data');
-          setLiveStreams([...liveVideos]);
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
 
-  // Show demo live streams for now (in a real app, this would check API)
-  const hasLiveStreams = true; // liveVideos.length > 0;
+  const hasLiveStreams = liveStreams.length > 0;
 
   const scrollVideos = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
