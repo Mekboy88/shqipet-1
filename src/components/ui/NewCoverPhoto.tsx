@@ -59,15 +59,23 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
       }}
       onMouseMove={onMouseMove}
     >
-      {/* Render actual image as layer to avoid CSS/background inconsistencies across panes */}
+      {/* Render actual image with sharp positioning (same technique as avatar fix) */}
       {displayUrl && (
-        <img
-          src={displayUrl}
-          alt="Cover photo"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: position }}
-          onError={() => { try { loadCover?.(); } catch {} }}
-        />
+        <div className="absolute inset-0 overflow-hidden">
+          <img
+            src={displayUrl}
+            alt="Cover photo"
+            className="absolute min-w-full min-h-full w-auto h-auto"
+            style={{ 
+              objectFit: 'cover',
+              objectPosition: position,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
+            }}
+            onError={() => { try { loadCover?.(); } catch {} }}
+          />
+        </div>
       )}
       {/* Blue tint overlay - 10% */}
       <div className="absolute inset-0 bg-blue-500/[0.10]"></div>
