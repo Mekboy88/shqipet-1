@@ -64,36 +64,7 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate minimum resolution to avoid blur on large/retina displays
-    const MIN_WIDTH = 1920; // supports crisp 1x desktop and good 2x on many screens
-    const MIN_HEIGHT = 640;
-
-    const loadImageDimensions = (f: File) =>
-      new Promise<{ width: number; height: number }>((resolve, reject) => {
-        const url = URL.createObjectURL(f);
-        const img = new Image();
-        img.onload = () => {
-          const w = img.naturalWidth;
-          const h = img.naturalHeight;
-          URL.revokeObjectURL(url);
-          resolve({ width: w, height: h });
-        };
-        img.onerror = (err) => {
-          URL.revokeObjectURL(url);
-          reject(err);
-        };
-        img.src = url;
-      });
-
     try {
-      const { width, height } = await loadImageDimensions(file);
-      if (width < MIN_WIDTH || height < MIN_HEIGHT) {
-        toast.error(`Cover is too small (${width}×${height}). Please upload at least ${MIN_WIDTH}×${MIN_HEIGHT} for a sharp result.`);
-        // Reset input
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        return;
-      }
-
       await updateCover(file);
       toast.success('Cover photo updated successfully');
     } catch (error) {
