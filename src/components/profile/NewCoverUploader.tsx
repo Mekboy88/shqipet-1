@@ -26,7 +26,7 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
   children,
   userId
 }) => {
-  const { updateCover, updatePosition, position, resolvedUrl } = useCover(userId);
+  const { updateCover, updatePosition, position, resolvedUrl, loading } = useCover(userId);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragMode, setIsDragMode] = useState(false);
   const [dragPosition, setDragPosition] = useState(position);
@@ -95,7 +95,7 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
   const saveDragPosition = async () => {
     setIsSaving(true);
     try {
-      await updatePosition(dragPosition);
+      await updatePosition(dragPosition, true);
       setIsDragMode(false);
       toast.success('Cover position updated');
     } catch (error) {
@@ -106,7 +106,6 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
       setIsSaving(false);
     }
   };
-
   const toggleDragMode = () => {
     if (isDragMode) {
       setDragPosition(position); // Reset to original if canceling
@@ -201,11 +200,13 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
           </div>
         )}
 
-        {/* Saving overlay after clicking Save */}
+        {/* Saving/uploading overlays */}
         {isSaving && (
           <LoadingDots message="Saving cover position..." variant="light" size="md" />
         )}
-
+        {loading && (
+          <LoadingDots message="Updating cover photo..." variant="light" size="md" />
+        )}
         {/* Pass through children (avatar, etc.) */}
         {children}
       </NewCoverPhoto>
