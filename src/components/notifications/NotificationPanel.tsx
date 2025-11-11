@@ -484,17 +484,17 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
           <div className="border-b border-border overflow-x-auto">
             <TabsList className="w-full justify-start h-auto p-1 bg-transparent rounded-none">
-              <TabsTrigger value="all" className="text-xs px-3 py-1.5">All</TabsTrigger>
-              <TabsTrigger value="mentions" className="text-xs px-3 py-1.5">@Mentions</TabsTrigger>
-              <TabsTrigger value="messages" className="text-xs px-3 py-1.5">Messages</TabsTrigger>
-              <TabsTrigger value="follows" className="text-xs px-3 py-1.5">Follows</TabsTrigger>
-              <TabsTrigger value="comments" className="text-xs px-3 py-1.5">Comments</TabsTrigger>
-              <TabsTrigger value="reactions" className="text-xs px-3 py-1.5">Reactions</TabsTrigger>
-              <TabsTrigger value="shares" className="text-xs px-3 py-1.5">Shares</TabsTrigger>
-              <TabsTrigger value="groups" className="text-xs px-3 py-1.5">Groups</TabsTrigger>
-              <TabsTrigger value="events" className="text-xs px-3 py-1.5">Events</TabsTrigger>
-              <TabsTrigger value="marketplace" className="text-xs px-3 py-1.5">Market</TabsTrigger>
-              <TabsTrigger value="system" className="text-xs px-3 py-1.5">System</TabsTrigger>
+              <TabsTrigger value="all" className="text-xs px-2 py-1.5">All</TabsTrigger>
+              <TabsTrigger value="mentions" className="text-xs px-2 py-1.5">@Mentions</TabsTrigger>
+              <TabsTrigger value="messages" className="text-xs px-2 py-1.5">Messages</TabsTrigger>
+              <TabsTrigger value="follows" className="text-xs px-2 py-1.5">Follows</TabsTrigger>
+              <TabsTrigger value="comments" className="text-xs px-2 py-1.5">Comments</TabsTrigger>
+              <TabsTrigger value="reactions" className="text-xs px-2 py-1.5">Reactions</TabsTrigger>
+              <TabsTrigger value="shares" className="text-xs px-2 py-1.5">Shares</TabsTrigger>
+              <TabsTrigger value="groups" className="text-xs px-2 py-1.5">Groups</TabsTrigger>
+              <TabsTrigger value="events" className="text-xs px-2 py-1.5">Events</TabsTrigger>
+              <TabsTrigger value="marketplace" className="text-xs px-2 py-1.5">Market</TabsTrigger>
+              <TabsTrigger value="system" className="text-xs px-2 py-1.5">System</TabsTrigger>
             </TabsList>
           </div>
 
