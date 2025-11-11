@@ -255,10 +255,8 @@ class AvatarStore {
       return;
     }
     
-    // NO LOCAL CACHE - Always load fresh from database/Wasabi
-    // But don't show loading state to prevent skeleton flicker
-
-    setState(userId, { error: null }); // Clear errors but don't set loading
+    // INSTANT DISPLAY: Never set loading state
+    setState(userId, { error: null });
     console.log('🔄 Loading avatar from database for user:', userId);
 
     try {
@@ -350,11 +348,9 @@ class AvatarStore {
         }
       }
 
-      // Preload avatar to eliminate flicker
+      // AGGRESSIVE PRELOAD: Start immediately, don't wait
       if (url) {
-        avatarCacheService.preload(url).catch(err => {
-          console.warn('Avatar preload failed (non-blocking):', err);
-        });
+        avatarCacheService.preload(url).catch(() => {});
       }
 
       // Final state update - never downgrade a good URL

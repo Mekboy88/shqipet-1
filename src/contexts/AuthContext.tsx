@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { immediateLogoutService } from '@/utils/auth/immediateLogoutService';
 import { userDataSynchronizer } from '@/services/userDataSynchronizer';
 import { sessionProtection } from '@/utils/auth/sessionProtection';
+import { instantMediaPreloader } from '@/services/media/InstantMediaPreloader';
 
 interface UserProfile {
   id: string;
@@ -114,6 +115,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   import('@/lib/profileSettingsCache').then(m => m.prefetchProfileSettings(session.user!.id)).catch(console.warn);
                   // Synchronize all user data immediately
                   userDataSynchronizer.syncUserData(session.user.id).catch(console.warn);
+                  // INSTANT MEDIA: Preload avatar and cover immediately on login
+                  instantMediaPreloader.preloadUserMedia(session.user.id).catch(() => {});
                 }
               }
             }
@@ -152,7 +155,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           import('@/lib/profileSettingsCache').then(m => m.prefetchProfileSettings(session.user!.id)).catch(console.warn);
           // Immediately synchronize all user data for instant loading
           userDataSynchronizer.syncUserData(session.user.id).catch(console.warn);
-          
+          // INSTANT MEDIA: Preload avatar and cover immediately on app load
+          instantMediaPreloader.preloadUserMedia(session.user.id).catch(() => {});
           // CRITICAL: Start session protection to prevent automatic logouts
           sessionProtection.startProtection();
           console.log('🛡️ Session protection started for user');

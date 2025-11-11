@@ -12,9 +12,14 @@ const GlobalAvatarBootstrap = () => {
 
   useEffect(() => {
     if (user?.id) {
-      console.log('🚀 GlobalAvatarBootstrap: Loading avatar for authenticated user', user.id);
-      // Ensure avatar is loaded immediately when user is available
-      avatarStore.load(user.id);
+      console.log('🚀 GlobalAvatarBootstrap: Aggressive preload for user', user.id);
+      // INSTANT LOAD: Load and preload avatar immediately, no delays
+      avatarStore.load(user.id, true).then(() => {
+        const state = avatarStore.getState(user.id);
+        if (state.url) {
+          avatarCacheService.preload(state.url).catch(() => {});
+        }
+      }).catch(() => {});
     }
   }, [user?.id]);
 

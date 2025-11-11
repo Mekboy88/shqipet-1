@@ -53,7 +53,7 @@ const getDefaultState = (userId: string): CoverState => ({
   key: null,
   resolvedUrl: null,
   position: 'center 50%',
-  loading: true,
+  loading: false, // INSTANT: Never show loading skeleton
   lastGoodUrl: null,
   isPositionChanging: false,
   isPositionSaving: false
@@ -160,7 +160,7 @@ export const useCover = (userId?: string) => {
             resolvedUrl: cachedUrl as string,
             lastGoodUrl: cachedUrl as string,
             position: cachedPos,
-            loading: true,
+            loading: false, // INSTANT: Never show loading on initial render
             isPositionChanging: false,
             isPositionSaving: false
           };
@@ -275,7 +275,7 @@ export const useCover = (userId?: string) => {
               resolvedUrl: cachedUrl as string, 
               lastGoodUrl: cachedUrl as string, 
               position: cachedPos, 
-              loading: true,
+              loading: false, // INSTANT: Show cached immediately
               isPositionChanging: false,
               isPositionSaving: false
             };
@@ -414,11 +414,8 @@ export const useCover = (userId?: string) => {
         return;
       }
 
-      // Set loading state
+      // INSTANT: Skip loading state, keep showing cached image
       const currentKey = anyProfile?.cover_url || candidate;
-      const loadingState = { ...coverState, key: currentKey, position, loading: true };
-      setCoverState(loadingState);
-      notifyCoverChange(targetUserId, loadingState);
 
       // Resolve URL (support both keys and direct URLs)
       const isDirectUrl = typeof candidate === 'string' && /^(https?:|blob:|data:)/.test(candidate);
