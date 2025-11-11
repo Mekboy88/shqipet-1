@@ -243,7 +243,10 @@ class AvatarStore {
       return;
     }
     
+    // ⚠️ CRITICAL OPTIMIZATION - DO NOT MODIFY ⚠️
     // INSTANT: If we have cached data, show it immediately and skip DB fetch
+    // This ensures avatars appear instantly on login with ZERO delay
+    // Removing this will cause visible loading delays and poor UX
     if (!forceRefresh && current.lastGoodUrl && current.lastGoodUrl.startsWith('http')) {
       console.log('⚡ Using cached avatar instantly:', current.lastGoodUrl.substring(0, 80));
       setState(userId, { 
@@ -252,6 +255,7 @@ class AvatarStore {
       });
       return;
     }
+    // ⚠️ END CRITICAL SECTION ⚠️
     
     // INSTANT DISPLAY: Never set loading state
     setState(userId, { error: null });

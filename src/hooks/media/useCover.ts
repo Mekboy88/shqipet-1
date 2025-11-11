@@ -53,7 +53,7 @@ const getDefaultState = (userId: string): CoverState => ({
   key: null,
   resolvedUrl: null,
   position: 'center 50%',
-  loading: false, // INSTANT: Never show loading skeleton
+  loading: false, // ⚠️ CRITICAL: NEVER show loading skeleton - instant display only
   lastGoodUrl: null,
   isPositionChanging: false,
   isPositionSaving: false
@@ -258,7 +258,10 @@ export const useCover = (userId?: string) => {
       return;
     }
 
+    // ⚠️ CRITICAL OPTIMIZATION - DO NOT MODIFY ⚠️
     // INSTANT: If we have cached data, show it and skip DB fetch entirely
+    // This ensures cover photos appear instantly on login with ZERO delay
+    // Removing this will cause visible loading delays and poor UX
     try {
       const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
       if (cachedRaw) {
@@ -284,6 +287,7 @@ export const useCover = (userId?: string) => {
         }
       }
     } catch {}
+    // ⚠️ END CRITICAL SECTION ⚠️
 
     try {
       console.log('🔄 Loading cover from database for user:', targetUserId);

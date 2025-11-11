@@ -1,6 +1,10 @@
 /**
  * InstantMediaPreloader - Aggressively preloads all user media on login
  * Ensures zero delays when displaying avatar and cover photos
+ * 
+ * ⚠️ CRITICAL SYSTEM - DO NOT MODIFY WITHOUT APPROVAL ⚠️
+ * This service is essential for instant photo display on login.
+ * Any changes may cause visible delays and poor user experience.
  */
 
 class InstantMediaPreloader {
