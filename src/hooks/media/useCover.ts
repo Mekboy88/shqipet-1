@@ -234,6 +234,16 @@ export const useCover = (userId?: string) => {
             const changedUserId = row.auth_user_id || row.user_id || row.id;
             if (changedUserId === targetUserId) {
               console.log('🔄 Cover real-time update:', payload);
+              
+              // CRITICAL: Clear cache first to force fresh load
+              console.log('🗑️ Clearing cover cache before reload');
+              try {
+                localStorage.removeItem(`cover:last:${targetUserId}`);
+              } catch (e) {
+                console.warn('Failed to clear cover cache:', e);
+              }
+              
+              // Force reload from database
               loadCover(true);
             }
           } catch (e) {

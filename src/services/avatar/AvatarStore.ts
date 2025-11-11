@@ -211,7 +211,15 @@ class AvatarStore {
             const newData = (payload as any).new;
             
             if (newData?.avatar_url) {
-              // Reload avatar when it changes
+              // CRITICAL: Clear cache first to force fresh load
+              console.log('🗑️ Clearing avatar cache before reload');
+              try {
+                localStorage.removeItem(`avatar_cache_${userId}`);
+              } catch (e) {
+                console.warn('Failed to clear avatar cache:', e);
+              }
+              
+              // Force reload avatar from database
               console.log('🔄 Avatar changed remotely, reloading...');
               this.load(userId, true);
             }
