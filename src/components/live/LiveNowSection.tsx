@@ -2,9 +2,8 @@ import React, { useRef, useState } from "react";
 import LiveSectionHeader from "./components/LiveSectionHeader";
 import LiveVideoList from "./components/LiveVideoList";
 import LiveVideoGrid from "./components/LiveVideoGrid";
-import LiveEmptyState from "./LiveEmptyState";
 import { useLocalization } from '@/hooks/useLocalization';
-import { useLiveStreams } from '@/hooks/useLiveStreams';
+import { liveVideos } from './data/liveVideosData';
 import "./styles/index.css";
 
 const LiveNowSection: React.FC = () => {
@@ -12,10 +11,7 @@ const LiveNowSection: React.FC = () => {
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [gridLayout, setGridLayout] = useState<"1x1" | "2x2" | "3x3" | "4x4">("1x1");
-  const { liveStreams, loading } = useLiveStreams();
   const { t } = useLocalization();
-
-  const hasLiveStreams = liveStreams.length > 0;
 
   const scrollVideos = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -53,13 +49,9 @@ const LiveNowSection: React.FC = () => {
   return <div data-horizontal-scroll="true" className="p-0 m-0 leading-none" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)} style={{
     overscrollBehaviorX: 'contain'
   }}>
+      <LiveSectionHeader gridLayout={gridLayout} setGridLayout={setGridLayout} />
       
-      
-      {hasLiveStreams ? <>
-          <LiveSectionHeader gridLayout={gridLayout} setGridLayout={setGridLayout} />
-          
-          {gridLayout === "1x1" ? <LiveVideoList videos={liveStreams} showLeftButton={showLeftButton} isHovering={isHovering} onScroll={handleScroll} onScrollLeft={() => scrollVideos('left')} onScrollRight={() => scrollVideos('right')} ref={scrollContainerRef} /> : <LiveVideoGrid videos={liveStreams} gridLayout={gridLayout} getGridClass={getGridClass} />}
-        </> : <LiveEmptyState />}
+      {gridLayout === "1x1" ? <LiveVideoList videos={liveVideos} showLeftButton={showLeftButton} isHovering={isHovering} onScroll={handleScroll} onScrollLeft={() => scrollVideos('left')} onScrollRight={() => scrollVideos('right')} ref={scrollContainerRef} /> : <LiveVideoGrid videos={liveVideos} gridLayout={gridLayout} getGridClass={getGridClass} />}
     </div>;
 };
 export default LiveNowSection;
