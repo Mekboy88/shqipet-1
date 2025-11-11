@@ -32,7 +32,8 @@ const VALIDATION_RULES: Record<MediaType, ValidationRules> = {
   cover: {
     maxSizeMB: 10,
     allowedTypes: ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'],
-    dimensions: { minWidth: 800, minHeight: 300, maxWidth: 4000, maxHeight: 4000 }
+    // Skip client-side dimension checks for cover to support HEIC/AVIF and let server validate
+    dimensions: undefined
   },
   'post-image': {
     maxSizeMB: 20,
@@ -193,9 +194,9 @@ class UploadService {
       
       img.onerror = () => {
         URL.revokeObjectURL(url);
-        reject(new Error('Failed to load image for validation'));
+        console.warn('Skipping client-side dimension check (browser cannot decode this format). Server will validate.');
+        resolve();
       };
-      
       img.src = url;
     });
   }
