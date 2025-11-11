@@ -65,13 +65,16 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
           <img
             src={displayUrl}
             alt="Cover photo"
-            className="absolute min-w-full min-h-full w-auto h-auto"
+            className="absolute w-auto h-auto"
             style={{ 
+              minWidth: '100%',
+              minHeight: '100%',
               objectFit: 'cover',
               objectPosition: position,
               top: '50%',
               left: '50%',
-              transform: 'translate(-50%, -50%)'
+              transform: 'translate(-50%, -50%)',
+              imageRendering: 'crisp-edges'
             }}
             onError={() => { try { loadCover?.(); } catch {} }}
           />
