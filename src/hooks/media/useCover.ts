@@ -234,7 +234,7 @@ export const useCover = (userId?: string) => {
             const changedUserId = row.auth_user_id || row.user_id || row.id;
             if (changedUserId === targetUserId) {
               console.log('🔄 Cover real-time update:', payload);
-              loadCover(true);
+              loadCover();
             }
           } catch (e) {
             console.warn('Realtime handler error:', e);
@@ -248,7 +248,7 @@ export const useCover = (userId?: string) => {
     };
   }, [targetUserId]);
 
-  const loadCover = async (force: boolean = false) => {
+  const loadCover = async () => {
     if (!targetUserId) return;
 
     // CRITICAL: Don't reload during upload
@@ -264,7 +264,7 @@ export const useCover = (userId?: string) => {
     // Removing this will cause visible loading delays and poor UX
     try {
       const cachedRaw = localStorage.getItem(`cover:last:${targetUserId}`);
-      if (!force && cachedRaw) {
+      if (cachedRaw) {
         const cached = JSON.parse(cachedRaw);
         const cachedUrl = typeof cached?.url === 'string' ? cached.url : null;
         const isValidUrl = cachedUrl && !/^blob:|^data:/.test(cachedUrl);
@@ -698,7 +698,7 @@ export const useCover = (userId?: string) => {
       notifyCoverChange(targetUserId, finalState);
 
       // Step 5: Background refresh to verify persistence
-      setTimeout(() => loadCover(true), 100);
+      setTimeout(() => loadCover(), 100);
 
       console.log('✅ Cover updated successfully:', key);
       toast.success('Cover updated successfully');
