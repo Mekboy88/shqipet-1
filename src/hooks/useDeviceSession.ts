@@ -132,7 +132,7 @@ export const useDeviceSession = () => {
       const { data: existingProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('auth_user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (profileError && profileError.code !== 'PGRST116') {
@@ -146,7 +146,7 @@ export const useDeviceSession = () => {
         const { error: createError } = await supabase
           .from('profiles')
           .insert({
-            user_id: user.id, // Add the required user_id field
+            id: user.id, // Ensure PK matches auth.uid() to satisfy FKs
             auth_user_id: user.id,
             email: user.email || '',
             first_name: user.user_metadata?.first_name || '',
@@ -394,6 +394,9 @@ export const useDeviceSession = () => {
     setError(null);
     
     try {
+      // Ensure profile exists first
+      await ensureUserProfile();
+
       // Re-register current device first
       const sessionId = await registerCurrentDevice();
       if (sessionId) {
@@ -429,6 +432,12 @@ export const useDeviceSession = () => {
     // Initialize with async function to avoid dependency issues
     const initialize = async () => {
       try {
+        // Step 0: Ensure user profile exists to satisfy FK and RLS
+        const profileOk = await ensureUserProfile();
+        if (!profileOk) {
+          console.warn('⚠️ Could not ensure user profile exists; continuing and relying on existing state.');
+        }
+
         // Step 1: Register current device
         const sessionId = await registerCurrentDevice();
         if (sessionId) {
