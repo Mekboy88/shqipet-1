@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -39,6 +39,8 @@ export const useDeviceSession = () => {
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const { user } = useAuth();
+  const initializedRef = useRef(false);
+  const loadDevicesRef = useRef<() => Promise<void>>();
 
   // Generate device fingerprint
   const generateDeviceFingerprint = useCallback((): DeviceFingerprint => {
@@ -342,6 +344,11 @@ export const useDeviceSession = () => {
     }
   }, [user, detectDeviceDetails, createFingerprintHash, generateDeviceFingerprint]);
 
+  // Store ref to loadTrustedDevices to prevent infinite loops in real-time subscription
+  useEffect(() => {
+    loadDevicesRef.current = loadTrustedDevices;
+  }, [loadTrustedDevices]);
+
   // Trust/untrust device
   const toggleDeviceTrust = useCallback(async (deviceId: string, trusted: boolean) => {
     if (!user) return;
@@ -413,10 +420,11 @@ export const useDeviceSession = () => {
     }
   }, [user, registerCurrentDevice, loadTrustedDevices]);
 
-  // Initialize on mount and when user changes (simplified dependencies)
+  // Initialize on mount and when user changes (prevent duplicate runs)
   useEffect(() => {
     if (!user) {
       // Reset state when user logs out
+      initializedRef.current = false;
       setTrustedDevices([]);
       setCurrentDeviceId(null);
       setError(null);
@@ -425,7 +433,14 @@ export const useDeviceSession = () => {
       return;
     }
 
+    // Prevent duplicate initialization
+    if (initializedRef.current) {
+      console.log('⏭️ Already initialized, skipping');
+      return;
+    }
+
     console.log('🔄 Initializing device session for user:', user.id);
+    initializedRef.current = true;
     setLoading(true);
     setError(null);
     
@@ -460,7 +475,7 @@ export const useDeviceSession = () => {
     initialize();
   }, [user?.id]); // Only depend on user.id to avoid stale closures
 
-  // Real-time subscription for session changes (improved)
+  // Real-time subscription for session changes (stable - no dependency loops)
   useEffect(() => {
     if (!user) {
       setRealtimeStatus('disconnected');
@@ -471,7 +486,7 @@ export const useDeviceSession = () => {
     setRealtimeStatus('connecting');
 
     const channel = supabase
-      .channel('user-sessions-changes')
+      .channel(`user-sessions-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -482,10 +497,12 @@ export const useDeviceSession = () => {
         },
         (payload) => {
           console.log('🔔 Real-time session change received:', payload.eventType, payload.new?.id);
-          // Debounce rapid updates
-          setTimeout(() => {
-            loadTrustedDevices();
-          }, 100);
+          // Use ref to avoid dependency on loadTrustedDevices callback
+          if (loadDevicesRef.current) {
+            setTimeout(() => {
+              loadDevicesRef.current?.();
+            }, 300); // Increased debounce to prevent rapid updates
+          }
         }
       )
       .subscribe((status) => {
@@ -507,7 +524,7 @@ export const useDeviceSession = () => {
       setRealtimeStatus('disconnected');
       supabase.removeChannel(channel);
     };
-  }, [user?.id]); // Only depend on user.id
+  }, [user?.id]); // Only depend on user.id - no callback dependencies
 
   return {
     trustedDevices,
