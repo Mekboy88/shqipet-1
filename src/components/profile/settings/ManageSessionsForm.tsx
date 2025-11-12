@@ -327,20 +327,6 @@ const ManageSessionsForm: React.FC = () => {
         <div className="mb-6 flex justify-center">
           <LiveStatusIndicator isConnected={realtimeConnected} />
         </div>
-
-        {/* Debug Info for Development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-3 bg-gray-100 rounded-lg text-xs space-y-1">
-            <div><strong>Debug Info:</strong></div>
-            <div>User ID: {signOut ? 'Available' : 'None'}</div>
-            <div>Devices Count: {trustedDevices.length}</div>
-            <div>Current Device: {currentDeviceId || 'None'}</div>
-            <div>Real-time: {realtimeStatus}</div>
-            <div>Last Refresh: {lastRefresh.toLocaleTimeString()}</div>
-            <div>Loading: {loading ? 'Yes' : 'No'}</div>
-            <div>Error: {error || 'None'}</div>
-          </div>
-        )}
         
         {trustedDevices.length > 0 ? (
           <>
