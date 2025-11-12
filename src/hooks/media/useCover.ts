@@ -215,45 +215,65 @@ export const useCover = (userId?: string) => {
     loadCover();
   }, [targetUserId]);
 
-  // Set up real-time subscription
+  // Set up real-time subscription for cover photo updates
   useEffect(() => {
     if (!targetUserId) return;
 
+    console.log('🔄 [COVER REAL-TIME] Setting up cover realtime subscription for user:', targetUserId);
+    
     const channel = supabase
-      .channel(`profile-cover-${targetUserId}`)
+      .channel(`cover-realtime-${targetUserId}`)
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'UPDATE',
           schema: 'public',
-          table: 'profiles'
+          table: 'profiles',
+          filter: `id=eq.${targetUserId}`
         },
         (payload) => {
+          console.log('✏️ [COVER REAL-TIME] Profile cover updated:', payload);
+          
+          // CRITICAL: Clear cache first to force fresh load
+          console.log('🗑️ Clearing cover cache before reload');
           try {
-            const row: any = (payload as any).new || (payload as any).old || {};
-            const changedUserId = row.auth_user_id || row.user_id || row.id;
-            if (changedUserId === targetUserId) {
-              console.log('🔄 Cover real-time update:', payload);
-              
-              // CRITICAL: Clear cache first to force fresh load
-              console.log('🗑️ Clearing cover cache before reload');
-              try {
-                localStorage.removeItem(`cover:last:${targetUserId}`);
-              } catch (e) {
-                console.warn('Failed to clear cover cache:', e);
-              }
-              
-              // Force reload from database
-              loadCover(true);
-            }
+            localStorage.removeItem(`cover:last:${targetUserId}`);
           } catch (e) {
-            console.warn('Realtime handler error:', e);
+            console.warn('Failed to clear cover cache:', e);
           }
+          
+          // Force reload from database
+          loadCover(true);
         }
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'personal_introduction',
+          filter: `user_id=eq.${targetUserId}`
+        },
+        (payload) => {
+          console.log('✏️ [COVER REAL-TIME] Personal introduction cover updated:', payload);
+          
+          // CRITICAL: Clear cache first to force fresh load
+          try {
+            localStorage.removeItem(`cover:last:${targetUserId}`);
+          } catch (e) {
+            console.warn('Failed to clear cover cache:', e);
+          }
+          
+          // Force reload from database
+          loadCover(true);
+        }
+      )
+      .subscribe((status) => {
+        console.log('🔌 [COVER REAL-TIME] Cover channel status:', status);
+      });
 
     return () => {
+      console.log('🧹 [COVER REAL-TIME] Cleaning up cover realtime subscription');
       supabase.removeChannel(channel);
     };
   }, [targetUserId]);
