@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import heic2any from 'heic2any';
 
 export type MediaType = 'avatar' | 'cover' | 'post-image' | 'post-video';
 
@@ -93,13 +94,29 @@ class UploadService {
    */
   async upload(file: File, mediaType: MediaType, userId?: string): Promise<UploadResult> {
     try {
-      // Validate first
-      await this.validate(file, mediaType);
+      // Convert unsupported mobile formats (HEIC/HEIF) to JPEG before validation/upload
+      let workingFile = file;
+      const lowerName = file.name.toLowerCase();
+      const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || /(heic|heif)$/.test(lowerName);
+      if (isHeic) {
+        try {
+          const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
+          const blob = converted as Blob; // heic2any returns Blob
+          const newName = lowerName.replace(/\.(heic|heif)$/i, '.jpg') || `${lowerName}.jpg`;
+          workingFile = new File([blob], newName, { type: 'image/jpeg' });
+          console.log('🔁 Converted HEIC/HEIF to JPEG for compatibility:', { originalType: file.type, newType: workingFile.type, newSizeMB: (workingFile.size/1024/1024).toFixed(2) });
+        } catch (convErr) {
+          console.warn('HEIC/HEIF conversion failed, proceeding with original file (server may reject):', convErr);
+        }
+      }
+
+      // Validate after conversion
+      await this.validate(workingFile, mediaType);
 
       console.log(`📤 Uploading ${mediaType}:`, {
-        name: file.name,
-        size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        type: file.type
+        name: workingFile.name,
+        size: `${(workingFile.size / 1024 / 1024).toFixed(2)}MB`,
+        type: workingFile.type
       });
 
       // Get authenticated session
@@ -110,7 +127,7 @@ class UploadService {
 
       // Use FormData for file upload with metadata
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', workingFile);
       formData.append('mediaType', mediaType);
       formData.append('updateProfile', 'true'); // Allow profile updates for real uploads
       if (userId) {

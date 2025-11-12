@@ -57,6 +57,7 @@
     "embla-carousel-react": "^8.3.0",
     "exif-rotate": "^0.0.3",
     "framer-motion": "^12.23.22",
+    "heic2any": "^0.0.4",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.2.4",
     "jspdf": "^3.0.1",
