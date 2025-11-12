@@ -1658,57 +1658,96 @@ export type Database = {
       }
       user_sessions: {
         Row: {
+          app_version: string | null
           browser_info: string | null
+          city: string | null
+          country: string | null
+          country_code: string | null
           created_at: string | null
           device_fingerprint: string
           device_name: string | null
           device_type: string | null
+          hardware_info: Json | null
           id: string
           ip_address: string | null
           is_active: boolean | null
           is_trusted: boolean | null
           last_activity: string | null
+          latitude: number | null
           location: string | null
           login_count: number | null
+          longitude: number | null
+          mfa_enabled: boolean | null
+          network_provider: string | null
           operating_system: string | null
+          platform_type: string | null
+          screen_resolution: string | null
+          security_alerts: Json | null
+          session_status: string | null
           session_token: string | null
           updated_at: string | null
           user_agent: string | null
           user_id: string
         }
         Insert: {
+          app_version?: string | null
           browser_info?: string | null
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
           created_at?: string | null
           device_fingerprint: string
           device_name?: string | null
           device_type?: string | null
+          hardware_info?: Json | null
           id?: string
           ip_address?: string | null
           is_active?: boolean | null
           is_trusted?: boolean | null
           last_activity?: string | null
+          latitude?: number | null
           location?: string | null
           login_count?: number | null
+          longitude?: number | null
+          mfa_enabled?: boolean | null
+          network_provider?: string | null
           operating_system?: string | null
+          platform_type?: string | null
+          screen_resolution?: string | null
+          security_alerts?: Json | null
+          session_status?: string | null
           session_token?: string | null
           updated_at?: string | null
           user_agent?: string | null
           user_id: string
         }
         Update: {
+          app_version?: string | null
           browser_info?: string | null
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
           created_at?: string | null
           device_fingerprint?: string
           device_name?: string | null
           device_type?: string | null
+          hardware_info?: Json | null
           id?: string
           ip_address?: string | null
           is_active?: boolean | null
           is_trusted?: boolean | null
           last_activity?: string | null
+          latitude?: number | null
           location?: string | null
           login_count?: number | null
+          longitude?: number | null
+          mfa_enabled?: boolean | null
+          network_provider?: string | null
           operating_system?: string | null
+          platform_type?: string | null
+          screen_resolution?: string | null
+          security_alerts?: Json | null
+          session_status?: string | null
           session_token?: string | null
           updated_at?: string | null
           user_agent?: string | null

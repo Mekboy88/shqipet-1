@@ -30,6 +30,19 @@ interface TrustedDevice {
   login_count: number;
   location?: string;
   ip_address?: string;
+  screen_resolution?: string;
+  network_provider?: string;
+  city?: string;
+  country?: string;
+  country_code?: string;
+  latitude?: number;
+  longitude?: number;
+  platform_type?: 'web' | 'ios' | 'android' | 'pwa';
+  app_version?: string;
+  hardware_info?: any;
+  mfa_enabled?: boolean;
+  security_alerts?: any[];
+  session_status?: 'active' | 'logged_in' | 'inactive';
 }
 
 export const useDeviceSession = () => {
@@ -190,7 +203,14 @@ export const useDeviceSession = () => {
           console.log('✅ Updated existing device session:', sessionId);
         }
       } else {
-        // Create new session
+        // Create new session with enhanced device information
+        const screenRes = `${screen.width}x${screen.height}`;
+        const hardwareInfo = {
+          cpu: navigator.hardwareConcurrency || 'Unknown',
+          memory: (navigator as any).deviceMemory || 'Unknown',
+          platform: navigator.platform,
+        };
+
         const { data, error } = await supabase
           .from('user_sessions')
           .insert({
@@ -205,7 +225,13 @@ export const useDeviceSession = () => {
             user_agent: navigator.userAgent,
             last_activity: new Date().toISOString(),
             is_active: true,
-            session_token: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            session_token: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            screen_resolution: screenRes,
+            platform_type: 'web',
+            hardware_info: hardwareInfo,
+            mfa_enabled: false,
+            session_status: 'active',
+            security_alerts: [],
           })
           .select()
           .single();

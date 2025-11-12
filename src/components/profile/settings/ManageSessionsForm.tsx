@@ -49,9 +49,8 @@ const ManageSessionsForm: React.FC = () => {
       ? 'text-primary' 
       : 'text-muted-foreground';
     
-    const iconProps = { size: 28, className: colorClass };
-    
-    switch (deviceType.toLowerCase()) {
+    const iconProps = { size: 24, className: colorClass };
+    switch (deviceType?.toLowerCase()) {
       case 'smartphone':
       case 'mobile':
         return <Smartphone {...iconProps} />;
@@ -63,9 +62,18 @@ const ManageSessionsForm: React.FC = () => {
         return <Monitor {...iconProps} />;
       case 'unknown':
         return <HelpCircle {...iconProps} />;
-      default: 
+      default:
         return <Monitor {...iconProps} />;
     }
+  };
+
+  const getFlagEmoji = (countryCode: string): string => {
+    if (!countryCode || countryCode.length !== 2) return '🌍';
+    const codePoints = countryCode
+      .toUpperCase()
+      .split('')
+      .map(char => 127397 + char.charCodeAt(0));
+    return String.fromCodePoint(...codePoints);
   };
 
   const getBrowserIcon = (browser: string) => {
@@ -79,13 +87,31 @@ const ManageSessionsForm: React.FC = () => {
   };
 
   const getStatusColor = (device: typeof trustedDevices[0]) => {
-    if (device.is_current) return 'bg-green-500';
-    return 'bg-amber-500';
+    const status = device.session_status || (device.is_current ? 'active' : 'logged_in');
+    switch (status) {
+      case 'active':
+        return 'bg-green-500 text-green-600';
+      case 'logged_in':
+        return 'bg-amber-500 text-amber-500';
+      case 'inactive':
+        return 'bg-gray-400 text-gray-400';
+      default:
+        return 'bg-green-500 text-green-600';
+    }
   };
 
   const getStatusText = (device: typeof trustedDevices[0]) => {
-    if (device.is_current) return 'Active';
-    return 'Logged In';
+    const status = device.session_status || (device.is_current ? 'active' : 'logged_in');
+    switch (status) {
+      case 'active':
+        return 'Active';
+      case 'logged_in':
+        return 'Logged In';
+      case 'inactive':
+        return 'Inactive';
+      default:
+        return 'Active';
+    }
   };
 
   const getDeviceLabel = (deviceType: string) => {
@@ -249,10 +275,18 @@ const ManageSessionsForm: React.FC = () => {
         {trustedDevices.length > 0 ? (
           <>
             <div className="grid gap-3 mb-6">
-              {trustedDevices.map((device) => (
+              {[...trustedDevices]
+                .sort((a, b) => {
+                  // Pin current device to top
+                  if (a.is_current) return -1;
+                  if (b.is_current) return 1;
+                  // Then sort by last activity
+                  return new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime();
+                })
+                .map((device) => (
                 <Card
                   key={device.id}
-                  className="cursor-pointer hover:shadow-lg hover:scale-[1.01] transition-all duration-200 border-border bg-card animate-fade-in"
+                  className="cursor-pointer hover:shadow-xl hover:scale-[1.02] hover:bg-accent/20 transition-all duration-300 border-border bg-card animate-fade-in group"
                   onClick={() => openDeviceDetails(device)}
                 >
                   <CardContent className="p-4">
@@ -306,18 +340,32 @@ const ManageSessionsForm: React.FC = () => {
                           <span>First: {new Date(device.first_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                           <span>Logins: {device.login_count}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <MapPin size={12} />
-                          <span>{device.location || 'Unknown location'}</span>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          {device.country_code && (
+                            <span className="text-lg" title={device.country}>
+                              {getFlagEmoji(device.country_code)}
+                            </span>
+                          )}
+                          <MapPin size={12} className="text-muted-foreground" />
+                          <span className="text-muted-foreground">
+                            {device.city && device.country 
+                              ? `${device.city}, ${device.country}`
+                              : device.location || 'Unknown location'}
+                          </span>
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <div className="flex items-center gap-1.5">
-                          <div className={`w-2 h-2 rounded-full ${getStatusColor(device)} ${device.is_current ? 'animate-pulse' : ''}`} />
-                          <span className="text-xs font-medium text-foreground">
+                          <div className={`w-2 h-2 rounded-full ${getStatusColor(device).split(' ')[0]} ${device.session_status === 'active' || device.is_current ? 'animate-pulse' : ''}`} />
+                          <span className={`text-xs font-medium ${getStatusColor(device).split(' ')[1]}`}>
                             {getStatusText(device)}
                           </span>
                         </div>
+                        {device.is_trusted && (
+                          <div className="p-1.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                            <ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-400" />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -336,9 +384,10 @@ const ManageSessionsForm: React.FC = () => {
                   device_name: d.device_name,
                   device_type: d.device_type,
                   location: d.location,
-                  latitude: undefined,
-                  longitude: undefined,
-                  is_current: d.is_current
+                  latitude: d.latitude,
+                  longitude: d.longitude,
+                  is_current: d.is_current,
+                  session_status: d.session_status,
                 }))}
                 onDeviceClick={(deviceId) => {
                   const device = trustedDevices.find(d => d.id === deviceId);

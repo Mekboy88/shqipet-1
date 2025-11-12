@@ -11,6 +11,7 @@ interface DeviceLocation {
   latitude?: number;
   longitude?: number;
   is_current: boolean;
+  session_status?: 'active' | 'logged_in' | 'inactive';
 }
 
 interface DeviceMapViewProps {
@@ -23,15 +24,20 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
   const map = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Get device icon color
-  const getDeviceColor = (deviceType: string, isCurrent: boolean) => {
-    if (isCurrent) return '#3b82f6'; // blue
+  // Get device icon color based on status
+  const getDeviceColor = (deviceType: string, isCurrent: boolean, sessionStatus?: string) => {
+    // Status-based colors (priority over device type)
+    if (sessionStatus === 'active' || isCurrent) return '#10b981'; // green
+    if (sessionStatus === 'logged_in') return '#f59e0b'; // amber
+    if (sessionStatus === 'inactive') return '#9ca3af'; // gray
+    
+    // Device type colors (fallback)
     switch (deviceType) {
-      case 'smartphone': return '#60a5fa';
-      case 'tablet': return '#a78bfa';
-      case 'laptop': return '#34d399';
-      case 'desktop': return '#fbbf24';
-      default: return '#f43f5e';
+      case 'smartphone': return '#60a5fa'; // blue
+      case 'tablet': return '#a78bfa'; // purple
+      case 'laptop': return '#34d399'; // emerald
+      case 'desktop': return '#fbbf24'; // yellow
+      default: return '#f43f5e'; // red
     }
   };
 
@@ -109,10 +115,11 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
       // Create custom marker element
       const el = document.createElement('div');
       el.className = 'device-marker';
+      const markerColor = getDeviceColor(device.device_type, device.is_current, device.session_status);
       el.style.cssText = `
         width: 32px;
         height: 32px;
-        background-color: ${getDeviceColor(device.device_type, device.is_current)};
+        background-color: ${markerColor};
         border: 3px solid white;
         border-radius: 50%;
         cursor: pointer;
@@ -121,6 +128,7 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
         align-items: center;
         justify-content: center;
         transition: transform 0.2s, box-shadow 0.2s;
+        ${device.session_status === 'active' || device.is_current ? 'animation: pulse-glow 2s infinite;' : ''}
       `;
 
       // Add device icon
@@ -169,13 +177,19 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
         }
       });
 
-      // Create popup
+      // Create popup with status indicator
+      const statusColor = device.session_status === 'active' || device.is_current ? '#10b981' : 
+                         device.session_status === 'logged_in' ? '#f59e0b' : '#9ca3af';
+      const statusText = device.session_status === 'active' || device.is_current ? 'Active' : 
+                        device.session_status === 'logged_in' ? 'Logged In' : 'Inactive';
+      
       const popup = new maplibregl.Popup({ offset: 25, closeButton: false })
         .setHTML(`
           <div style="padding: 8px;">
             <strong>${device.device_name}</strong><br/>
-            <span style="font-size: 12px; color: #666;">${device.location || 'Unknown location'}</span>
-            ${device.is_current ? '<br/><span style="color: #3b82f6; font-size: 11px; font-weight: bold;">● Current Device</span>' : ''}
+            <span style="font-size: 12px; color: #666;">${device.location || 'Unknown location'}</span><br/>
+            <span style="color: ${statusColor}; font-size: 11px; font-weight: bold;">● ${statusText}</span>
+            ${device.is_current ? '<br/><span style="color: #3b82f6; font-size: 11px; font-weight: 600;">⚡ Current Device</span>' : ''}
           </div>
         `);
 
