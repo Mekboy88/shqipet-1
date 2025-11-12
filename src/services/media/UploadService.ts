@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import heic2any from 'heic2any';
 
 export type MediaType = 'avatar' | 'cover' | 'post-image' | 'post-video';
 
