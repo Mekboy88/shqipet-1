@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Monitor, Smartphone, Tablet, Laptop, X, Clock, Loader2, AlertTriangle, Shield, ShieldCheck, Info } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, X, Clock, Loader2, AlertTriangle, Shield, ShieldCheck, Info, Chrome, Globe, Activity, MapPin } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { formatTimeAgo } from '@/lib/utils/timeUtils';
 import DeviceMapView from './manage-sessions/DeviceMapView';
 import DeviceDetailsModal from './manage-sessions/DeviceDetailsModal';
 import LiveStatusIndicator from './manage-sessions/LiveStatusIndicator';
@@ -42,100 +44,38 @@ const ManageSessionsForm: React.FC = () => {
     removeDevice
   } = useDeviceSession();
 
-  // Get device-specific colors and styles with distinct light colors
-  const getDeviceStyles = (deviceType: string, isCurrentDevice: boolean, isTrusted: boolean) => {
-    const baseStyles = {
-      smartphone: {
-        borderColor: isCurrentDevice ? 'border-blue-400' : 'border-blue-300',
-        bgColor: isCurrentDevice ? 'bg-blue-100' : 'bg-blue-50',
-        iconColor: 'text-blue-600',
-        iconBg: isCurrentDevice ? 'bg-blue-200' : 'bg-blue-100',
-        statusColor: isCurrentDevice ? 'bg-blue-600' : 'bg-blue-500',
-        statusText: isCurrentDevice ? 'text-blue-800' : 'text-blue-700',
-        ringColor: isCurrentDevice ? 'ring-4 ring-blue-200' : ''
-      },
-      tablet: {
-        borderColor: isCurrentDevice ? 'border-purple-400' : 'border-purple-300',
-        bgColor: isCurrentDevice ? 'bg-purple-100' : 'bg-purple-50',
-        iconColor: 'text-purple-600',
-        iconBg: isCurrentDevice ? 'bg-purple-200' : 'bg-purple-100',
-        statusColor: isCurrentDevice ? 'bg-purple-600' : 'bg-purple-500',
-        statusText: isCurrentDevice ? 'text-purple-800' : 'text-purple-700',
-        ringColor: isCurrentDevice ? 'ring-4 ring-purple-200' : ''
-      },
-      laptop: {
-        borderColor: isCurrentDevice ? 'border-emerald-400' : 'border-emerald-300',
-        bgColor: isCurrentDevice ? 'bg-emerald-100' : 'bg-emerald-50',
-        iconColor: 'text-emerald-600',
-        iconBg: isCurrentDevice ? 'bg-emerald-200' : 'bg-emerald-100',
-        statusColor: isCurrentDevice ? 'bg-emerald-600' : 'bg-emerald-500',
-        statusText: isCurrentDevice ? 'text-emerald-800' : 'text-emerald-700',
-        ringColor: isCurrentDevice ? 'ring-4 ring-emerald-200' : ''
-      },
-      desktop: {
-        borderColor: isCurrentDevice ? 'border-amber-400' : 'border-amber-300',
-        bgColor: isCurrentDevice ? 'bg-amber-100' : 'bg-amber-50',
-        iconColor: 'text-amber-600',
-        iconBg: isCurrentDevice ? 'bg-amber-200' : 'bg-amber-100',
-        statusColor: isCurrentDevice ? 'bg-amber-600' : 'bg-amber-500',
-        statusText: isCurrentDevice ? 'text-amber-800' : 'text-amber-700',
-        ringColor: isCurrentDevice ? 'ring-4 ring-amber-200' : ''
-      },
-      unknown: {
-        borderColor: isCurrentDevice ? 'border-rose-400' : 'border-rose-300',
-        bgColor: isCurrentDevice ? 'bg-rose-100' : 'bg-rose-50',
-        iconColor: 'text-rose-600',
-        iconBg: isCurrentDevice ? 'bg-rose-200' : 'bg-rose-100',
-        statusColor: isCurrentDevice ? 'bg-rose-600' : 'bg-rose-500',
-        statusText: isCurrentDevice ? 'text-rose-800' : 'text-rose-700',
-        ringColor: isCurrentDevice ? 'ring-4 ring-rose-200' : ''
-      }
-    };
-
-    const style = baseStyles[deviceType] || baseStyles.unknown;
-    
-    // Add trusted device styling
-    if (isTrusted && !isCurrentDevice) {
-      style.borderColor = style.borderColor.replace('300', '400');
-      style.bgColor = style.bgColor.replace('50', '75');
-    }
-
-    return style;
-  };
-
-  // Get device icon based on device type
-  const getDeviceIcon = (deviceType: string, iconColor: string) => {
-    const iconProps = { className: iconColor, size: 28 };
-    
+  const getDeviceIcon = (deviceType: string) => {
+    const iconProps = { size: 28, className: 'text-primary' };
     switch (deviceType) {
-      case 'smartphone':
-        return <Smartphone {...iconProps} />;
-      case 'tablet':
-        return <Tablet {...iconProps} />;
-      case 'laptop':
-        return <Laptop {...iconProps} />;
-      case 'desktop':
-        return <Monitor {...iconProps} />;
-      default:
-        return <Monitor {...iconProps} />;
+      case 'smartphone': return <Smartphone {...iconProps} />;
+      case 'tablet': return <Tablet {...iconProps} />;
+      case 'laptop': return <Laptop {...iconProps} />;
+      case 'desktop': return <Monitor {...iconProps} />;
+      default: return <Monitor {...iconProps} />;
     }
   };
 
-  // Format time ago
-  const formatTimeAgo = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    const diffInDays = Math.floor(diffInHours / 24);
-
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes} min${diffInMinutes > 1 ? 's' : ''} ago`;
-    if (diffInHours < 24) return `${diffInHours} hr${diffInHours > 1 ? 's' : ''} ago`;
-    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-    return `${Math.floor(diffInDays / 7)} week${Math.floor(diffInDays / 7) > 1 ? 's' : ''} ago`;
+  const getBrowserIcon = (browser: string) => {
+    const browserLower = browser.toLowerCase();
+    const iconProps = { size: 16, className: 'text-muted-foreground' };
+    if (browserLower.includes('chrome')) return <Chrome {...iconProps} />;
+    if (browserLower.includes('safari')) return <Globe {...iconProps} />;
+    if (browserLower.includes('firefox')) return <Activity {...iconProps} />;
+    if (browserLower.includes('edge')) return <Globe {...iconProps} />;
+    return <Globe {...iconProps} />;
   };
+
+  const getStatusColor = (device: typeof trustedDevices[0]) => {
+    if (device.is_current) return 'bg-green-500';
+    return 'bg-amber-500';
+  };
+
+  const getStatusText = (device: typeof trustedDevices[0]) => {
+    if (device.is_current) return 'Active';
+    return 'Logged In';
+  };
+
+
 
   // Logout from all other devices
   const handleLogoutAll = async () => {
@@ -216,15 +156,39 @@ const ManageSessionsForm: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Trusted Devices & Sessions Card */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2 border-b border-gray-200 pb-3">
-              Trusted Devices & Sessions
-            </h3>
-            <p className="text-sm text-gray-600 mt-2">
-              Manage your trusted devices and active login sessions. Each device you log in with will be remembered and displayed here.
-            </p>
+      <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            Trusted Devices & Sessions
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Manage your trusted devices and active login sessions. Real-time monitoring of all device activity.
+          </p>
+        </div>
+        
+        <div className="flex gap-3 mb-6">
+          <Button
+            onClick={refreshDevices}
+            disabled={loading}
+            variant="outline"
+            className="flex items-center gap-2 h-10"
+          >
+            <Loader2 size={16} className={loading ? 'animate-spin' : 'hidden'} />
+            Refresh Devices
+          </Button>
+          <AlertDialog open={showLogoutAllDialog} onOpenChange={setShowLogoutAllDialog}>
+            <AlertDialogTrigger asChild>
+              <Button
+                disabled={logoutAllLoading || trustedDevices.length <= 1 || otherDevicesCount === 0}
+                variant="destructive"
+                className="flex items-center gap-2 h-10"
+              >
+                {logoutAllLoading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : null}
+                Logout All Other Devices
+              </Button>
+            </AlertDialogTrigger>
             {error && (
               <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <div className="flex items-center gap-2">

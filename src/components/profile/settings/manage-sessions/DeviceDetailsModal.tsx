@@ -7,8 +7,9 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Monitor, Smartphone, Tablet, Laptop, Clock, MapPin, Globe, Shield, ShieldCheck, Copy, LogOut } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, Clock, MapPin, Globe, Shield, ShieldCheck, Copy, LogOut, Chrome, Activity, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatTimeAgo } from '@/lib/utils/timeUtils';
 
 interface DeviceDetails {
   id: string;
@@ -44,7 +45,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
   if (!device) return null;
 
   const getDeviceIcon = () => {
-    const iconProps = { size: 48, className: 'text-blue-600' };
+    const iconProps = { size: 40, className: 'text-primary' };
     switch (device.device_type) {
       case 'smartphone': return <Smartphone {...iconProps} />;
       case 'tablet': return <Tablet {...iconProps} />;
@@ -52,6 +53,16 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
       case 'desktop': return <Monitor {...iconProps} />;
       default: return <Monitor {...iconProps} />;
     }
+  };
+
+  const getBrowserIcon = () => {
+    const browser = device.browser_info.toLowerCase();
+    const iconProps = { size: 20, className: 'text-muted-foreground' };
+    if (browser.includes('chrome')) return <Chrome {...iconProps} />;
+    if (browser.includes('safari')) return <Globe {...iconProps} />;
+    if (browser.includes('firefox')) return <Activity {...iconProps} />;
+    if (browser.includes('edge')) return <Globe {...iconProps} />;
+    return <Globe {...iconProps} />;
   };
 
   const formatDate = (dateString: string) => {
@@ -71,87 +82,92 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="p-3 bg-blue-50 rounded-xl">
+      <DialogContent className="max-w-[480px] max-h-[85vh] overflow-y-auto rounded-xl border-border bg-card">
+        <DialogHeader className="border-b border-border pb-4">
+          <DialogTitle className="flex items-start gap-4">
+            <div className="p-3 bg-accent/50 rounded-xl">
               {getDeviceIcon()}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                {device.device_name}
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-lg font-semibold text-foreground">{device.device_name}</span>
                 {device.is_current && (
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                  <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium border border-primary/20">
                     Current Device
                   </span>
                 )}
-                {device.is_trusted && !device.is_current && (
-                  <ShieldCheck size={16} className="text-green-500" />
+                {device.is_trusted && (
+                  <span className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full font-medium border border-emerald-500/20 flex items-center gap-1">
+                    <ShieldCheck size={12} />
+                    Trusted
+                  </span>
                 )}
               </div>
-              <p className="text-sm text-gray-600 font-normal mt-1">
-                {device.browser_info} on {device.operating_system}
-              </p>
+              <div className="flex items-center gap-2 mt-2">
+                {getBrowserIcon()}
+                <span className="text-sm text-muted-foreground">
+                  {device.browser_info}
+                </span>
+                <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
+                  {device.operating_system}
+                </span>
+              </div>
             </div>
           </DialogTitle>
-          <DialogDescription>
-            Complete details about this device session
+          <DialogDescription className="text-sm text-muted-foreground">
+            Complete security and session information for this device
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
+        <div className="space-y-5 mt-6">
           {/* Session Information */}
           <div className="space-y-3">
-            <h4 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
-              <Clock size={16} />
+            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <Clock size={16} className="text-primary" />
               Session Information
             </h4>
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 rounded-lg p-4">
+            <div className="grid grid-cols-2 gap-3 bg-accent/30 rounded-lg p-4 border border-border">
               <div>
-                <p className="text-xs text-gray-500 mb-1">First Seen</p>
-                <p className="text-sm font-medium">{formatDate(device.first_seen)}</p>
+                <p className="text-xs text-muted-foreground mb-1.5">First Seen</p>
+                <p className="text-sm font-medium text-foreground">{formatDate(device.first_seen)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{formatTimeAgo(device.first_seen)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Last Activity</p>
-                <p className="text-sm font-medium">{formatDate(device.last_seen)}</p>
+                <p className="text-xs text-muted-foreground mb-1.5">Last Activity</p>
+                <p className="text-sm font-medium text-foreground">{formatDate(device.last_seen)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{formatTimeAgo(device.last_seen)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Login Count</p>
-                <p className="text-sm font-medium">{device.login_count} times</p>
+                <p className="text-xs text-muted-foreground mb-1.5">Login Count</p>
+                <p className="text-sm font-medium text-foreground">{device.login_count} sessions</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Trust Status</p>
-                <p className="text-sm font-medium">
-                  {device.is_trusted ? (
-                    <span className="text-green-600 flex items-center gap-1">
-                      <ShieldCheck size={14} /> Trusted
-                    </span>
-                  ) : (
-                    <span className="text-gray-600 flex items-center gap-1">
-                      <Shield size={14} /> Not Trusted
-                    </span>
-                  )}
-                </p>
+                <p className="text-xs text-muted-foreground mb-1.5">Status</p>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <p className="text-sm font-medium text-foreground">Active</p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Location & Network */}
           <div className="space-y-3">
-            <h4 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
-              <MapPin size={16} />
+            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <MapPin size={16} className="text-primary" />
               Location & Network
             </h4>
-            <div className="space-y-2 bg-gray-50 rounded-lg p-4">
+            <div className="space-y-3 bg-accent/30 rounded-lg p-4 border border-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Globe size={14} className="text-gray-500" />
-                  <span className="text-sm">{device.location || 'Unknown location'}</span>
+                  <MapPin size={14} className="text-muted-foreground" />
+                  <span className="text-sm text-foreground">{device.location || 'Unknown location'}</span>
                 </div>
                 {device.location && (
                   <Button
                     size="sm"
                     variant="ghost"
+                    className="h-7 w-7 p-0"
                     onClick={() => copyToClipboard(device.location!, 'Location')}
                   >
                     <Copy size={12} />
@@ -159,14 +175,15 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
                 )}
               </div>
               {device.ip_address && (
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-2 border-t border-border">
                   <div className="flex items-center gap-2">
-                    <Globe size={14} className="text-gray-500" />
-                    <span className="text-sm font-mono">{device.ip_address}</span>
+                    <Globe size={14} className="text-muted-foreground" />
+                    <span className="text-sm font-mono text-foreground">{device.ip_address}</span>
                   </div>
                   <Button
                     size="sm"
                     variant="ghost"
+                    className="h-7 w-7 p-0"
                     onClick={() => copyToClipboard(device.ip_address!, 'IP Address')}
                   >
                     <Copy size={12} />
@@ -176,37 +193,87 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
             </div>
           </div>
 
-          {/* Device Fingerprint */}
+          {/* Device Details */}
           <div className="space-y-3">
-            <h4 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
-              <Shield size={16} />
-              Device Fingerprint
+            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <Shield size={16} className="text-primary" />
+              Device Details
             </h4>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <code className="text-xs font-mono text-gray-700 break-all">
-                  {device.device_fingerprint}
-                </code>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => copyToClipboard(device.device_fingerprint, 'Device Fingerprint')}
-                >
-                  <Copy size={12} />
-                </Button>
+            <div className="bg-accent/30 rounded-lg p-4 border border-border">
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1.5">Browser</p>
+                  <div className="flex items-center gap-2">
+                    {getBrowserIcon()}
+                    <p className="text-sm font-medium text-foreground">{device.browser_info}</p>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-1.5">Operating System</p>
+                  <p className="text-sm font-medium text-foreground">{device.operating_system}</p>
+                </div>
+                <div className="pt-2 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-1.5">Device Fingerprint</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <code className="text-xs font-mono text-muted-foreground break-all flex-1">
+                      {device.device_fingerprint}
+                    </code>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 shrink-0"
+                      onClick={() => copyToClipboard(device.device_fingerprint, 'Device Fingerprint')}
+                    >
+                      <Copy size={12} />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Unique identifier to recognize this device across sessions
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                This unique identifier helps recognize this device across sessions
-              </p>
+            </div>
+          </div>
+
+          {/* Security Information */}
+          <div className="space-y-3">
+            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <ShieldCheck size={16} className="text-primary" />
+              Security Information
+            </h4>
+            <div className="bg-accent/30 rounded-lg p-4 border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={14} className="text-muted-foreground" />
+                  <span className="text-sm text-foreground">Trust Status</span>
+                </div>
+                {device.is_trusted ? (
+                  <span className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full font-medium border border-emerald-500/20">
+                    Trusted
+                  </span>
+                ) : (
+                  <span className="text-xs bg-muted text-muted-foreground px-2.5 py-1 rounded-full font-medium border border-border">
+                    Not Trusted
+                  </span>
+                )}
+              </div>
+              {!device.is_trusted && (
+                <div className="flex items-start gap-2 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                  <AlertCircle size={14} className="text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    Consider marking this device as trusted if you recognize it to enable additional security features.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-3 pt-6 border-t border-border">
             {!device.is_current && (
               <Button
                 variant="outline"
-                className="flex-1"
+                className="flex-1 h-11"
                 onClick={() => onToggleTrust(device.id, !device.is_trusted)}
               >
                 {device.is_trusted ? (
@@ -224,7 +291,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
             )}
             <Button
               variant="destructive"
-              className="flex-1"
+              className="flex-1 h-11"
               onClick={() => {
                 onLogout(device.id);
                 onClose();
