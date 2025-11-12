@@ -24,6 +24,9 @@ const fromRules = (ua: string): DeviceCategory => {
   // Explicit laptop indicators
   if (/(macbook|notebook|laptop)/.test(u)) return 'laptop';
   
+  // Explicit desktop indicators - iMac, Mac Pro, Mac Studio, Mac mini
+  if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/.test(u)) return 'desktop';
+  
   // Windows/Linux desktops (but NOT macOS - needs heuristics)
   if (/(windows nt|linux x86_64)/.test(u)) return 'desktop';
   
@@ -35,22 +38,38 @@ const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
   if (typeof window === 'undefined') return 'desktop';
   
   const nav = navigator as any;
+  const ua = navigator.userAgent.toLowerCase();
   
-  // Check battery API (most reliable indicator of laptop vs desktop)
+  // Check for explicit desktop Mac models in user agent
+  if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/.test(ua)) {
+    console.log('🖥️ Desktop Mac detected from user agent');
+    return 'desktop';
+  }
+  
+  // Check for explicit laptop Mac models in user agent
+  if (/(macbook)/.test(ua)) {
+    console.log('💻 MacBook detected from user agent');
+    return 'laptop';
+  }
+  
+  // Check battery API (reliable indicator of laptop vs desktop)
   if (nav.getBattery) {
     try {
       const battery = await nav.getBattery();
-      // If device reports battery, it's likely a laptop
+      // If device reports battery, it's a laptop
       if (battery && battery.charging !== undefined) {
         console.log('🔋 Battery API detected - classifying as laptop');
         return 'laptop';
+      } else {
+        console.log('🔌 No battery detected - classifying as desktop');
+        return 'desktop';
       }
     } catch (e) {
       console.log('⚠️ Battery API not available or blocked');
     }
   }
   
-  // Screen size and touch heuristics
+  // Screen size heuristics - use more aggressive desktop detection
   const w = window.screen?.width || 0;
   const h = window.screen?.height || 0;
   const touch = 'ontouchstart' in window || nav.maxTouchPoints > 0;
@@ -59,13 +78,30 @@ const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
     screenWidth: w,
     screenHeight: h,
     hasTouch: touch,
-    batteryAPI: !!nav.getBattery
+    batteryAPI: !!nav.getBattery,
+    userAgent: ua
   });
   
-  // Laptops: smaller screens (≤1920px) or touch-enabled
-  // Desktops: large screens (>1920px, especially 4K/5K displays)
-  if (w <= 1920 || h <= 1200 || touch) return 'laptop';
+  // High-resolution displays (4K, 5K, 6K) are almost always desktops
+  if (w >= 3840 || h >= 2160) {
+    console.log('🖥️ High-res display detected - classifying as desktop');
+    return 'desktop';
+  }
   
+  // Touch-enabled is likely laptop/tablet
+  if (touch) {
+    console.log('👆 Touch detected - classifying as laptop');
+    return 'laptop';
+  }
+  
+  // For macOS without battery API, assume desktop (iMacs don't have battery)
+  if (/mac os x|macintosh/.test(ua)) {
+    console.log('🍎 macOS without battery - classifying as desktop');
+    return 'desktop';
+  }
+  
+  // Standard screens - default to desktop if no battery detected
+  console.log('🖥️ No battery API, standard screen - classifying as desktop');
   return 'desktop';
 };
 
