@@ -31,6 +31,7 @@ const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 const BLOCKED_EXTENSIONS = ['.svg', '.ico', '.tiff', '.tif', '.psd', '.xcf', '.emf', '.wmf', '.cur', '.ani', '.nef', '.cr2', '.arw', '.dng', '.raw', '.orf', '.rw2', '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv'];
 
 // ImageScript-compatible formats (for processing/optimization)
+// These formats can be decoded, optimized, and have metadata automatically stripped
 const IMAGESCRIPT_FORMATS = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/webp'];
 
 const MAX_SIZES = {
