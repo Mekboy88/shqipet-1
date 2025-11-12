@@ -8,13 +8,26 @@ export const useCoverPhotoDrag = () => {
   const { user } = useAuth();
   const { position, updatePosition, isPositionChanging, isPositionSaving } = useCover(user?.id);
   
+  const userId = user?.id;
+  
+  // Get cached button color for instant display
+  const getCachedButtonColor = useCallback(() => {
+    if (!userId) return 'rgba(255, 255, 255, 0.1)';
+    try {
+      const cached = localStorage.getItem(`button_color_${userId}`);
+      return cached || 'rgba(255, 255, 255, 0.1)';
+    } catch {
+      return 'rgba(255, 255, 255, 0.1)';
+    }
+  }, [userId]);
+  
   const [isDragging, setIsDragging] = useState(false);
   const [isDragMode, setIsDragMode] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [initialY, setInitialY] = useState(50);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [buttonColor, setButtonColor] = useState('rgba(255, 255, 255, 0.1)');
-  const [originalButtonColor, setOriginalButtonColor] = useState('rgba(255, 255, 255, 0.1)');
+  const [buttonColor, setButtonColor] = useState(() => getCachedButtonColor());
+  const [originalButtonColor, setOriginalButtonColor] = useState(() => getCachedButtonColor());
   const [isSavingColor, setIsSavingColor] = useState(false);
   const coverRef = useRef<HTMLDivElement>(null);
   const rafId = useRef<number | null>(null);
@@ -27,7 +40,6 @@ export const useCoverPhotoDrag = () => {
   }, [position]);
   
   const currentY = getCurrentY();
-  const userId = user?.id;
 
   // Simplified position application - no complex DOM watching
   const applyPositionToDOM = useCallback((positionStr: string) => {
@@ -54,7 +66,7 @@ export const useCoverPhotoDrag = () => {
     setInitialY(currentY);
   }, [currentY]);
 
-  // Load button color from database on mount
+  // Load button color from database on mount - only update if changed
   useEffect(() => {
     if (!userId) return;
     
@@ -66,8 +78,16 @@ export const useCoverPhotoDrag = () => {
         .single();
       
       if (data?.professional_button_color && !error) {
-        setButtonColor(data.professional_button_color);
-        setOriginalButtonColor(data.professional_button_color);
+        const dbColor = data.professional_button_color;
+        
+        // Only update if color actually changed
+        if (dbColor !== buttonColor) {
+          setButtonColor(dbColor);
+          setOriginalButtonColor(dbColor);
+          
+          // Update cache
+          localStorage.setItem(`button_color_${userId}`, dbColor);
+        }
       }
     };
     
@@ -76,15 +96,43 @@ export const useCoverPhotoDrag = () => {
     // Listen for color changes from other components
     const handleColorChange = (e: CustomEvent) => {
       if (e.detail?.color && e.detail?.userId === userId) {
-        setButtonColor(e.detail.color);
+        const newColor = e.detail.color;
+        setButtonColor(newColor);
+        
+        // Update cache
+        localStorage.setItem(`button_color_${userId}`, newColor);
       }
     };
 
     window.addEventListener('button-color-changed', handleColorChange as EventListener);
+    
+    // Real-time subscription for database changes
+    const channel = supabase
+      .channel(`button-color-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`
+        },
+        (payload: any) => {
+          const newColor = payload.new?.professional_button_color;
+          if (newColor && newColor !== buttonColor) {
+            setButtonColor(newColor);
+            setOriginalButtonColor(newColor);
+            localStorage.setItem(`button_color_${userId}`, newColor);
+          }
+        }
+      )
+      .subscribe();
+    
     return () => {
       window.removeEventListener('button-color-changed', handleColorChange as EventListener);
+      supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [userId, buttonColor]);
 
   // Save button color to database
   const saveButtonColor = async (color: string) => {
@@ -102,6 +150,9 @@ export const useCoverPhotoDrag = () => {
         console.error('Error saving button color:', error);
         toast.error('Failed to save color');
       } else {
+        // Update cache immediately
+        localStorage.setItem(`button_color_${userId}`, color);
+        
         // Broadcast color change to other components
         window.dispatchEvent(new CustomEvent('button-color-changed', { 
           detail: { color, userId } 
