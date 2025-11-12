@@ -430,8 +430,8 @@ const CoverPhotoContent: React.FC<CoverPhotoContentProps> = ({
           </h1>
           <button 
             onClick={() => navigate('/professional-presentation')}
-            className="mt-2 px-4 py-1.5 border border-white/30 text-white backdrop-blur-sm rounded-md transition-all duration-200 text-sm font-medium flex items-center gap-2 hover:bg-white/20"
-            style={{ backgroundColor: buttonColor }}
+            className="mt-2 px-4 py-1.5 border border-white/30 text-white backdrop-blur-sm rounded-md text-sm font-medium flex items-center gap-2 hover:bg-white/20"
+            style={{ backgroundColor: buttonColor, transition: 'none' }}
           >
             Prezantimi profesional
             <svg fill="currentColor" version="1.1" height="16" width="16" viewBox="0 0 256 240" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" enableBackground="new 0 0 256 240" xmlSpace="preserve" className="flex-shrink-0">
