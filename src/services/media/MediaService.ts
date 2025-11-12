@@ -140,38 +140,25 @@ class MediaService {
     try {
       console.log(`📡 Attempting proxy blob fetch for key: ${key}`);
       
-      // Use Supabase client to call wasabi-proxy function
-      const { data, error } = await supabase.functions.invoke('wasabi-proxy', {
-        body: { key },
+      // Use direct fetch with query params instead of invoke for better reliability
+      const proxyUrl = `${supabase.supabaseUrl}/functions/v1/wasabi-proxy?key=${encodeURIComponent(key)}`;
+      
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'apikey': supabase.supabaseKey,
         }
       });
 
-      if (error) {
-        console.error(`❌ Proxy function error:`, error);
-        throw new Error(`Proxy request failed: ${error.message}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ Proxy function error:`, errorText);
+        throw new Error(`Proxy request failed: ${response.status} ${errorText}`);
       }
 
-      // Handle different response types from the edge function
-      let blob: Blob;
-      
-      if (data instanceof ArrayBuffer) {
-        blob = new Blob([data]);
-      } else if (data instanceof Uint8Array) {
-        // Convert to proper ArrayBuffer to satisfy TypeScript
-        const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
-        blob = new Blob([arrayBuffer]);
-      } else if (data instanceof Blob) {
-        blob = data;
-      } else if (data instanceof Response) {
-        blob = await data.blob();
-      } else {
-        // If it's a stream or ReadableStream from the function
-        const response = new Response(data);
-        blob = await response.blob();
-      }
-
+      // Create blob from response
+      const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
       console.log(`✅ Proxy blob created: ${blobUrl.substring(0, 50)}...`);
       return blobUrl;

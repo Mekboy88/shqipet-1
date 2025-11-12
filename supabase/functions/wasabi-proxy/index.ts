@@ -11,19 +11,48 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    let key = url.searchParams.get('key') || '';
-    if (!key && req.headers.get('content-type')?.includes('application/json')) {
+    // Parse URL - handle both full URLs and relative paths
+    let url: URL;
+    try {
+      url = new URL(req.url);
+    } catch {
+      // If req.url is relative, construct full URL
+      url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
+    }
+    
+    console.log('🔍 Wasabi-proxy request:', {
+      method: req.method,
+      url: req.url,
+      search: url.search,
+      contentType: req.headers.get('content-type')
+    });
+    
+    let key = '';
+    
+    // For GET requests, get key from query params
+    if (req.method === 'GET') {
+      key = url.searchParams.get('key') || '';
+      console.log('🔍 GET - Key from search params:', key);
+    }
+    // For POST requests, get key from JSON body
+    else if (req.method === 'POST') {
       const body = await req.json().catch(() => ({}));
       key = body.key || '';
+      console.log('🔍 POST - Key from body:', key);
     }
 
     if (!key) {
-      return new Response(JSON.stringify({ error: 'No key provided' }), {
+      console.error('❌ No key provided:', { method: req.method, url: req.url, search: url.search });
+      return new Response(JSON.stringify({ 
+        error: 'No key provided', 
+        debug: { method: req.method, url: req.url, search: url.search } 
+      }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    console.log('✅ Processing key:', key);
 
     const region = Deno.env.get('WASABI_REGION')!;
     const bucket = Deno.env.get('WASABI_BUCKET_NAME')!;
