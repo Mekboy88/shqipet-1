@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { detectFromUserAgent } from '@/utils/deviceType';
 
 interface DeviceFingerprint {
   userAgent: string;
@@ -18,7 +19,7 @@ interface DeviceFingerprint {
 interface TrustedDevice {
   id: string;
   device_name: string;
-  device_type: 'desktop' | 'laptop' | 'tablet' | 'smartphone' | 'unknown';
+  device_type: 'desktop' | 'laptop' | 'tablet' | 'smartphone' | 'mobile' | 'unknown';
   browser_info: string;
   operating_system: string;
   device_fingerprint: string;
@@ -60,58 +61,19 @@ export const useDeviceSession = () => {
     };
   }, []);
 
-  // Detect device details from user agent
+  // Detect device details from user agent (robust via UA parser + rules)
   const detectDeviceDetails = useCallback((userAgent: string) => {
-    const ua = userAgent.toLowerCase();
-    
-    // Operating System Detection
-    let os = 'Unknown OS';
-    if (ua.includes('windows')) os = 'Windows';
-    else if (ua.includes('mac')) os = 'macOS';
-    else if (ua.includes('linux')) os = 'Linux';
-    else if (ua.includes('android')) os = 'Android';
-    else if (ua.includes('iphone') || ua.includes('ipad')) os = 'iOS';
-
-    // Device Type Detection
-    let deviceType: 'desktop' | 'laptop' | 'tablet' | 'smartphone' | 'unknown' = 'unknown';
-    let deviceName = 'Unknown Device';
-
-    if (ua.includes('mobile') || ua.includes('android') && !ua.includes('tablet')) {
-      deviceType = 'smartphone';
-      if (ua.includes('iphone')) deviceName = 'iPhone';
-      else if (ua.includes('android')) deviceName = 'Android Phone';
-      else deviceName = 'Mobile Device';
-    } else if (ua.includes('tablet') || ua.includes('ipad')) {
-      deviceType = 'tablet';
-      if (ua.includes('ipad')) deviceName = 'iPad';
-      else deviceName = 'Android Tablet';
-    } else if (ua.includes('windows') || ua.includes('mac') || ua.includes('linux')) {
-      // Detect laptop vs desktop based on screen size and other indicators
-      const screenWidth = screen.width;
-      const isTouchDevice = 'ontouchstart' in window;
-      
-      if (screenWidth <= 1366 || isTouchDevice || ua.includes('mobile')) {
-        deviceType = 'laptop';
-        deviceName = os === 'macOS' ? 'MacBook' : `${os} Laptop`;
-      } else {
-        deviceType = 'desktop';
-        deviceName = os === 'macOS' ? 'Mac' : `${os} PC`;
-      }
-    }
-
-    // Browser Detection
-    let browser = 'Unknown Browser';
-    if (ua.includes('chrome') && !ua.includes('edge')) browser = 'Chrome';
-    else if (ua.includes('firefox')) browser = 'Firefox';
-    else if (ua.includes('safari') && !ua.includes('chrome')) browser = 'Safari';
-    else if (ua.includes('edge')) browser = 'Edge';
-    else if (ua.includes('opera')) browser = 'Opera';
-
+    const uaData: any = (navigator as any).userAgentData;
+    const details = detectFromUserAgent(userAgent, {
+      platform: uaData?.platform,
+      mobile: uaData?.mobile,
+      model: undefined,
+    });
     return {
-      deviceType,
-      deviceName,
-      browser,
-      operatingSystem: os
+      deviceType: details.deviceType === 'mobile' ? 'smartphone' : details.deviceType, // keep backward compat in UI
+      deviceName: details.deviceName,
+      browser: details.browser,
+      operatingSystem: details.operatingSystem,
     };
   }, []);
 
@@ -213,7 +175,11 @@ export const useDeviceSession = () => {
           .update({
             last_activity: new Date().toISOString(),
             login_count: newLoginCount,
-            user_agent: navigator.userAgent
+            user_agent: navigator.userAgent,
+            device_name: deviceDetails.deviceName,
+            device_type: deviceDetails.deviceType === 'smartphone' ? 'mobile' : deviceDetails.deviceType,
+            browser_info: deviceDetails.browser,
+            operating_system: deviceDetails.operatingSystem,
           })
           .eq('id', existingSession.id)
           .select()

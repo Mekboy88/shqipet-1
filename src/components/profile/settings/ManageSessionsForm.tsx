@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import DeviceMapView from './manage-sessions/DeviceMapView';
 import DeviceDetailsModal from './manage-sessions/DeviceDetailsModal';
 import LiveStatusIndicator from './manage-sessions/LiveStatusIndicator';
@@ -86,6 +87,22 @@ const ManageSessionsForm: React.FC = () => {
   const getStatusText = (device: typeof trustedDevices[0]) => {
     if (device.is_current) return 'Active';
     return 'Logged In';
+  };
+
+  const getDeviceLabel = (deviceType: string) => {
+    switch (deviceType?.toLowerCase()) {
+      case 'smartphone':
+      case 'mobile':
+        return 'Mobile';
+      case 'tablet':
+        return 'Tablet';
+      case 'laptop':
+        return 'Laptop';
+      case 'desktop':
+        return 'Desktop';
+      default:
+        return 'Unknown';
+    }
   };
 
   const handleLogoutAll = async () => {
@@ -245,11 +262,23 @@ const ManageSessionsForm: React.FC = () => {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
-                      <div 
-                        className="p-2.5 bg-accent/50 rounded-xl transition-all duration-200"
-                        title={`${device.device_type.charAt(0).toUpperCase() + device.device_type.slice(1)} Device`}
-                      >
-                        {getDeviceIcon(device.device_type, device.is_current)}
+                      <div className="flex items-center gap-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div 
+                                className="p-2.5 bg-accent/50 rounded-xl transition-all duration-200"
+                                title={`${getDeviceLabel(device.device_type)} Device`}
+                              >
+                                {getDeviceIcon(device.device_type, device.is_current)}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>This session is from a {getDeviceLabel(device.device_type)} device.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <span className="text-xs text-muted-foreground">{getDeviceLabel(device.device_type)}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">

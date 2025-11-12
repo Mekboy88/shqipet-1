@@ -14,7 +14,7 @@ import { formatTimeAgo } from '@/lib/utils/timeUtils';
 interface DeviceDetails {
   id: string;
   device_name: string;
-  device_type: 'desktop' | 'laptop' | 'tablet' | 'smartphone' | 'unknown';
+  device_type: 'desktop' | 'laptop' | 'tablet' | 'smartphone' | 'mobile' | 'unknown';
   browser_info: string;
   operating_system: string;
   device_fingerprint: string;
