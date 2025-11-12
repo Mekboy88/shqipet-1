@@ -58,6 +58,7 @@ export const useDeviceSession = () => {
   const realtimeDebounceTimer = useRef<number | null>(null);
   const lastRealtimeAtRef = useRef<number>(0);
   const isRealtimeLoadingRef = useRef<boolean>(false);
+  const isLoggingOutRef = useRef<boolean>(false);
   // Generate device fingerprint
   const generateDeviceFingerprint = useCallback((): DeviceFingerprint => {
     const nav = navigator as any;
@@ -368,11 +369,14 @@ export const useDeviceSession = () => {
     }
   }, [user, loadTrustedDevices]);
 
-  // Remove device
+  // Remove device with instant logout enforcement
   const removeDevice = useCallback(async (deviceId: string) => {
     if (!user) return;
 
     try {
+      // Mark that we're intentionally logging out (to prevent self-logout)
+      isLoggingOutRef.current = true;
+      
       const { error } = await supabase
         .from('user_sessions')
         .update({ is_active: false })
@@ -382,9 +386,15 @@ export const useDeviceSession = () => {
         await loadTrustedDevices();
         toast.success('Device removed successfully');
       }
+      
+      // Reset logout flag after a delay
+      setTimeout(() => {
+        isLoggingOutRef.current = false;
+      }, 2000);
     } catch (error) {
       console.error('❌ Error removing device:', error);
       toast.error('Failed to remove device');
+      isLoggingOutRef.current = false;
     }
   }, [user, loadTrustedDevices]);
 
@@ -531,6 +541,57 @@ export const useDeviceSession = () => {
       supabase.removeChannel(channel);
     };
   }, [user?.id]); // Only depend on user.id - no callback dependencies
+
+  // Real-time instant logout enforcement - monitors current device session
+  useEffect(() => {
+    if (!user || !currentDeviceId) {
+      return;
+    }
+
+    console.log('🔐 Setting up instant logout enforcement for current device:', currentDeviceId);
+
+    const currentFingerprint = createFingerprintHash(generateDeviceFingerprint());
+    
+    const logoutChannel = supabase
+      .channel(`logout-enforcement-${user.id}-${currentDeviceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_sessions',
+          filter: `user_id=eq.${user.id}`
+        },
+        async (payload) => {
+          const updatedSession = payload.new as any;
+          
+          // Check if this update is for the current device
+          const isCurrentDevice = updatedSession.device_fingerprint === currentFingerprint;
+          
+          // If current device session was deactivated and we're not the one triggering logout
+          if (isCurrentDevice && updatedSession.is_active === false && !isLoggingOutRef.current) {
+            console.log('🚨 Current device session deactivated - forcing instant logout');
+            
+            // Import and trigger immediate logout
+            const { immediateLogoutService } = await import('@/utils/auth/immediateLogoutService');
+            await immediateLogoutService.performImmediateLogout();
+            
+            // Redirect to login
+            window.location.href = '/login';
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Instant logout enforcement active');
+        }
+      });
+
+    return () => {
+      console.log('🔄 Cleaning up logout enforcement subscription');
+      supabase.removeChannel(logoutChannel);
+    };
+  }, [user?.id, currentDeviceId, createFingerprintHash, generateDeviceFingerprint]);
 
   return {
     trustedDevices,

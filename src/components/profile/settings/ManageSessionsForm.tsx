@@ -135,6 +135,7 @@ const ManageSessionsForm: React.FC = () => {
       setLogoutAllLoading(true);
       const otherDevices = trustedDevices.filter(device => device.id !== currentDeviceId);
       
+      // Log out each device one by one to trigger real-time logout enforcement
       for (const device of otherDevices) {
         await removeDevice(device.id);
       }
