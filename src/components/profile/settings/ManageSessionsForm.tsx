@@ -16,7 +16,6 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import DeviceMapView from './manage-sessions/DeviceMapView';
 import DeviceDetailsModal from './manage-sessions/DeviceDetailsModal';
-import LiveStatusIndicator from './manage-sessions/LiveStatusIndicator';
 import SecurityTipsPanel from './manage-sessions/SecurityTipsPanel';
 import { useDeviceSession } from '@/hooks/useDeviceSession';
 import { useAuth } from '@/contexts/AuthContext';
@@ -245,10 +244,6 @@ const ManageSessionsForm: React.FC = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </div>
-
-        <div className="mb-6 flex justify-center">
-          <LiveStatusIndicator isConnected={realtimeConnected} />
         </div>
         
         {trustedDevices.length > 0 ? (
