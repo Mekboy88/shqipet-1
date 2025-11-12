@@ -132,7 +132,7 @@ export const useDeviceSession = () => {
       const { data: existingProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('auth_user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (profileError && profileError.code !== 'PGRST116') {
