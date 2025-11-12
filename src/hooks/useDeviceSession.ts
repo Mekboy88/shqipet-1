@@ -531,9 +531,27 @@ export const useDeviceSession = () => {
         },
         (payload) => {
           console.log('🔔 Real-time session change received:', payload.eventType, payload.new?.id);
+          
+          // FAST PATH: New device logins (INSERT events) should appear instantly
+          if (payload.eventType === 'INSERT') {
+            console.log('⚡ Fast-pathing INSERT event for instant UI update');
+            
+            // Clear any pending timer
+            if (realtimeDebounceTimer.current) {
+              window.clearTimeout(realtimeDebounceTimer.current);
+            }
+            
+            // Minimal debounce (50ms) for INSERT, NO throttle
+            realtimeDebounceTimer.current = window.setTimeout(() => {
+              loadDevicesRef.current?.({ silent: true });
+            }, 50);
+            return;
+          }
+          
+          // For UPDATE/DELETE events, use normal throttle + debounce to prevent flicker
           const now = Date.now();
-          // Throttle realtime refreshes to avoid flicker
           if (now - lastRealtimeAtRef.current < 1500) {
+            console.log('⏱️ Throttling UPDATE/DELETE event (too soon)');
             return;
           }
           lastRealtimeAtRef.current = now;

@@ -100,6 +100,7 @@ import { setVideoSecurityNotificationCallback } from '@/utils/videoSecurity';
 import GlobalScrollIndicator from '@/components/ui/GlobalScrollIndicator';
 import { sessionPersistenceService } from '@/services/sessionPersistence';
 import { useGlobalElasticScrolling } from '@/hooks/useGlobalElasticScrolling';
+import SessionBootstrapper from '@/components/sessions/SessionBootstrapper';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -186,6 +187,7 @@ function App() {
           <QueryClientProvider client={queryClient}>
         <VideoSettingsProvider>
           <AuthProvider>
+            <SessionBootstrapper />
             <ThemeProvider>
               <ChatSettingsProvider>
                 <NotificationSettingsProvider>

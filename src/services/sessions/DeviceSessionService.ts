@@ -1,0 +1,179 @@
+import { supabase } from '@/integrations/supabase/client';
+import { detectFromUserAgent } from '@/utils/deviceType';
+
+type PlatformType = 'web' | 'pwa' | 'ios' | 'android';
+
+class DeviceSessionService {
+  private static instance: DeviceSessionService;
+
+  static getInstance() {
+    if (!DeviceSessionService.instance) {
+      DeviceSessionService.instance = new DeviceSessionService();
+    }
+    return DeviceSessionService.instance;
+  }
+
+  private createFingerprint(): string {
+    const nav = navigator as any;
+    const payload = JSON.stringify({
+      ua: navigator.userAgent,
+      platform: navigator.platform,
+      lang: navigator.language,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      res: `${screen.width}x${screen.height}`,
+      depth: screen.colorDepth,
+      mem: nav.deviceMemory || 0,
+      cores: navigator.hardwareConcurrency || 0,
+    });
+    let hash = 0;
+    for (let i = 0; i < payload.length; i++) {
+      hash = ((hash << 5) - hash) + payload.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  private detectPlatformType(): PlatformType {
+    // PWA standalone detection
+    const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandalone) return 'pwa';
+
+    // Native wrapper heuristic (if you later wrap this web app with Capacitor)
+    const ua = navigator.userAgent.toLowerCase();
+    const hasCapacitor = typeof (window as any).Capacitor !== 'undefined';
+    if (hasCapacitor || ua.includes('capacitor') || ua.includes('wv;')) {
+      if (/iphone|ipad|ipod|ios/.test(ua)) return 'ios';
+      if (/android/.test(ua)) return 'android';
+    }
+
+    return 'web';
+  }
+
+  async registerOrUpdateCurrentDevice(userId: string): Promise<string | null> {
+    try {
+      const fingerprint = this.createFingerprint();
+      const details = await detectFromUserAgent(navigator.userAgent);
+      // Normalize device type for database (mobile is the unified term)
+      const normalizedType = details.deviceType === 'mobile' ? 'mobile' : details.deviceType;
+      const platform_type = this.detectPlatformType();
+
+      console.log('🔐 Global device registration:', {
+        userId,
+        fingerprint,
+        deviceType: normalizedType,
+        platformType: platform_type,
+        deviceName: details.deviceName
+      });
+
+      // Check for existing active session for this device
+      const { data: existing, error: fetchErr } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('device_fingerprint', fingerprint)
+        .eq('is_active', true);
+
+      if (fetchErr) {
+        console.error('❌ Fetch session error', fetchErr);
+        return null;
+      }
+
+      const now = new Date().toISOString();
+
+      if (existing && existing.length > 0) {
+        const s = existing[0];
+        const isLocked = !!s.device_type_locked;
+        const finalType = isLocked ? s.device_type : normalizedType;
+        
+        console.log('🔄 Updating existing session:', s.id, { isLocked, finalType });
+        
+        const { data, error } = await supabase
+          .from('user_sessions')
+          .update({
+            last_activity: now,
+            login_count: (s.login_count || 0) + 1,
+            user_agent: navigator.userAgent,
+            device_name: details.deviceName,
+            device_type: finalType,
+            browser_info: details.browser,
+            operating_system: details.operatingSystem,
+            platform_type,
+            session_status: 'active',
+            is_active: true
+          })
+          .eq('id', s.id)
+          .select()
+          .single();
+
+        if (!error && data) {
+          console.log('✅ Session updated:', data.id);
+          return data.id;
+        }
+        return s.id || null;
+      } else {
+        const screenRes = `${screen.width}x${screen.height}`;
+        const hardwareInfo = {
+          cpu: navigator.hardwareConcurrency || 'Unknown',
+          memory: (navigator as any).deviceMemory || 'Unknown',
+          platform: navigator.platform,
+        };
+
+        console.log('➕ Creating new session for device:', details.deviceName);
+
+        const { data, error } = await supabase
+          .from('user_sessions')
+          .insert({
+            user_id: userId,
+            device_name: details.deviceName,
+            device_type: normalizedType,
+            browser_info: details.browser,
+            operating_system: details.operatingSystem,
+            device_fingerprint: fingerprint,
+            is_trusted: false,
+            login_count: 1,
+            user_agent: navigator.userAgent,
+            last_activity: now,
+            is_active: true,
+            session_token: `session_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+            screen_resolution: screenRes,
+            platform_type,
+            hardware_info: hardwareInfo,
+            mfa_enabled: false,
+            session_status: 'active',
+            security_alerts: [],
+            device_type_locked: false
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          console.log('✅ New session created:', data.id);
+          return data.id;
+        } else if (error) {
+          console.error('❌ Error creating session:', error);
+        }
+        return null;
+      }
+    } catch (e) {
+      console.error('❌ registerOrUpdateCurrentDevice failed', e);
+      return null;
+    }
+  }
+
+  async heartbeat(sessionId: string) {
+    try {
+      await supabase
+        .from('user_sessions')
+        .update({
+          last_activity: new Date().toISOString(),
+          session_status: 'active',
+          is_active: true
+        })
+        .eq('id', sessionId);
+    } catch (e) {
+      console.error('❌ heartbeat failed', e);
+    }
+  }
+}
+
+export const deviceSessionService = DeviceSessionService.getInstance();
