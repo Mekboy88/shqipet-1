@@ -62,9 +62,9 @@ export const useDeviceSession = () => {
   }, []);
 
   // Detect device details from user agent (robust via UA parser + rules)
-  const detectDeviceDetails = useCallback((userAgent: string) => {
+  const detectDeviceDetails = useCallback(async (userAgent: string) => {
     const uaData: any = (navigator as any).userAgentData;
-    const details = detectFromUserAgent(userAgent, {
+    const details = await detectFromUserAgent(userAgent, {
       platform: uaData?.platform,
       mobile: uaData?.mobile,
       model: undefined,
@@ -148,7 +148,7 @@ export const useDeviceSession = () => {
       const userId = user.id;
       const fingerprint = generateDeviceFingerprint();
       const fingerprintHash = createFingerprintHash(fingerprint);
-      const deviceDetails = detectDeviceDetails(navigator.userAgent);
+      const deviceDetails = await detectDeviceDetails(navigator.userAgent);
 
       // Check if device already exists and is active
       const { data: existingSessions, error: fetchError } = await supabase
@@ -270,8 +270,8 @@ export const useDeviceSession = () => {
           return;
         }
 
-        const transformedDevices: TrustedDevice[] = sessions.map(session => {
-          const deviceDetails = detectDeviceDetails(session.user_agent || '');
+        const transformedDevices: TrustedDevice[] = await Promise.all(sessions.map(async session => {
+          const deviceDetails = await detectDeviceDetails(session.user_agent || '');
           const isCurrentDevice = session.device_fingerprint === currentFingerprint;
 
           return {
@@ -289,7 +289,7 @@ export const useDeviceSession = () => {
             location: session.location || 'Unknown location',
             ip_address: session.ip_address
           };
-        });
+        }));
 
         console.log('📱 Loaded devices:', transformedDevices.length);
         setTrustedDevices(transformedDevices);

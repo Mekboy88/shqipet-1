@@ -14,29 +14,76 @@ const mapOS = (name?: string) => {
 
 const fromRules = (ua: string): DeviceCategory => {
   const u = ua.toLowerCase();
+  
+  // Mobile devices
   if (/(iphone|android mobile|windows phone)/.test(u)) return 'mobile';
+  
+  // Tablets
   if (/(ipad|tablet|kindle|silk|playbook|galaxy tab)/.test(u)) return 'tablet';
+  
+  // Explicit laptop indicators
   if (/(macbook|notebook|laptop)/.test(u)) return 'laptop';
-  if (/(windows nt|macintosh|linux x86_64)/.test(u)) return 'desktop';
+  
+  // Windows/Linux desktops (but NOT macOS - needs heuristics)
+  if (/(windows nt|linux x86_64)/.test(u)) return 'desktop';
+  
+  // For macOS "macintosh", return 'unknown' to trigger heuristics
   return 'unknown';
 };
 
-const guessDesktopVsLaptop = (): 'desktop' | 'laptop' => {
+const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
   if (typeof window === 'undefined') return 'desktop';
+  
+  const nav = navigator as any;
+  
+  // Check battery API (most reliable indicator of laptop vs desktop)
+  if (nav.getBattery) {
+    try {
+      const battery = await nav.getBattery();
+      // If device reports battery, it's likely a laptop
+      if (battery && battery.charging !== undefined) {
+        console.log('🔋 Battery API detected - classifying as laptop');
+        return 'laptop';
+      }
+    } catch (e) {
+      console.log('⚠️ Battery API not available or blocked');
+    }
+  }
+  
+  // Screen size and touch heuristics
   const w = window.screen?.width || 0;
   const h = window.screen?.height || 0;
-  const touch = 'ontouchstart' in window || (navigator as any).maxTouchPoints > 0;
-  // Heuristic: smaller screens or touch-enabled likely laptops; very large 4k likely desktop
-  if (w <= 1680 || h <= 1050 || touch) return 'laptop';
+  const touch = 'ontouchstart' in window || nav.maxTouchPoints > 0;
+  
+  console.log('🔍 Device Detection Heuristics:', {
+    screenWidth: w,
+    screenHeight: h,
+    hasTouch: touch,
+    batteryAPI: !!nav.getBattery
+  });
+  
+  // Laptops: smaller screens (≤1920px) or touch-enabled
+  // Desktops: large screens (>1920px, especially 4K/5K displays)
+  if (w <= 1920 || h <= 1200 || touch) return 'laptop';
+  
   return 'desktop';
 };
 
-export function detectFromUserAgent(
+export async function detectFromUserAgent(
   ua: string,
   hints?: { platform?: string; model?: string; mobile?: boolean }
-): { deviceType: DeviceCategory; deviceName: string; browser: string; operatingSystem: string } {
+): Promise<{ deviceType: DeviceCategory; deviceName: string; browser: string; operatingSystem: string }> {
   const parser = new UAParser(ua);
   const res = parser.getResult();
+
+  console.log('🔍 Device Detection Debug:', {
+    userAgent: ua,
+    uaParserDevice: res.device?.type,
+    uaParserOS: res.os?.name,
+    uaParserBrowser: res.browser?.name,
+    screenSize: `${screen?.width}x${screen?.height}`,
+    platform: hints?.platform || navigator?.platform
+  });
 
   let deviceType: DeviceCategory = 'unknown';
   const uaRuleType = fromRules(ua);
@@ -44,7 +91,7 @@ export function detectFromUserAgent(
   if (res.device?.type === 'mobile' || hints?.mobile === true) deviceType = 'mobile';
   else if (res.device?.type === 'tablet') deviceType = 'tablet';
   else if (uaRuleType !== 'unknown') deviceType = uaRuleType;
-  else deviceType = guessDesktopVsLaptop();
+  else deviceType = await guessDesktopVsLaptop();
 
   const osName = mapOS(res.os?.name);
   const browserName = res.browser?.name || 'Unknown Browser';
@@ -62,6 +109,13 @@ export function detectFromUserAgent(
   } else if (deviceType === 'desktop') {
     deviceName = osName === 'macOS' ? 'Mac' : `${osName} PC`;
   }
+
+  console.log('✅ Final Detection Result:', {
+    deviceType,
+    deviceName,
+    browser: browserName,
+    operatingSystem: osName
+  });
 
   return {
     deviceType,
