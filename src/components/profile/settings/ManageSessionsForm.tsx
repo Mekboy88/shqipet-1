@@ -1,7 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Monitor, Smartphone, Tablet, Laptop, X, Clock, Loader2, AlertTriangle, Shield, ShieldCheck } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, X, Clock, Loader2, AlertTriangle, Shield, ShieldCheck, Info } from 'lucide-react';
+import DeviceMapView from './manage-sessions/DeviceMapView';
+import DeviceDetailsModal from './manage-sessions/DeviceDetailsModal';
+import LiveStatusIndicator from './manage-sessions/LiveStatusIndicator';
+import SecurityTipsPanel from './manage-sessions/SecurityTipsPanel';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +25,9 @@ const ManageSessionsForm: React.FC = () => {
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
   const [removingDeviceId, setRemovingDeviceId] = useState<string | null>(null);
   const [showLogoutAllDialog, setShowLogoutAllDialog] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<any>(null);
+  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [realtimeConnected, setRealtimeConnected] = useState(true);
   const { signOut } = useAuth();
   
   const {
@@ -176,6 +183,20 @@ const ManageSessionsForm: React.FC = () => {
     await toggleDeviceTrust(deviceId, !currentTrust);
   };
 
+  const handleDeviceClick = (deviceId: string) => {
+    const device = trustedDevices.find(d => d.id === deviceId);
+    if (device) {
+      setSelectedDevice(device);
+      setShowDeviceModal(true);
+    }
+  };
+
+  // Monitor realtime connection (simplified for demo)
+  useEffect(() => {
+    // In production, you'd monitor the actual Supabase channel status
+    setRealtimeConnected(true);
+  }, []);
+
   if (loading) {
     return (
       <div className="p-4 sm:p-6">
@@ -190,10 +211,10 @@ const ManageSessionsForm: React.FC = () => {
   const otherDevicesCount = trustedDevices.filter(device => device.id !== currentDeviceId).length;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Trusted Devices & Sessions Card */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2 border-b border-gray-200 pb-3">
               Trusted Devices & Sessions
@@ -263,8 +284,15 @@ const ManageSessionsForm: React.FC = () => {
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        {/* Live Status Indicator */}
+        <div className="mb-6 flex justify-center">
+          <LiveStatusIndicator isConnected={realtimeConnected} />
+        </div>
         
         {trustedDevices.length > 0 ? (
+          <>
+            {/* Device Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {trustedDevices.map((device) => {
               const isCurrentDevice = device.id === currentDeviceId;
@@ -310,12 +338,16 @@ const ManageSessionsForm: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* Device info */}
-                  <div className="flex flex-col items-center text-center mb-3 flex-shrink-0">
+                   {/* Device info - clickable */}
+                  <div 
+                    className="flex flex-col items-center text-center mb-3 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handleDeviceClick(device.id)}
+                  >
                     <div className="flex items-center gap-1 mb-1">
                       <h4 className={`font-bold text-sm ${deviceStyles.statusText}`}>
                         {device.device_name}
                       </h4>
+                      <Info size={12} className="text-gray-400" />
                       {device.is_trusted && !isCurrentDevice && (
                         <ShieldCheck size={12} className="text-green-500" />
                       )}
@@ -370,7 +402,28 @@ const ManageSessionsForm: React.FC = () => {
                 </div>
               );
             })}
-          </div>
+            </div>
+
+            {/* Device Map */}
+            <div className="mt-8">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                Device Locations
+                <span className="text-xs font-normal text-gray-500">(Approximate city-level)</span>
+              </h4>
+              <DeviceMapView 
+                devices={trustedDevices.map(d => ({
+                  id: d.id,
+                  device_name: d.device_name,
+                  device_type: d.device_type,
+                  location: d.location,
+                  latitude: undefined,
+                  longitude: undefined,
+                  is_current: d.is_current
+                }))}
+                onDeviceClick={handleDeviceClick}
+              />
+            </div>
+          </>
         ) : (
           <div className="text-center py-20 bg-gray-50 rounded-lg">
             <div className="p-4 rounded-xl bg-gray-100 shadow-sm transition-all duration-200 hover:shadow-md w-fit mx-auto mb-4">
@@ -381,6 +434,18 @@ const ManageSessionsForm: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Security Tips Panel */}
+      <SecurityTipsPanel />
+
+      {/* Device Details Modal */}
+      <DeviceDetailsModal
+        device={selectedDevice}
+        isOpen={showDeviceModal}
+        onClose={() => setShowDeviceModal(false)}
+        onLogout={handleRemoveDevice}
+        onToggleTrust={handleToggleTrust}
+      />
     </div>
   );
 };
