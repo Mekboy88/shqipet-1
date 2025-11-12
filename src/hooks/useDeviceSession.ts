@@ -310,8 +310,11 @@ export const useDeviceSession = () => {
       }
 
       if (sessions) {
+        const currentFingerprint = createFingerprintHash(generateDeviceFingerprint());
+        
         const transformedDevices: TrustedDevice[] = sessions.map(session => {
           const deviceDetails = detectDeviceDetails(session.user_agent || '');
+          const isCurrentDevice = session.device_fingerprint === currentFingerprint;
           
           return {
             id: session.id,
@@ -322,16 +325,22 @@ export const useDeviceSession = () => {
             device_fingerprint: session.device_fingerprint || '',
             first_seen: session.created_at || new Date().toISOString(),
             last_seen: session.last_activity || new Date().toISOString(),
-            is_current: session.id === currentDeviceId,
+            is_current: isCurrentDevice,
             is_trusted: session.is_trusted || false,
             login_count: session.login_count || 1,
-            location: session.location,
+            location: session.location || 'Unknown location',
             ip_address: session.ip_address
           };
         });
 
         console.log('📱 Loaded devices:', transformedDevices.length);
         setTrustedDevices(transformedDevices);
+        
+        // Update current device ID if found
+        const currentDevice = transformedDevices.find(d => d.is_current);
+        if (currentDevice) {
+          setCurrentDeviceId(currentDevice.id);
+        }
       }
     } catch (error) {
       console.error('❌ Error in loadTrustedDevices:', error);
@@ -400,6 +409,62 @@ export const useDeviceSession = () => {
       setLoading(false);
     }
   }, [user, registerCurrentDevice, loadTrustedDevices]);
+
+  // Real-time subscription for session changes
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('🔄 Setting up real-time subscription for user sessions');
+
+    // Get profile ID for filtering
+    let profileId: string | null = null;
+    const setupSubscription = async () => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .single();
+
+      if (!profile) return null;
+      profileId = profile.id;
+
+      // Subscribe to user_sessions table changes
+      const channel = supabase
+        .channel('user-sessions-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_sessions',
+            filter: `user_id=eq.${profileId}`
+          },
+          (payload) => {
+            console.log('🔔 Session changed:', payload);
+            // Reload devices on any change
+            loadTrustedDevices();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Real-time subscription active for user sessions');
+          }
+        });
+
+      return channel;
+    };
+
+    let channelPromise = setupSubscription();
+
+    return () => {
+      channelPromise.then((channel) => {
+        if (channel) {
+          console.log('🔄 Cleaning up real-time subscription');
+          supabase.removeChannel(channel);
+        }
+      });
+    };
+  }, [user, loadTrustedDevices]);
 
   return {
     trustedDevices,
