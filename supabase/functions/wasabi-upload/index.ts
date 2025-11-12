@@ -338,7 +338,7 @@ Deno.serve(async (req) => {
         variants: variantKeys,
         dimensions: { width: image.width, height: image.height },
         success: true,
-        message: 'Image processed at maximum quality with crisp variants'
+        message: 'Image processed with metadata stripped and crisp variants generated'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
