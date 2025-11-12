@@ -146,7 +146,7 @@ export const useDeviceSession = () => {
         const { error: createError } = await supabase
           .from('profiles')
           .insert({
-            user_id: user.id, // Add the required user_id field
+            id: user.id, // Ensure PK matches auth.uid() to satisfy FKs
             auth_user_id: user.id,
             email: user.email || '',
             first_name: user.user_metadata?.first_name || '',
