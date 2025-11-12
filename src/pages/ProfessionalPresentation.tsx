@@ -293,6 +293,9 @@ export default function ProfessionalPresentation() {
   // Text group drag hook
   const textDrag = useGroupDrag({ userId: user?.id });
 
+  // Blob URL lifecycle management - track current blob to prevent memory leaks
+  const currentBlobRef = useRef<string | null>(null);
+
   // Editable state - Start with cached data for instant display
   const [profile, setProfile] = useState(() => {
     // Load cached avatar from localStorage for instant display
@@ -301,9 +304,13 @@ export default function ProfessionalPresentation() {
       const metaStr = localStorage.getItem('pp:avatar_meta');
       if (metaStr) {
         const meta = JSON.parse(metaStr);
-        // Only use cache if it's for the current user
+        // Only use cache if it's for the current user AND it's an http(s) URL
+        // CRITICAL: Never load blob/data URLs from cache (they're invalid after reload)
         if (meta.userId === user?.id) {
-          cachedAvatarUrl = localStorage.getItem('pp:last:avatar_url') || "";
+          const cached = localStorage.getItem('pp:last:avatar_url') || "";
+          if (/^https?:/.test(cached)) {
+            cachedAvatarUrl = cached;
+          }
         }
       }
     } catch {}
@@ -454,15 +461,18 @@ export default function ProfessionalPresentation() {
                 // Only update if URL actually changed
                 if (prev.avatarUrl === keyOrUrl) return prev;
                 
-                // SECURITY: Store with userId to prevent cross-account leakage
-                try {
-                  localStorage.setItem('pp:last:avatar_url', keyOrUrl);
-                  localStorage.setItem('pp:avatar_meta', JSON.stringify({
-                    url: keyOrUrl,
-                    rev,
-                    userId: user.id
-                  }));
-                } catch {}
+                // CRITICAL: Only store http(s) URLs in localStorage (blob/data are session-only)
+                const isHttp = /^https?:/.test(keyOrUrl);
+                if (isHttp) {
+                  try {
+                    localStorage.setItem('pp:last:avatar_url', keyOrUrl);
+                    localStorage.setItem('pp:avatar_meta', JSON.stringify({
+                      url: keyOrUrl,
+                      rev,
+                      userId: user.id
+                    }));
+                  } catch {}
+                }
                 
                 return {
                   ...prev,
@@ -473,23 +483,31 @@ export default function ProfessionalPresentation() {
               (async () => {
                 try {
                   const fresh = await mediaService.getUrl(keyOrUrl);
-                  const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
+                  
+                  // CRITICAL: Only add cache-busting query params to http(s) URLs, NOT blob/data
+                  const isBlob = /^(blob:|data:)/.test(fresh);
+                  const versioned = isBlob ? fresh : fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
                   
                   // Check if URL changed before preloading and updating
                   setProfile(prev => {
                     if (prev.avatarUrl === versioned) return prev;
                     
                     // Preload in background after state update for instant display
-                    mediaService.preloadImage(versioned).catch(() => {});
+                    if (!isBlob) {
+                      mediaService.preloadImage(versioned).catch(() => {});
+                    }
                     
-                    try {
-                      localStorage.setItem('pp:last:avatar_url', versioned);
-                      localStorage.setItem('pp:avatar_meta', JSON.stringify({
-                        url: versioned,
-                        rev,
-                        userId: user?.id
-                      }));
-                    } catch {}
+                    // CRITICAL: Only store http(s) URLs in localStorage
+                    if (!isBlob) {
+                      try {
+                        localStorage.setItem('pp:last:avatar_url', versioned);
+                        localStorage.setItem('pp:avatar_meta', JSON.stringify({
+                          url: versioned,
+                          rev,
+                          userId: user?.id
+                        }));
+                      } catch {}
+                    }
                     
                     return {
                       ...prev,
@@ -518,8 +536,22 @@ export default function ProfessionalPresentation() {
     };
     loadData();
 
-    // Set up realtime subscription for INSTANT updates across devices (zero delay)
-    // SECURITY: RLS ensures only own data is received
+    // Cleanup: Revoke blob URL on unmount to prevent memory leaks
+    return () => {
+      if (currentBlobRef.current) {
+        try {
+          URL.revokeObjectURL(currentBlobRef.current);
+        } catch {}
+        currentBlobRef.current = null;
+      }
+    };
+  }, [user]);
+
+  // Set up realtime subscription for INSTANT updates across devices (zero delay)
+  // SECURITY: RLS ensures only own data is received
+  useEffect(() => {
+    if (!user) return;
+    
     const channel = supabase.channel('professional-presentation-changes').on('postgres_changes', {
       event: '*',
       schema: 'public',
@@ -547,15 +579,8 @@ export default function ProfessionalPresentation() {
               // Only update if URL actually changed
               if (prev.avatarUrl === keyOrUrl) return prev;
               
-              // Update cache
-              try {
-                localStorage.setItem('pp:last:avatar_url', keyOrUrl);
-                localStorage.setItem('pp:avatar_meta', JSON.stringify({
-                  url: keyOrUrl,
-                  rev: commitTimestamp,
-                  userId: user.id
-                }));
-              } catch {}
+              // CRITICAL: NEVER store blob/data URLs in localStorage (session-only)
+              // They are invalid after page reload
               
               return {
                 ...prev,
@@ -573,24 +598,39 @@ export default function ProfessionalPresentation() {
 
               // Force fresh fetch with proxy blob (bypasses all caches)
               const fresh = await mediaService.getProxyBlob(keyOrUrl);
-              const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 't=' + Date.now();
+              
+              // CRITICAL: Only add cache-busting to http(s), NOT blob URLs
+              const isBlob = /^(blob:|data:)/.test(fresh);
+              const versioned = isBlob ? fresh : fresh + (fresh.includes('?') ? '&' : '?') + 't=' + Date.now();
 
               setProfile(prev => {
                 // Only update if URL actually changed
                 if (prev.avatarUrl === versioned) return prev;
                 
-                // Preload in background for smooth transition
-                mediaService.preloadImage(versioned).catch(() => {});
+                // Blob URL lifecycle: revoke old blob before setting new one
+                if (isBlob) {
+                  if (currentBlobRef.current && currentBlobRef.current !== versioned) {
+                    try {
+                      URL.revokeObjectURL(currentBlobRef.current);
+                    } catch {}
+                  }
+                  currentBlobRef.current = versioned;
+                } else {
+                  // Preload http(s) URLs in background for smooth transition
+                  mediaService.preloadImage(versioned).catch(() => {});
+                }
                 
-                // Update cache
-                try {
-                  localStorage.setItem('pp:last:avatar_url', versioned);
-                  localStorage.setItem('pp:avatar_meta', JSON.stringify({
-                    url: versioned,
-                    rev: commitTimestamp,
-                    userId: user.id
-                  }));
-                } catch {}
+                // CRITICAL: Only store http(s) URLs in localStorage
+                if (!isBlob) {
+                  try {
+                    localStorage.setItem('pp:last:avatar_url', versioned);
+                    localStorage.setItem('pp:avatar_meta', JSON.stringify({
+                      url: versioned,
+                      rev: commitTimestamp,
+                      userId: user.id
+                    }));
+                  } catch {}
+                }
                 
                 console.log('✅ Applied fresh avatar URL instantly:', versioned);
                 
