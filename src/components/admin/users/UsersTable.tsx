@@ -31,7 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Avatar from '@/components/Avatar';
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
@@ -334,15 +334,9 @@ export function UsersTable({
                         </Tooltip>
                       </TableCell>
                       <TableCell>
-                        <Avatar className="h-10 w-10 cursor-pointer" onClick={() => onViewDetails(user)}>
-                          <AvatarImage 
-                            src={user.profile_image_url || ''} 
-                            alt={user.username || 'User'} 
-                          />
-                          <AvatarFallback className={isSupremeAdmin(user) ? 'bg-[#E2725B] text-white' : ''}>
-                            {(user.first_name?.[0] || '') + (user.last_name?.[0] || '') || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="h-10 w-10 cursor-pointer" onClick={() => onViewDetails(user)}>
+                          <Avatar userId={user.id} size="md" className="h-10 w-10" />
+                        </div>
                       </TableCell>
                       <TableCell className={getSupremeAdminStyle(user)}>
                         <Tooltip>
