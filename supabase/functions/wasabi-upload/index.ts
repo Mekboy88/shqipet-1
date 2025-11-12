@@ -242,9 +242,9 @@ Deno.serve(async (req) => {
     const canProcess = IMAGESCRIPT_FORMATS.includes(file.type);
     
     if (isValidImage && isAvatarOrCover && canProcess) {
-      console.log('🎨 Processing image with quality pipeline...');
+      console.log('🎨 Processing image with quality pipeline (with automatic metadata stripping)...');
       
-      // Decode image
+      // Decode image (automatically strips EXIF, GPS, and all metadata)
       const arrayBuffer = await file.arrayBuffer();
       const imageBuffer = new Uint8Array(arrayBuffer);
       const image = await processImage(imageBuffer);
