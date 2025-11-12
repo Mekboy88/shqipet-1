@@ -68,10 +68,22 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
 }) => {
   const smokeFocusStyles = "focus:ring-1 focus:ring-gray-300/50 focus:border-gray-400 focus:shadow-sm focus:shadow-gray-200/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-300/50 focus-visible:ring-offset-0";
   const { user } = useAuth();
-  const [data, setData] = useState<PersonalIntroData>({});
-  const [originalData, setOriginalData] = useState<PersonalIntroData>({});
+  
+  // Initialize state from cache for instant display
+  const getCachedData = useCallback((): PersonalIntroData => {
+    if (!user?.id) return {};
+    try {
+      const cached = localStorage.getItem(`personal_intro_${user.id}`);
+      return cached ? JSON.parse(cached) : {};
+    } catch {
+      return {};
+    }
+  }, [user?.id]);
+
+  const [data, setData] = useState<PersonalIntroData>(() => getCachedData());
+  const [originalData, setOriginalData] = useState<PersonalIntroData>(() => getCachedData());
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -99,14 +111,21 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
         favorite_quote: introData?.favorite_quote || '',
       };
 
-      setData(loadedData);
-      setOriginalData(loadedData);
+      // Only update if data actually changed
+      const dataChanged = JSON.stringify(loadedData) !== JSON.stringify(data);
+      if (dataChanged) {
+        setData(loadedData);
+        setOriginalData(loadedData);
+        
+        // Update cache
+        localStorage.setItem(`personal_intro_${user.id}`, JSON.stringify(loadedData));
+      }
     } catch (error) {
       console.error('Error loading personal introduction:', error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, data]);
 
   // Initial data load
   useEffect(() => {
@@ -172,6 +191,12 @@ export const PersonalIntroductionCard: React.FC<PersonalIntroductionCardProps> =
       }
 
       setOriginalData({ ...data });
+      
+      // Update cache immediately
+      if (user?.id) {
+        localStorage.setItem(`personal_intro_${user.id}`, JSON.stringify(data));
+      }
+      
       toast.success('Changes saved automatically');
     } catch (error) {
       console.error('Error saving personal introduction:', error);
