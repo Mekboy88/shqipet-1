@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Monitor, Smartphone, Tablet, Laptop, RefreshCw, LogOut, MapPin, Chrome, Globe, Activity, ShieldCheck, Shield, Loader2, AlertTriangle } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, RefreshCw, LogOut, MapPin, Chrome, Globe, Activity, ShieldCheck, Shield, Loader2, AlertTriangle, HelpCircle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,14 +43,28 @@ const ManageSessionsForm: React.FC = () => {
     removeDevice
   } = useDeviceSession();
 
-  const getDeviceIcon = (deviceType: string) => {
-    const iconProps = { size: 28, className: 'text-primary' };
-    switch (deviceType) {
-      case 'smartphone': return <Smartphone {...iconProps} />;
-      case 'tablet': return <Tablet {...iconProps} />;
-      case 'laptop': return <Laptop {...iconProps} />;
-      case 'desktop': return <Monitor {...iconProps} />;
-      default: return <Monitor {...iconProps} />;
+  const getDeviceIcon = (deviceType: string, isActive: boolean = false) => {
+    // Dynamic color based on activity
+    const colorClass = isActive 
+      ? 'text-primary' 
+      : 'text-muted-foreground';
+    
+    const iconProps = { size: 28, className: colorClass };
+    
+    switch (deviceType.toLowerCase()) {
+      case 'smartphone':
+      case 'mobile':
+        return <Smartphone {...iconProps} />;
+      case 'tablet':
+        return <Tablet {...iconProps} />;
+      case 'laptop':
+        return <Laptop {...iconProps} />;
+      case 'desktop':
+        return <Monitor {...iconProps} />;
+      case 'unknown':
+        return <HelpCircle {...iconProps} />;
+      default: 
+        return <Monitor {...iconProps} />;
     }
   };
 
@@ -231,8 +245,11 @@ const ManageSessionsForm: React.FC = () => {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
-                      <div className="p-2.5 bg-accent/50 rounded-xl">
-                        {getDeviceIcon(device.device_type)}
+                      <div 
+                        className="p-2.5 bg-accent/50 rounded-xl transition-all duration-200"
+                        title={`${device.device_type.charAt(0).toUpperCase() + device.device_type.slice(1)} Device`}
+                      >
+                        {getDeviceIcon(device.device_type, device.is_current)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">

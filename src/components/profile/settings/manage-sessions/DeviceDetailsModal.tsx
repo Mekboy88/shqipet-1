@@ -7,7 +7,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Monitor, Smartphone, Tablet, Laptop, Clock, MapPin, Globe, Shield, ShieldCheck, Copy, LogOut, Chrome, Activity, AlertCircle } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, Clock, MapPin, Globe, Shield, ShieldCheck, Copy, LogOut, Chrome, Activity, AlertCircle, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatTimeAgo } from '@/lib/utils/timeUtils';
 
@@ -45,13 +45,21 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
   if (!device) return null;
 
   const getDeviceIcon = () => {
-    const iconProps = { size: 40, className: 'text-primary' };
-    switch (device.device_type) {
-      case 'smartphone': return <Smartphone {...iconProps} />;
-      case 'tablet': return <Tablet {...iconProps} />;
-      case 'laptop': return <Laptop {...iconProps} />;
-      case 'desktop': return <Monitor {...iconProps} />;
-      default: return <Monitor {...iconProps} />;
+    const iconProps = { size: 40, className: device.is_current ? 'text-primary' : 'text-muted-foreground' };
+    switch (device.device_type.toLowerCase()) {
+      case 'smartphone':
+      case 'mobile': 
+        return <Smartphone {...iconProps} />;
+      case 'tablet': 
+        return <Tablet {...iconProps} />;
+      case 'laptop': 
+        return <Laptop {...iconProps} />;
+      case 'desktop': 
+        return <Monitor {...iconProps} />;
+      case 'unknown': 
+        return <HelpCircle {...iconProps} />;
+      default: 
+        return <Monitor {...iconProps} />;
     }
   };
 
