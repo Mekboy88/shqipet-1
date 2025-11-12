@@ -34,6 +34,10 @@ const ManageSessionsForm: React.FC = () => {
     trustedDevices,
     currentDeviceId,
     loading,
+    error,
+    realtimeStatus,
+    lastRefresh,
+    refreshDevices,
     toggleDeviceTrust,
     removeDevice
   } = useDeviceSession();
@@ -191,11 +195,10 @@ const ManageSessionsForm: React.FC = () => {
     }
   };
 
-  // Monitor realtime connection (simplified for demo)
+  // Monitor realtime connection
   useEffect(() => {
-    // In production, you'd monitor the actual Supabase channel status
-    setRealtimeConnected(true);
-  }, []);
+    setRealtimeConnected(realtimeStatus === 'connected');
+  }, [realtimeStatus]);
 
   if (loading) {
     return (
@@ -215,16 +218,50 @@ const ManageSessionsForm: React.FC = () => {
       {/* Trusted Devices & Sessions Card */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
         <div className="flex justify-between items-start mb-4">
-          <div>
+          <div className="flex-1">
             <h3 className="text-xl font-semibold text-gray-800 mb-2 border-b border-gray-200 pb-3">
               Trusted Devices & Sessions
             </h3>
             <p className="text-sm text-gray-600 mt-2">
               Manage your trusted devices and active login sessions. Each device you log in with will be remembered and displayed here.
             </p>
+            {error && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                  <p className="text-sm text-red-700 font-medium">Error Loading Devices</p>
+                </div>
+                <p className="text-sm text-red-600 mt-1">{error}</p>
+                <Button 
+                  onClick={refreshDevices}
+                  disabled={loading}
+                  className="mt-2 px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 border border-red-300"
+                >
+                  {loading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+                  Try Again
+                </Button>
+              </div>
+            )}
           </div>
           
-          <AlertDialog open={showLogoutAllDialog} onOpenChange={setShowLogoutAllDialog}>
+          <div className="flex gap-2 ml-4">
+            <Button 
+              onClick={refreshDevices}
+              disabled={loading}
+              variant="outline"
+              className="px-3 py-2 text-sm font-medium transition-all duration-200 hover:shadow-md"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Loading...
+                </>
+              ) : (
+                'Refresh Devices'
+              )}
+            </Button>
+            
+            <AlertDialog open={showLogoutAllDialog} onOpenChange={setShowLogoutAllDialog}>
             <AlertDialogTrigger asChild>
               <Button 
                 disabled={logoutAllLoading || trustedDevices.length <= 1 || otherDevicesCount === 0}
@@ -289,6 +326,20 @@ const ManageSessionsForm: React.FC = () => {
         <div className="mb-6 flex justify-center">
           <LiveStatusIndicator isConnected={realtimeConnected} />
         </div>
+
+        {/* Debug Info for Development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-3 bg-gray-100 rounded-lg text-xs space-y-1">
+            <div><strong>Debug Info:</strong></div>
+            <div>User ID: {signOut ? 'Available' : 'None'}</div>
+            <div>Devices Count: {trustedDevices.length}</div>
+            <div>Current Device: {currentDeviceId || 'None'}</div>
+            <div>Real-time: {realtimeStatus}</div>
+            <div>Last Refresh: {lastRefresh.toLocaleTimeString()}</div>
+            <div>Loading: {loading ? 'Yes' : 'No'}</div>
+            <div>Error: {error || 'None'}</div>
+          </div>
+        )}
         
         {trustedDevices.length > 0 ? (
           <>
@@ -425,12 +476,33 @@ const ManageSessionsForm: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className="text-center py-20 bg-gray-50 rounded-lg">
-            <div className="p-4 rounded-xl bg-gray-100 shadow-sm transition-all duration-200 hover:shadow-md w-fit mx-auto mb-4">
-              <Monitor size={48} className="text-gray-400" />
+          <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-200">
+            <div className="flex items-center justify-center mb-4">
+              <AlertTriangle className="w-12 h-12 text-gray-400" />
             </div>
-            <p className="text-gray-500 font-medium">No devices found.</p>
-            <p className="text-sm text-gray-400 mt-2">Login from different devices to see them appear here as trusted devices.</p>
+            <h4 className="text-lg font-medium text-gray-700 mb-2">
+              {error ? 'Failed to Load Devices' : 'No devices found'}
+            </h4>
+            <p className="text-gray-600 max-w-sm mx-auto mb-4">
+              {error 
+                ? 'There was an error loading your device sessions. Please try refreshing.' 
+                : 'Login from different devices to see them appear here as trusted devices.'
+              }
+            </p>
+            <Button 
+              onClick={refreshDevices}
+              disabled={loading}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Refreshing...
+                </>
+              ) : (
+                'Refresh Devices'
+              )}
+            </Button>
           </div>
         )}
       </div>

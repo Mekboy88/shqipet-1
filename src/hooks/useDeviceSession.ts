@@ -35,6 +35,9 @@ export const useDeviceSession = () => {
   const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const { user } = useAuth();
 
   // Generate device fingerprint
@@ -252,16 +255,19 @@ export const useDeviceSession = () => {
     }
   }, [user, generateDeviceFingerprint, createFingerprintHash, detectDeviceDetails]);
 
-  // Load trusted devices
+  // Load trusted devices with improved error handling
   const loadTrustedDevices = useCallback(async () => {
     if (!user) {
       console.log('❌ No user found for loading devices');
+      setTrustedDevices([]);
+      setError('No authenticated user found');
       setLoading(false);
       return;
     }
 
     try {
       console.log('🔄 Loading trusted devices for user:', user.id);
+      setError(null);
 
       const { data: sessions, error } = await supabase
         .from('user_sessions')
@@ -272,12 +278,24 @@ export const useDeviceSession = () => {
 
       if (error) {
         console.error('❌ Error loading sessions:', error);
+        const errorMsg = `Failed to load devices: ${error.message}`;
+        setError(errorMsg);
+        toast.error(errorMsg);
         setLoading(false);
         return;
       }
 
       if (sessions) {
         const currentFingerprint = createFingerprintHash(generateDeviceFingerprint());
+        console.log(`🔍 Found ${sessions.length} active sessions for user ${user.id}`);
+
+        if (sessions.length === 0) {
+          console.log('⚠️ No active sessions found - user may need to register device');
+          setTrustedDevices([]);
+          setError('No devices found. Try refreshing or logging in again.');
+          setLoading(false);
+          return;
+        }
 
         const transformedDevices: TrustedDevice[] = sessions.map(session => {
           const deviceDetails = detectDeviceDetails(session.user_agent || '');
@@ -302,19 +320,27 @@ export const useDeviceSession = () => {
 
         console.log('📱 Loaded devices:', transformedDevices.length);
         setTrustedDevices(transformedDevices);
+        setError(null);
 
         // Update current device ID if found
         const currentDevice = transformedDevices.find(d => d.is_current);
         if (currentDevice) {
           setCurrentDeviceId(currentDevice.id);
+          console.log('✅ Found current device:', currentDevice.id);
+        } else {
+          console.log('⚠️ Current device not found in session list');
         }
       }
     } catch (error) {
       console.error('❌ Error in loadTrustedDevices:', error);
+      const errorMsg = `Failed to load devices: ${error}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
+      setLastRefresh(new Date());
     }
-  }, [user, detectDeviceDetails]);
+  }, [user, detectDeviceDetails, createFingerprintHash, generateDeviceFingerprint]);
 
   // Trust/untrust device
   const toggleDeviceTrust = useCallback(async (deviceId: string, trusted: boolean) => {
@@ -356,32 +382,84 @@ export const useDeviceSession = () => {
     }
   }, [user, loadTrustedDevices]);
 
-  // Initialize on mount and when user changes
-  useEffect(() => {
-    if (user) {
-      console.log('🔄 Initializing device session for user:', user.id);
-      setLoading(true);
+  // Manual refresh function
+  const refreshDevices = useCallback(async () => {
+    if (!user) {
+      toast.error('No user logged in');
+      return;
+    }
+    
+    console.log('🔄 Manual refresh triggered');
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Re-register current device first
+      const sessionId = await registerCurrentDevice();
+      if (sessionId) {
+        setCurrentDeviceId(sessionId);
+        console.log('✅ Current device re-registered:', sessionId);
+      }
       
-      registerCurrentDevice().then((sessionId) => {
-        if (sessionId) {
-          setCurrentDeviceId(sessionId);
-        }
-        // Always load devices even if registration fails
-        loadTrustedDevices();
-      });
-    } else {
-      // Reset state when user logs out
-      setTrustedDevices([]);
-      setCurrentDeviceId(null);
-      setLoading(false);
+      // Then load all devices
+      await loadTrustedDevices();
+      toast.success('Devices refreshed successfully');
+    } catch (error) {
+      console.error('❌ Manual refresh failed:', error);
+      toast.error('Failed to refresh devices');
     }
   }, [user, registerCurrentDevice, loadTrustedDevices]);
 
-  // Real-time subscription for session changes
+  // Initialize on mount and when user changes (simplified dependencies)
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // Reset state when user logs out
+      setTrustedDevices([]);
+      setCurrentDeviceId(null);
+      setError(null);
+      setLoading(false);
+      setRealtimeStatus('disconnected');
+      return;
+    }
+
+    console.log('🔄 Initializing device session for user:', user.id);
+    setLoading(true);
+    setError(null);
+    
+    // Initialize with async function to avoid dependency issues
+    const initialize = async () => {
+      try {
+        // Step 1: Register current device
+        const sessionId = await registerCurrentDevice();
+        if (sessionId) {
+          setCurrentDeviceId(sessionId);
+          console.log('✅ Device registered with ID:', sessionId);
+        } else {
+          console.log('⚠️ Device registration failed, continuing with load...');
+        }
+        
+        // Step 2: Load all devices (including the one just registered)
+        await loadTrustedDevices();
+      } catch (error) {
+        console.error('❌ Initialization failed:', error);
+        setError(`Initialization failed: ${error}`);
+        toast.error('Failed to initialize device session');
+        setLoading(false);
+      }
+    };
+    
+    initialize();
+  }, [user?.id]); // Only depend on user.id to avoid stale closures
+
+  // Real-time subscription for session changes (improved)
+  useEffect(() => {
+    if (!user) {
+      setRealtimeStatus('disconnected');
+      return;
+    }
 
     console.log('🔄 Setting up real-time subscription for user sessions');
+    setRealtimeStatus('connecting');
 
     const channel = supabase
       .channel('user-sessions-changes')
@@ -394,28 +472,44 @@ export const useDeviceSession = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('🔔 Session changed:', payload);
-          loadTrustedDevices();
+          console.log('🔔 Real-time session change received:', payload.eventType, payload.new?.id);
+          // Debounce rapid updates
+          setTimeout(() => {
+            loadTrustedDevices();
+          }, 100);
         }
       )
       .subscribe((status) => {
+        console.log('📡 Real-time status:', status);
         if (status === 'SUBSCRIBED') {
           console.log('✅ Real-time subscription active for user sessions');
+          setRealtimeStatus('connected');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.log('❌ Real-time subscription error');
+          setRealtimeStatus('disconnected');
+        } else if (status === 'TIMED_OUT') {
+          console.log('⏰ Real-time subscription timed out');
+          setRealtimeStatus('disconnected');
         }
       });
 
     return () => {
       console.log('🔄 Cleaning up real-time subscription');
+      setRealtimeStatus('disconnected');
       supabase.removeChannel(channel);
     };
-  }, [user, loadTrustedDevices]);
+  }, [user?.id]); // Only depend on user.id
 
   return {
     trustedDevices,
     currentDeviceId,
     loading,
+    error,
+    realtimeStatus,
+    lastRefresh,
     registerCurrentDevice,
     loadTrustedDevices,
+    refreshDevices,
     toggleDeviceTrust,
     removeDevice
   };
