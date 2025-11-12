@@ -480,6 +480,28 @@ export default function ProfessionalPresentation() {
                 };
               });
             } else {
+              // Check if we have valid cache before resolving URL
+              let cachedUrl = "";
+              let cachedRev = "";
+              try {
+                const metaStr = localStorage.getItem('pp:avatar_meta');
+                if (metaStr) {
+                  const meta = JSON.parse(metaStr);
+                  if (meta.userId === user.id && meta.rev === rev) {
+                    cachedUrl = localStorage.getItem('pp:last:avatar_url') || "";
+                    cachedRev = meta.rev;
+                  }
+                }
+              } catch {}
+              
+              // If cache is valid and matches current revision, skip URL resolution
+              if (cachedUrl && cachedRev === rev && /^https?:/.test(cachedUrl)) {
+                console.log('✅ Using valid cache, skipping URL resolution');
+                // Photo is already displayed from initial cache load, no action needed
+                return;
+              }
+              
+              console.log('🔄 Cache invalid or outdated, resolving URL');
               (async () => {
                 try {
                   const fresh = await mediaService.getUrl(keyOrUrl);
