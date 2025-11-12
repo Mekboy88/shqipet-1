@@ -31,7 +31,7 @@ const ManageSessionsForm: React.FC = () => {
     removeDevice
   } = useDeviceSession();
 
-  // Get device-specific colors and styles
+  // Get device-specific colors and styles with distinct light colors
   const getDeviceStyles = (deviceType: string, isCurrentDevice: boolean, isTrusted: boolean) => {
     const baseStyles = {
       smartphone: {
@@ -53,31 +53,31 @@ const ManageSessionsForm: React.FC = () => {
         ringColor: isCurrentDevice ? 'ring-4 ring-purple-200' : ''
       },
       laptop: {
-        borderColor: isCurrentDevice ? 'border-green-400' : 'border-green-300',
-        bgColor: isCurrentDevice ? 'bg-green-100' : 'bg-green-50',
-        iconColor: 'text-green-600',
-        iconBg: isCurrentDevice ? 'bg-green-200' : 'bg-green-100',
-        statusColor: isCurrentDevice ? 'bg-green-600' : 'bg-green-500',
-        statusText: isCurrentDevice ? 'text-green-800' : 'text-green-700',
-        ringColor: isCurrentDevice ? 'ring-4 ring-green-200' : ''
+        borderColor: isCurrentDevice ? 'border-emerald-400' : 'border-emerald-300',
+        bgColor: isCurrentDevice ? 'bg-emerald-100' : 'bg-emerald-50',
+        iconColor: 'text-emerald-600',
+        iconBg: isCurrentDevice ? 'bg-emerald-200' : 'bg-emerald-100',
+        statusColor: isCurrentDevice ? 'bg-emerald-600' : 'bg-emerald-500',
+        statusText: isCurrentDevice ? 'text-emerald-800' : 'text-emerald-700',
+        ringColor: isCurrentDevice ? 'ring-4 ring-emerald-200' : ''
       },
       desktop: {
-        borderColor: isCurrentDevice ? 'border-gray-500' : 'border-gray-400',
-        bgColor: isCurrentDevice ? 'bg-gray-200' : 'bg-gray-100',
-        iconColor: 'text-gray-700',
-        iconBg: isCurrentDevice ? 'bg-gray-300' : 'bg-gray-200',
-        statusColor: isCurrentDevice ? 'bg-gray-700' : 'bg-gray-600',
-        statusText: isCurrentDevice ? 'text-gray-900' : 'text-gray-800',
-        ringColor: isCurrentDevice ? 'ring-4 ring-gray-300' : ''
+        borderColor: isCurrentDevice ? 'border-amber-400' : 'border-amber-300',
+        bgColor: isCurrentDevice ? 'bg-amber-100' : 'bg-amber-50',
+        iconColor: 'text-amber-600',
+        iconBg: isCurrentDevice ? 'bg-amber-200' : 'bg-amber-100',
+        statusColor: isCurrentDevice ? 'bg-amber-600' : 'bg-amber-500',
+        statusText: isCurrentDevice ? 'text-amber-800' : 'text-amber-700',
+        ringColor: isCurrentDevice ? 'ring-4 ring-amber-200' : ''
       },
       unknown: {
-        borderColor: isCurrentDevice ? 'border-orange-400' : 'border-orange-300',
-        bgColor: isCurrentDevice ? 'bg-orange-100' : 'bg-orange-50',
-        iconColor: 'text-orange-600',
-        iconBg: isCurrentDevice ? 'bg-orange-200' : 'bg-orange-100',
-        statusColor: isCurrentDevice ? 'bg-orange-600' : 'bg-orange-500',
-        statusText: isCurrentDevice ? 'text-orange-800' : 'text-orange-700',
-        ringColor: isCurrentDevice ? 'ring-4 ring-orange-200' : ''
+        borderColor: isCurrentDevice ? 'border-rose-400' : 'border-rose-300',
+        bgColor: isCurrentDevice ? 'bg-rose-100' : 'bg-rose-50',
+        iconColor: 'text-rose-600',
+        iconBg: isCurrentDevice ? 'bg-rose-200' : 'bg-rose-100',
+        statusColor: isCurrentDevice ? 'bg-rose-600' : 'bg-rose-500',
+        statusText: isCurrentDevice ? 'text-rose-800' : 'text-rose-700',
+        ringColor: isCurrentDevice ? 'ring-4 ring-rose-200' : ''
       }
     };
 
@@ -265,7 +265,7 @@ const ManageSessionsForm: React.FC = () => {
         </div>
         
         {trustedDevices.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {trustedDevices.map((device) => {
               const isCurrentDevice = device.id === currentDeviceId;
               const deviceStyles = getDeviceStyles(device.device_type, isCurrentDevice, device.is_trusted);
@@ -273,85 +273,99 @@ const ManageSessionsForm: React.FC = () => {
               return (
                 <div 
                   key={device.id} 
-                  className={`p-6 rounded-xl border-2 shadow-lg relative group transition-all hover:shadow-xl hover:scale-105 ${deviceStyles.borderColor} ${deviceStyles.bgColor} ${deviceStyles.ringColor}`}
+                  className={`aspect-square p-4 rounded-xl border-2 shadow-lg relative group transition-all hover:shadow-xl hover:scale-[1.02] flex flex-col ${deviceStyles.borderColor} ${deviceStyles.bgColor} ${deviceStyles.ringColor}`}
                 >
-                  <div className="absolute top-4 right-4 flex gap-2">
+                  {/* Top actions */}
+                  <div className="absolute top-2 right-2 flex gap-1">
                     {!isCurrentDevice && (
                       <button
                         onClick={() => handleToggleTrust(device.id, device.is_trusted)}
-                        className={`p-2 rounded-full transition-all ${
+                        className={`p-1.5 rounded-full transition-all ${
                           device.is_trusted 
                             ? 'bg-green-100 text-green-600 hover:bg-green-200' 
                             : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                         }`}
                       >
-                        {device.is_trusted ? <ShieldCheck size={16} /> : <Shield size={16} />}
+                        {device.is_trusted ? <ShieldCheck size={14} /> : <Shield size={14} />}
                       </button>
                     )}
                     
                     <button
                       onClick={() => handleRemoveDevice(device.id)}
                       disabled={removingDeviceId === device.id}
-                      className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-white hover:bg-red-50 rounded-full w-8 h-8 flex items-center justify-center shadow-md disabled:opacity-50"
+                      className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-white hover:bg-red-50 rounded-full w-7 h-7 flex items-center justify-center shadow-md disabled:opacity-50"
                     >
                       {removingDeviceId === device.id ? (
-                        <Loader2 size={16} className="animate-spin" />
+                        <Loader2 size={14} className="animate-spin" />
                       ) : (
-                        <X size={18} />
+                        <X size={14} />
                       )}
                     </button>
                   </div>
                   
-                  <div className="flex items-center mb-5">
-                    <div className={`p-4 rounded-xl mr-5 ${deviceStyles.iconBg} shadow-sm transition-all duration-200 hover:shadow-md`}>
+                  {/* Device icon - centered at top */}
+                  <div className="flex flex-col items-center mt-6 mb-3">
+                    <div className={`p-3 rounded-xl ${deviceStyles.iconBg} shadow-sm transition-all duration-200 hover:shadow-md`}>
                       {getDeviceIcon(device.device_type, deviceStyles.iconColor)}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className={`font-bold text-lg ${deviceStyles.statusText}`}>
-                          {device.device_name}
-                        </h4>
-                        {device.is_trusted && !isCurrentDevice && (
-                          <ShieldCheck size={16} className="text-green-500" />
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 font-medium">
-                        {device.browser_info} on {device.operating_system}
+                  </div>
+                  
+                  {/* Device info */}
+                  <div className="flex flex-col items-center text-center mb-3 flex-shrink-0">
+                    <div className="flex items-center gap-1 mb-1">
+                      <h4 className={`font-bold text-sm ${deviceStyles.statusText}`}>
+                        {device.device_name}
+                      </h4>
+                      {device.is_trusted && !isCurrentDevice && (
+                        <ShieldCheck size={12} className="text-green-500" />
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-600 font-medium">
+                      {device.browser_info}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {device.operating_system}
+                    </p>
+                    {isCurrentDevice && (
+                      <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium mt-1">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Details - scrollable if needed */}
+                  <div className="text-xs text-gray-700 space-y-2 flex-1 overflow-y-auto">
+                    <div className="flex items-center justify-center gap-1">
+                      <Clock size={12} className="flex-shrink-0 text-gray-500" />
+                      <span className="font-medium truncate">{formatTimeAgo(device.last_seen)}</span>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <p className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-[11px]">
+                        First: {new Date(device.first_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </p>
-                      {isCurrentDevice && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium mt-1 inline-block">
-                          Current Session
-                        </span>
+                      <p className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-[11px]">
+                        Logins: {device.login_count}
+                      </p>
+                      {device.location && (
+                        <p className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-[11px] truncate" title={device.location}>
+                          {device.location}
+                        </p>
+                      )}
+                      {device.ip_address && (
+                        <p className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-[11px] font-mono">
+                          {device.ip_address}
+                        </p>
                       )}
                     </div>
                   </div>
                   
-                  <div className="text-sm text-gray-700 space-y-3 pl-1">
-                    <div className="flex items-center">
-                      <Clock size={16} className="mr-3 flex-shrink-0 text-gray-500" />
-                      <span className="font-medium">Last seen: {formatTimeAgo(device.last_seen)}</span>
-                    </div>
-                    
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <p className="bg-white/60 backdrop-blur-sm rounded-lg p-3 shadow-sm">
-                        First seen: {new Date(device.first_seen).toLocaleDateString()}
-                      </p>
-                      <p className="bg-white/60 backdrop-blur-sm rounded-lg p-3 shadow-sm">
-                        Login count: {device.login_count} time{device.login_count !== 1 ? 's' : ''}
-                      </p>
-                      {device.location && (
-                        <p className="bg-white/60 backdrop-blur-sm rounded-lg p-3 shadow-sm">
-                          Location: {device.location}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center mt-3 pt-2 border-t border-white/30">
-                      <div className={`w-3 h-3 rounded-full mr-3 ${deviceStyles.statusColor} shadow-sm`}></div>
-                      <span className={`text-sm font-bold ${deviceStyles.statusText}`}>
-                        {isCurrentDevice ? 'Current Device' : device.is_trusted ? 'Trusted Device' : 'Logged In Device'}
-                      </span>
-                    </div>
+                  {/* Status indicator at bottom */}
+                  <div className="flex items-center justify-center mt-2 pt-2 border-t border-white/30 flex-shrink-0">
+                    <div className={`w-2 h-2 rounded-full mr-2 ${deviceStyles.statusColor} shadow-sm`}></div>
+                    <span className={`text-[10px] font-bold ${deviceStyles.statusText}`}>
+                      {isCurrentDevice ? 'Active' : device.is_trusted ? 'Trusted' : 'Logged In'}
+                    </span>
                   </div>
                 </div>
               );
