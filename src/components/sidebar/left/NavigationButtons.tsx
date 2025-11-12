@@ -8,7 +8,7 @@ interface NavigationButtonsProps {
 }
 
 const navigationItems = [
-  'Home', 'Albums', 'Watch', 'Reels', 'Marketplace', 'Dating', 
+  'Albums', 'Watch', 'Reels', 'Marketplace', 'Dating', 
   'Hotels', 'Restaurant', 'Takeout Food', 'Games', 'Forum', 'Movies', 'Jobs', 'Offers', 'Learn Together', 
   'Discover Places', 'Proud of the Country', 'Anonymous Report'
 ];
@@ -18,7 +18,6 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({ onItemClick }) =>
 
   const handleNavigation = (item: string) => {
     const routeMap: { [key: string]: string } = {
-      'Home': '/',
       'Albums': '/albums',
       'Watch': '/watch',
       'Reels': '/reels',
