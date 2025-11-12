@@ -40,8 +40,10 @@ export const useDeviceSession = () => {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const { user } = useAuth();
   const initializedRef = useRef(false);
-  const loadDevicesRef = useRef<() => Promise<void>>();
-
+  const loadDevicesRef = useRef<((opts?: { silent?: boolean }) => Promise<void>)>();
+  const realtimeDebounceTimer = useRef<number | null>(null);
+  const lastRealtimeAtRef = useRef<number>(0);
+  const isRealtimeLoadingRef = useRef<boolean>(false);
   // Generate device fingerprint
   const generateDeviceFingerprint = useCallback((): DeviceFingerprint => {
     const nav = navigator as any;
@@ -258,18 +260,19 @@ export const useDeviceSession = () => {
   }, [user, generateDeviceFingerprint, createFingerprintHash, detectDeviceDetails]);
 
   // Load trusted devices with improved error handling
-  const loadTrustedDevices = useCallback(async () => {
+  const loadTrustedDevices = useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = !!opts?.silent;
     if (!user) {
       console.log('❌ No user found for loading devices');
       setTrustedDevices([]);
-      setError('No authenticated user found');
+      if (!silent) setError('No authenticated user found');
       setLoading(false);
       return;
     }
 
     try {
       console.log('🔄 Loading trusted devices for user:', user.id);
-      setError(null);
+      if (!silent) setError(null);
 
       const { data: sessions, error } = await supabase
         .from('user_sessions')
@@ -281,8 +284,10 @@ export const useDeviceSession = () => {
       if (error) {
         console.error('❌ Error loading sessions:', error);
         const errorMsg = `Failed to load devices: ${error.message}`;
-        setError(errorMsg);
-        toast.error(errorMsg);
+        if (!silent) {
+          setError(errorMsg);
+          toast.error(errorMsg);
+        }
         setLoading(false);
         return;
       }
@@ -294,7 +299,7 @@ export const useDeviceSession = () => {
         if (sessions.length === 0) {
           console.log('⚠️ No active sessions found - user may need to register device');
           setTrustedDevices([]);
-          setError('No devices found. Try refreshing or logging in again.');
+          if (!silent) setError('No devices found. Try refreshing or logging in again.');
           setLoading(false);
           return;
         }
@@ -322,7 +327,7 @@ export const useDeviceSession = () => {
 
         console.log('📱 Loaded devices:', transformedDevices.length);
         setTrustedDevices(transformedDevices);
-        setError(null);
+        if (!silent) setError(null);
 
         // Update current device ID if found
         const currentDevice = transformedDevices.find(d => d.is_current);
@@ -336,8 +341,10 @@ export const useDeviceSession = () => {
     } catch (error) {
       console.error('❌ Error in loadTrustedDevices:', error);
       const errorMsg = `Failed to load devices: ${error}`;
-      setError(errorMsg);
-      toast.error(errorMsg);
+      if (!silent) {
+        setError(errorMsg);
+        toast.error(errorMsg);
+      }
     } finally {
       setLoading(false);
       setLastRefresh(new Date());
@@ -497,12 +504,19 @@ export const useDeviceSession = () => {
         },
         (payload) => {
           console.log('🔔 Real-time session change received:', payload.eventType, payload.new?.id);
-          // Use ref to avoid dependency on loadTrustedDevices callback
-          if (loadDevicesRef.current) {
-            setTimeout(() => {
-              loadDevicesRef.current?.();
-            }, 300); // Increased debounce to prevent rapid updates
+          const now = Date.now();
+          // Throttle realtime refreshes to avoid flicker
+          if (now - lastRealtimeAtRef.current < 1500) {
+            return;
           }
+          lastRealtimeAtRef.current = now;
+
+          if (realtimeDebounceTimer.current) {
+            window.clearTimeout(realtimeDebounceTimer.current);
+          }
+          realtimeDebounceTimer.current = window.setTimeout(() => {
+            loadDevicesRef.current?.({ silent: true });
+          }, 300);
         }
       )
       .subscribe((status) => {
