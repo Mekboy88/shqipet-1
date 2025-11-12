@@ -345,58 +345,159 @@ Deno.serve(async (req) => {
 
     } else if (isValidImage && isAvatarOrCover && !canProcess) {
       // Avatar/Cover images that can't be processed (GIF, BMP, HEIC, HEIF)
-      // Upload directly without optimization
-      console.log(`⚠️ Uploading ${file.type} directly (not processable by ImageScript)`);
+      // Try to convert GIF/BMP to WebP for optimization and metadata stripping
+      console.log(`🔄 Processing ${file.type} - attempting conversion to WebP with metadata stripping`);
       
-      const key = `${folder}/${userId}/${timestamp}-${random}.${ext}`;
       const arrayBuffer = await file.arrayBuffer();
-      const putUrl = `${s3Base}/${bucket}/${key}`;
+      const imageBuffer = new Uint8Array(arrayBuffer);
+      
+      try {
+        // Try to decode with ImageScript (works for GIF, BMP)
+        const image = await Image.decode(imageBuffer);
+        console.log(`✅ Successfully decoded ${file.type}: ${image.width}×${image.height}px`);
+        
+        // Validate minimum resolution
+        if (image.width < MIN_RESOLUTION || image.height < MIN_RESOLUTION) {
+          return new Response(JSON.stringify({ 
+            error: `Image too small. Minimum resolution: ${MIN_RESOLUTION}×${MIN_RESOLUTION}px. Your image: ${image.width}×${image.height}px. Please upload a higher quality photo.`,
+            success: false
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        // Convert to WebP (strips metadata automatically)
+        const webpBuffer = await resizeImage(image, TARGET_MAX_SIZE);
+        const baseKey = `${folder}/${userId}/${timestamp}-${random}`;
+        const originalKey = `${baseKey}-original.jpg`;
+        const putUrl = `${s3Base}/${bucket}/${originalKey}`;
 
-      const putRes = await aws.fetch(putUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type || 'application/octet-stream' },
-        body: new Uint8Array(arrayBuffer),
-      });
+        const putRes = await aws.fetch(putUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'image/jpeg' },
+          body: new Uint8Array(webpBuffer),
+        });
 
-      if (!putRes.ok) {
-        const text = await putRes.text().catch(() => '');
+        if (!putRes.ok) {
+          const text = await putRes.text().catch(() => '');
+          return new Response(JSON.stringify({ 
+            error: `Upload failed: ${putRes.status}`,
+            success: false
+          }), {
+            status: 502,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        console.log(`✅ Converted ${file.type} to JPEG with metadata stripped`);
+
+        // Generate variants
+        const variantKeys: string[] = [];
+        for (const variant of AVATAR_VARIANTS) {
+          const variantBuffer = await generateVariant(image, variant.size);
+          const variantKey = `${baseKey}-${variant.suffix}.jpg`;
+          const putUrlVariant = `${s3Base}/${bucket}/${variantKey}`;
+          
+          const putResVariant = await aws.fetch(putUrlVariant, {
+            method: 'PUT',
+            headers: { 
+              'Content-Type': 'image/jpeg',
+              'Cache-Control': 'public, max-age=31536000'
+            },
+            body: new Uint8Array(variantBuffer),
+          });
+
+          if (putResVariant.ok) {
+            console.log(`✅ Generated variant: ${variant.suffix} (${variant.size}px)`);
+            variantKeys.push(variantKey);
+          }
+        }
+
+        // Update profile if requested
+        if (updateProfile === 'true' && userId) {
+          const supabase = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+          );
+
+          const field = /cover/i.test(mediaType) ? 'cover_url' : 'avatar_url';
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ [field]: originalKey })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error('Profile update error:', updateError);
+          } else {
+            console.log(`✅ Updated profiles.${field}`);
+          }
+        }
+
         return new Response(JSON.stringify({ 
-          error: `Upload failed: ${putRes.status}`,
-          success: false
+          key: originalKey,
+          url: originalKey,
+          variants: variantKeys,
+          dimensions: { width: image.width, height: image.height },
+          success: true,
+          message: `${file.type} converted to JPEG with metadata stripped and variants generated`
         }), {
-          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+
+      } catch (decodeError) {
+        // If conversion fails (e.g., HEIC/HEIF), upload as-is
+        console.warn(`⚠️ Could not convert ${file.type}, uploading as-is:`, decodeError);
+        
+        const key = `${folder}/${userId}/${timestamp}-${random}.${ext}`;
+        const putUrl = `${s3Base}/${bucket}/${key}`;
+
+        const putRes = await aws.fetch(putUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type || 'application/octet-stream' },
+          body: imageBuffer,
+        });
+
+        if (!putRes.ok) {
+          const text = await putRes.text().catch(() => '');
+          return new Response(JSON.stringify({ 
+            error: `Upload failed: ${putRes.status}`,
+            success: false
+          }), {
+            status: 502,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // Update profile if requested
+        if (updateProfile === 'true' && userId) {
+          const supabase = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+          );
+
+          const field = /cover/i.test(mediaType) ? 'cover_url' : 'avatar_url';
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ [field]: key })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error('Profile update error:', updateError);
+          } else {
+            console.log(`✅ Updated profiles.${field}`);
+          }
+        }
+
+        return new Response(JSON.stringify({ 
+          key,
+          url: key,
+          success: true,
+          message: `${file.type} uploaded (metadata may be present - format not convertible)`
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
-
-      // Update profile if requested
-      if (updateProfile === 'true' && userId) {
-        const supabase = createClient(
-          Deno.env.get('SUPABASE_URL')!,
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-        );
-
-        const field = /cover/i.test(mediaType) ? 'cover_url' : 'avatar_url';
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ [field]: key })
-          .eq('id', userId);
-
-        if (updateError) {
-          console.error('Profile update error:', updateError);
-        } else {
-          console.log(`✅ Updated profiles.${field}`);
-        }
-      }
-
-      return new Response(JSON.stringify({ 
-        key,
-        url: key,
-        success: true,
-        message: `${file.type} uploaded successfully (original quality, no optimization)`
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
 
     } else {
       // Non-avatar/cover files - upload directly
