@@ -293,8 +293,21 @@ export default function ProfessionalPresentation() {
   // Text group drag hook
   const textDrag = useGroupDrag({ userId: user?.id });
 
-  // Editable state - Start with sample name/role for better UX
+  // Editable state - Start with cached data for instant display
   const [profile, setProfile] = useState(() => {
+    // Load cached avatar from localStorage for instant display
+    let cachedAvatarUrl = "";
+    try {
+      const metaStr = localStorage.getItem('pp:avatar_meta');
+      if (metaStr) {
+        const meta = JSON.parse(metaStr);
+        // Only use cache if it's for the current user
+        if (meta.userId === user?.id) {
+          cachedAvatarUrl = localStorage.getItem('pp:last:avatar_url') || "";
+        }
+      }
+    } catch {}
+    
     return {
       name: "John Smith",
       role: "Professional Title",
@@ -304,7 +317,7 @@ export default function ProfessionalPresentation() {
       phone: "",
       website: "",
       cvUrl: "",
-      avatarUrl: ""
+      avatarUrl: cachedAvatarUrl
     };
   });
   const [navLabels, setNavLabels] = useState({
@@ -426,81 +439,66 @@ export default function ProfessionalPresentation() {
             }));
           }
 
-          // Load professional presentation avatar (strict no-flicker: resolve once, preload, then swap)
+          // Load professional presentation avatar (instant from cache, update only if changed)
           if (data.avatar_url) {
             const keyOrUrl = String(data.avatar_url);
             const rev = data.updated_at || Date.now().toString();
-            console.log('🖼️ Loading professional avatar (no-flicker):', {
+            console.log('🖼️ Loading professional avatar (instant):', {
               keyOrUrl,
               rev
             });
 
-            // For full URLs or local previews, apply directly
+            // For full URLs or local previews, apply directly only if different
             if (/^(https?:|blob:|data:)/.test(keyOrUrl)) {
               setProfile(prev => {
-                // Prevent unnecessary update if URL hasn't changed
+                // Only update if URL actually changed
                 if (prev.avatarUrl === keyOrUrl) return prev;
+                
+                // SECURITY: Store with userId to prevent cross-account leakage
+                try {
+                  localStorage.setItem('pp:last:avatar_url', keyOrUrl);
+                  localStorage.setItem('pp:avatar_meta', JSON.stringify({
+                    url: keyOrUrl,
+                    rev,
+                    userId: user.id
+                  }));
+                } catch {}
+                
                 return {
                   ...prev,
                   avatarUrl: keyOrUrl
                 };
               });
-              // SECURITY: Store with userId to prevent cross-account leakage
-              try {
-                localStorage.setItem('pp:last:avatar_url', keyOrUrl);
-                localStorage.setItem('pp:avatar_meta', JSON.stringify({
-                  url: keyOrUrl,
-                  rev,
-                  userId: user.id
-                }));
-              } catch {}
             } else {
               (async () => {
                 try {
                   const fresh = await mediaService.getUrl(keyOrUrl);
                   const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 'rev=' + encodeURIComponent(rev);
-                  await mediaService.preloadImage(versioned);
+                  
+                  // Check if URL changed before preloading and updating
                   setProfile(prev => {
-                    // Prevent unnecessary update if URL hasn't changed
                     if (prev.avatarUrl === versioned) return prev;
+                    
+                    // Preload in background after state update for instant display
+                    mediaService.preloadImage(versioned).catch(() => {});
+                    
+                    try {
+                      localStorage.setItem('pp:last:avatar_url', versioned);
+                      localStorage.setItem('pp:avatar_meta', JSON.stringify({
+                        url: versioned,
+                        rev,
+                        userId: user?.id
+                      }));
+                    } catch {}
+                    
                     return {
                       ...prev,
                       avatarUrl: versioned
                     };
                   });
-                  try {
-                    localStorage.setItem('pp:last:avatar_url', versioned);
-                    localStorage.setItem('pp:avatar_meta', JSON.stringify({
-                      url: versioned,
-                      rev,
-                      userId: user?.id
-                    }));
-                  } catch {}
                 } catch (e) {
-                  console.warn('⚠️ Failed to resolve avatar on initial load, falling back to last good if any', e);
-                  // SECURITY: Fallback to cached ONLY if userId matches (prevent cross-account leakage)
-                  try {
-                    const metaStr = localStorage.getItem('pp:avatar_meta');
-                    if (metaStr) {
-                      const meta = JSON.parse(metaStr);
-                      // Only use cache if it's for the CURRENT user
-                      if (meta.userId === user.id) {
-                        const last = localStorage.getItem('pp:last:avatar_url');
-                        if (last) setProfile(prev => {
-                          // Prevent unnecessary update if URL hasn't changed
-                          if (prev.avatarUrl === last) return prev;
-                          return {
-                            ...prev,
-                            avatarUrl: last
-                          };
-                        });
-                      } else {
-                        // Clear stale cache from different user
-                        localStorage.removeItem('pp:last:avatar_url');
-                        localStorage.removeItem('pp:avatar_meta');
-                      }
-                    }
-                  } catch {}
+                  console.warn('⚠️ Failed to resolve avatar, using cached version', e);
+                  // Cache fallback is already in state initialization
                 }
               })();
             }
@@ -543,25 +541,27 @@ export default function ProfessionalPresentation() {
           const keyOrUrl = String(newData.avatar_url);
           lastAppliedKeyRef.current = commitTimestamp;
 
-          // If this is a local preview (blob/data), apply immediately
+          // If this is a local preview (blob/data), apply only if changed
           if (/^(blob:|data:)/.test(keyOrUrl)) {
             setProfile(prev => {
-              // Prevent unnecessary update if URL hasn't changed
+              // Only update if URL actually changed
               if (prev.avatarUrl === keyOrUrl) return prev;
+              
+              // Update cache
+              try {
+                localStorage.setItem('pp:last:avatar_url', keyOrUrl);
+                localStorage.setItem('pp:avatar_meta', JSON.stringify({
+                  url: keyOrUrl,
+                  rev: commitTimestamp,
+                  userId: user.id
+                }));
+              } catch {}
+              
               return {
                 ...prev,
                 avatarUrl: keyOrUrl
               };
             });
-            // SECURITY: Store with userId to prevent cross-account leakage
-            try {
-              localStorage.setItem('pp:last:avatar_url', keyOrUrl);
-              localStorage.setItem('pp:avatar_meta', JSON.stringify({
-                url: keyOrUrl,
-                rev: commitTimestamp,
-                userId: user.id
-              }));
-            } catch {}
           } else {
             try {
               // CRITICAL: Clear ALL caches before fetching to ensure fresh data
@@ -575,26 +575,30 @@ export default function ProfessionalPresentation() {
               const fresh = await mediaService.getProxyBlob(keyOrUrl);
               const versioned = fresh + (fresh.includes('?') ? '&' : '?') + 't=' + Date.now();
 
-              // Preload before applying to ensure smooth transition
-              await mediaService.preloadImage(versioned);
               setProfile(prev => {
-                // Prevent unnecessary update if URL hasn't changed
+                // Only update if URL actually changed
                 if (prev.avatarUrl === versioned) return prev;
+                
+                // Preload in background for smooth transition
+                mediaService.preloadImage(versioned).catch(() => {});
+                
+                // Update cache
+                try {
+                  localStorage.setItem('pp:last:avatar_url', versioned);
+                  localStorage.setItem('pp:avatar_meta', JSON.stringify({
+                    url: versioned,
+                    rev: commitTimestamp,
+                    userId: user.id
+                  }));
+                } catch {}
+                
+                console.log('✅ Applied fresh avatar URL instantly:', versioned);
+                
                 return {
                   ...prev,
                   avatarUrl: versioned
                 };
               });
-              // SECURITY: Store with userId to prevent cross-account leakage
-              try {
-                localStorage.setItem('pp:last:avatar_url', versioned);
-                localStorage.setItem('pp:avatar_meta', JSON.stringify({
-                  url: versioned,
-                  rev: commitTimestamp,
-                  userId: user.id
-                }));
-              } catch {}
-              console.log('✅ Applied fresh avatar URL instantly:', versioned);
             } catch (err) {
               console.error('⚠️ Failed to resolve/preload avatar URL:', err);
             }
