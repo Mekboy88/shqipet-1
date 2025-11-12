@@ -17,10 +17,21 @@ const AVATAR_VARIANTS = [
   { suffix: 'large', size: 640 }       // For 160px retina
 ];
 
-// Format validation
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif'];
+// Format validation - SAFE FORMATS ONLY
+const ALLOWED_IMAGE_TYPES = [
+  'image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 
+  'image/png', 'image/webp', 'image/avif', 
+  'image/heic', 'image/heif',
+  'image/gif', // Conditionally safe - allowed but not processed
+  'image/bmp', 'image/x-ms-bmp', 'image/x-bmp' // Conditionally safe - allowed but not processed
+];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
-const BLOCKED_EXTENSIONS = ['.bmp', '.tiff', '.tif', '.gif', '.svg', '.ico', '.nef', '.cr2', '.arw', '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv'];
+
+// BLOCKED: Dangerous formats (SVG can execute scripts, RAW formats, TIFF, PSD, etc.)
+const BLOCKED_EXTENSIONS = ['.svg', '.ico', '.tiff', '.tif', '.psd', '.xcf', '.emf', '.wmf', '.cur', '.ani', '.nef', '.cr2', '.arw', '.dng', '.raw', '.orf', '.rw2', '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv'];
+
+// ImageScript-compatible formats (for processing/optimization)
+const IMAGESCRIPT_FORMATS = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/webp'];
 
 const MAX_SIZES = {
   avatar: 10 * 1024 * 1024,
@@ -106,7 +117,7 @@ Deno.serve(async (req) => {
     let VIDEO_MIME_ALLOW = ALLOWED_VIDEO_TYPES as string[];
     let BLOCKED_EXTS = BLOCKED_EXTENSIONS as string[];
     let MAX_LIMITS = MAX_SIZES as Record<string, number>;
-    let allowedImageExts = ['jpg', 'jpeg', 'jfif', 'pjpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
+    let allowedImageExts = ['jpg', 'jpeg', 'jfif', 'pjpeg', 'png', 'webp', 'avif', 'heic', 'heif', 'gif', 'bmp'];
     let allowedVideoExts = ['mp4', 'webm', 'mov'];
 
     try {
@@ -227,7 +238,10 @@ Deno.serve(async (req) => {
     // PROFESSIONAL IMAGE PROCESSING PIPELINE
     const isAvatarOrCover = /avatar|profile|cover/i.test(mediaType);
     
-    if (isValidImage && isAvatarOrCover) {
+    // Check if format is compatible with ImageScript processing
+    const canProcess = IMAGESCRIPT_FORMATS.includes(file.type);
+    
+    if (isValidImage && isAvatarOrCover && canProcess) {
       console.log('🎨 Processing image with quality pipeline...');
       
       // Decode image
@@ -325,6 +339,61 @@ Deno.serve(async (req) => {
         dimensions: { width: image.width, height: image.height },
         success: true,
         message: 'Image processed at maximum quality with crisp variants'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+
+    } else if (isValidImage && isAvatarOrCover && !canProcess) {
+      // Avatar/Cover images that can't be processed (GIF, BMP, HEIC, HEIF)
+      // Upload directly without optimization
+      console.log(`⚠️ Uploading ${file.type} directly (not processable by ImageScript)`);
+      
+      const key = `${folder}/${userId}/${timestamp}-${random}.${ext}`;
+      const arrayBuffer = await file.arrayBuffer();
+      const putUrl = `${s3Base}/${bucket}/${key}`;
+
+      const putRes = await aws.fetch(putUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        body: new Uint8Array(arrayBuffer),
+      });
+
+      if (!putRes.ok) {
+        const text = await putRes.text().catch(() => '');
+        return new Response(JSON.stringify({ 
+          error: `Upload failed: ${putRes.status}`,
+          success: false
+        }), {
+          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Update profile if requested
+      if (updateProfile === 'true' && userId) {
+        const supabase = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
+
+        const field = /cover/i.test(mediaType) ? 'cover_url' : 'avatar_url';
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ [field]: key })
+          .eq('id', userId);
+
+        if (updateError) {
+          console.error('Profile update error:', updateError);
+        } else {
+          console.log(`✅ Updated profiles.${field}`);
+        }
+      }
+
+      return new Response(JSON.stringify({ 
+        key,
+        url: key,
+        success: true,
+        message: `${file.type} uploaded successfully (original quality, no optimization)`
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
