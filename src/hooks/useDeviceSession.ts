@@ -429,6 +429,12 @@ export const useDeviceSession = () => {
     // Initialize with async function to avoid dependency issues
     const initialize = async () => {
       try {
+        // Step 0: Ensure user profile exists to satisfy FK and RLS
+        const profileOk = await ensureUserProfile();
+        if (!profileOk) {
+          console.warn('⚠️ Could not ensure user profile exists; continuing and relying on existing state.');
+        }
+
         // Step 1: Register current device
         const sessionId = await registerCurrentDevice();
         if (sessionId) {
