@@ -759,7 +759,12 @@ export default function ProfessionalPresentation() {
       const raw = localStorage.getItem("ppd-state");
       if (raw) {
         const parsed = JSON.parse(raw);
-        setProfile(parsed.profile ?? profile);
+        // CRITICAL: Preserve avatarUrl from cache initialization (don't overwrite with old state)
+        setProfile(prev => ({
+          ...prev,
+          ...(parsed.profile ?? {}),
+          avatarUrl: prev.avatarUrl // Keep the cached avatarUrl
+        }));
         setNavLabels(parsed.navLabels ?? navLabels);
         setStyles(parsed.styles ?? styles);
       }
