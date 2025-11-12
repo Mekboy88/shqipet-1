@@ -5,14 +5,20 @@ const corsHeaders = {
 
 // SAFE FORMATS ONLY - Industry Standard
 const ALLOWED_MIME_TYPES = [
-  // Images - Safe formats only
+  // Images - Safe formats (including conditionally safe GIF and BMP)
   'image/jpeg',
   'image/jpg',
+  'image/pjpeg',
+  'image/jfif',
   'image/png',
   'image/webp',
   'image/avif',
   'image/heic',
   'image/heif',
+  'image/gif',
+  'image/bmp',
+  'image/x-ms-bmp',
+  'image/x-bmp',
   // Videos - Safe formats only
   'video/mp4',
   'video/webm',

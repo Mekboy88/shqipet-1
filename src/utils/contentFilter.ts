@@ -25,26 +25,30 @@ const DANGEROUS_EXTENSIONS = [
 
 // Allowed safe file extensions - INDUSTRY STANDARD SAFE FORMATS ONLY
 const ALLOWED_EXTENSIONS = [
-  // Images - Safe formats only
-  '.jpg', '.jpeg', '.png', '.webp', '.avif', '.heic',
+  // Images - Safe formats (including conditionally safe GIF and BMP)
+  '.jpg', '.jpeg', '.png', '.webp', '.avif', '.heic', '.heif', '.gif', '.bmp',
   // Videos - Safe formats only
   '.mp4', '.webm', '.mov',
   // Audio
   '.mp3', '.wav', '.aac', '.ogg', '.flac', '.m4a',
   // Documents
-  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.rtf',
+  '.pdf', '.txt',
   // Archives (safe ones)
   '.zip'
 ];
 
 // BLOCKED DANGEROUS IMAGE/VIDEO FORMATS
 const BLOCKED_MEDIA_EXTENSIONS = [
-  // Dangerous image formats
-  '.bmp', '.tiff', '.tif', '.gif', '.svg', '.ico',
-  // RAW camera formats
-  '.nef', '.cr2', '.arw', '.dng', '.raw', '.orf', '.rw2',
+  // Dangerous image formats (SVG can execute scripts, RAW formats, ICO, TIFF, PSD)
+  '.svg', '.ico', '.tiff', '.tif', '.psd', '.xcf',
+  // RAW camera formats (unsafe and huge)
+  '.nef', '.cr2', '.arw', '.dng', '.raw', '.orf', '.rw2', '.raf', '.3fr', '.srw', '.kdc',
+  // Windows metafiles (executable content)
+  '.emf', '.wmf',
+  // Cursor formats (exploitable)
+  '.cur', '.ani',
   // Dangerous video formats
-  '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv', '.3gp', '.m4v'
+  '.mkv', '.avi', '.wmv', '.flv', '.mpeg', '.mpg', '.ogv', '.3gp', '.m4v', '.vob', '.ts'
 ];
 
 // Malicious content patterns (simplified version)
@@ -65,29 +69,39 @@ const SUSPICIOUS_FILE_PATTERNS = [
 
 // MIME type validation - SAFE FORMATS ONLY
 const ALLOWED_MIME_TYPES = [
-  // Images - Safe formats only
-  'image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif',
+  // Images - Safe formats (including conditionally safe GIF and BMP)
+  'image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 
+  'image/png', 'image/webp', 'image/avif', 
+  'image/heic', 'image/heif',
+  'image/gif',
+  'image/bmp', 'image/x-ms-bmp', 'image/x-bmp',
   // Videos - Safe formats only
   'video/mp4', 'video/webm', 'video/quicktime',
   // Audio
-  'audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp4',
-  // Documents
-  'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'text/plain', 'application/rtf',
-  // Archives
+  'audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp4', 'audio/x-m4a',
+  // Documents - Safe only
+  'application/pdf', 'text/plain',
+  // Archives (safe)
   'application/zip', 'application/x-zip-compressed'
 ];
 
 // BLOCKED DANGEROUS MIME TYPES
 const BLOCKED_MIME_TYPES = [
-  // Dangerous image formats
-  'image/bmp', 'image/x-ms-bmp', 'image/tiff', 'image/x-tiff', 'image/gif', 'image/svg+xml', 'image/x-icon',
-  // RAW camera formats
-  'image/x-nikon-nef', 'image/x-canon-cr2', 'image/x-sony-arw', 'image/x-adobe-dng',
+  // Dangerous image formats (SVG can execute scripts, PSD contains macros)
+  'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon',
+  'image/tiff', 'image/x-tiff',
+  'image/vnd.adobe.photoshop', 'image/x-photoshop', 'image/psd',
+  'image/x-xcf',
+  // RAW camera formats (unsafe and huge)
+  'image/x-nikon-nef', 'image/x-canon-cr2', 'image/x-canon-crw',
+  'image/x-sony-arw', 'image/x-sony-srf', 'image/x-sony-sr2',
+  'image/x-adobe-dng', 'image/x-olympus-orf', 'image/x-panasonic-raw',
+  'image/x-fuji-raf', 'image/x-kodak-dcr', 'image/x-kodak-kdc',
+  // Windows metafiles (executable content)
+  'image/x-emf', 'image/x-wmf',
   // Dangerous video formats
-  'video/x-matroska', 'video/x-msvideo', 'video/x-ms-wmv', 'video/x-flv', 'video/mpeg', 'video/ogg', 'video/3gpp'
+  'video/x-matroska', 'video/x-msvideo', 'video/x-ms-wmv', 'video/x-ms-asf',
+  'video/x-flv', 'video/mpeg', 'video/ogg', 'video/3gpp', 'video/3gpp2'
 ];
 
 export const validateFileContent = async (file: File): Promise<ContentFilterResult> => {
@@ -108,7 +122,7 @@ export const validateFileContent = async (file: File): Promise<ContentFilterResu
   if (BLOCKED_MEDIA_EXTENSIONS.includes(fileExtension)) {
     return {
       isAllowed: false,
-      reason: `File type '${fileExtension}' is not allowed. Only safe formats: JPG, PNG, WEBP, AVIF, HEIC for images; MP4, WEBM, MOV for videos.`,
+      reason: `File type '${fileExtension}' is not allowed. Only safe formats: JPG, PNG, WEBP, AVIF, HEIC, GIF, BMP for images; MP4, WEBM, MOV for videos.`,
       category: 'security'
     };
   }
