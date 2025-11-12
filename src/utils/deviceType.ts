@@ -37,71 +37,72 @@ const fromRules = (ua: string): DeviceCategory => {
 const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
   if (typeof window === 'undefined') return 'desktop';
   
-  const nav = navigator as any;
   const ua = navigator.userAgent.toLowerCase();
+  const nav = navigator as any;
   
-  // Check for explicit desktop Mac models in user agent
-  if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/.test(ua)) {
-    console.log('🖥️ Desktop Mac detected from user agent');
-    return 'desktop';
-  }
+  console.log('🔍 Starting desktop/laptop detection for:', ua);
   
-  // Check for explicit laptop Mac models in user agent
+  // Priority 1: Explicit model detection from user agent (most reliable)
   if (/(macbook)/.test(ua)) {
-    console.log('💻 MacBook detected from user agent');
+    console.log('💻 MacBook explicitly detected - LAPTOP');
     return 'laptop';
   }
   
-  // Check battery API (reliable indicator of laptop vs desktop)
+  if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/.test(ua)) {
+    console.log('🖥️ Desktop Mac explicitly detected - DESKTOP');
+    return 'desktop';
+  }
+  
+  // Priority 2: For macOS without explicit model, DEFAULT TO DESKTOP
+  // (iMacs, Mac Studios, Mac Pros are more common and don't have batteries)
+  const isMac = /mac os x|macintosh/.test(ua);
+  if (isMac) {
+    console.log('🍎 Generic macOS detected - defaulting to DESKTOP (iMac/Studio/Pro more common)');
+    return 'desktop';
+  }
+  
+  // Priority 3: For Windows/Linux - use Battery API if available
   if (nav.getBattery) {
     try {
       const battery = await nav.getBattery();
-      // If device reports battery, it's a laptop
       if (battery && battery.charging !== undefined) {
-        console.log('🔋 Battery API detected - classifying as laptop');
+        console.log('🔋 Battery API detected - LAPTOP');
         return 'laptop';
       } else {
-        console.log('🔌 No battery detected - classifying as desktop');
+        console.log('🔌 No battery API response - DESKTOP');
         return 'desktop';
       }
     } catch (e) {
-      console.log('⚠️ Battery API not available or blocked');
+      console.log('⚠️ Battery API blocked/unavailable');
     }
   }
   
-  // Screen size heuristics - use more aggressive desktop detection
+  // Priority 4: Screen size and touch heuristics
   const w = window.screen?.width || 0;
   const h = window.screen?.height || 0;
   const touch = 'ontouchstart' in window || nav.maxTouchPoints > 0;
   
-  console.log('🔍 Device Detection Heuristics:', {
-    screenWidth: w,
-    screenHeight: h,
+  console.log('📐 Screen heuristics:', {
+    width: w,
+    height: h,
     hasTouch: touch,
-    batteryAPI: !!nav.getBattery,
-    userAgent: ua
+    platform: navigator.platform
   });
   
-  // High-resolution displays (4K, 5K, 6K) are almost always desktops
+  // Very high resolution (4K+) → Desktop
   if (w >= 3840 || h >= 2160) {
-    console.log('🖥️ High-res display detected - classifying as desktop');
+    console.log('🖥️ 4K+ display detected - DESKTOP');
     return 'desktop';
   }
   
-  // Touch-enabled is likely laptop/tablet
-  if (touch) {
-    console.log('👆 Touch detected - classifying as laptop');
+  // Small screen + touch → Laptop/tablet
+  if (w <= 1440 && touch) {
+    console.log('👆 Small screen + touch - LAPTOP');
     return 'laptop';
   }
   
-  // For macOS without battery API, assume desktop (iMacs don't have battery)
-  if (/mac os x|macintosh/.test(ua)) {
-    console.log('🍎 macOS without battery - classifying as desktop');
-    return 'desktop';
-  }
-  
-  // Standard screens - default to desktop if no battery detected
-  console.log('🖥️ No battery API, standard screen - classifying as desktop');
+  // Priority 5: Final fallback - DESKTOP (safest assumption)
+  console.log('🖥️ No definitive indicators - defaulting to DESKTOP');
   return 'desktop';
 };
 
@@ -132,18 +133,28 @@ export async function detectFromUserAgent(
   const osName = mapOS(res.os?.name);
   const browserName = res.browser?.name || 'Unknown Browser';
 
+  // Generate descriptive device names
   let deviceName = 'Unknown Device';
   if (deviceType === 'mobile') {
     if (/iphone/i.test(ua)) deviceName = 'iPhone';
     else if (/android/i.test(ua)) deviceName = 'Android Phone';
-    else deviceName = 'Mobile Device';
+    else deviceName = 'Mobile Phone';
   } else if (deviceType === 'tablet') {
     if (/ipad/i.test(ua)) deviceName = 'iPad';
-    else deviceName = 'Android Tablet';
+    else if (/android/i.test(ua)) deviceName = 'Android Tablet';
+    else deviceName = 'Tablet';
   } else if (deviceType === 'laptop') {
-    deviceName = osName === 'macOS' ? 'MacBook' : `${osName} Laptop`;
+    if (osName === 'macOS') deviceName = 'MacBook';
+    else if (osName === 'Windows') deviceName = 'Windows Laptop';
+    else deviceName = `${osName} Laptop`;
   } else if (deviceType === 'desktop') {
-    deviceName = osName === 'macOS' ? 'Mac' : `${osName} PC`;
+    if (/imac/i.test(ua)) deviceName = 'iMac';
+    else if (/mac\s?pro/i.test(ua)) deviceName = 'Mac Pro';
+    else if (/mac\s?studio/i.test(ua)) deviceName = 'Mac Studio';
+    else if (/mac\s?mini/i.test(ua)) deviceName = 'Mac mini';
+    else if (osName === 'macOS') deviceName = 'Mac Desktop';
+    else if (osName === 'Windows') deviceName = 'Windows Desktop PC';
+    else deviceName = `${osName} Desktop`;
   }
 
   console.log('✅ Final Detection Result:', {

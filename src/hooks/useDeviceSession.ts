@@ -180,9 +180,22 @@ export const useDeviceSession = () => {
       let sessionId: string | null = null;
 
       if (existingSessions && existingSessions.length > 0) {
-        // Update existing session
+        // Update existing session - preserve locked device type
         const existingSession = existingSessions[0];
         const newLoginCount = (existingSession.login_count || 0) + 1;
+
+        // If device_type_locked is true, reuse existing device_type; otherwise detect fresh
+        const isLocked = existingSession.device_type_locked || false;
+        const finalDeviceType = isLocked 
+          ? existingSession.device_type 
+          : (deviceDetails.deviceType === 'smartphone' ? 'mobile' : deviceDetails.deviceType);
+        
+        console.log('🔒 Device type lock status:', {
+          isLocked,
+          existingType: existingSession.device_type,
+          detectedType: deviceDetails.deviceType,
+          finalType: finalDeviceType
+        });
 
         const { data, error } = await supabase
           .from('user_sessions')
@@ -191,7 +204,7 @@ export const useDeviceSession = () => {
             login_count: newLoginCount,
             user_agent: navigator.userAgent,
             device_name: deviceDetails.deviceName,
-            device_type: deviceDetails.deviceType === 'smartphone' ? 'mobile' : deviceDetails.deviceType,
+            device_type: finalDeviceType,
             browser_info: deviceDetails.browser,
             operating_system: deviceDetails.operatingSystem,
           })
@@ -211,13 +224,24 @@ export const useDeviceSession = () => {
           memory: (navigator as any).deviceMemory || 'Unknown',
           platform: navigator.platform,
         };
+        
+        // Normalize device type for storage (convert 'smartphone' to 'mobile')
+        const normalizedDeviceType = deviceDetails.deviceType === 'smartphone' 
+          ? 'mobile' 
+          : deviceDetails.deviceType;
+        
+        console.log('📱 Creating new session with device type:', {
+          detected: deviceDetails.deviceType,
+          normalized: normalizedDeviceType,
+          deviceName: deviceDetails.deviceName
+        });
 
         const { data, error } = await supabase
           .from('user_sessions')
           .insert({
             user_id: userId,
             device_name: deviceDetails.deviceName,
-            device_type: deviceDetails.deviceType,
+            device_type: normalizedDeviceType,
             browser_info: deviceDetails.browser,
             operating_system: deviceDetails.operatingSystem,
             device_fingerprint: fingerprintHash,
@@ -233,6 +257,7 @@ export const useDeviceSession = () => {
             mfa_enabled: false,
             session_status: 'active',
             security_alerts: [],
+            device_type_locked: false, // Allow re-detection until manually locked
           })
           .select()
           .single();
