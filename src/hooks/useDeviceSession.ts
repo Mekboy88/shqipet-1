@@ -394,6 +394,9 @@ export const useDeviceSession = () => {
     setError(null);
     
     try {
+      // Ensure profile exists first
+      await ensureUserProfile();
+
       // Re-register current device first
       const sessionId = await registerCurrentDevice();
       if (sessionId) {
