@@ -85,21 +85,26 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
   }, []);
 
   useEffect(() => {
-    if (!map.current || !mapLoaded || devices.length === 0) return;
+    if (!map.current || !mapLoaded) return;
 
     // Clear existing markers
     const existingMarkers = document.querySelectorAll('.maplibregl-marker');
     existingMarkers.forEach(marker => marker.remove());
 
     const bounds = new maplibregl.LngLatBounds();
+    let added = 0;
 
-    // Add markers for each device
     devices.forEach(device => {
-      const coords = device.latitude && device.longitude
-        ? { lat: device.latitude, lng: device.longitude }
-        : geocodeLocation(device.location);
+      const hasCoords = typeof device.latitude === 'number' && typeof device.longitude === 'number';
+      const coords = hasCoords ? { lat: device.latitude as number, lng: device.longitude as number } : geocodeLocation(device.location);
 
-      if (coords.lat === 0 && coords.lng === 0) return; // Skip unknown locations
+      if (
+        coords == null ||
+        Number.isNaN(coords.lat) || Number.isNaN(coords.lng) ||
+        (coords.lat === 0 && coords.lng === 0)
+      ) {
+        return; // Skip invalid/unknown locations
+      }
 
       // Create custom marker element
       const el = document.createElement('div');
@@ -126,7 +131,7 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
       iconSvg.setAttribute('fill', 'white');
       iconSvg.setAttribute('stroke', 'white');
       iconSvg.setAttribute('stroke-width', '2');
-      
+
       let iconPath = '';
       switch (device.device_type) {
         case 'smartphone':
@@ -141,7 +146,7 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
         default:
           iconPath = 'M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h3l-1 1v2h12v-2l-1-1h3c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z';
       }
-      
+
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', iconPath);
       iconSvg.appendChild(path);
@@ -175,20 +180,22 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
         `);
 
       // Add marker to map
-      const marker = new maplibregl.Marker({ element: el })
+      new maplibregl.Marker({ element: el })
         .setLngLat([coords.lng, coords.lat])
         .setPopup(popup)
         .addTo(map.current!);
 
       bounds.extend([coords.lng, coords.lat]);
+      added += 1;
     });
 
     // Fit map to show all markers
-    if (devices.length > 0) {
-      map.current.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 5
-      });
+    if (added > 0) {
+      map.current.fitBounds(bounds, { padding: 50, maxZoom: 5 });
+    } else {
+      // Reset to default
+      map.current.setCenter([0, 20]);
+      map.current.setZoom(1.5);
     }
   }, [devices, mapLoaded, onDeviceClick]);
 
