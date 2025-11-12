@@ -218,6 +218,9 @@ class AvatarStore {
               } catch (e) {
                 console.warn('Failed to clear avatar cache:', e);
               }
+              // Also clear in-memory and SW caches to avoid stale images
+              try { avatarCacheService.clear(); } catch {}
+              try { avatarCacheService.clearServiceWorkerCache().catch(() => {}); } catch {}
               
               // Force reload avatar from database
               console.log('🔄 Avatar changed remotely, reloading...');
@@ -308,11 +311,18 @@ class AvatarStore {
 
       // Priority 1: Use avatar_url if available
       if (avatarUrl && /^https?:/i.test(avatarUrl)) {
-        url = avatarUrl;
-        // Try to derive key from URL
+        // Try to derive key from URL and always resolve to a fresh signed URL to bust caches
         const derived = deriveKeyFromUrl(avatarUrl);
         if (derived) {
           key = derived;
+          try {
+            url = await mediaService.getUrl(derived);
+          } catch (e) {
+            console.warn('Failed to resolve derived key to URL, falling back to direct URL');
+            url = avatarUrl;
+          }
+        } else {
+          url = avatarUrl;
         }
         console.log('✅ Avatar loaded:', { url, key });
       }
