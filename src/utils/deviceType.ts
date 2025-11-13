@@ -4,7 +4,15 @@ export type DeviceCategory = 'desktop' | 'laptop' | 'tablet' | 'mobile' | 'unkno
 
 const mapOS = (name?: string, version?: string) => {
   const n = (name || '').toLowerCase();
-  const v = version ? ` ${version.split('.')[0]}` : '';
+  const normalize = (ver?: string) => {
+    if (!ver) return '';
+    const cleaned = ver.replace(/_/g, '.').replace(/[^\d.]/g, '');
+    // Show up to major.minor for clearer, more accurate info (e.g., 10.15 or 14.1)
+    const parts = cleaned.split('.').filter(Boolean);
+    const majorMinor = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : parts[0] || '';
+    return majorMinor ? ` ${majorMinor}` : '';
+  };
+  const v = normalize(version);
   
   if (n.includes('ios')) return `iOS${v}`;
   if (n.includes('ipados')) return `iPadOS${v}`;
