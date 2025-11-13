@@ -384,14 +384,20 @@ class DeviceSessionService {
         .limit(1)
         .single();
 
+      // Lock device type on first registration to prevent future overwrites
+      const isNewDevice = !existingSession;
       const isLocked = existingSession?.device_type_locked || false;
+      const shouldLock = isNewDevice ? true : isLocked; // Lock new devices automatically
+      
       const finalType = isLocked && existingSession?.device_type ? existingSession.device_type : normalizedType;
       const finalDeviceName = isLocked && existingSession?.device_name ? existingSession.device_name : details.deviceName;
       const loginCount = (existingSession?.login_count || 0) + 1;
 
       console.log('🔄 UPSERT session (one card per device):', {
         stableDeviceId,
+        isNewDevice,
         isLocked,
+        shouldLock,
         finalType,
         finalDeviceName,
         loginCount
@@ -425,7 +431,7 @@ class DeviceSessionService {
         mfa_enabled: existingSession?.mfa_enabled || false,
         session_status: 'active',
         security_alerts: existingSession?.security_alerts || [],
-        device_type_locked: isLocked,
+        device_type_locked: shouldLock, // Lock on first registration, preserve existing lock
         is_trusted: existingSession?.is_trusted || false,
       };
 

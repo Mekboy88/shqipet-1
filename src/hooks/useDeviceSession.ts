@@ -270,8 +270,16 @@ export const useDeviceSession = () => {
           // CRITICAL: Do NOT fallback to navigator.userAgent - this makes all devices appear as current device
           const uaString = session.user_agent;
           
-          // Only re-detect from user_agent if it exists
-          if (uaString) {
+          // CRITICAL: Respect device_type_locked - only re-detect if:
+          // 1. Device type is missing/unknown (needs detection)
+          // 2. Device is NOT locked (allows updates)
+          // 3. This is the current device (always keep current device accurate)
+          const isLocked = session.device_type_locked === true;
+          const needsDetection = !session.device_type || session.device_type === 'unknown';
+          const shouldRedetect = (needsDetection || isCurrentDevice) && !isLocked;
+          
+          // Only re-detect from user_agent if needed and allowed
+          if (uaString && shouldRedetect) {
             try {
               // CRITICAL: Don't use current device's navigator.userAgentData for other devices
               // Each device should be detected from its OWN stored user_agent string only
@@ -300,6 +308,8 @@ export const useDeviceSession = () => {
             } catch (e) {
               console.warn('📱 Device UA detection failed, using stored values:', e);
             }
+          } else if (isLocked) {
+            console.log('🔒 Device type locked, using stored values:', { deviceType, deviceName });
           }
 
           // Normalize 'smartphone' to 'mobile' for canonical storage (UI handles both)
