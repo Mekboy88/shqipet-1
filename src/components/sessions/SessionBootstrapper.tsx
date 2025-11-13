@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { deviceSessionService } from '@/services/sessions/DeviceSessionService';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
 const SessionBootstrapper = () => {
   const { user } = useAuth();
@@ -58,7 +60,7 @@ const SessionBootstrapper = () => {
         }
       }, 60000);
 
-      // Update on focus/visibility
+      // Update on focus/visibility (web)
       const onFocus = () => {
         if (sessionIdRef.current) deviceSessionService.heartbeat(sessionIdRef.current);
       };
@@ -71,10 +73,50 @@ const SessionBootstrapper = () => {
       window.addEventListener('focus', onFocus);
       document.addEventListener('visibilitychange', onVisibility);
 
+      // Listen to Capacitor App lifecycle events (native)
+      let appStateListener: any = null;
+      let appResumeListener: any = null;
+      
+      if (Capacitor.isNativePlatform()) {
+        console.log('📱 Setting up Capacitor App lifecycle listeners');
+        
+        // Listen to app state changes
+        CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+          console.log(`📱 App state changed: ${isActive ? 'active' : 'background'}`);
+          if (isActive && user?.id) {
+            // Re-register device when app comes to foreground
+            deviceSessionService.registerOrUpdateCurrentDevice(user.id).then(id => {
+              sessionIdRef.current = id || null;
+              console.log('✅ Device re-registered on app resume:', id);
+            });
+          }
+        }).then(listener => {
+          appStateListener = listener;
+        });
+
+        // Listen to app resume (iOS)
+        CapacitorApp.addListener('resume', () => {
+          console.log('📱 App resumed');
+          if (sessionIdRef.current) {
+            deviceSessionService.heartbeat(sessionIdRef.current);
+          }
+        }).then(listener => {
+          appResumeListener = listener;
+        });
+      }
+
       // Cleanup listeners when user changes/unmounts
       return () => {
         window.removeEventListener('focus', onFocus);
         document.removeEventListener('visibilitychange', onVisibility);
+        
+        // Remove Capacitor listeners
+        if (appStateListener) {
+          appStateListener.remove();
+        }
+        if (appResumeListener) {
+          appResumeListener.remove();
+        }
       };
     };
 

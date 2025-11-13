@@ -1,7 +1,18 @@
 import { supabase } from '@/integrations/supabase/client';
 import { detectFromUserAgent } from '@/utils/deviceType';
+import { Device } from '@capacitor/device';
+import { Capacitor } from '@capacitor/core';
 
 type PlatformType = 'web' | 'pwa' | 'ios' | 'android';
+
+interface NativeDeviceInfo {
+  isNative: boolean;
+  deviceId?: string;
+  model?: string;
+  platform?: string;
+  osVersion?: string;
+  manufacturer?: string;
+}
 
 // Cookie helpers for stable device ID persistence
 const setCookie = (name: string, value: string, days: number = 730) => {
@@ -27,10 +38,58 @@ class DeviceSessionService {
   }
 
   /**
-   * Get or generate a stable device ID that persists across sessions
-   * Uses localStorage + cookie fallback for iOS private mode / blocked storage
+   * Get native device info from Capacitor Device API
+   * Returns null if not running on native platform
    */
-  getStableDeviceId(): string {
+  private async getNativeDeviceInfo(): Promise<NativeDeviceInfo | null> {
+    try {
+      // Check if running on native platform
+      if (!Capacitor.isNativePlatform()) {
+        console.log('📱 Not running on native platform, using browser detection');
+        return null;
+      }
+
+      console.log('📱 Native platform detected, fetching device info...');
+
+      // Get device ID (unique hardware identifier)
+      const deviceId = await Device.getId();
+      
+      // Get device info (model, platform, OS version, etc.)
+      const info = await Device.getInfo();
+
+      console.log('✅ Native device info retrieved:', {
+        id: deviceId.identifier,
+        model: info.model,
+        platform: info.platform,
+        osVersion: info.osVersion,
+        manufacturer: info.manufacturer
+      });
+
+      return {
+        isNative: true,
+        deviceId: deviceId.identifier,
+        model: info.model,
+        platform: info.platform,
+        osVersion: info.osVersion,
+        manufacturer: info.manufacturer
+      };
+    } catch (error) {
+      console.warn('⚠️ Failed to get native device info:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get or generate a stable device ID that persists across sessions
+   * Uses Capacitor Device.getId() for native apps, localStorage + cookie fallback for web
+   */
+  async getStableDeviceId(nativeInfo?: NativeDeviceInfo | null): Promise<string> {
+    // If we have native device ID, use it directly (most reliable)
+    if (nativeInfo?.deviceId) {
+      console.log('📱 Using native device ID:', nativeInfo.deviceId);
+      return nativeInfo.deviceId;
+    }
+
     const STORAGE_KEY = 'device_stable_id';
     const COOKIE_KEY = 'device_stable_id';
     
@@ -168,46 +227,77 @@ class DeviceSessionService {
 
   async registerOrUpdateCurrentDevice(userId: string): Promise<string | null> {
     try {
-      console.log('🚀 Starting device registration for user:', userId);
-      console.log('📱 User Agent:', navigator.userAgent);
-      console.log('🖥️ Platform:', navigator.platform);
-      console.log('📐 Screen:', `${screen.width}x${screen.height}`);
+      // 1. Get native device info first (if available)
+      const nativeInfo = await this.getNativeDeviceInfo();
+      console.log('🔧 Native device info:', nativeInfo);
+
+      // 2. Get stable device ID (native or web-based)
+      const stableDeviceId = await this.getStableDeviceId(nativeInfo);
       
-      // CRITICAL: Get stable device ID first (this is the key!)
-      const stableDeviceId = this.getStableDeviceId();
-      console.log('🔑 Stable Device ID:', stableDeviceId);
-      
-      const fingerprint = this.createFingerprint();
-      console.log('🔑 Device fingerprint:', fingerprint);
-      
-      // Fetch IP and geolocation immediately
+      // 3. Create fingerprint for web fallback (not used for native)
+      const fingerprint = nativeInfo ? stableDeviceId : this.createFingerprint();
+      console.log('🔐 Device identifiers:', { stableDeviceId, fingerprint, isNative: !!nativeInfo });
+
+      // 4. Fetch IP and geolocation
       const geoData = await this.fetchIPAndGeolocation();
-      
-      const details = await detectFromUserAgent(navigator.userAgent);
-      console.log('🔍 Device detection result:', details);
-      
-      // Enhanced UA-based detection to correct misclassifications
-      const ua = navigator.userAgent;
-      const uaMobile = /iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua);
-      const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
-      let normalizedType = details.deviceType;
-      
-      // iPadOS 13+ detection (masquerades as macOS)
-      const isMacintosh = /Macintosh/i.test(ua);
-      const hasTouchPoints = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
-      if (isMacintosh && hasTouchPoints) {
-        normalizedType = 'tablet';
-        console.log('🔍 Detected iPadOS via Macintosh + touch points');
+
+      // 5. Detect device details
+      let details: any;
+      let normalizedType: string;
+      let platform_type: PlatformType;
+
+      if (nativeInfo) {
+        // Native app: use real hardware info
+        console.log('📱 Using native device detection');
+        
+        // Map native platform to device type
+        const platform = nativeInfo.platform?.toLowerCase() || '';
+        if (platform === 'ios' || platform === 'android') {
+          // Determine if tablet or mobile based on model name
+          const model = nativeInfo.model?.toLowerCase() || '';
+          normalizedType = (model.includes('ipad') || model.includes('tablet')) ? 'tablet' : 'mobile';
+        } else {
+          normalizedType = 'desktop';
+        }
+
+        platform_type = (platform === 'ios' || platform === 'android') ? platform as PlatformType : 'web';
+
+        details = {
+          deviceName: nativeInfo.model || 'Unknown Device',
+          deviceModel: nativeInfo.model || 'Unknown',
+          browser: 'Native App',
+          operatingSystem: `${nativeInfo.platform || 'Unknown'} ${nativeInfo.osVersion || ''}`.trim(),
+          manufacturer: nativeInfo.manufacturer || 'Unknown'
+        };
+
+        console.log('✅ Native device details:', details);
+      } else {
+        // Web browser: use UA detection
+        console.log('🌐 Using browser-based detection');
+        details = await detectFromUserAgent(navigator.userAgent);
+        normalizedType = details.deviceType;
+        
+        // Apply UA-based overrides for web
+        const ua = navigator.userAgent;
+        const uaMobile = /iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua);
+        const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
+        
+        const isMacintosh = /Macintosh/i.test(ua);
+        const hasTouchPoints = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+        
+        if (isMacintosh && hasTouchPoints) {
+          normalizedType = 'tablet';
+          console.log('🔍 Detected iPadOS via Macintosh + touch points');
+        }
+        
+        if ((normalizedType === 'desktop' || normalizedType === 'laptop') && (uaMobile || uaTablet)) {
+          const override = uaMobile ? 'mobile' : 'tablet';
+          console.warn(`⚠️ Detected as ${normalizedType} but UA indicates ${override} - overriding to ${override}`);
+          normalizedType = override as any;
+        }
+        
+        platform_type = this.detectPlatformType();
       }
-      
-      if ((normalizedType === 'desktop' || normalizedType === 'laptop') && (uaMobile || uaTablet)) {
-        const override = uaMobile ? 'mobile' : 'tablet';
-        console.warn(`⚠️ Detected as ${normalizedType} but UA indicates ${override} - overriding to ${override}`);
-        normalizedType = override as any;
-      }
-      
-      const platform_type = this.detectPlatformType();
-      console.log('🌐 Platform type:', platform_type);
 
       console.log('🔐 Global device registration:', {
         userId,
@@ -216,8 +306,7 @@ class DeviceSessionService {
         deviceType: normalizedType,
         platformType: platform_type,
         deviceName: details.deviceName,
-        browser: details.browser,
-        os: details.operatingSystem
+        isNative: !!nativeInfo
       });
 
       // Ensure profile exists to satisfy FK before inserting into user_sessions

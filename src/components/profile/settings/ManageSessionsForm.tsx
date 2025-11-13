@@ -199,9 +199,10 @@ const ManageSessionsForm: React.FC = () => {
   useEffect(() => {
     setRealtimeConnected(realtimeStatus === 'connected');
     
-    // Load stable device ID for dev strip
-    const id = deviceSessionService.getStableDeviceId();
-    setStableId(id);
+    // Load stable device ID for dev strip (async)
+    deviceSessionService.getStableDeviceId().then(id => {
+      setStableId(id);
+    });
   }, [realtimeStatus]);
   
   const handleForceRegister = async () => {
