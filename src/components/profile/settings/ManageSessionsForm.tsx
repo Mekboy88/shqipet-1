@@ -506,7 +506,9 @@ Last Error: ${lastRegError || 'None'}`;
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                        <span className="text-xs text-muted-foreground">{getDeviceLabel(device.device_type)}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {getDeviceLabel(device.device_type)} — {device.operating_system || 'Unknown OS'}
+                        </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
