@@ -227,6 +227,71 @@ class DeviceSessionService {
     return 'web';
   }
 
+  // Normalize OS names and versions for consistency
+  private normalizeOperatingSystem(os: string | undefined, ua: string): string {
+    const raw = (os || '').trim();
+    const lower = raw.toLowerCase();
+
+    // iOS normalization
+    if (/iphone|ipad|ipod|ios/i.test(ua)) {
+      const m = ua.match(/OS\s(\d+)[_.](\d+)?/i);
+      if (m) {
+        const major = m[1];
+        const minor = m[2] || '0';
+        return `iOS ${major}.${minor}`;
+      }
+      return 'iOS';
+    }
+
+    // Android normalization
+    if (/android/i.test(ua)) {
+      const m = ua.match(/Android\s([\d.]+)/i);
+      if (m) return `Android ${m[1]}`;
+      return 'Android';
+    }
+
+    // macOS normalization (map to marketing names when possible)
+    if (/mac os x/i.test(ua) || lower.startsWith('mac os') || lower.startsWith('macos')) {
+      // Try to read macOS major version from UA like 10_15_7 or 14_2
+      const match = ua.match(/Mac OS X\s(\d+)[_.](\d+)/i);
+      if (match) {
+        const major = parseInt(match[1], 10);
+        const minor = parseInt(match[2], 10);
+        // Map modern macOS (11+). Some browsers still report 10_15 for older versions
+        if (major >= 14) return `macOS Sonoma ${major}.${minor}`;
+        if (major === 13) return `macOS Ventura ${major}.${minor}`;
+        if (major === 12) return `macOS Monterey ${major}.${minor}`;
+        if (major === 11) return `macOS Big Sur ${major}.${minor}`;
+        if (major === 10) return `macOS 10.${minor}`; // Catalina or earlier
+      }
+      // Fallback to generic label
+      return raw || 'macOS';
+    }
+
+    // Windows normalization
+    if (/windows/i.test(ua) || lower.includes('windows')) {
+      const m = ua.match(/Windows NT\s([\d.]+)/i);
+      if (m) return `Windows ${m[1]}`;
+      return raw || 'Windows';
+    }
+
+    return raw || 'Unknown OS';
+  }
+
+  // Best-effort extraction of device model from UA (web only)
+  private extractModelFromUA(ua: string): string | null {
+    // Android models often appear before "Build/" and look like SM-XXXX or similar
+    const androidMatch = ua.match(/\((?:[^;]*;){2}\s*([^;\)]+)\s*Build\//i);
+    if (androidMatch && androidMatch[1]) {
+      return androidMatch[1].trim();
+    }
+    // iPad/iPhone/iPod hints
+    if (/iPad/i.test(ua)) return 'iPad';
+    if (/iPhone/i.test(ua)) return 'iPhone';
+    if (/iPod/i.test(ua)) return 'iPod';
+    return null;
+  }
+
   private async fetchIPAndGeolocation(): Promise<{
     ip: string;
     city: string;
