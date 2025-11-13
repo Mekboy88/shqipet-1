@@ -345,11 +345,51 @@ export const useDeviceSession = () => {
         const transformedDevices: TrustedDevice[] = await Promise.all(dedupedSessions.map(async (session: any) => {
           const isCurrentDevice = session.device_fingerprint === currentFingerprint;
 
-          // Use stored database values directly - backend already detected and persisted
-          const deviceName = session.device_name || 'Unknown Device';
-          const deviceType = session.device_type || 'unknown';
-          const browserInfo = session.browser_info || 'Unknown Browser';
-          const operatingSystem = session.operating_system || 'Unknown OS';
+          // Prefer stored database values, but compute from UA when missing or too generic
+          let deviceName = session.device_name || 'Unknown Device';
+          let deviceType = session.device_type || 'unknown';
+          let browserInfo = session.browser_info || '';
+          let operatingSystem = session.operating_system || '';
+
+          const uaString = session.user_agent || navigator.userAgent;
+          try {
+            if (!operatingSystem || operatingSystem.toLowerCase().includes('unknown') || !deviceType || deviceType === 'unknown') {
+              const uaData: any = (navigator as any).userAgentData;
+              const detected = await detectFromUserAgent(uaString, {
+                platform: uaData?.platform,
+                mobile: uaData?.mobile,
+                model: undefined,
+              });
+              // Normalize device type for UI
+              const normalizedType = detected.deviceType === 'mobile' ? 'smartphone' : detected.deviceType;
+              if (!deviceType || deviceType === 'unknown' || (deviceType === 'desktop' && (detected.deviceType === 'mobile' || detected.deviceType === 'tablet'))) {
+                deviceType = normalizedType as any;
+              }
+              if (!operatingSystem || operatingSystem.toLowerCase().includes('unknown')) {
+                operatingSystem = detected.operatingSystem;
+              }
+              if (!browserInfo) {
+                browserInfo = detected.browser;
+              }
+              if (!session.device_name && detected.deviceName) {
+                deviceName = detected.deviceName;
+              }
+            }
+            // Prefer native platform OS labels when present
+            if (session.platform_type === 'ios') {
+              operatingSystem = 'iOS';
+              if (deviceType === 'unknown' || deviceType === 'desktop') deviceType = 'smartphone' as any;
+            } else if (session.platform_type === 'android') {
+              operatingSystem = 'Android';
+              if (deviceType === 'unknown' || deviceType === 'desktop') deviceType = 'smartphone' as any;
+            }
+          } catch (e) {
+            console.warn('📱 Device UA fallback detection failed:', e);
+          }
+
+          // Final fallbacks
+          browserInfo = browserInfo || 'Unknown Browser';
+          operatingSystem = operatingSystem || 'Unknown OS';
 
           return {
             id: session.id,
