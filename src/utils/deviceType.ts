@@ -15,11 +15,20 @@ const mapOS = (name?: string) => {
 const fromRules = (ua: string): DeviceCategory => {
   const u = ua.toLowerCase();
   
-  // Mobile devices
-  if (/(iphone|android mobile|windows phone)/.test(u)) return 'mobile';
+  // CRITICAL: iPad detection (iPadOS 13+ reports as Macintosh)
+  // Must check BEFORE mobile/tablet patterns
+  const isMacintosh = /macintosh/i.test(ua);
+  const maxTouchPoints = typeof navigator !== 'undefined' ? navigator.maxTouchPoints : 0;
+  if (isMacintosh && maxTouchPoints > 1) {
+    console.log('🔍 iPad detected via Macintosh + touch points');
+    return 'tablet';
+  }
+  
+  // Mobile devices (canonicalized to 'mobile')
+  if (/(iphone|ipod|android.+mobile|windows phone)/i.test(u)) return 'mobile';
   
   // Tablets
-  if (/(ipad|tablet|kindle|silk|playbook|galaxy tab)/.test(u)) return 'tablet';
+  if (/(ipad|tablet|kindle|silk|playbook|galaxy tab|android(?!.*mobile))/i.test(u)) return 'tablet';
   
   // Explicit laptop indicators
   if (/(macbook|notebook|laptop)/.test(u)) return 'laptop';
@@ -27,10 +36,10 @@ const fromRules = (ua: string): DeviceCategory => {
   // Explicit desktop indicators - iMac, Mac Pro, Mac Studio, Mac mini
   if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/.test(u)) return 'desktop';
   
-  // Windows/Linux desktops (but NOT macOS - needs heuristics)
+  // Windows/Linux desktops (but NOT generic macOS - needs heuristics)
   if (/(windows nt|linux x86_64)/.test(u)) return 'desktop';
   
-  // For macOS "macintosh", return 'unknown' to trigger heuristics
+  // For generic macOS "macintosh", return 'unknown' to trigger heuristics
   return 'unknown';
 };
 
@@ -144,7 +153,7 @@ export async function detectFromUserAgent(
   }
 
   const osName = mapOS(res.os?.name);
-  const osVersion = res.os?.version ? ` ${res.os.version}` : '';
+  const osVersion = res.os?.version ? ` ${res.os.version.split('.')[0]}` : '';
   const browserBase = res.browser?.name || 'Unknown Browser';
   const browserVersion = res.browser?.version ? ` ${res.browser.version}` : '';
   const browserName = `${browserBase}${browserVersion}`.trim();
@@ -156,7 +165,7 @@ export async function detectFromUserAgent(
     else if (/android/i.test(ua)) deviceName = 'Android Phone';
     else deviceName = 'Mobile Phone';
   } else if (deviceType === 'tablet') {
-    if (/ipad/i.test(ua)) deviceName = 'iPad';
+    if (/ipad/i.test(ua) || isIPadDesktopUA) deviceName = 'iPad';
     else if (/android/i.test(ua)) deviceName = 'Android Tablet';
     else deviceName = 'Tablet';
   } else if (deviceType === 'laptop') {
@@ -177,7 +186,7 @@ export async function detectFromUserAgent(
     deviceType,
     deviceName,
     browser: browserName,
-    operatingSystem: osName
+    operatingSystem: `${osName}${osVersion}`
   });
 
   return {

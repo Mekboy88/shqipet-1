@@ -336,157 +336,87 @@ class DeviceSessionService {
       // Ensure profile exists to satisfy FK before inserting into user_sessions
       await this.ensureProfile(userId);
 
-      // Check for existing session for this device using stable ID as PRIMARY key
-      console.log('🔍 Checking for existing session by stable ID:', stableDeviceId);
-      let existing = null;
-      
-      const { data: stableSessions, error: fetchErr } = await supabase
+      // Fetch existing session to respect locked fields
+      const { data: existingSession } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('user_id', userId)
         .eq('device_stable_id', stableDeviceId)
-        .eq('is_active', true)
         .order('last_activity', { ascending: false })
-        .limit(1);
+        .limit(1)
+        .single();
 
-      if (stableSessions && stableSessions.length > 0) {
-        existing = stableSessions;
-        console.log('✅ Found session by stable ID');
-      } else {
-        console.log('ℹ️ No existing session found - will create new');
-      }
+      const isLocked = existingSession?.device_type_locked || false;
+      const finalType = isLocked && existingSession?.device_type ? existingSession.device_type : normalizedType;
+      const finalDeviceName = isLocked && existingSession?.device_name ? existingSession.device_name : details.deviceName;
+      const loginCount = (existingSession?.login_count || 0) + 1;
 
-      console.log('📋 Existing sessions found:', existing?.length || 0);
+      console.log('🔄 UPSERT session (one card per device):', {
+        stableDeviceId,
+        isLocked,
+        finalType,
+        finalDeviceName,
+        loginCount
+      });
 
       const now = new Date().toISOString();
+      const screenRes = `${screen.width}x${screen.height}`;
+      const hardwareInfo = {
+        cpu: navigator.hardwareConcurrency || 'Unknown',
+        memory: (navigator as any).deviceMemory || 'Unknown',
+        platform: navigator.platform,
+      };
 
-      if (existing && existing.length > 0) {
-        const s = existing[0];
-        const isLocked = !!s.device_type_locked;
-        let finalType = isLocked ? s.device_type : normalizedType;
+      // UPSERT: Insert or update based on unique constraint (user_id, device_stable_id)
+      const sessionData: any = {
+        user_id: userId,
+        device_stable_id: stableDeviceId,
+        device_name: finalDeviceName,
+        device_type: finalType,
+        browser_info: details.browser,
+        operating_system: details.operatingSystem,
+        device_fingerprint: fingerprint,
+        login_count: loginCount,
+        user_agent: navigator.userAgent,
+        last_activity: now,
+        is_active: true,
+        session_token: existingSession?.session_token || `session_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+        screen_resolution: screenRes,
+        platform_type,
+        hardware_info: hardwareInfo,
+        mfa_enabled: existingSession?.mfa_enabled || false,
+        session_status: 'active',
+        security_alerts: existingSession?.security_alerts || [],
+        device_type_locked: isLocked,
+        is_trusted: existingSession?.is_trusted || false,
+      };
 
-        // Keep stored device_name if locked, otherwise update
-        let finalDeviceName = isLocked && s.device_name ? s.device_name : details.deviceName;
-        
-        console.log('🔄 Updating existing session:', s.id, { 
-          isLocked, 
-          finalType, 
-          finalDeviceName,
-          oldDeviceName: s.device_name,
-          newDeviceName: details.deviceName,
-          oldDeviceType: s.device_type,
-          newDeviceType: finalType
-        });
-        
-        const updateData: any = {
-          device_stable_id: stableDeviceId, // CRITICAL: Ensure stable ID persists
-          last_activity: now,
-          login_count: (s.login_count || 0) + 1,
-          user_agent: navigator.userAgent,
-          device_name: finalDeviceName,
-          device_type: finalType,
-          browser_info: details.browser,
-          operating_system: details.operatingSystem,
-          platform_type,
-          session_status: 'active',
-          is_active: true
-        };
-        
-        // Add IP and geolocation data if fetched successfully
-        if (geoData) {
-          updateData.ip_address = geoData.ip;
-          updateData.city = geoData.city;
-          updateData.country = geoData.country;
-          updateData.country_code = geoData.country_code;
-          updateData.latitude = geoData.latitude;
-          updateData.longitude = geoData.longitude;
-          console.log('📍 Adding geolocation to update:', geoData);
-        }
-        
-        const { data, error } = await supabase
-          .from('user_sessions')
-          .update(updateData)
-          .eq('id', s.id)
-          .select()
-          .single();
+      // Add geolocation if available
+      if (geoData) {
+        sessionData.ip_address = geoData.ip;
+        sessionData.city = geoData.city;
+        sessionData.country = geoData.country;
+        sessionData.country_code = geoData.country_code;
+        sessionData.latitude = geoData.latitude;
+        sessionData.longitude = geoData.longitude;
+      }
 
-        if (!error && data) {
-          console.log('✅ Session updated:', data.id, '- Stable ID:', stableDeviceId);
-          return data.id;
-        }
-        
-        if (error) {
-          console.error('❌ Session update failed:', error);
-        }
-        
-        return s.id || null;
-      } else {
-        const screenRes = `${screen.width}x${screen.height}`;
-        const hardwareInfo = {
-          cpu: navigator.hardwareConcurrency || 'Unknown',
-          memory: (navigator as any).deviceMemory || 'Unknown',
-          platform: navigator.platform,
-        };
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .upsert(sessionData, {
+          onConflict: 'user_id,device_stable_id',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
 
-        console.log('➕ Creating new session for device:', details.deviceName);
-        
-        const sessionData: any = {
-          user_id: userId,
-          device_stable_id: stableDeviceId, // THIS IS THE KEY FIELD!
-          device_name: details.deviceName,
-          device_type: normalizedType,
-          browser_info: details.browser,
-          operating_system: details.operatingSystem,
-          device_fingerprint: fingerprint,
-          is_trusted: false,
-          login_count: 1,
-          user_agent: navigator.userAgent,
-          last_activity: now,
-          is_active: true,
-          session_token: `session_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
-          screen_resolution: screenRes,
-          platform_type,
-          hardware_info: hardwareInfo,
-          mfa_enabled: false,
-          session_status: 'active',
-          security_alerts: [],
-          device_type_locked: false
-        };
-        
-        // Add IP and geolocation data if fetched successfully
-        if (geoData) {
-          sessionData.ip_address = geoData.ip;
-          sessionData.city = geoData.city;
-          sessionData.country = geoData.country;
-          sessionData.country_code = geoData.country_code;
-          sessionData.latitude = geoData.latitude;
-          sessionData.longitude = geoData.longitude;
-          console.log('📍 Adding geolocation to new session:', geoData);
-        }
-        
-        console.log('📝 Inserting session data:', JSON.stringify(sessionData, null, 2));
-
-         const { data, error } = await supabase
-          .from('user_sessions')
-          .insert(sessionData)
-          .select()
-          .single();
-
-        if (!error && data) {
-          console.log('✅ New session created successfully!');
-          console.log('✅ Session ID:', data.id);
-          console.log('✅ Device Type:', data.device_type);
-          console.log('✅ Device Name:', data.device_name);
-          return data.id;
-        } else if (error) {
-          console.error('❌ Error creating session:', error);
-          console.error('❌ Error code:', error.code);
-          console.error('❌ Error message:', error.message);
-          console.error('❌ Error details:', JSON.stringify(error, null, 2));
-          console.error('❌ Session data that failed:', JSON.stringify(sessionData, null, 2));
-        }
+      if (error) {
+        console.error('❌ UPSERT failed:', error);
         return null;
       }
+
+      console.log('✅ Session UPSERT successful:', data.id, '- Stable ID:', stableDeviceId);
+      return data.id;
     } catch (e) {
       console.error('❌ registerOrUpdateCurrentDevice failed with exception:', e);
       console.error('❌ Exception details:', JSON.stringify(e, null, 2));
