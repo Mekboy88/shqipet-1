@@ -187,39 +187,44 @@ class DeviceSessionService {
       await this.ensureProfile(userId);
 
       // Check for existing session for this device
-      // Priority 1: Try by stable device ID (preferred - per physical device)
-      console.log('🔍 Checking for existing session by stable ID:', stableDeviceId);
+      // Priority 1: Try by fingerprint FIRST (to connect with existing sessions)
+      console.log('🔍 Checking for existing session by fingerprint:', fingerprint);
       let existing = null;
-      let existingByStableId = false;
+      let foundByMethod = 'none';
       
-      const { data: stableSessions, error: stableErr } = await supabase
+      const { data: fingerprintSessions, error: fetchErr } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('user_id', userId)
-        .eq('device_stable_id', stableDeviceId)
-        .order('updated_at', { ascending: false });
+        .eq('device_fingerprint', fingerprint)
+        .eq('is_active', true)
+        .order('last_activity', { ascending: false })
+        .limit(1);
 
-      if (stableSessions && stableSessions.length > 0) {
-        existing = stableSessions;
-        existingByStableId = true;
-        console.log('✅ Found session by stable ID');
+      if (fingerprintSessions && fingerprintSessions.length > 0) {
+        existing = fingerprintSessions;
+        foundByMethod = 'fingerprint';
+        console.log('✅ Found session by fingerprint, will update stable_id to:', stableDeviceId);
       } else {
-        // Priority 2: Fallback to fingerprint (for legacy sessions)
-        console.log('🔍 No stable ID match, trying fingerprint:', fingerprint);
-        const { data: fingerprintSessions, error: fetchErr } = await supabase
+        // Priority 2: Try by stable device ID (for sessions already migrated)
+        console.log('🔍 No fingerprint match, trying stable ID:', stableDeviceId);
+        const { data: stableSessions, error: stableErr } = await supabase
           .from('user_sessions')
           .select('*')
           .eq('user_id', userId)
-          .eq('device_fingerprint', fingerprint)
-          .order('updated_at', { ascending: false });
-        
-        existing = fingerprintSessions;
-        if (fetchErr) {
-          console.error('❌ Fetch session error:', fetchErr);
+          .eq('device_stable_id', stableDeviceId)
+          .eq('is_active', true)
+          .order('last_activity', { ascending: false })
+          .limit(1);
+
+        if (stableSessions && stableSessions.length > 0) {
+          existing = stableSessions;
+          foundByMethod = 'stable_id';
+          console.log('✅ Found session by stable ID');
         }
       }
 
-      console.log('📋 Existing sessions found:', existing?.length || 0, existingByStableId ? '(by stable ID)' : '(by fingerprint)');
+      console.log('📋 Existing sessions found:', existing?.length || 0, `(by ${foundByMethod})`);
 
       const now = new Date().toISOString();
 
@@ -228,12 +233,17 @@ class DeviceSessionService {
         const isLocked = !!s.device_type_locked;
         const finalType = isLocked ? s.device_type : normalizedType;
         
-        console.log('🔄 Updating existing session:', s.id, { isLocked, finalType, existingByStableId });
+        console.log('🔄 Updating existing session:', s.id, { 
+          isLocked, 
+          finalType, 
+          foundByMethod,
+          willUpdateStableId: foundByMethod === 'fingerprint' 
+        });
         
         const { data, error } = await supabase
           .from('user_sessions')
           .update({
-            device_stable_id: stableDeviceId, // Ensure stable ID is set
+            device_stable_id: stableDeviceId, // CRITICAL: Update stable ID on every login
             last_activity: now,
             login_count: (s.login_count || 0) + 1,
             user_agent: navigator.userAgent,
@@ -250,7 +260,7 @@ class DeviceSessionService {
           .single();
 
         if (!error && data) {
-          console.log('✅ Session updated:', data.id);
+          console.log('✅ Session updated:', data.id, '- Stable ID now:', stableDeviceId);
           return data.id;
         }
         return s.id || null;
