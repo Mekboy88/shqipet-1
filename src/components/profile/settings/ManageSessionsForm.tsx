@@ -553,6 +553,11 @@ Last Error: ${lastRegError || 'None'}`;
                           <h3 className="font-semibold text-foreground text-base">
                             {device.device_name || `${device.device_type} Device`}
                           </h3>
+                          {device.platform_type && device.platform_type !== 'web' && (
+                            <span className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium border border-blue-500/20 uppercase">
+                              {device.platform_type}
+                            </span>
+                          )}
                           {device.is_current && (
                             <span className="text-xs bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-medium border border-primary/20">
                               Current
