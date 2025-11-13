@@ -1666,6 +1666,7 @@ export type Database = {
           created_at: string | null
           device_fingerprint: string
           device_name: string | null
+          device_stable_id: string | null
           device_type: string | null
           device_type_locked: boolean | null
           hardware_info: Json | null
@@ -1699,6 +1700,7 @@ export type Database = {
           created_at?: string | null
           device_fingerprint: string
           device_name?: string | null
+          device_stable_id?: string | null
           device_type?: string | null
           device_type_locked?: boolean | null
           hardware_info?: Json | null
@@ -1732,6 +1734,7 @@ export type Database = {
           created_at?: string | null
           device_fingerprint?: string
           device_name?: string | null
+          device_stable_id?: string | null
           device_type?: string | null
           device_type_locked?: boolean | null
           hardware_info?: Json | null

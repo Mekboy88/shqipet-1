@@ -499,6 +499,20 @@ export const useDeviceSession = () => {
 
         // Step 1: Load all devices (registration handled globally by SessionBootstrapper)
         await loadTrustedDevices();
+
+        // Step 2: Safety net - if NO sessions exist, force register current device
+        // This ensures the current device ALWAYS appears, even if bootstrap missed it
+        if (trustedDevices.length === 0 && user) {
+          console.log('⚠️ No devices found after load - registering current device as safety net');
+          const sessionId = await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+          if (sessionId) {
+            setCurrentDeviceId(sessionId);
+            console.log('✅ Safety net: Current device registered:', sessionId);
+            // Wait 200ms then reload to show the new device
+            await new Promise(resolve => setTimeout(resolve, 200));
+            await loadTrustedDevices();
+          }
+        }
       } catch (error) {
         console.error('❌ Initialization failed:', error);
         setError(`Initialization failed: ${error}`);

@@ -13,6 +13,36 @@ class DeviceSessionService {
     return DeviceSessionService.instance;
   }
 
+  /**
+   * Generate or retrieve a stable device ID that persists across sessions
+   * This is KEY to making each physical device create its own card
+   */
+  private getStableDeviceId(): string {
+    const storageKey = 'device_stable_id';
+    
+    // Try to get existing ID from localStorage
+    try {
+      const existingId = localStorage.getItem(storageKey);
+      if (existingId) {
+        return existingId;
+      }
+    } catch (e) {
+      console.warn('localStorage not available, falling back to session-based ID');
+    }
+
+    // Generate new stable ID (UUID-like)
+    const newId = `dev-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    
+    // Try to persist it
+    try {
+      localStorage.setItem(storageKey, newId);
+    } catch (e) {
+      console.warn('Could not persist device ID to localStorage');
+    }
+
+    return newId;
+  }
+
   // Ensure a profile row exists to satisfy FK user_sessions.user_id -> profiles.id
   private async ensureProfile(userId: string): Promise<boolean> {
     try {
@@ -84,6 +114,10 @@ class DeviceSessionService {
       console.log('🖥️ Platform:', navigator.platform);
       console.log('📐 Screen:', `${screen.width}x${screen.height}`);
       
+      // CRITICAL: Get stable device ID first (this is the key!)
+      const stableDeviceId = this.getStableDeviceId();
+      console.log('🔑 Stable Device ID:', stableDeviceId);
+      
       const fingerprint = this.createFingerprint();
       console.log('🔑 Device fingerprint:', fingerprint);
       
@@ -107,6 +141,7 @@ class DeviceSessionService {
 
       console.log('🔐 Global device registration:', {
         userId,
+        stableDeviceId,
         fingerprint,
         deviceType: normalizedType,
         platformType: platform_type,
@@ -118,22 +153,40 @@ class DeviceSessionService {
       // Ensure profile exists to satisfy FK before inserting into user_sessions
       await this.ensureProfile(userId);
 
-      // Check for existing active session for this device
-      console.log('🔍 Checking for existing session with fingerprint:', fingerprint);
-      const { data: existing, error: fetchErr } = await supabase
+      // Check for existing session for this device
+      // Priority 1: Try by stable device ID (preferred - per physical device)
+      console.log('🔍 Checking for existing session by stable ID:', stableDeviceId);
+      let existing = null;
+      let existingByStableId = false;
+      
+      const { data: stableSessions, error: stableErr } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('user_id', userId)
-        .eq('device_fingerprint', fingerprint)
+        .eq('device_stable_id', stableDeviceId)
         .order('updated_at', { ascending: false });
 
-      if (fetchErr) {
-        console.error('❌ Fetch session error:', fetchErr);
-        console.error('❌ Error details:', JSON.stringify(fetchErr, null, 2));
-        return null;
+      if (stableSessions && stableSessions.length > 0) {
+        existing = stableSessions;
+        existingByStableId = true;
+        console.log('✅ Found session by stable ID');
+      } else {
+        // Priority 2: Fallback to fingerprint (for legacy sessions)
+        console.log('🔍 No stable ID match, trying fingerprint:', fingerprint);
+        const { data: fingerprintSessions, error: fetchErr } = await supabase
+          .from('user_sessions')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('device_fingerprint', fingerprint)
+          .order('updated_at', { ascending: false });
+        
+        existing = fingerprintSessions;
+        if (fetchErr) {
+          console.error('❌ Fetch session error:', fetchErr);
+        }
       }
-      
-      console.log('📋 Existing sessions found:', existing?.length || 0);
+
+      console.log('📋 Existing sessions found:', existing?.length || 0, existingByStableId ? '(by stable ID)' : '(by fingerprint)');
 
       const now = new Date().toISOString();
 
@@ -142,11 +195,12 @@ class DeviceSessionService {
         const isLocked = !!s.device_type_locked;
         const finalType = isLocked ? s.device_type : normalizedType;
         
-        console.log('🔄 Updating existing session:', s.id, { isLocked, finalType });
+        console.log('🔄 Updating existing session:', s.id, { isLocked, finalType, existingByStableId });
         
         const { data, error } = await supabase
           .from('user_sessions')
           .update({
+            device_stable_id: stableDeviceId, // Ensure stable ID is set
             last_activity: now,
             login_count: (s.login_count || 0) + 1,
             user_agent: navigator.userAgent,
@@ -179,6 +233,7 @@ class DeviceSessionService {
         
         const sessionData = {
           user_id: userId,
+          device_stable_id: stableDeviceId, // THIS IS THE KEY FIELD!
           device_name: details.deviceName,
           device_type: normalizedType,
           browser_info: details.browser,
