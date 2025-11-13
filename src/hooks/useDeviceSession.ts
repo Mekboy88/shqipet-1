@@ -296,11 +296,12 @@ export const useDeviceSession = () => {
       console.log('🔄 Loading trusted devices for user:', user.id);
       if (!silent) setError(null);
 
-      // Load ALL sessions for this user (account-wide view)
+      // Load ONLY ACTIVE sessions for this user (hide removed devices)
       const { data: sessions, error } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('user_id', user.id)
+        .eq('is_active', true)
         .order('last_activity', { ascending: false });
 
       if (error) {
