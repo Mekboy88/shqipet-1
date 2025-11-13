@@ -3,6 +3,19 @@ import { detectFromUserAgent } from '@/utils/deviceType';
 
 type PlatformType = 'web' | 'pwa' | 'ios' | 'android';
 
+// Cookie helpers for stable device ID persistence
+const setCookie = (name: string, value: string, days: number = 730) => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+};
+
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return decodeURIComponent(parts.pop()!.split(';').shift()!);
+  return null;
+};
+
 class DeviceSessionService {
   private static instance: DeviceSessionService;
 
@@ -14,33 +27,45 @@ class DeviceSessionService {
   }
 
   /**
-   * Generate or retrieve a stable device ID that persists across sessions
-   * This is KEY to making each physical device create its own card
+   * Get or generate a stable device ID that persists across sessions
+   * Uses localStorage + cookie fallback for iOS private mode / blocked storage
    */
-  private getStableDeviceId(): string {
-    const storageKey = 'device_stable_id';
+  getStableDeviceId(): string {
+    const STORAGE_KEY = 'device_stable_id';
+    const COOKIE_KEY = 'device_stable_id';
     
-    // Try to get existing ID from localStorage
+    // Try localStorage first
+    let stableId: string | null = null;
     try {
-      const existingId = localStorage.getItem(storageKey);
-      if (existingId) {
-        return existingId;
+      stableId = localStorage.getItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn('localStorage unavailable:', e);
+    }
+    
+    // Fallback to cookie if localStorage unavailable/blocked
+    if (!stableId) {
+      stableId = getCookie(COOKIE_KEY);
+    }
+    
+    if (!stableId) {
+      // Generate new stable ID
+      stableId = `device_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      
+      // Store in both localStorage and cookie (best-effort)
+      try {
+        localStorage.setItem(STORAGE_KEY, stableId);
+      } catch (error) {
+        console.warn('localStorage unavailable:', error);
       }
-    } catch (e) {
-      console.warn('localStorage not available, falling back to session-based ID');
+      
+      try {
+        setCookie(COOKIE_KEY, stableId, 730); // 2 years
+      } catch (error) {
+        console.warn('Cookie unavailable:', error);
+      }
     }
-
-    // Generate new stable ID (UUID-like)
-    const newId = `dev-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
     
-    // Try to persist it
-    try {
-      localStorage.setItem(storageKey, newId);
-    } catch (e) {
-      console.warn('Could not persist device ID to localStorage');
-    }
-
-    return newId;
+    return stableId;
   }
 
   // Ensure a profile row exists to satisfy FK user_sessions.user_id -> profiles.id
@@ -124,11 +149,19 @@ class DeviceSessionService {
       const details = await detectFromUserAgent(navigator.userAgent);
       console.log('🔍 Device detection result:', details);
       
-      // Fallback UA-based detection to correct misclassifications
+      // Enhanced UA-based detection to correct misclassifications
       const ua = navigator.userAgent;
-      const uaMobile = /iPhone|Android.+Mobile|Windows Phone/i.test(ua);
+      const uaMobile = /iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua);
       const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
       let normalizedType = details.deviceType;
+      
+      // iPadOS 13+ detection (masquerades as macOS)
+      const isMacintosh = /Macintosh/i.test(ua);
+      const hasTouchPoints = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+      if (isMacintosh && hasTouchPoints) {
+        normalizedType = 'tablet';
+        console.log('🔍 Detected iPadOS via Macintosh + touch points');
+      }
       
       if ((normalizedType === 'desktop' || normalizedType === 'laptop') && (uaMobile || uaTablet)) {
         const override = uaMobile ? 'mobile' : 'tablet';

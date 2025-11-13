@@ -293,11 +293,12 @@ export const useDeviceSession = () => {
       console.log('🔄 Loading trusted devices for user:', user.id);
       if (!silent) setError(null);
 
+      // Load all sessions that are 'active' OR 'logged_in' (not just is_active flag)
       const { data: sessions, error } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('is_active', true)
+        .or('is_active.eq.true,session_status.eq.logged_in,session_status.eq.active')
         .order('last_activity', { ascending: false });
 
       if (error) {

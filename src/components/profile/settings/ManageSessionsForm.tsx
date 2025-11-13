@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Monitor, Smartphone, Tablet, Laptop, RefreshCw, LogOut, MapPin, Chrome, Globe, Activity, ShieldCheck, Shield, Loader2, AlertTriangle, HelpCircle } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, RefreshCw, LogOut, MapPin, Chrome, Globe, Activity, ShieldCheck, Shield, Loader2, AlertTriangle, HelpCircle, Bug } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +21,7 @@ import { useDeviceSession } from '@/hooks/useDeviceSession';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatTimeAgo } from '@/lib/utils/timeUtils';
 import { toast } from 'sonner';
+import { deviceSessionService } from '@/services/sessions/DeviceSessionService';
 
 const ManageSessionsForm: React.FC = () => {
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
@@ -29,7 +30,10 @@ const ManageSessionsForm: React.FC = () => {
   const [selectedDevice, setSelectedDevice] = useState<any>(null);
   const [showDeviceModal, setShowDeviceModal] = useState(false);
   const [realtimeConnected, setRealtimeConnected] = useState(true);
-  const { signOut } = useAuth();
+  const [showDevStrip, setShowDevStrip] = useState(false);
+  const [stableId, setStableId] = useState('');
+  const [forceRegistering, setForceRegistering] = useState(false);
+  const { signOut, user } = useAuth();
   
   const {
     trustedDevices,
@@ -180,7 +184,27 @@ const ManageSessionsForm: React.FC = () => {
 
   useEffect(() => {
     setRealtimeConnected(realtimeStatus === 'connected');
+    
+    // Load stable device ID for dev strip
+    const id = deviceSessionService.getStableDeviceId();
+    setStableId(id);
   }, [realtimeStatus]);
+  
+  const handleForceRegister = async () => {
+    if (!user?.id) return;
+    
+    setForceRegistering(true);
+    try {
+      await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+      await refreshDevices();
+      toast.success('Device registered successfully');
+    } catch (error) {
+      console.error('Force register failed:', error);
+      toast.error('Failed to register device');
+    } finally {
+      setForceRegistering(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -206,6 +230,53 @@ const ManageSessionsForm: React.FC = () => {
             Manage your trusted devices and active login sessions. Real-time monitoring of all device activity.
           </p>
         </div>
+        
+        {/* Dev Strip - Toggle Button */}
+        <div className="flex items-center justify-end mb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowDevStrip(!showDevStrip)}
+            className="text-xs text-muted-foreground h-7"
+          >
+            <Bug className="w-3 h-3 mr-1" />
+            {showDevStrip ? 'Hide' : 'Show'} Dev Info
+          </Button>
+        </div>
+        
+        {/* Dev Strip */}
+        {showDevStrip && (
+          <div className="bg-muted/50 border border-border rounded-lg p-3 space-y-2 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="text-xs space-y-1">
+                <p className="font-mono">
+                  <span className="text-muted-foreground">Stable ID:</span>{' '}
+                  <span className="font-semibold">
+                    {stableId.substring(0, 8)}...{stableId.substring(stableId.length - 8)}
+                  </span>
+                </p>
+                <p className="text-muted-foreground">
+                  Devices found: <span className="font-semibold text-foreground">{trustedDevices.length}</span>
+                </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={handleForceRegister}
+                disabled={forceRegistering}
+                className="text-xs h-8"
+              >
+                {forceRegistering ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    Registering...
+                  </>
+                ) : (
+                  'Force Register'
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
         
         <div className="flex gap-3 mb-6">
           <Button
