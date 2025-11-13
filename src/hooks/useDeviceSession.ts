@@ -364,7 +364,14 @@ export const useDeviceSession = () => {
             is_trusted: session.is_trusted || false,
             login_count: session.login_count || 1,
             location: session.location || 'Unknown location',
-            ip_address: session.ip_address
+            ip_address: session.ip_address,
+            city: session.city,
+            country: session.country,
+            country_code: session.country_code,
+            latitude: session.latitude,
+            longitude: session.longitude,
+            platform_type: session.platform_type,
+            session_status: session.session_status
           };
         }));
 
