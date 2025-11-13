@@ -38,6 +38,37 @@ class DeviceSessionService {
   }
 
   /**
+   * Generate device fingerprint for stable ID generation
+   */
+  private generateDeviceFingerprint(): any {
+    const nav = navigator as any;
+    return {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      screenResolution: `${screen.width}x${screen.height}`,
+      colorDepth: screen.colorDepth,
+      deviceMemory: nav.deviceMemory || 0,
+      hardwareConcurrency: navigator.hardwareConcurrency || 0
+    };
+  }
+
+  /**
+   * Create deterministic hash from fingerprint
+   */
+  private hashFingerprint(fingerprint: any): string {
+    const data = JSON.stringify(fingerprint);
+    let hash = 0;
+    for (let i = 0; i < data.length; i++) {
+      const char = data.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  /**
    * Get native device info from Capacitor Device API
    * Returns null if not running on native platform
    */
@@ -107,10 +138,15 @@ class DeviceSessionService {
     }
     
     if (!stableId) {
-      // Generate new stable ID
-      stableId = `device_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      // Generate deterministic stable ID based on device fingerprint
+      // This ensures same physical device gets same ID even if storage is blocked
+      const fingerprint = this.generateDeviceFingerprint();
+      const fingerprintHash = this.hashFingerprint(fingerprint);
+      stableId = `dv_${fingerprintHash}`;
       
-      // Store in both localStorage and cookie (best-effort)
+      console.log('🔑 Generated deterministic stable ID from fingerprint:', stableId);
+      
+      // Store in both localStorage and cookie for faster access (best-effort)
       try {
         localStorage.setItem(STORAGE_KEY, stableId);
       } catch (error) {

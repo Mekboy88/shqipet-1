@@ -294,12 +294,11 @@ export const useDeviceSession = () => {
       console.log('🔄 Loading trusted devices for user:', user.id);
       if (!silent) setError(null);
 
-      // Load all sessions that are 'active' OR 'logged_in' (not just is_active flag)
+      // Load ALL sessions for this user (account-wide view)
       const { data: sessions, error } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('user_id', user.id)
-        .or('is_active.eq.true,session_status.eq.logged_in,session_status.eq.active')
         .order('last_activity', { ascending: false });
 
       if (error) {
@@ -352,20 +351,34 @@ export const useDeviceSession = () => {
           let operatingSystem = session.operating_system || '';
 
           const uaString = session.user_agent || navigator.userAgent;
+          
+          // Always re-detect from user_agent to ensure correctness
           try {
-            if (!operatingSystem || operatingSystem.toLowerCase().includes('unknown') || !deviceType || deviceType === 'unknown') {
-              const uaData: any = (navigator as any).userAgentData;
-              const detected = await detectFromUserAgent(uaString, {
-                platform: uaData?.platform,
-                mobile: uaData?.mobile,
-                model: undefined,
-              });
-              // Normalize device type for UI
+            const uaData: any = (navigator as any).userAgentData;
+            const detected = await detectFromUserAgent(uaString, {
+              platform: session.platform_type === 'ios' ? 'iOS' : session.platform_type === 'android' ? 'Android' : uaData?.platform,
+              mobile: uaData?.mobile,
+              model: undefined,
+            });
+            
+            // Override with platform_type if present (iOS/Android apps)
+            if (session.platform_type === 'ios') {
+              deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
+              operatingSystem = detected.operatingSystem;
+            } else if (session.platform_type === 'android') {
+              deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
+              operatingSystem = detected.operatingSystem;
+            } else {
+              // Web/PWA: use detected values
               const normalizedType = detected.deviceType === 'mobile' ? 'smartphone' : detected.deviceType;
-              if (!deviceType || deviceType === 'unknown' || (deviceType === 'desktop' && (detected.deviceType === 'mobile' || detected.deviceType === 'tablet'))) {
-                deviceType = normalizedType as any;
-              }
-              if (!operatingSystem || operatingSystem.toLowerCase().includes('unknown')) {
+              deviceType = normalizedType as any;
+              operatingSystem = detected.operatingSystem;
+            }
+            
+            deviceName = detected.deviceName;
+            browserInfo = detected.browser;
+            
+            if (!operatingSystem || operatingSystem.toLowerCase().includes('unknown')) {
                 operatingSystem = detected.operatingSystem;
               }
               if (!browserInfo) {
