@@ -261,6 +261,17 @@ class DeviceSessionService {
 
         if (!error && data) {
           console.log('✅ Session updated:', data.id, '- Stable ID now:', stableDeviceId);
+          // Deactivate other active sessions for the same physical device (same stable ID or fingerprint)
+          try {
+            await supabase
+              .from('user_sessions')
+              .update({ is_active: false, session_status: 'inactive' })
+              .eq('user_id', userId)
+              .neq('id', data.id)
+              .or(`device_stable_id.eq.${stableDeviceId},device_fingerprint.eq.${fingerprint}`);
+          } catch (cleanupErr) {
+            console.warn('⚠️ Cleanup of duplicate sessions failed:', cleanupErr);
+          }
           return data.id;
         }
         return s.id || null;
@@ -299,7 +310,7 @@ class DeviceSessionService {
         
         console.log('📝 Inserting session data:', JSON.stringify(sessionData, null, 2));
 
-        const { data, error } = await supabase
+         const { data, error } = await supabase
           .from('user_sessions')
           .insert(sessionData)
           .select()
@@ -310,6 +321,19 @@ class DeviceSessionService {
           console.log('✅ Session ID:', data.id);
           console.log('✅ Device Type:', data.device_type);
           console.log('✅ Device Name:', data.device_name);
+
+          // Deactivate other active sessions for the same physical device (same stable ID or fingerprint)
+          try {
+            await supabase
+              .from('user_sessions')
+              .update({ is_active: false, session_status: 'inactive' })
+              .eq('user_id', userId)
+              .neq('id', data.id)
+              .or(`device_stable_id.eq.${stableDeviceId},device_fingerprint.eq.${fingerprint}`);
+          } catch (cleanupErr) {
+            console.warn('⚠️ Cleanup of duplicate sessions failed:', cleanupErr);
+          }
+
           return data.id;
         } else if (error) {
           console.error('❌ Error creating session:', error);

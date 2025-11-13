@@ -314,47 +314,61 @@ export const useDeviceSession = () => {
 
       if (sessions) {
         const currentFingerprint = createFingerprintHash(generateDeviceFingerprint());
-        console.log(`🔍 Found ${sessions.length} active sessions for user ${user.id}`);
+        console.log(`🔍 Found ${sessions.length} sessions for user ${user.id}`);
 
         if (sessions.length === 0) {
-          console.log('⚠️ No active sessions found - user may need to register device');
+          console.log('⚠️ No sessions found - user may need to register device');
           setTrustedDevices([]);
           if (!silent) setError('No devices found. Try refreshing or logging in again.');
           setLoading(false);
           return;
         }
 
-        const transformedDevices: TrustedDevice[] = await Promise.all(sessions.map(async session => {
-        const deviceDetails = await detectDeviceDetails(session.user_agent || '');
-        const isCurrentDevice = session.device_fingerprint === currentFingerprint;
-
-        // UA-based override to fix misclassified iPad/iPhone/Android sessions for display
-        const ua = session.user_agent || '';
-        const uaMobile = /iPhone|Android.+Mobile|Windows Phone/i.test(ua);
-        const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
-        let resolvedType: TrustedDevice['device_type'] = (session.device_type as any) || deviceDetails.deviceType;
-        if ((resolvedType === 'desktop' || resolvedType === 'laptop') && (uaMobile || uaTablet)) {
-          resolvedType = uaMobile ? 'mobile' : 'tablet';
+        // Deduplicate to one card per physical device
+        const latestByKey: Record<string, any> = {};
+        for (const s of sessions) {
+          const key = s.device_stable_id || s.device_fingerprint || `${s.operating_system}|${s.browser_info}|${s.device_name}|${s.screen_resolution}`;
+          const existing = latestByKey[key];
+          const sTime = new Date(s.last_activity || s.updated_at || s.created_at).getTime();
+          const eTime = existing ? new Date(existing.last_activity || existing.updated_at || existing.created_at).getTime() : -1;
+          if (!existing || sTime > eTime) {
+            latestByKey[key] = s;
+          }
         }
+        const dedupedSessions = Object.values(latestByKey);
+        console.log('🧹 Deduplicated sessions:', { before: sessions.length, after: dedupedSessions.length });
 
-        return {
-          id: session.id,
-          device_name: session.device_name || deviceDetails.deviceName,
-          device_type: resolvedType,
-          browser_info: session.browser_info || deviceDetails.browser,
-          operating_system: session.operating_system || deviceDetails.operatingSystem,
-          device_fingerprint: session.device_fingerprint || '',
-          first_seen: session.created_at || new Date().toISOString(),
-          last_seen: session.last_activity || new Date().toISOString(),
-          is_current: isCurrentDevice,
-          is_trusted: session.is_trusted || false,
-          login_count: session.login_count || 1,
-          location: session.location || 'Unknown location',
-          ip_address: session.ip_address
-        };
+        const transformedDevices: TrustedDevice[] = await Promise.all(dedupedSessions.map(async (session: any) => {
+          const deviceDetails = await detectDeviceDetails(session.user_agent || '');
+          const isCurrentDevice = session.device_fingerprint === currentFingerprint;
+
+          // UA-based override to fix misclassified iPad/iPhone/Android sessions for display
+          const ua = session.user_agent || '';
+          const uaMobile = /iPhone|Android.+Mobile|Windows Phone/i.test(ua);
+          const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
+          let resolvedType: TrustedDevice['device_type'] = (session.device_type as any) || deviceDetails.deviceType;
+          if ((resolvedType === 'desktop' || resolvedType === 'laptop') && (uaMobile || uaTablet)) {
+            resolvedType = uaMobile ? 'mobile' : 'tablet';
+          }
+
+          return {
+            id: session.id,
+            device_name: session.device_name || deviceDetails.deviceName,
+            device_type: resolvedType,
+            browser_info: session.browser_info || deviceDetails.browser,
+            operating_system: session.operating_system || deviceDetails.operatingSystem,
+            device_fingerprint: session.device_fingerprint || '',
+            first_seen: session.created_at || new Date().toISOString(),
+            last_seen: session.last_activity || new Date().toISOString(),
+            is_current: isCurrentDevice,
+            is_trusted: session.is_trusted || false,
+            login_count: session.login_count || 1,
+            location: session.location || 'Unknown location',
+            ip_address: session.ip_address
+          };
         }));
 
-        console.log('📱 Loaded devices:', transformedDevices.length);
+        console.log('📱 Loaded devices (deduped):', transformedDevices.length);
         setTrustedDevices(transformedDevices);
         if (!silent) setError(null);
 
