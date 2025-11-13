@@ -362,6 +362,16 @@ const ManageSessionsForm: React.FC = () => {
                   onClick={() => openDeviceDetails(device)}
                 >
                   <CardContent className="p-4">
+                    {/* Account Usage Notice */}
+                    {device.is_current && (
+                      <div className="mb-3 p-2.5 bg-primary/5 border border-primary/20 rounded-lg">
+                        <p className="text-xs text-primary font-medium flex items-center gap-1.5">
+                          <Activity size={14} />
+                          Your shqipet account is being used on this device
+                        </p>
+                      </div>
+                    )}
+                    
                     <div className="flex items-start gap-4">
                       <div className="flex items-center gap-2">
                         <TooltipProvider>
@@ -384,7 +394,7 @@ const ManageSessionsForm: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                           <h3 className="font-semibold text-foreground text-base">
-                            {device.device_name}
+                            {device.device_name || `${device.device_type} Device`}
                           </h3>
                           {device.is_current && (
                             <span className="text-xs bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-medium border border-primary/20">
@@ -401,17 +411,44 @@ const ManageSessionsForm: React.FC = () => {
                         <div className="flex items-center gap-2 mb-2">
                           {getBrowserIcon(device.browser_info)}
                           <p className="text-sm text-muted-foreground">
-                            {device.browser_info}
+                            {device.browser_info || 'Unknown Browser'}
                           </p>
                           <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
-                            {device.operating_system}
+                            {device.operating_system || 'Unknown OS'}
                           </span>
                         </div>
+                        
+                        {/* IP Address Display */}
+                        {device.ip_address && (
+                          <div className="flex items-center gap-1.5 text-xs mb-2">
+                            <Globe size={12} className="text-muted-foreground" />
+                            <span className="text-muted-foreground">IP:</span>
+                            <span className="font-mono font-medium text-foreground">{device.ip_address}</span>
+                          </div>
+                        )}
+                        
+                        {/* Date & Time - Full Format */}
                         <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-                          <span className="font-medium">{formatTimeAgo(device.last_seen)}</span>
-                          <span>First: {new Date(device.first_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          <span className="font-medium">
+                            Last: {new Date(device.last_seen).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                          <span>
+                            First: {new Date(device.first_seen).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
                           <span>Logins: {device.login_count}</span>
                         </div>
+                        
+                        {/* Location */}
                         <div className="flex items-center gap-1.5 text-xs">
                           {device.country_code && (
                             <span className="text-lg" title={device.country}>
