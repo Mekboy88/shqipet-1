@@ -325,8 +325,21 @@ export const useDeviceSession = () => {
           return;
         }
 
-        // Backend now enforces uniqueness by device_stable_id. No client deduplication needed.
-        const dedupedSessions = sessions;
+        // CRITICAL: Deduplicate by device_stable_id to show ONE card per physical device
+        // Group all sessions by device_stable_id and keep only the most recent one
+        const deviceMap = new Map<string, any>();
+        
+        sessions.forEach(session => {
+          const stableId = session.device_stable_id || session.device_fingerprint;
+          const existing = deviceMap.get(stableId);
+          
+          if (!existing || new Date(session.last_activity || session.updated_at) > new Date(existing.last_activity || existing.updated_at)) {
+            deviceMap.set(stableId, session);
+          }
+        });
+        
+        const dedupedSessions = Array.from(deviceMap.values());
+        console.log(`📱 Deduplicated from ${sessions.length} sessions to ${dedupedSessions.length} unique devices`);
         console.log('📱 All sessions (backend deduplicated):', dedupedSessions.length);
 
         const transformedDevices: TrustedDevice[] = await Promise.all(dedupedSessions.map(async (session: any) => {
@@ -362,7 +375,7 @@ export const useDeviceSession = () => {
           };
         }));
 
-        console.log('📱 Loaded devices (deduped):', transformedDevices.length);
+        console.log('📱 Showing unique devices:', transformedDevices.length);
         setTrustedDevices(transformedDevices);
         if (!silent) setError(null);
 
