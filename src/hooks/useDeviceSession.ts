@@ -354,41 +354,49 @@ export const useDeviceSession = () => {
           const sessionStableId = session.device_stable_id || session.device_fingerprint;
           const isCurrentDevice = sessionStableId === currentStableIdValue;
 
-          // Prefer stored database values, but compute from UA when missing or too generic
+          // Prefer stored database values, only re-detect if UA exists
           let deviceName = session.device_name || 'Unknown Device';
           let deviceType = session.device_type || 'unknown';
           let browserInfo = session.browser_info || '';
           let operatingSystem = session.operating_system || '';
 
-          const uaString = session.user_agent || navigator.userAgent;
+          // CRITICAL: Do NOT fallback to navigator.userAgent - this makes all devices appear as current device
+          const uaString = session.user_agent;
           
-          // Always re-detect from user_agent to ensure correctness
-          try {
-            const uaData: any = (navigator as any).userAgentData;
-            const detected = await detectFromUserAgent(uaString, {
-              platform: session.platform_type === 'ios' ? 'iOS' : session.platform_type === 'android' ? 'Android' : uaData?.platform,
-              mobile: uaData?.mobile,
-              model: undefined,
-            });
-            
-            // Override with platform_type if present (iOS/Android apps)
-            if (session.platform_type === 'ios') {
-              deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
-              operatingSystem = detected.operatingSystem || 'iOS';
-            } else if (session.platform_type === 'android') {
-              deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
-              operatingSystem = detected.operatingSystem || 'Android';
-            } else {
-              // Web/PWA: use detected values
-              const normalizedType = detected.deviceType === 'mobile' ? 'smartphone' : detected.deviceType;
-              deviceType = normalizedType as any;
-              operatingSystem = detected.operatingSystem;
+          // Only re-detect from user_agent if it exists
+          if (uaString) {
+            try {
+              const uaData: any = (navigator as any).userAgentData;
+              const detected = await detectFromUserAgent(uaString, {
+                platform: session.platform_type === 'ios' ? 'iOS' : session.platform_type === 'android' ? 'Android' : uaData?.platform,
+                mobile: uaData?.mobile,
+                model: undefined,
+              });
+              
+              // Override with platform_type if present (iOS/Android apps)
+              if (session.platform_type === 'ios') {
+                deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
+                operatingSystem = detected.operatingSystem || operatingSystem || 'iOS';
+              } else if (session.platform_type === 'android') {
+                deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
+                operatingSystem = detected.operatingSystem || operatingSystem || 'Android';
+              } else {
+                // Web/PWA: normalize 'mobile' to 'smartphone', keep others as-is
+                const normalizedType = detected.deviceType === 'mobile' ? 'smartphone' : detected.deviceType;
+                deviceType = normalizedType as any;
+                operatingSystem = detected.operatingSystem || operatingSystem;
+              }
+              
+              deviceName = detected.deviceName || deviceName;
+              browserInfo = detected.browser || browserInfo;
+            } catch (e) {
+              console.warn('📱 Device UA detection failed, using stored values:', e);
             }
-            
-            deviceName = detected.deviceName || deviceName;
-            browserInfo = detected.browser || browserInfo;
-          } catch (e) {
-            console.warn('📱 Device UA detection failed:', e);
+          }
+
+          // Normalize 'smartphone' to 'mobile' for canonical storage (UI handles both)
+          if (deviceType === 'smartphone') {
+            deviceType = 'mobile';
           }
 
           // Final fallbacks
