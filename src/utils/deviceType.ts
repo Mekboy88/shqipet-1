@@ -215,7 +215,7 @@ export async function detectFromUserAgent(
     deviceType,
     deviceName,
     browser: browserName,
-    operatingSystem: `${osName}${osVersion}`
+    operatingSystem: osName
   });
 
   return {
