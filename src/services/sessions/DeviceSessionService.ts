@@ -240,21 +240,34 @@ class DeviceSessionService {
           willUpdateStableId: foundByMethod === 'fingerprint' 
         });
         
+        const updateData: any = {
+          device_stable_id: stableDeviceId, // CRITICAL: Update stable ID on every login
+          last_activity: now,
+          login_count: (s.login_count || 0) + 1,
+          user_agent: navigator.userAgent,
+          device_name: details.deviceName,
+          device_type: finalType,
+          browser_info: details.browser,
+          operating_system: details.operatingSystem,
+          platform_type,
+          session_status: 'active',
+          is_active: true
+        };
+        
+        // Add IP and geolocation data if fetched successfully
+        if (geoData) {
+          updateData.ip_address = geoData.ip;
+          updateData.city = geoData.city;
+          updateData.country = geoData.country;
+          updateData.country_code = geoData.country_code;
+          updateData.latitude = geoData.latitude;
+          updateData.longitude = geoData.longitude;
+          console.log('📍 Adding geolocation to update:', geoData);
+        }
+        
         const { data, error } = await supabase
           .from('user_sessions')
-          .update({
-            device_stable_id: stableDeviceId, // CRITICAL: Update stable ID on every login
-            last_activity: now,
-            login_count: (s.login_count || 0) + 1,
-            user_agent: navigator.userAgent,
-            device_name: details.deviceName,
-            device_type: finalType,
-            browser_info: details.browser,
-            operating_system: details.operatingSystem,
-            platform_type,
-            session_status: 'active',
-            is_active: true
-          })
+          .update(updateData)
           .eq('id', s.id)
           .select()
           .single();
@@ -285,7 +298,7 @@ class DeviceSessionService {
 
         console.log('➕ Creating new session for device:', details.deviceName);
         
-        const sessionData = {
+        const sessionData: any = {
           user_id: userId,
           device_stable_id: stableDeviceId, // THIS IS THE KEY FIELD!
           device_name: details.deviceName,
@@ -307,6 +320,17 @@ class DeviceSessionService {
           security_alerts: [],
           device_type_locked: false
         };
+        
+        // Add IP and geolocation data if fetched successfully
+        if (geoData) {
+          sessionData.ip_address = geoData.ip;
+          sessionData.city = geoData.city;
+          sessionData.country = geoData.country;
+          sessionData.country_code = geoData.country_code;
+          sessionData.latitude = geoData.latitude;
+          sessionData.longitude = geoData.longitude;
+          console.log('📍 Adding geolocation to new session:', geoData);
+        }
         
         console.log('📝 Inserting session data:', JSON.stringify(sessionData, null, 2));
 
