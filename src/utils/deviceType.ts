@@ -2,12 +2,15 @@ import { UAParser } from 'ua-parser-js';
 
 export type DeviceCategory = 'desktop' | 'laptop' | 'tablet' | 'mobile' | 'unknown';
 
-const mapOS = (name?: string) => {
+const mapOS = (name?: string, version?: string) => {
   const n = (name || '').toLowerCase();
-  if (n.includes('ios')) return 'iOS';
-  if (n.includes('android')) return 'Android';
-  if (n.includes('windows')) return 'Windows';
-  if (n.includes('mac')) return 'macOS';
+  const v = version ? ` ${version.split('.')[0]}` : '';
+  
+  if (n.includes('ios')) return `iOS${v}`;
+  if (n.includes('ipados')) return `iPadOS${v}`;
+  if (n.includes('android')) return `Android${v}`;
+  if (n.includes('windows')) return `Windows${v}`;
+  if (n.includes('mac')) return `macOS${v}`;
   if (n.includes('linux')) return 'Linux';
   return 'Unknown OS';
 };
@@ -15,8 +18,13 @@ const mapOS = (name?: string) => {
 const fromRules = (ua: string): DeviceCategory => {
   const u = ua.toLowerCase();
   
-  // CRITICAL: iPad detection (iPadOS 13+ reports as Macintosh)
-  // Must check BEFORE mobile/tablet patterns
+  // Priority 1: Mobile detection (MUST be first - most specific)
+  if (/(iphone|ipod|android.+mobile|windows phone|blackberry|bb10)/i.test(u)) {
+    console.log('📱 Mobile device detected via UA pattern');
+    return 'mobile';
+  }
+  
+  // Priority 2: iPad detection (iPadOS 13+ reports as Macintosh)
   const isMacintosh = /macintosh/i.test(ua);
   const maxTouchPoints = typeof navigator !== 'undefined' ? navigator.maxTouchPoints : 0;
   if (isMacintosh && maxTouchPoints > 1) {
@@ -24,22 +32,36 @@ const fromRules = (ua: string): DeviceCategory => {
     return 'tablet';
   }
   
-  // Mobile devices (canonicalized to 'mobile')
-  if (/(iphone|ipod|android.+mobile|windows phone)/i.test(u)) return 'mobile';
+  // Priority 3: Other tablets
+  if (/(ipad|tablet|kindle|silk|playbook|galaxy tab|android(?!.*mobile))/i.test(u)) {
+    console.log('📲 Tablet detected via UA pattern');
+    return 'tablet';
+  }
   
-  // Tablets
-  if (/(ipad|tablet|kindle|silk|playbook|galaxy tab|android(?!.*mobile))/i.test(u)) return 'tablet';
+  // Priority 4: Explicit laptop indicators (MacBook, notebook, laptop)
+  if (/(macbook|notebook|laptop)/i.test(u)) {
+    console.log('💻 Laptop explicitly detected via UA');
+    return 'laptop';
+  }
   
-  // Explicit laptop indicators
-  if (/(macbook|notebook|laptop)/.test(u)) return 'laptop';
+  // Priority 5: Explicit desktop indicators (iMac, Mac Pro, Mac Studio, Mac mini)
+  if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/i.test(u)) {
+    console.log('🖥️ Desktop Mac explicitly detected via UA');
+    return 'desktop';
+  }
   
-  // Explicit desktop indicators - iMac, Mac Pro, Mac Studio, Mac mini
-  if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/.test(u)) return 'desktop';
+  // Priority 6: Windows/Linux - use heuristics later
+  if (/(windows nt|linux x86_64)/i.test(u)) {
+    // Return 'unknown' to trigger battery detection for Windows/Linux
+    return 'unknown';
+  }
   
-  // Windows/Linux desktops (but NOT generic macOS - needs heuristics)
-  if (/(windows nt|linux x86_64)/.test(u)) return 'desktop';
+  // Priority 7: Generic macOS without explicit model
+  if (/mac os x|macintosh/i.test(u)) {
+    // Return 'unknown' to trigger battery detection (could be laptop or desktop)
+    return 'unknown';
+  }
   
-  // For generic macOS "macintosh", return 'unknown' to trigger heuristics
   return 'unknown';
 };
 
@@ -49,28 +71,21 @@ const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
   const ua = navigator.userAgent.toLowerCase();
   const nav = navigator as any;
   
-  console.log('🔍 Starting desktop/laptop detection for:', ua);
+  console.log('🔍 Starting desktop/laptop heuristics for:', ua);
   
-  // Priority 1: Explicit model detection from user agent (most reliable)
-  if (/(macbook)/.test(ua)) {
+  // Priority 1: Explicit MacBook keyword = definitive laptop
+  if (/macbook/i.test(ua)) {
     console.log('💻 MacBook explicitly detected - LAPTOP');
     return 'laptop';
   }
   
-  if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/.test(ua)) {
+  // Priority 2: Explicit desktop Mac keywords = definitive desktop
+  if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/i.test(ua)) {
     console.log('🖥️ Desktop Mac explicitly detected - DESKTOP');
     return 'desktop';
   }
   
-  // Priority 2: For macOS without explicit model, DEFAULT TO DESKTOP
-  // (iMacs, Mac Studios, Mac Pros are more common and don't have batteries)
-  const isMac = /mac os x|macintosh/.test(ua);
-  if (isMac) {
-    console.log('🍎 Generic macOS detected - defaulting to DESKTOP (iMac/Studio/Pro more common)');
-    return 'desktop';
-  }
-  
-  // Priority 3: For Windows/Linux - use Battery API if available
+  // Priority 3: Battery API for Windows/Linux laptops
   if (nav.getBattery) {
     try {
       const battery = await nav.getBattery();
@@ -78,7 +93,7 @@ const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
         console.log('🔋 Battery API detected - LAPTOP');
         return 'laptop';
       } else {
-        console.log('🔌 No battery API response - DESKTOP');
+        console.log('🔌 No battery detected - DESKTOP');
         return 'desktop';
       }
     } catch (e) {
@@ -86,15 +101,30 @@ const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
     }
   }
   
-  // Priority 4: Screen size and touch heuristics
+  // Priority 4: For generic macOS (without explicit model), check screen size
+  const isMac = /mac os x|macintosh/i.test(ua);
+  if (isMac) {
+    const w = window.screen?.width || 0;
+    const h = window.screen?.height || 0;
+    
+    // MacBook typical resolutions: 1280-2880 width, 800-1800 height
+    // iMac resolutions: 1920+ width (21.5"), 2560+ width (27"+), 5120 width (5K)
+    if (w >= 2560 || h >= 1440) {
+      console.log('🖥️ macOS with high resolution - likely iMac/Desktop');
+      return 'desktop';
+    } else {
+      console.log('💻 macOS with standard resolution - likely MacBook/Laptop');
+      return 'laptop';
+    }
+  }
+  
+  // Priority 5: Screen size heuristics for Windows/Linux
   const w = window.screen?.width || 0;
   const h = window.screen?.height || 0;
-  const touch = 'ontouchstart' in window || nav.maxTouchPoints > 0;
   
   console.log('📐 Screen heuristics:', {
     width: w,
     height: h,
-    hasTouch: touch,
     platform: navigator.platform
   });
   
@@ -104,13 +134,13 @@ const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
     return 'desktop';
   }
   
-  // Small screen + touch → Laptop/tablet
-  if (w <= 1440 && touch) {
-    console.log('👆 Small screen + touch - LAPTOP');
+  // Typical laptop resolution range
+  if (w >= 1280 && w <= 1920 && h >= 720 && h <= 1200) {
+    console.log('💻 Typical laptop resolution - LAPTOP');
     return 'laptop';
   }
   
-  // Priority 5: Final fallback - DESKTOP (safest assumption)
+  // Priority 6: Final fallback - DESKTOP (safest assumption)
   console.log('🖥️ No definitive indicators - defaulting to DESKTOP');
   return 'desktop';
 };
@@ -152,10 +182,9 @@ export async function detectFromUserAgent(
     deviceType = await guessDesktopVsLaptop();
   }
 
-  const osName = mapOS(res.os?.name);
-  const osVersion = res.os?.version ? ` ${res.os.version.split('.')[0]}` : '';
+  const osName = mapOS(res.os?.name, res.os?.version);
   const browserBase = res.browser?.name || 'Unknown Browser';
-  const browserVersion = res.browser?.version ? ` ${res.browser.version}` : '';
+  const browserVersion = res.browser?.version ? ` ${res.browser.version.split('.')[0]}` : '';
   const browserName = `${browserBase}${browserVersion}`.trim();
 
   // Generate descriptive device names
@@ -193,6 +222,6 @@ export async function detectFromUserAgent(
     deviceType,
     deviceName,
     browser: browserName,
-    operatingSystem: `${osName}${osVersion}`,
+    operatingSystem: osName,
   };
 }
