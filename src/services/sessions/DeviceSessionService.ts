@@ -13,6 +13,34 @@ class DeviceSessionService {
     return DeviceSessionService.instance;
   }
 
+  // Ensure a profile row exists to satisfy FK user_sessions.user_id -> profiles.id
+  private async ensureProfile(userId: string): Promise<boolean> {
+    try {
+      const { data: existing, error: selErr } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+      if (existing) return true;
+      if (selErr && selErr.code !== 'PGRST116') {
+        console.warn('⚠️ ensureProfile: select error (continuing):', selErr);
+      }
+      const { error: insErr } = await supabase.from('profiles').insert({
+        id: userId,
+        auth_user_id: userId,
+      });
+      if (insErr) {
+        console.warn('⚠️ ensureProfile: insert failed (may already exist due to race):', insErr);
+        return false;
+      }
+      console.log('✅ ensureProfile: profile created');
+      return true;
+    } catch (e) {
+      console.warn('⚠️ ensureProfile: exception (continuing):', e);
+      return false;
+    }
+  }
+  
   private createFingerprint(): string {
     const nav = navigator as any;
     const payload = JSON.stringify({
@@ -62,14 +90,16 @@ class DeviceSessionService {
       const details = await detectFromUserAgent(navigator.userAgent);
       console.log('🔍 Device detection result:', details);
       
-      // Fallback mobile detection if primary detection fails
-      const isMobileUserAgent = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      // Fallback UA-based detection to correct misclassifications
+      const ua = navigator.userAgent;
+      const uaMobile = /iPhone|Android.+Mobile|Windows Phone/i.test(ua);
+      const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
       let normalizedType = details.deviceType;
       
-      // If detected as desktop/laptop but UA clearly indicates mobile, override
-      if ((normalizedType === 'desktop' || normalizedType === 'laptop') && isMobileUserAgent) {
-        console.warn('⚠️ Detected as', normalizedType, 'but UA indicates mobile - overriding to mobile');
-        normalizedType = 'mobile';
+      if ((normalizedType === 'desktop' || normalizedType === 'laptop') && (uaMobile || uaTablet)) {
+        const override = uaMobile ? 'mobile' : 'tablet';
+        console.warn(`⚠️ Detected as ${normalizedType} but UA indicates ${override} - overriding to ${override}`);
+        normalizedType = override as any;
       }
       
       const platform_type = this.detectPlatformType();
@@ -85,6 +115,9 @@ class DeviceSessionService {
         os: details.operatingSystem
       });
 
+      // Ensure profile exists to satisfy FK before inserting into user_sessions
+      await this.ensureProfile(userId);
+
       // Check for existing active session for this device
       console.log('🔍 Checking for existing session with fingerprint:', fingerprint);
       const { data: existing, error: fetchErr } = await supabase
@@ -92,7 +125,7 @@ class DeviceSessionService {
         .select('*')
         .eq('user_id', userId)
         .eq('device_fingerprint', fingerprint)
-        .eq('is_active', true);
+        .order('updated_at', { ascending: false });
 
       if (fetchErr) {
         console.error('❌ Fetch session error:', fetchErr);
