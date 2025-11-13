@@ -12,7 +12,7 @@ interface DeviceLocation {
   latitude?: number;
   longitude?: number;
   is_current: boolean;
-  session_status?: 'active' | 'logged_in' | 'inactive' | 'logged_out';
+  session_status?: 'active' | 'logged_in' | 'inactive';
 }
 
 interface DeviceMapViewProps {
