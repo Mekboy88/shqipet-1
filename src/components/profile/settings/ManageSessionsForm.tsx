@@ -33,6 +33,8 @@ const ManageSessionsForm: React.FC = () => {
   const [showDevStrip, setShowDevStrip] = useState(false);
   const [stableId, setStableId] = useState('');
   const [forceRegistering, setForceRegistering] = useState(false);
+  const [diagnostics, setDiagnostics] = useState<any>(null);
+  const [lastRegError, setLastRegError] = useState<string>('');
   const { signOut, user } = useAuth();
   
   const {
@@ -50,12 +52,40 @@ const ManageSessionsForm: React.FC = () => {
   // Ensure current device registers (updates IP/geolocation) when this page is opened
   useEffect(() => {
     if (!user?.id) return;
+    
+    // Collect diagnostics
     (async () => {
       try {
-        await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
-        await refreshDevices();
-      } catch (e) {
-        console.warn('ManageSessions: registration refresh skipped', e);
+        const stableDeviceId = await deviceSessionService.getStableDeviceId();
+        const ua = navigator.userAgent;
+        const platform = navigator.platform;
+        const touchPoints = navigator.maxTouchPoints;
+        
+        setDiagnostics({
+          stableDeviceId,
+          userAgent: ua,
+          platform,
+          touchPoints,
+          screen: `${screen.width}×${screen.height}`,
+          timestamp: new Date().toISOString()
+        });
+        setStableId(stableDeviceId);
+        
+        // Attempt registration
+        console.log('🔄 Registering device on page load...');
+        const sessionId = await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+        
+        if (sessionId) {
+          console.log('✅ Device registered successfully:', sessionId);
+          setLastRegError('');
+          await refreshDevices();
+        } else {
+          console.error('❌ Device registration returned null');
+          setLastRegError('Registration returned null - check console for errors');
+        }
+      } catch (e: any) {
+        console.error('❌ Registration failed with exception:', e);
+        setLastRegError(e?.message || String(e));
       }
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,27 +228,51 @@ const ManageSessionsForm: React.FC = () => {
 
   useEffect(() => {
     setRealtimeConnected(realtimeStatus === 'connected');
-    
-    // Load stable device ID for dev strip (async)
-    deviceSessionService.getStableDeviceId().then(id => {
-      setStableId(id);
-    });
   }, [realtimeStatus]);
   
   const handleForceRegister = async () => {
     if (!user?.id) return;
     
     setForceRegistering(true);
+    setLastRegError('');
     try {
-      await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
-      await refreshDevices();
-      toast.success('Device registered successfully');
-    } catch (error) {
-      console.error('Force register failed:', error);
-      toast.error('Failed to register device');
+      console.log('🔄 Force registering device...');
+      const sessionId = await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+      
+      if (sessionId) {
+        console.log('✅ Force registration successful:', sessionId);
+        await refreshDevices();
+        toast.success('Device registered successfully');
+        setLastRegError('');
+      } else {
+        console.error('❌ Force registration returned null');
+        setLastRegError('Registration returned null - check console');
+        toast.error('Registration returned null - check console');
+      }
+    } catch (error: any) {
+      console.error('❌ Force register failed:', error);
+      const errorMsg = error?.message || String(error);
+      setLastRegError(errorMsg);
+      toast.error(`Failed to register: ${errorMsg}`);
     } finally {
       setForceRegistering(false);
     }
+  };
+  
+  const copyDiagnostics = () => {
+    if (!diagnostics) return;
+    
+    const text = `Device Diagnostics:
+Stable ID: ${diagnostics.stableDeviceId}
+User Agent: ${diagnostics.userAgent}
+Platform: ${diagnostics.platform}
+Touch Points: ${diagnostics.touchPoints}
+Screen: ${diagnostics.screen}
+Timestamp: ${diagnostics.timestamp}
+Last Error: ${lastRegError || 'None'}`;
+    
+    navigator.clipboard.writeText(text);
+    toast.success('Diagnostics copied to clipboard');
   };
 
   if (loading) {
@@ -236,6 +290,54 @@ const ManageSessionsForm: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {/* Diagnostics Strip - Always visible for debugging */}
+      {diagnostics && (
+        <Card className="border-blue-500/20 bg-blue-500/5">
+          <CardContent className="p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Bug className="h-4 w-4 text-blue-500" />
+                  <span className="text-xs font-semibold text-blue-500">Device Diagnostics</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
+                  <div>
+                    <span className="font-medium">Stable ID:</span>{' '}
+                    <span className="font-mono text-[10px]">{diagnostics.stableDeviceId?.substring(0, 20)}...</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Platform:</span> {diagnostics.platform}
+                  </div>
+                  <div>
+                    <span className="font-medium">Touch:</span> {diagnostics.touchPoints} points
+                  </div>
+                  <div>
+                    <span className="font-medium">Screen:</span> {diagnostics.screen}
+                  </div>
+                  <div className="col-span-2">
+                    <span className="font-medium">UA:</span>{' '}
+                    <span className="font-mono text-[10px]">{diagnostics.userAgent.substring(0, 60)}...</span>
+                  </div>
+                  {lastRegError && (
+                    <div className="col-span-2 text-red-500">
+                      <span className="font-medium">Last Error:</span> {lastRegError}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={copyDiagnostics}
+                className="shrink-0 h-7 px-2 text-xs"
+              >
+                Copy
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-2">
