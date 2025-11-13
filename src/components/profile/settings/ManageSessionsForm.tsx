@@ -344,7 +344,10 @@ Last Error: ${lastRegError || 'None'}`;
             Trusted Devices & Sessions
           </h2>
           <p className="text-muted-foreground text-sm">
-            Manage your trusted devices and active login sessions. Real-time monitoring of all device activity.
+            Manage your trusted devices and active login sessions across your account. 
+            {trustedDevices.length > 0 && (
+              <span className="font-semibold"> {trustedDevices.length} device{trustedDevices.length !== 1 ? 's' : ''} registered.</span>
+            )}
           </p>
         </div>
         
