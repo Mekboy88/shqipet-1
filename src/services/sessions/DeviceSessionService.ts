@@ -132,6 +132,40 @@ class DeviceSessionService {
     return 'web';
   }
 
+  private async fetchIPAndGeolocation(): Promise<{
+    ip: string;
+    city: string;
+    country: string;
+    country_code: string;
+    latitude: number;
+    longitude: number;
+  } | null> {
+    try {
+      console.log('🌍 Fetching IP and geolocation...');
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      
+      console.log('✅ IP & Geolocation fetched:', {
+        ip: data.ip,
+        city: data.city,
+        country: data.country_name,
+        country_code: data.country_code
+      });
+      
+      return {
+        ip: data.ip || 'Unknown',
+        city: data.city || 'Unknown',
+        country: data.country_name || 'Unknown',
+        country_code: data.country_code || 'XX',
+        latitude: parseFloat(data.latitude) || 0,
+        longitude: parseFloat(data.longitude) || 0
+      };
+    } catch (error) {
+      console.error('❌ Failed to fetch IP/geolocation:', error);
+      return null;
+    }
+  }
+
   async registerOrUpdateCurrentDevice(userId: string): Promise<string | null> {
     try {
       console.log('🚀 Starting device registration for user:', userId);
@@ -145,6 +179,9 @@ class DeviceSessionService {
       
       const fingerprint = this.createFingerprint();
       console.log('🔑 Device fingerprint:', fingerprint);
+      
+      // Fetch IP and geolocation immediately
+      const geoData = await this.fetchIPAndGeolocation();
       
       const details = await detectFromUserAgent(navigator.userAgent);
       console.log('🔍 Device detection result:', details);
