@@ -47,6 +47,20 @@ const ManageSessionsForm: React.FC = () => {
     removeDevice
   } = useDeviceSession();
 
+  // Ensure current device registers (updates IP/geolocation) when this page is opened
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      try {
+        await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+        await refreshDevices();
+      } catch (e) {
+        console.warn('ManageSessions: registration refresh skipped', e);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
   const getDeviceIcon = (deviceType: string, isActive: boolean = false) => {
     // Dynamic color based on activity
     const colorClass = isActive 
