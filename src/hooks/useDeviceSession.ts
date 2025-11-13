@@ -308,50 +308,17 @@ export const useDeviceSession = () => {
             browserInfo = session.all_browsers[0];
           }
 
-          // CRITICAL: Do NOT fallback to navigator.userAgent - this makes all devices appear as current device
-          const uaString = session.user_agent;
-          
-          // CRITICAL: Respect device_type_locked - only re-detect if:
-          // 1. Device type is missing/unknown (needs detection)
-          // 2. Device is NOT locked (allows updates)
-          // 3. This is the current device (always keep current device accurate)
-          const isLocked = session.device_type_locked === true;
-          const needsDetection = !session.device_type || session.device_type === 'unknown';
-          const shouldRedetect = (needsDetection || isCurrentDevice) && !isLocked;
-          
-          // Only re-detect from user_agent if needed and allowed
-          if (uaString && shouldRedetect) {
-            try {
-              // CRITICAL: Don't use current device's navigator.userAgentData for other devices
-              // Each device should be detected from its OWN stored user_agent string only
-              const detected = await detectFromUserAgent(uaString, {
-                platform: session.platform_type === 'ios' ? 'iOS' : session.platform_type === 'android' ? 'Android' : undefined,
-                mobile: undefined, // Let detection determine from UA string
-                model: undefined,
-              });
-              
-              // Override with platform_type if present (iOS/Android apps)
-              if (session.platform_type === 'ios') {
-                deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
-                operatingSystem = detected.operatingSystem || operatingSystem || 'iOS';
-              } else if (session.platform_type === 'android') {
-                deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
-                operatingSystem = detected.operatingSystem || operatingSystem || 'Android';
-              } else {
-                // Web/PWA: normalize 'mobile' to 'smartphone', keep others as-is
-                const normalizedType = detected.deviceType === 'mobile' ? 'smartphone' : detected.deviceType;
-                deviceType = normalizedType as any;
-                operatingSystem = detected.operatingSystem || operatingSystem;
-              }
-              
-              deviceName = detected.deviceName || deviceName;
-              browserInfo = detected.browser || browserInfo;
-            } catch (e) {
-              console.warn('📱 Device UA detection failed, using stored values:', e);
-            }
-          } else if (isLocked) {
-            console.log('🔒 Device type locked, using stored values:', { deviceType, deviceName });
+          // We now strictly trust the DATABASE values to avoid mismatches
+          // No UA re-detection here; the registration service is the single source of truth
+          // deviceName/deviceType/browserInfo/operatingSystem already set above from DB
+          // Keep 'smartphone' alias normalized to 'mobile'
+          if (deviceType === 'smartphone') {
+            deviceType = 'mobile';
           }
+
+          // Final fallbacks
+          browserInfo = browserInfo || 'Unknown Browser';
+          operatingSystem = operatingSystem || 'Unknown OS';
 
           // Normalize 'smartphone' to 'mobile' for canonical storage (UI handles both)
           if (deviceType === 'smartphone') {
