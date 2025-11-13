@@ -430,7 +430,6 @@ class DeviceSessionService {
         hardware_info: hardwareInfo,
         mfa_enabled: existingSession?.mfa_enabled || false,
         session_status: 'active', // Trigger auto-syncs is_active to true
-        is_active: true, // Explicitly set for clarity (database trigger ensures sync)
         security_alerts: existingSession?.security_alerts || [],
         device_type_locked: shouldLock, // Lock on first registration, preserve existing lock
         is_trusted: existingSession?.is_trusted || false,
