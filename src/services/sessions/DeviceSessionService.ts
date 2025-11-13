@@ -51,21 +51,42 @@ class DeviceSessionService {
 
   async registerOrUpdateCurrentDevice(userId: string): Promise<string | null> {
     try {
+      console.log('🚀 Starting device registration for user:', userId);
+      console.log('📱 User Agent:', navigator.userAgent);
+      console.log('🖥️ Platform:', navigator.platform);
+      console.log('📐 Screen:', `${screen.width}x${screen.height}`);
+      
       const fingerprint = this.createFingerprint();
+      console.log('🔑 Device fingerprint:', fingerprint);
+      
       const details = await detectFromUserAgent(navigator.userAgent);
-      // Normalize device type for database (mobile is the unified term)
-      const normalizedType = details.deviceType === 'mobile' ? 'mobile' : details.deviceType;
+      console.log('🔍 Device detection result:', details);
+      
+      // Fallback mobile detection if primary detection fails
+      const isMobileUserAgent = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      let normalizedType = details.deviceType;
+      
+      // If detected as desktop/laptop but UA clearly indicates mobile, override
+      if ((normalizedType === 'desktop' || normalizedType === 'laptop') && isMobileUserAgent) {
+        console.warn('⚠️ Detected as', normalizedType, 'but UA indicates mobile - overriding to mobile');
+        normalizedType = 'mobile';
+      }
+      
       const platform_type = this.detectPlatformType();
+      console.log('🌐 Platform type:', platform_type);
 
       console.log('🔐 Global device registration:', {
         userId,
         fingerprint,
         deviceType: normalizedType,
         platformType: platform_type,
-        deviceName: details.deviceName
+        deviceName: details.deviceName,
+        browser: details.browser,
+        os: details.operatingSystem
       });
 
       // Check for existing active session for this device
+      console.log('🔍 Checking for existing session with fingerprint:', fingerprint);
       const { data: existing, error: fetchErr } = await supabase
         .from('user_sessions')
         .select('*')
@@ -74,9 +95,12 @@ class DeviceSessionService {
         .eq('is_active', true);
 
       if (fetchErr) {
-        console.error('❌ Fetch session error', fetchErr);
+        console.error('❌ Fetch session error:', fetchErr);
+        console.error('❌ Error details:', JSON.stringify(fetchErr, null, 2));
         return null;
       }
+      
+      console.log('📋 Existing sessions found:', existing?.length || 0);
 
       const now = new Date().toISOString();
 
@@ -119,43 +143,55 @@ class DeviceSessionService {
         };
 
         console.log('➕ Creating new session for device:', details.deviceName);
+        
+        const sessionData = {
+          user_id: userId,
+          device_name: details.deviceName,
+          device_type: normalizedType,
+          browser_info: details.browser,
+          operating_system: details.operatingSystem,
+          device_fingerprint: fingerprint,
+          is_trusted: false,
+          login_count: 1,
+          user_agent: navigator.userAgent,
+          last_activity: now,
+          is_active: true,
+          session_token: `session_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+          screen_resolution: screenRes,
+          platform_type,
+          hardware_info: hardwareInfo,
+          mfa_enabled: false,
+          session_status: 'active',
+          security_alerts: [],
+          device_type_locked: false
+        };
+        
+        console.log('📝 Inserting session data:', JSON.stringify(sessionData, null, 2));
 
         const { data, error } = await supabase
           .from('user_sessions')
-          .insert({
-            user_id: userId,
-            device_name: details.deviceName,
-            device_type: normalizedType,
-            browser_info: details.browser,
-            operating_system: details.operatingSystem,
-            device_fingerprint: fingerprint,
-            is_trusted: false,
-            login_count: 1,
-            user_agent: navigator.userAgent,
-            last_activity: now,
-            is_active: true,
-            session_token: `session_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
-            screen_resolution: screenRes,
-            platform_type,
-            hardware_info: hardwareInfo,
-            mfa_enabled: false,
-            session_status: 'active',
-            security_alerts: [],
-            device_type_locked: false
-          })
+          .insert(sessionData)
           .select()
           .single();
 
         if (!error && data) {
-          console.log('✅ New session created:', data.id);
+          console.log('✅ New session created successfully!');
+          console.log('✅ Session ID:', data.id);
+          console.log('✅ Device Type:', data.device_type);
+          console.log('✅ Device Name:', data.device_name);
           return data.id;
         } else if (error) {
           console.error('❌ Error creating session:', error);
+          console.error('❌ Error code:', error.code);
+          console.error('❌ Error message:', error.message);
+          console.error('❌ Error details:', JSON.stringify(error, null, 2));
         }
         return null;
       }
     } catch (e) {
-      console.error('❌ registerOrUpdateCurrentDevice failed', e);
+      console.error('❌ registerOrUpdateCurrentDevice failed with exception:', e);
+      console.error('❌ Exception details:', JSON.stringify(e, null, 2));
+      console.error('❌ Stack trace:', (e as Error)?.stack);
       return null;
     }
   }

@@ -8,7 +8,10 @@ const SessionBootstrapper = () => {
   const heartbeatTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
+    console.log('🔄 SessionBootstrapper: useEffect triggered, user:', user?.id || 'none');
+    
     if (!user) {
+      console.log('⚠️ SessionBootstrapper: No user, cleaning up');
       // Cleanup if user logs out
       sessionIdRef.current = null;
       if (heartbeatTimerRef.current) {
@@ -21,15 +24,30 @@ const SessionBootstrapper = () => {
     let cancelled = false;
 
     const start = async () => {
-      console.log('🚀 SessionBootstrapper: Registering device globally for user:', user.id);
+      console.log('🚀 SessionBootstrapper: Starting device registration');
+      console.log('🚀 User ID:', user.id);
+      console.log('🚀 User Agent:', navigator.userAgent);
+      console.log('🚀 Timestamp:', new Date().toISOString());
       
-      // Register or update device immediately on login
-      const id = await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
-      if (cancelled) return;
-      sessionIdRef.current = id || null;
+      try {
+        // Register or update device immediately on login
+        const id = await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+        
+        if (cancelled) {
+          console.log('⚠️ SessionBootstrapper: Registration cancelled (component unmounted)');
+          return;
+        }
+        
+        sessionIdRef.current = id || null;
 
-      if (id) {
-        console.log('✅ SessionBootstrapper: Device registered globally with session ID:', id);
+        if (id) {
+          console.log('✅ SessionBootstrapper: Device registered successfully!');
+          console.log('✅ Session ID:', id);
+        } else {
+          console.error('❌ SessionBootstrapper: Registration returned null - device NOT registered!');
+        }
+      } catch (error) {
+        console.error('❌ SessionBootstrapper: Registration failed with error:', error);
       }
 
       // Heartbeat interval (60 seconds)
