@@ -343,6 +343,32 @@ export const useDeviceSession = () => {
             deviceType = 'mobile';
           }
 
+          // DISPLAY OVERRIDE: If this is the current device and stored as desktop/laptop but UA says mobile/tablet, override display only
+          if (isCurrentDevice && (deviceType === 'desktop' || deviceType === 'laptop')) {
+            const ua = navigator.userAgent;
+            const uaMobile = /iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua);
+            const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
+            const isMacintosh = /Macintosh/i.test(ua);
+            const hasTouchPoints = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+            
+            const stronglyMobile = uaMobile && !uaTablet;
+            const stronglyTablet = uaTablet || (isMacintosh && hasTouchPoints);
+            
+            if (stronglyMobile || stronglyTablet) {
+              const correctedType = stronglyMobile ? 'mobile' : 'tablet';
+              console.log(`🔧 Display override for current device: ${deviceType} → ${correctedType} (DB will auto-correct on next register)`);
+              deviceType = correctedType;
+              
+              // Also update device name to reflect the correction
+              if (stronglyTablet && (isMacintosh && hasTouchPoints)) {
+                deviceName = 'iPad';
+              } else if (stronglyMobile) {
+                const details = await detectDeviceDetails(ua);
+                deviceName = details.deviceName;
+              }
+            }
+          }
+
           // Final fallbacks
           browserInfo = browserInfo || 'Unknown Browser';
           operatingSystem = operatingSystem || 'Unknown OS';
