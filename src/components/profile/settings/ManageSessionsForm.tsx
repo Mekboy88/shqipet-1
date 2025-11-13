@@ -40,13 +40,15 @@ const ManageSessionsForm: React.FC = () => {
   const {
     trustedDevices,
     currentDeviceId,
+    currentStableId,
     loading,
     error,
     realtimeStatus,
     lastRefresh,
     refreshDevices,
     toggleDeviceTrust,
-    removeDevice
+    removeDevice,
+    logoutAllOtherDevices
   } = useDeviceSession();
 
   // Ensure current device registers (updates IP/geolocation) when this page is opened
@@ -179,16 +181,14 @@ const ManageSessionsForm: React.FC = () => {
   };
 
   const handleLogoutAll = async () => {
+    if (!currentStableId) {
+      toast.error('Current device ID not resolved yet. Please wait and try again.');
+      return;
+    }
+    
     try {
       setLogoutAllLoading(true);
-      const otherDevices = trustedDevices.filter(device => device.id !== currentDeviceId);
-      
-      // Log out each device one by one to trigger real-time logout enforcement
-      for (const device of otherDevices) {
-        await removeDevice(device.id);
-      }
-      
-      toast.success(`Successfully logged out from ${otherDevices.length} other device${otherDevices.length !== 1 ? 's' : ''}`);
+      await logoutAllOtherDevices();
       setShowLogoutAllDialog(false);
     } catch (error) {
       console.error('Error in handleLogoutAll:', error);
@@ -199,6 +199,15 @@ const ManageSessionsForm: React.FC = () => {
   };
 
   const handleRemoveDevice = async (deviceId: string) => {
+    // Find the device to check if it's the current one
+    const deviceToRemove = trustedDevices.find(d => d.id === deviceId);
+    
+    // Block if trying to remove current device (by stable ID)
+    if (deviceToRemove && deviceToRemove.device_stable_id === currentStableId) {
+      toast.error('Cannot remove your current device. Please use the logout button instead.');
+      return;
+    }
+    
     try {
       setRemovingDeviceId(deviceId);
       
@@ -286,7 +295,10 @@ Last Error: ${lastRegError || 'None'}`;
     );
   }
 
-  const otherDevicesCount = trustedDevices.filter(device => device.id !== currentDeviceId).length;
+  const otherDevicesCount = trustedDevices.filter(device => {
+    const deviceStableId = device.device_stable_id || device.device_fingerprint;
+    return deviceStableId !== currentStableId;
+  }).length;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
