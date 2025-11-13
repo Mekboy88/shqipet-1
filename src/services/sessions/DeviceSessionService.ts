@@ -360,7 +360,18 @@ class DeviceSessionService {
       if (existing && existing.length > 0) {
         const s = existing[0];
         const isLocked = !!s.device_type_locked;
-        const finalType = isLocked ? s.device_type : normalizedType;
+        let finalType = isLocked ? s.device_type : normalizedType;
+
+        // Self-heal misclassified mobile/tablet sessions even if locked
+        const uaStr = navigator.userAgent;
+        const mobileOsMatch = /iOS|Android/i.test(details.operatingSystem || '');
+        const mobileUaMatch = /iPhone|iPad|Android/i.test(uaStr);
+        const wasDesktopLike = s.device_type === 'desktop' || s.device_type === 'laptop';
+        const needsMobileCorrection = (mobileOsMatch || mobileUaMatch) && wasDesktopLike;
+        if (isLocked && needsMobileCorrection) {
+          console.warn('🔧 Overriding locked device_type due to mobile OS mismatch');
+          finalType = normalizedType;
+        }
         
         console.log('🔄 Updating existing session:', s.id, { 
           isLocked, 
@@ -384,7 +395,8 @@ class DeviceSessionService {
           operating_system: details.operatingSystem,
           platform_type,
           session_status: 'active',
-          is_active: true
+          is_active: true,
+          ...(needsMobileCorrection ? { device_type_locked: false } : {})
         };
         
         // Add IP and geolocation data if fetched successfully
