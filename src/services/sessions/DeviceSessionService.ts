@@ -200,8 +200,17 @@ class DeviceSessionService {
     longitude: number;
   } | null> {
     try {
-      console.log('🌍 Fetching IP and geolocation...');
-      const response = await fetch('https://ipapi.co/json/');
+      console.log('🌍 Fetching IP and geolocation (non-blocking)...');
+      
+      // Set 5-second timeout to prevent blocking device registration
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch('https://ipapi.co/json/', {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
       const data = await response.json();
       
       console.log('✅ IP & Geolocation fetched:', {
@@ -220,7 +229,8 @@ class DeviceSessionService {
         longitude: parseFloat(data.longitude) || 0
       };
     } catch (error) {
-      console.error('❌ Failed to fetch IP/geolocation:', error);
+      // Non-blocking: log error but continue registration without geo data
+      console.warn('⚠️ IP/geolocation fetch failed (non-blocking, continuing):', error);
       return null;
     }
   }
@@ -238,8 +248,13 @@ class DeviceSessionService {
       const fingerprint = nativeInfo ? stableDeviceId : this.createFingerprint();
       console.log('🔐 Device identifiers:', { stableDeviceId, fingerprint, isNative: !!nativeInfo });
 
-      // 4. Fetch IP and geolocation
-      const geoData = await this.fetchIPAndGeolocation();
+      // 4. Fetch IP and geolocation (non-blocking - registration continues even if this fails)
+      let geoData = null;
+      try {
+        geoData = await this.fetchIPAndGeolocation();
+      } catch (geoError) {
+        console.warn('⚠️ Geolocation fetch failed, continuing without geo data:', geoError);
+      }
 
       // 5. Detect device details
       let details: any;
@@ -419,19 +434,33 @@ class DeviceSessionService {
 
         if (!error && data) {
           console.log('✅ Session updated:', data.id, '- Stable ID now:', stableDeviceId);
-          // Deactivate other active sessions for the same physical device (same stable ID or fingerprint)
-          try {
-            await supabase
-              .from('user_sessions')
-              .update({ is_active: false, session_status: 'inactive' })
-              .eq('user_id', userId)
-              .neq('id', data.id)
-              .or(`device_stable_id.eq.${stableDeviceId},device_fingerprint.eq.${fingerprint}`);
-          } catch (cleanupErr) {
-            console.warn('⚠️ Cleanup of duplicate sessions failed:', cleanupErr);
+          
+          // STRICT deduplication: Only deactivate sessions with MATCHING non-empty stable IDs
+          // This prevents accidentally disabling all sessions when stable ID is null/empty
+          if (stableDeviceId && stableDeviceId.length > 0) {
+            try {
+              await supabase
+                .from('user_sessions')
+                .update({ is_active: false, session_status: 'inactive' })
+                .eq('user_id', userId)
+                .neq('id', data.id)
+                .eq('device_stable_id', stableDeviceId); // STRICT: exact match only
+              
+              console.log('🧹 Deactivated duplicate sessions for stable ID:', stableDeviceId);
+            } catch (cleanupErr) {
+              console.warn('⚠️ Cleanup of duplicate sessions failed (non-blocking):', cleanupErr);
+            }
+          } else {
+            console.warn('⚠️ Skipping deduplication - stable ID is empty/null');
           }
+          
           return data.id;
         }
+        
+        if (error) {
+          console.error('❌ Session update failed:', error);
+        }
+        
         return s.id || null;
       } else {
         const screenRes = `${screen.width}x${screen.height}`;
@@ -491,16 +520,22 @@ class DeviceSessionService {
           console.log('✅ Device Type:', data.device_type);
           console.log('✅ Device Name:', data.device_name);
 
-          // Deactivate other active sessions for the same physical device (same stable ID or fingerprint)
-          try {
-            await supabase
-              .from('user_sessions')
-              .update({ is_active: false, session_status: 'inactive' })
-              .eq('user_id', userId)
-              .neq('id', data.id)
-              .or(`device_stable_id.eq.${stableDeviceId},device_fingerprint.eq.${fingerprint}`);
-          } catch (cleanupErr) {
-            console.warn('⚠️ Cleanup of duplicate sessions failed:', cleanupErr);
+          // STRICT deduplication: Only deactivate sessions with MATCHING non-empty stable IDs
+          if (stableDeviceId && stableDeviceId.length > 0) {
+            try {
+              await supabase
+                .from('user_sessions')
+                .update({ is_active: false, session_status: 'inactive' })
+                .eq('user_id', userId)
+                .neq('id', data.id)
+                .eq('device_stable_id', stableDeviceId); // STRICT: exact match only
+              
+              console.log('🧹 Deactivated duplicate sessions for stable ID:', stableDeviceId);
+            } catch (cleanupErr) {
+              console.warn('⚠️ Cleanup of duplicate sessions failed (non-blocking):', cleanupErr);
+            }
+          } else {
+            console.warn('⚠️ Skipping deduplication - stable ID is empty/null');
           }
 
           return data.id;
@@ -509,6 +544,7 @@ class DeviceSessionService {
           console.error('❌ Error code:', error.code);
           console.error('❌ Error message:', error.message);
           console.error('❌ Error details:', JSON.stringify(error, null, 2));
+          console.error('❌ Session data that failed:', JSON.stringify(sessionData, null, 2));
         }
         return null;
       }
