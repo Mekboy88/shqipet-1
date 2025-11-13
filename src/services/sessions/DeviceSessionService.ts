@@ -290,7 +290,13 @@ class DeviceSessionService {
         // Web browser: use UA detection
         console.log('🌐 Using browser-based detection');
         details = await detectFromUserAgent(navigator.userAgent);
-        normalizedType = details.deviceType;
+        
+        // Standardize deviceType from detectFromUserAgent to 4 canonical types
+        if (details.deviceType === 'smartphone') {
+          normalizedType = 'mobile';
+        } else {
+          normalizedType = details.deviceType;
+        }
         
         // Apply UA-based overrides for web
         const ua = navigator.userAgent;
@@ -330,45 +336,27 @@ class DeviceSessionService {
       // Ensure profile exists to satisfy FK before inserting into user_sessions
       await this.ensureProfile(userId);
 
-      // Check for existing session for this device
-      // Priority 1: Try by fingerprint FIRST (to connect with existing sessions)
-      console.log('🔍 Checking for existing session by fingerprint:', fingerprint);
+      // Check for existing session for this device using stable ID as PRIMARY key
+      console.log('🔍 Checking for existing session by stable ID:', stableDeviceId);
       let existing = null;
-      let foundByMethod = 'none';
       
-      const { data: fingerprintSessions, error: fetchErr } = await supabase
+      const { data: stableSessions, error: fetchErr } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('user_id', userId)
-        .eq('device_fingerprint', fingerprint)
+        .eq('device_stable_id', stableDeviceId)
         .eq('is_active', true)
         .order('last_activity', { ascending: false })
         .limit(1);
 
-      if (fingerprintSessions && fingerprintSessions.length > 0) {
-        existing = fingerprintSessions;
-        foundByMethod = 'fingerprint';
-        console.log('✅ Found session by fingerprint, will update stable_id to:', stableDeviceId);
+      if (stableSessions && stableSessions.length > 0) {
+        existing = stableSessions;
+        console.log('✅ Found session by stable ID');
       } else {
-        // Priority 2: Try by stable device ID (for sessions already migrated)
-        console.log('🔍 No fingerprint match, trying stable ID:', stableDeviceId);
-        const { data: stableSessions, error: stableErr } = await supabase
-          .from('user_sessions')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('device_stable_id', stableDeviceId)
-          .eq('is_active', true)
-          .order('last_activity', { ascending: false })
-          .limit(1);
-
-        if (stableSessions && stableSessions.length > 0) {
-          existing = stableSessions;
-          foundByMethod = 'stable_id';
-          console.log('✅ Found session by stable ID');
-        }
+        console.log('ℹ️ No existing session found - will create new');
       }
 
-      console.log('📋 Existing sessions found:', existing?.length || 0, `(by ${foundByMethod})`);
+      console.log('📋 Existing sessions found:', existing?.length || 0);
 
       const now = new Date().toISOString();
 
@@ -377,22 +365,13 @@ class DeviceSessionService {
         const isLocked = !!s.device_type_locked;
         let finalType = isLocked ? s.device_type : normalizedType;
 
-        // Self-heal misclassified mobile/tablet sessions even if locked
-        const uaStr = navigator.userAgent;
-        const mobileOsMatch = /iOS|Android/i.test(details.operatingSystem || '');
-        const mobileUaMatch = /iPhone|iPad|Android/i.test(uaStr);
-        const wasDesktopLike = s.device_type === 'desktop' || s.device_type === 'laptop';
-        const needsMobileCorrection = (mobileOsMatch || mobileUaMatch) && wasDesktopLike;
-        if (isLocked && needsMobileCorrection) {
-          console.warn('🔧 Overriding locked device_type due to mobile OS mismatch');
-          finalType = normalizedType;
-        }
+        // Keep stored device_name if locked, otherwise update
+        let finalDeviceName = isLocked && s.device_name ? s.device_name : details.deviceName;
         
         console.log('🔄 Updating existing session:', s.id, { 
           isLocked, 
           finalType, 
-          foundByMethod,
-          willUpdateStableId: foundByMethod === 'fingerprint',
+          finalDeviceName,
           oldDeviceName: s.device_name,
           newDeviceName: details.deviceName,
           oldDeviceType: s.device_type,
@@ -400,18 +379,17 @@ class DeviceSessionService {
         });
         
         const updateData: any = {
-          device_stable_id: stableDeviceId, // CRITICAL: Update stable ID on every login
+          device_stable_id: stableDeviceId, // CRITICAL: Ensure stable ID persists
           last_activity: now,
           login_count: (s.login_count || 0) + 1,
           user_agent: navigator.userAgent,
-          device_name: details.deviceName,
+          device_name: finalDeviceName,
           device_type: finalType,
           browser_info: details.browser,
           operating_system: details.operatingSystem,
           platform_type,
           session_status: 'active',
-          is_active: true,
-          ...(needsMobileCorrection ? { device_type_locked: false } : {})
+          is_active: true
         };
         
         // Add IP and geolocation data if fetched successfully
@@ -433,27 +411,7 @@ class DeviceSessionService {
           .single();
 
         if (!error && data) {
-          console.log('✅ Session updated:', data.id, '- Stable ID now:', stableDeviceId);
-          
-          // STRICT deduplication: Only deactivate sessions with MATCHING non-empty stable IDs
-          // This prevents accidentally disabling all sessions when stable ID is null/empty
-          if (stableDeviceId && stableDeviceId.length > 0) {
-            try {
-              await supabase
-                .from('user_sessions')
-                .update({ is_active: false, session_status: 'inactive' })
-                .eq('user_id', userId)
-                .neq('id', data.id)
-                .eq('device_stable_id', stableDeviceId); // STRICT: exact match only
-              
-              console.log('🧹 Deactivated duplicate sessions for stable ID:', stableDeviceId);
-            } catch (cleanupErr) {
-              console.warn('⚠️ Cleanup of duplicate sessions failed (non-blocking):', cleanupErr);
-            }
-          } else {
-            console.warn('⚠️ Skipping deduplication - stable ID is empty/null');
-          }
-          
+          console.log('✅ Session updated:', data.id, '- Stable ID:', stableDeviceId);
           return data.id;
         }
         
@@ -519,25 +477,6 @@ class DeviceSessionService {
           console.log('✅ Session ID:', data.id);
           console.log('✅ Device Type:', data.device_type);
           console.log('✅ Device Name:', data.device_name);
-
-          // STRICT deduplication: Only deactivate sessions with MATCHING non-empty stable IDs
-          if (stableDeviceId && stableDeviceId.length > 0) {
-            try {
-              await supabase
-                .from('user_sessions')
-                .update({ is_active: false, session_status: 'inactive' })
-                .eq('user_id', userId)
-                .neq('id', data.id)
-                .eq('device_stable_id', stableDeviceId); // STRICT: exact match only
-              
-              console.log('🧹 Deactivated duplicate sessions for stable ID:', stableDeviceId);
-            } catch (cleanupErr) {
-              console.warn('⚠️ Cleanup of duplicate sessions failed (non-blocking):', cleanupErr);
-            }
-          } else {
-            console.warn('⚠️ Skipping deduplication - stable ID is empty/null');
-          }
-
           return data.id;
         } else if (error) {
           console.error('❌ Error creating session:', error);

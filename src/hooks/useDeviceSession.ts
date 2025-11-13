@@ -325,41 +325,18 @@ export const useDeviceSession = () => {
           return;
         }
 
-        // Deduplicate to one card per physical device
-        const latestByKey: Record<string, any> = {};
-        for (const s of sessions) {
-          const key = s.device_stable_id || s.device_fingerprint || `${s.operating_system}|${s.browser_info}|${s.device_name}|${s.screen_resolution}`;
-          const existing = latestByKey[key];
-          const sTime = new Date(s.last_activity || s.updated_at || s.created_at).getTime();
-          const eTime = existing ? new Date(existing.last_activity || existing.updated_at || existing.created_at).getTime() : -1;
-          
-          console.log(`🔑 Session ${s.id}: key="${key.substring(0, 40)}...", stable_id="${s.device_stable_id}", device="${s.device_name}", type="${s.device_type}"`);
-          
-          if (!existing || sTime > eTime) {
-            latestByKey[key] = s;
-          }
-        }
-        const dedupedSessions = Object.values(latestByKey);
-        console.log('🧹 Deduplicated sessions:', { before: sessions.length, after: dedupedSessions.length });
+        // Backend now enforces uniqueness by device_stable_id. No client deduplication needed.
+        const dedupedSessions = sessions;
+        console.log('📱 All sessions (backend deduplicated):', dedupedSessions.length);
 
         const transformedDevices: TrustedDevice[] = await Promise.all(dedupedSessions.map(async (session: any) => {
           const isCurrentDevice = session.device_fingerprint === currentFingerprint;
 
-          // Use stored database values directly - don't re-detect on every load
-          // Only fallback to detection if database values are missing
-          let deviceName = session.device_name;
-          let deviceType = session.device_type;
-          let browserInfo = session.browser_info;
-          let operatingSystem = session.operating_system;
-
-          // Only detect if values are missing from database
-          if (!deviceName || !deviceType || !browserInfo || !operatingSystem) {
-            const deviceDetails = await detectDeviceDetails(session.user_agent || '');
-            deviceName = deviceName || deviceDetails.deviceName;
-            deviceType = deviceType || deviceDetails.deviceType;
-            browserInfo = browserInfo || deviceDetails.browser;
-            operatingSystem = operatingSystem || deviceDetails.operatingSystem;
-          }
+          // Use stored database values directly - backend already detected and persisted
+          const deviceName = session.device_name || 'Unknown Device';
+          const deviceType = session.device_type || 'unknown';
+          const browserInfo = session.browser_info || 'Unknown Browser';
+          const operatingSystem = session.operating_system || 'Unknown OS';
 
           return {
             id: session.id,

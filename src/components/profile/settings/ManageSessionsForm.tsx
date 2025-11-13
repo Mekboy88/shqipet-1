@@ -174,7 +174,7 @@ const ManageSessionsForm: React.FC = () => {
       case 'desktop':
         return 'Desktop';
       default:
-        return 'Unknown';
+        return deviceType || 'Unknown';
     }
   };
 
