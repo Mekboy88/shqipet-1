@@ -469,8 +469,7 @@ class DeviceSessionService {
         .from('user_sessions')
         .update({
           last_activity: new Date().toISOString(),
-          session_status: 'active',
-          is_active: true
+          session_status: 'active'
         })
         .eq('id', sessionId);
     } catch (e) {
