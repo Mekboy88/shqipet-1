@@ -1,16 +1,43 @@
-/**
- * DeviceSessionService.ts
- * FINAL — StableID via localStorage
- */
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from '@/contexts/AuthContext';
 
-import { supabase } from "@/lib/supabaseClient";
+// Device session interface
+interface DeviceSession {
+  id: string;
+  user_id: string;
+  device_stable_id: string;
+  device_fingerprint: string;
+  device_type: string;
+  operating_system: string;
+  browser_info: string;
+  platform_type: string;
+  screen_resolution: string;
+  timezone: string;
+  last_activity: string;
+  is_active: boolean;
+  session_status: 'active' | 'inactive' | 'logged_out' | 'logged_in';
+  is_current?: boolean;
+  is_trusted?: boolean;
+  ip_address?: string;
+  city?: string;
+  country?: string;
+  country_code?: string;
+  location?: string;
+  first_seen?: string;
+  last_seen?: string;
+  login_count?: number;
+  all_browsers?: string[];
+  session_count?: number;
+  device_name?: string;
+  all_stable_ids?: string[];
+  latitude?: number;
+  longitude?: number;
+}
 
 // KEY for storing stable device ID
 const STABLE_ID_KEY = "shqipet_device_stable_id";
 
-// ------------------------------
-// 1. Stable ID (Final Solution)
-// ------------------------------
 function getStableDeviceId(): string {
   let id = localStorage.getItem(STABLE_ID_KEY);
 
@@ -22,142 +49,148 @@ function getStableDeviceId(): string {
   return id;
 }
 
-// ------------------------------
-// 2. Generate Fingerprint (for uniqueness)
-// ------------------------------
-async function generateFingerprint(): Promise<string> {
-  const data = [
-    navigator.userAgent,
-    navigator.language,
-    screen.width,
-    screen.height,
-    screen.colorDepth,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-  ].join("|");
+export const useDeviceSession = () => {
+  const { user } = useAuth();
+  const [trustedDevices, setTrustedDevices] = useState<DeviceSession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [realtimeStatus, setRealtimeStatus] = useState<'connected' | 'disconnected'>('disconnected');
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [currentStableId] = useState<string>(getStableDeviceId());
 
-  const encoder = new TextEncoder();
-  const hash = await crypto.subtle.digest("SHA-256", encoder.encode(data));
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
+  // Find current device ID from the list
+  const currentDeviceId = trustedDevices.find(d => d.is_current)?.id || null;
 
-// ------------------------------
-// 3. Device Type Detection
-// ------------------------------
-function detectDeviceType(): "mobile" | "tablet" | "laptop" | "desktop" {
-  const ua = navigator.userAgent.toLowerCase();
-  const width = screen.width;
+  const refreshDevices = useCallback(async () => {
+    if (!user?.id) return;
 
-  // True tablet detection first
-  if (ua.includes("ipad") || (width >= 768 && ua.includes("mobile"))) {
-    return "tablet";
-  }
+    setLoading(true);
+    setError(null);
 
-  // Phones
-  if (ua.includes("iphone") || ua.includes("android") || ua.includes("mobile")) {
-    return "mobile";
-  }
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('last_activity', { ascending: false });
 
-  // Laptop vs Desktop
-  if (width < 1280) return "laptop";
-  return "desktop";
-}
+      if (fetchError) throw fetchError;
 
-// ------------------------------
-// 4. OS Detection
-// ------------------------------
-function detectOperatingSystem(): string {
-  const ua = navigator.userAgent;
+      const currentStableId = getStableDeviceId();
+      const sessions = (data || []).map(session => ({
+        ...session,
+        is_current: session.device_stable_id === currentStableId
+      }));
 
-  if (/android/i.test(ua)) return "Android";
-  if (/iPad|iPhone|iPod/.test(ua)) return "iOS";
-  if (/Win/.test(ua)) return "Windows";
-  if (/Mac/.test(ua)) return "macOS";
-  if (/Linux/.test(ua)) return "Linux";
-
-  return "Unknown";
-}
-
-// ------------------------------
-// 5. Browser Detection
-// ------------------------------
-function detectBrowser(): string {
-  const ua = navigator.userAgent;
-
-  if (ua.includes("Chrome") && !ua.includes("Edg")) return "Chrome";
-  if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
-  if (ua.includes("Firefox")) return "Firefox";
-  if (ua.includes("Edg")) return "Edge";
-
-  return "Unknown";
-}
-
-// ------------------------------
-// 6. MAIN SERVICE
-// ------------------------------
-export const DeviceSessionService = {
-  // Register session on login or startup
-  async registerSession(userId: string) {
-    const stableId = getStableDeviceId();
-    const fingerprint = await generateFingerprint();
-
-    const deviceType = detectDeviceType();
-    const os = detectOperatingSystem();
-    const browser = detectBrowser();
-    const resolution = `${screen.width}x${screen.height}`;
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    // Check if session exists
-    const { data: existing } = await supabase
-      .from("user_sessions")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("device_stable_id", stableId)
-      .single();
-
-    const now = new Date().toISOString();
-
-    const payload = {
-      user_id: userId,
-      device_stable_id: stableId,
-      device_fingerprint: fingerprint,
-      device_type: deviceType,
-      operating_system: os,
-      browser_info: browser,
-      platform_type:
-        os.toLowerCase().includes("ios") || os.toLowerCase().includes("android") ? os.toLowerCase() : "web",
-      screen_resolution: resolution,
-      timezone,
-      last_activity: now,
-      is_active: true,
-      session_status: "active",
-    };
-
-    if (existing) {
-      // Update existing session
-      await supabase.from("user_sessions").update(payload).eq("id", existing.id);
-    } else {
-      // Create new session
-      await supabase.from("user_sessions").insert(payload);
+      setTrustedDevices(sessions);
+      setLastRefresh(new Date());
+    } catch (err: any) {
+      setError(err.message);
+      console.error('Error fetching devices:', err);
+    } finally {
+      setLoading(false);
     }
+  }, [user?.id]);
 
-    console.log("📱 Device Session Saved:", payload);
-  },
+  const toggleDeviceTrust = useCallback(async (deviceId: string, trusted: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('user_sessions')
+        .update({ is_trusted: trusted })
+        .eq('id', deviceId);
 
-  // Logout device
-  async logoutDevice(sessionId: string) {
-    await supabase.from("user_sessions").update({ is_active: false, session_status: "logged_out" }).eq("id", sessionId);
-  },
+      if (error) throw error;
 
-  // Logout all except current
-  async logoutAllOther(userId: string) {
-    const stableId = getStableDeviceId();
+      await refreshDevices();
+    } catch (err: any) {
+      console.error('Error toggling device trust:', err);
+      throw err;
+    }
+  }, [refreshDevices]);
 
-    await supabase
-      .from("user_sessions")
-      .update({ is_active: false, session_status: "logged_out" })
-      .eq("user_id", userId)
-      .neq("device_stable_id", stableId);
-  },
+  const removeDevice = useCallback(async (deviceId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_sessions')
+        .update({ is_active: false, session_status: 'logged_out' })
+        .eq('id', deviceId);
+
+      if (error) throw error;
+
+      await refreshDevices();
+    } catch (err: any) {
+      console.error('Error removing device:', err);
+      throw err;
+    }
+  }, [refreshDevices]);
+
+  const logoutAllOtherDevices = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const currentStableId = getStableDeviceId();
+
+      const { error } = await supabase
+        .from('user_sessions')
+        .update({ is_active: false, session_status: 'logged_out' })
+        .eq('user_id', user.id)
+        .neq('device_stable_id', currentStableId);
+
+      if (error) throw error;
+
+      await refreshDevices();
+    } catch (err: any) {
+      console.error('Error logging out other devices:', err);
+      throw err;
+    }
+  }, [user?.id, refreshDevices]);
+
+  // Initial load
+  useEffect(() => {
+    if (user?.id) {
+      refreshDevices();
+    }
+  }, [user?.id, refreshDevices]);
+
+  // Setup realtime subscription
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('user-sessions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_sessions',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          refreshDevices();
+        }
+      )
+      .subscribe((status) => {
+        setRealtimeStatus(status === 'SUBSCRIBED' ? 'connected' : 'disconnected');
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [user?.id, refreshDevices]);
+
+  return {
+    trustedDevices,
+    currentDeviceId,
+    currentStableId,
+    loading,
+    error,
+    realtimeStatus,
+    lastRefresh,
+    refreshDevices,
+    toggleDeviceTrust,
+    removeDevice,
+    logoutAllOtherDevices
+  };
 };
