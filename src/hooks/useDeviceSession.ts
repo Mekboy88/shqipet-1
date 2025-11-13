@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { detectFromUserAgent } from '@/utils/deviceType';
 import { deviceSessionService } from '@/services/sessions/DeviceSessionService';
+import { UAParser } from 'ua-parser-js';
 
 interface DeviceFingerprint {
   userAgent: string;
