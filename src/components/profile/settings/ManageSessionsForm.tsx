@@ -54,11 +54,10 @@ const ManageSessionsForm: React.FC = () => {
     logoutAllOtherDevices
   } = useDeviceSession();
 
-  // Ensure current device registers (updates IP/geolocation) when this page is opened
+  // Collect diagnostics when this page is opened (registration handled globally by SessionBootstrapper)
   useEffect(() => {
     if (!user?.id) return;
     
-    // Collect diagnostics
     (async () => {
       try {
         const stableDeviceId = await deviceSessionService.getStableDeviceId();
@@ -75,25 +74,10 @@ const ManageSessionsForm: React.FC = () => {
           timestamp: new Date().toISOString()
         });
         setStableId(stableDeviceId);
-        
-        // Attempt registration
-        console.log('🔄 Registering device on page load...');
-        const sessionId = await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
-        
-        if (sessionId) {
-          console.log('✅ Device registered successfully:', sessionId);
-          setLastRegError('');
-          await refreshDevices();
-        } else {
-          console.error('❌ Device registration returned null');
-          setLastRegError('Registration returned null - check console for errors');
-        }
       } catch (e: any) {
-        console.error('❌ Registration failed with exception:', e);
-        setLastRegError(e?.message || String(e));
+        console.error('❌ Diagnostics collection failed:', e);
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const getDeviceIcon = (deviceType: string, isActive: boolean = false) => {
