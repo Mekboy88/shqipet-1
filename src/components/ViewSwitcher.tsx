@@ -94,6 +94,18 @@ const ViewSwitcher: React.FC = () => {
       const isLinuxDesktop = userAgent.includes('linux') && !userAgent.includes('android');
       const isDesktopBrowser = isMacDesktop || isWindowsDesktop || isLinuxDesktop || (userAgent.includes('safari') && !userAgent.includes('mobile'));
       
+      console.log('🔍 Mobile redirect check:', {
+        hostname,
+        pathname,
+        isRealMobile,
+        isRealTablet,
+        isDesktopBrowser,
+        isPrimaryDomain: isPrimaryDomain(hostname),
+        isMobileSubdomain: isMobileSubdomain(hostname),
+        userAgent: userAgent.substring(0, 100),
+        maxTouchPoints: navigator.maxTouchPoints
+      });
+      
       // Mobile/Tablet on primary domain → redirect to m.shqipet.com (but NEVER for real desktop browsers)
       if ((isRealMobile || isRealTablet) && !isDesktopBrowser && isPrimaryDomain(hostname)) {
         sessionStorage.setItem('mobileRedirectChecked', '1');
