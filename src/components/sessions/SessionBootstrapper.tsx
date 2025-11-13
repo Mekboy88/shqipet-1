@@ -124,7 +124,13 @@ const SessionBootstrapper = () => {
             },
             async (payload: any) => {
               const updatedSession = payload.new;
-              const sessionStableId = updatedSession.device_stable_id || updatedSession.device_fingerprint;
+              // CRITICAL: Use ONLY stable ID (no fallback)
+              const sessionStableId = updatedSession.device_stable_id;
+              
+              if (!sessionStableId) {
+                console.warn('⚠️ Realtime update missing stable ID, ignoring');
+                return;
+              }
               
               // If this update is for the current device and it's marked inactive
               if (sessionStableId === currentStableIdRef.current && updatedSession.is_active === false) {

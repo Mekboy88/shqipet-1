@@ -298,8 +298,9 @@ Last Error: ${lastRegError || 'None'}`;
   }
 
   const otherDevicesCount = trustedDevices.filter(device => {
-    const deviceStableId = device.device_stable_id || device.device_fingerprint;
-    return deviceStableId !== currentStableId;
+    // CRITICAL: Use ONLY stable ID (no fallback)
+    const deviceStableId = device.device_stable_id;
+    return deviceStableId && deviceStableId !== currentStableId;
   }).length;
 
   return (
