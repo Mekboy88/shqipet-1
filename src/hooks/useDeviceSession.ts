@@ -238,6 +238,18 @@ export const useDeviceSession = () => {
           return `${screen}|${os}|${deviceType}|${platformType}`.toLowerCase();
         };
 
+        // Debug logging - what sessions do we have?
+        console.log('🔍 DEBUG: All sessions from DB:', sessions.map(s => ({
+          id: s.id.substring(0, 8),
+          device_name: s.device_name,
+          device_type: s.device_type,
+          browser: s.browser_info,
+          stable_id: s.device_stable_id,
+          screen: s.screen_resolution,
+          os: s.operating_system,
+          is_active: s.is_active,
+        })));
+
         // Group all sessions by physical device
         const physicalDeviceMap = new Map<string, any[]>();
         
@@ -248,6 +260,13 @@ export const useDeviceSession = () => {
           }
           physicalDeviceMap.get(physicalKey)!.push(session);
         });
+
+        console.log('🔍 DEBUG: Physical device groups:', Array.from(physicalDeviceMap.entries()).map(([key, sessions]) => ({
+          key,
+          count: sessions.length,
+          stable_ids: sessions.map(s => s.device_stable_id),
+          browsers: sessions.map(s => s.browser_info),
+        })));
 
         // For each physical device, create a merged session showing all browsers
         const dedupedSessions = Array.from(physicalDeviceMap.entries()).map(([physicalKey, deviceSessions]) => {
@@ -288,12 +307,20 @@ export const useDeviceSession = () => {
         // Get current stable ID
         const currentStableIdValue = await deviceSessionService.getStableDeviceId();
         setCurrentStableId(currentStableIdValue);
-        console.log('🔑 Current stable ID:', currentStableIdValue);
+        console.log('🔑 DEBUG: Current browser stable ID:', currentStableIdValue);
 
         const transformedDevices: TrustedDevice[] = (await Promise.all(dedupedSessions.map(async (session: any) => {
           // Check if this physical device includes the current browser session
           const allStableIds = session.all_stable_ids || [];
           const isCurrentDevice = allStableIds.includes(currentStableIdValue);
+
+          console.log('🔍 DEBUG: Checking device group:', {
+            device_name: session.device_name,
+            all_stable_ids: allStableIds,
+            current_stable_id: currentStableIdValue,
+            is_current_match: isCurrentDevice,
+            all_browsers: session.all_browsers,
+          });
 
           // Prefer stored database values
           let deviceName = session.device_name || 'Unknown Device';
