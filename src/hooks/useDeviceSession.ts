@@ -323,24 +323,33 @@ export const useDeviceSession = () => {
         }
 
         const transformedDevices: TrustedDevice[] = await Promise.all(sessions.map(async session => {
-          const deviceDetails = await detectDeviceDetails(session.user_agent || '');
-          const isCurrentDevice = session.device_fingerprint === currentFingerprint;
+        const deviceDetails = await detectDeviceDetails(session.user_agent || '');
+        const isCurrentDevice = session.device_fingerprint === currentFingerprint;
 
-          return {
-            id: session.id,
-            device_name: session.device_name || deviceDetails.deviceName,
-            device_type: (session.device_type as any) || deviceDetails.deviceType,
-            browser_info: session.browser_info || deviceDetails.browser,
-            operating_system: session.operating_system || deviceDetails.operatingSystem,
-            device_fingerprint: session.device_fingerprint || '',
-            first_seen: session.created_at || new Date().toISOString(),
-            last_seen: session.last_activity || new Date().toISOString(),
-            is_current: isCurrentDevice,
-            is_trusted: session.is_trusted || false,
-            login_count: session.login_count || 1,
-            location: session.location || 'Unknown location',
-            ip_address: session.ip_address
-          };
+        // UA-based override to fix misclassified iPad/iPhone/Android sessions for display
+        const ua = session.user_agent || '';
+        const uaMobile = /iPhone|Android.+Mobile|Windows Phone/i.test(ua);
+        const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
+        let resolvedType: TrustedDevice['device_type'] = (session.device_type as any) || deviceDetails.deviceType;
+        if ((resolvedType === 'desktop' || resolvedType === 'laptop') && (uaMobile || uaTablet)) {
+          resolvedType = uaMobile ? 'mobile' : 'tablet';
+        }
+
+        return {
+          id: session.id,
+          device_name: session.device_name || deviceDetails.deviceName,
+          device_type: resolvedType,
+          browser_info: session.browser_info || deviceDetails.browser,
+          operating_system: session.operating_system || deviceDetails.operatingSystem,
+          device_fingerprint: session.device_fingerprint || '',
+          first_seen: session.created_at || new Date().toISOString(),
+          last_seen: session.last_activity || new Date().toISOString(),
+          is_current: isCurrentDevice,
+          is_trusted: session.is_trusted || false,
+          login_count: session.login_count || 1,
+          location: session.location || 'Unknown location',
+          ip_address: session.ip_address
+        };
         }));
 
         console.log('📱 Loaded devices:', transformedDevices.length);

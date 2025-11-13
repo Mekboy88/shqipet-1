@@ -125,10 +125,23 @@ export async function detectFromUserAgent(
   let deviceType: DeviceCategory = 'unknown';
   const uaRuleType = fromRules(ua);
 
-  if (res.device?.type === 'mobile' || hints?.mobile === true) deviceType = 'mobile';
-  else if (res.device?.type === 'tablet') deviceType = 'tablet';
-  else if (uaRuleType !== 'unknown') deviceType = uaRuleType;
-  else deviceType = await guessDesktopVsLaptop();
+  // Special case: iPadOS 13+ (and later) often reports as "Macintosh" but has touch input
+  const isMacLike = /macintosh|mac os x/i.test(ua);
+  const maxTouchPoints = (navigator as any)?.maxTouchPoints || 0;
+  const isIPadDesktopUA = isMacLike && maxTouchPoints > 1;
+
+  if (res.device?.type === 'mobile' || hints?.mobile === true) {
+    deviceType = 'mobile';
+  } else if (res.device?.type === 'tablet' || isIPadDesktopUA) {
+    deviceType = 'tablet';
+    if (isIPadDesktopUA) {
+      console.log('🧠 Heuristic: Detected iPad masquerading as macOS via touch points → tablet');
+    }
+  } else if (uaRuleType !== 'unknown') {
+    deviceType = uaRuleType;
+  } else {
+    deviceType = await guessDesktopVsLaptop();
+  }
 
   const osName = mapOS(res.os?.name);
   const browserName = res.browser?.name || 'Unknown Browser';
