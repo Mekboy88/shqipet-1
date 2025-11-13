@@ -364,10 +364,10 @@ export const useDeviceSession = () => {
             // Override with platform_type if present (iOS/Android apps)
             if (session.platform_type === 'ios') {
               deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
-              operatingSystem = detected.operatingSystem;
+              operatingSystem = detected.operatingSystem || 'iOS';
             } else if (session.platform_type === 'android') {
               deviceType = detected.deviceType === 'tablet' ? 'tablet' : 'smartphone';
-              operatingSystem = detected.operatingSystem;
+              operatingSystem = detected.operatingSystem || 'Android';
             } else {
               // Web/PWA: use detected values
               const normalizedType = detected.deviceType === 'mobile' ? 'smartphone' : detected.deviceType;
@@ -375,29 +375,10 @@ export const useDeviceSession = () => {
               operatingSystem = detected.operatingSystem;
             }
             
-            deviceName = detected.deviceName;
-            browserInfo = detected.browser;
-            
-            if (!operatingSystem || operatingSystem.toLowerCase().includes('unknown')) {
-                operatingSystem = detected.operatingSystem;
-              }
-              if (!browserInfo) {
-                browserInfo = detected.browser;
-              }
-              if (!session.device_name && detected.deviceName) {
-                deviceName = detected.deviceName;
-              }
-            }
-            // Prefer native platform OS labels when present
-            if (session.platform_type === 'ios') {
-              operatingSystem = 'iOS';
-              if (deviceType === 'unknown' || deviceType === 'desktop') deviceType = 'smartphone' as any;
-            } else if (session.platform_type === 'android') {
-              operatingSystem = 'Android';
-              if (deviceType === 'unknown' || deviceType === 'desktop') deviceType = 'smartphone' as any;
-            }
+            deviceName = detected.deviceName || deviceName;
+            browserInfo = detected.browser || browserInfo;
           } catch (e) {
-            console.warn('📱 Device UA fallback detection failed:', e);
+            console.warn('📱 Device UA detection failed:', e);
           }
 
           // Final fallbacks
