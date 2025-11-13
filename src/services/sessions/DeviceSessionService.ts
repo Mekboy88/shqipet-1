@@ -389,8 +389,29 @@ class DeviceSessionService {
       const isLocked = existingSession?.device_type_locked || false;
       const shouldLock = isNewDevice ? true : isLocked; // Lock new devices automatically
       
-      const finalType = isLocked && existingSession?.device_type ? existingSession.device_type : normalizedType;
-      const finalDeviceName = isLocked && existingSession?.device_name ? existingSession.device_name : details.deviceName;
+      // AUTO-CORRECTION: If device was locked as desktop/laptop but UA strongly indicates mobile/tablet, fix it
+      let finalType = isLocked && existingSession?.device_type ? existingSession.device_type : normalizedType;
+      let finalDeviceName = isLocked && existingSession?.device_name ? existingSession.device_name : details.deviceName;
+      
+      if (isLocked && existingSession) {
+        const storedType = existingSession.device_type;
+        const ua = navigator.userAgent;
+        const uaMobile = /iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua);
+        const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
+        const isMacintosh = /Macintosh/i.test(ua);
+        const hasTouchPoints = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+        
+        // Strong mobile/tablet detection
+        const stronglyMobile = uaMobile && !uaTablet;
+        const stronglyTablet = uaTablet || (isMacintosh && hasTouchPoints);
+        
+        if ((storedType === 'desktop' || storedType === 'laptop') && (stronglyMobile || stronglyTablet)) {
+          const correctedType = stronglyMobile ? 'mobile' : 'tablet';
+          console.log(`✅ Auto-corrected device_type: stableId=${stableDeviceId}, from=${storedType} → to=${correctedType}`);
+          finalType = correctedType;
+          // Keep device_type_locked true so it stays corrected going forward
+        }
+      }
       const loginCount = (existingSession?.login_count || 0) + 1;
 
       console.log('🔄 UPSERT session (one card per device):', {

@@ -37,6 +37,7 @@ const ManageSessionsForm: React.FC = () => {
   const [diagnostics, setDiagnostics] = useState<any>(null);
   const [lastRegError, setLastRegError] = useState<string>('');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [fixingDeviceId, setFixingDeviceId] = useState<string | null>(null);
   const { signOut, user } = useAuth();
   
   const {
@@ -254,6 +255,29 @@ const ManageSessionsForm: React.FC = () => {
   const openDeviceDetails = (device: any) => {
     setSelectedDevice(device);
     setShowDeviceModal(true);
+  };
+
+  const handleFixDeviceType = async (deviceId: string) => {
+    if (!user?.id) return;
+    
+    setFixingDeviceId(deviceId);
+    try {
+      console.log('🔧 Fixing device type by re-registering...');
+      const sessionId = await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+      
+      if (sessionId) {
+        console.log('✅ Device type fixed and re-registered:', sessionId);
+        await refreshDevices();
+        toast.success('Device type corrected successfully');
+      } else {
+        throw new Error('Registration returned null');
+      }
+    } catch (error: any) {
+      console.error('❌ Fix device type failed:', error);
+      toast.error(`Failed to fix device type: ${error?.message || String(error)}`);
+    } finally {
+      setFixingDeviceId(null);
+    }
   };
 
   useEffect(() => {
@@ -519,11 +543,35 @@ Last Error: ${lastRegError || 'None'}`;
                   <CardContent className="p-4">
                     {/* Account Usage Notice */}
                     {device.is_current && (
-                      <div className="mb-3 p-2.5 bg-primary/5 border border-primary/20 rounded-lg">
-                        <p className="text-xs text-primary font-medium flex items-center gap-1.5">
-                          <Activity size={14} />
-                          Your shqipet account is being used on this device
-                        </p>
+                      <div className="mb-3 space-y-2">
+                        <div className="p-2.5 bg-primary/5 border border-primary/20 rounded-lg">
+                          <p className="text-xs text-primary font-medium flex items-center gap-1.5">
+                            <Activity size={14} />
+                            Your shqipet account is being used on this device
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFixDeviceType(device.id);
+                          }}
+                          disabled={fixingDeviceId === device.id}
+                          className="w-full text-xs h-8"
+                        >
+                          {fixingDeviceId === device.id ? (
+                            <>
+                              <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                              Updating device info...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-3 h-3 mr-1.5" />
+                              Update device info
+                            </>
+                          )}
+                        </Button>
                       </div>
                     )}
                     
