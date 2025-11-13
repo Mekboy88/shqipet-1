@@ -25,6 +25,7 @@ interface TrustedDevice {
   browser_info: string;
   operating_system: string;
   device_fingerprint: string;
+  device_stable_id?: string;
   first_seen: string;
   last_seen: string;
   is_current: boolean;
@@ -50,6 +51,7 @@ interface TrustedDevice {
 export const useDeviceSession = () => {
   const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
+  const [currentStableId, setCurrentStableId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
@@ -341,8 +343,15 @@ export const useDeviceSession = () => {
         console.log(`📱 Deduplicated from ${sessions.length} sessions to ${dedupedSessions.length} unique devices`);
         console.log('📱 All sessions (backend deduplicated):', dedupedSessions.length);
 
+        // Get current stable ID
+        const currentStableIdValue = await deviceSessionService.getStableDeviceId();
+        setCurrentStableId(currentStableIdValue);
+        console.log('🔑 Current stable ID:', currentStableIdValue);
+
         const transformedDevices: TrustedDevice[] = await Promise.all(dedupedSessions.map(async (session: any) => {
-          const isCurrentDevice = session.device_fingerprint === currentFingerprint;
+          // Match by stable ID (fallback to fingerprint)
+          const sessionStableId = session.device_stable_id || session.device_fingerprint;
+          const isCurrentDevice = sessionStableId === currentStableIdValue;
 
           // Prefer stored database values, but compute from UA when missing or too generic
           let deviceName = session.device_name || 'Unknown Device';
@@ -392,6 +401,7 @@ export const useDeviceSession = () => {
             browser_info: browserInfo,
             operating_system: operatingSystem,
             device_fingerprint: session.device_fingerprint || '',
+            device_stable_id: session.device_stable_id,
             first_seen: session.created_at || new Date().toISOString(),
             last_seen: session.last_activity || new Date().toISOString(),
             is_current: isCurrentDevice,
@@ -488,6 +498,49 @@ export const useDeviceSession = () => {
       isLoggingOutRef.current = false;
     }
   }, [user, loadTrustedDevices]);
+
+  // Logout all other devices (bulk update)
+  const logoutAllOtherDevices = useCallback(async () => {
+    if (!user) {
+      toast.error('No user logged in');
+      return;
+    }
+    
+    if (!currentStableId) {
+      toast.error('Current device ID not resolved yet. Please wait and try again.');
+      return;
+    }
+
+    try {
+      console.log('🚪 Logging out all other devices (bulk update)');
+      console.log('🔑 Keeping current stable ID:', currentStableId);
+      
+      // Update ALL sessions where device_stable_id != currentStableId
+      const { error } = await supabase
+        .from('user_sessions')
+        .update({ 
+          is_active: false, 
+          session_status: 'inactive' 
+        })
+        .eq('user_id', user.id)
+        .neq('device_stable_id', currentStableId);
+
+      if (error) {
+        console.error('❌ Error logging out other devices:', error);
+        toast.error('Failed to logout other devices');
+        return;
+      }
+
+      console.log('✅ All other devices marked as inactive');
+      toast.success('All other devices logged out successfully');
+      
+      // Reload device list
+      await loadTrustedDevices();
+    } catch (error) {
+      console.error('❌ Error in logoutAllOtherDevices:', error);
+      toast.error('Failed to logout other devices');
+    }
+  }, [user, currentStableId, loadTrustedDevices]);
 
   // Manual refresh function
   const refreshDevices = useCallback(async () => {
@@ -710,6 +763,7 @@ export const useDeviceSession = () => {
   return {
     trustedDevices,
     currentDeviceId,
+    currentStableId,
     loading,
     error,
     realtimeStatus,
@@ -718,6 +772,7 @@ export const useDeviceSession = () => {
     loadTrustedDevices,
     refreshDevices,
     toggleDeviceTrust,
-    removeDevice
+    removeDevice,
+    logoutAllOtherDevices
   };
 };

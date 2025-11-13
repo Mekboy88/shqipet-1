@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { deviceSessionService } from '@/services/sessions/DeviceSessionService';
+import { supabase } from '@/integrations/supabase/client';
+import { immediateLogoutService } from '@/utils/auth/immediateLogoutService';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
@@ -8,6 +10,29 @@ const SessionBootstrapper = () => {
   const { user } = useAuth();
   const sessionIdRef = useRef<string | null>(null);
   const heartbeatTimerRef = useRef<number | null>(null);
+  const currentStableIdRef = useRef<string | null>(null);
+
+  // Self-check to ensure logout if is_active is false
+  const checkSessionActive = useCallback(async () => {
+    if (!user?.id || !currentStableIdRef.current) return;
+
+    try {
+      const { data: session, error } = await supabase
+        .from('user_sessions')
+        .select('is_active, session_status')
+        .eq('user_id', user.id)
+        .eq('device_stable_id', currentStableIdRef.current)
+        .maybeSingle();
+
+      if (!error && session && session.is_active === false) {
+        console.log('🚪 Self-check: Current device marked inactive - forcing logout');
+        await immediateLogoutService.performImmediateLogout();
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('❌ Self-check failed:', error);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     console.log('🔄 SessionBootstrapper: useEffect triggered, user:', user?.id || 'none');
@@ -32,6 +57,11 @@ const SessionBootstrapper = () => {
       console.log('🚀 Timestamp:', new Date().toISOString());
       
       try {
+        // Get stable ID
+        const stableId = await deviceSessionService.getStableDeviceId();
+        currentStableIdRef.current = stableId;
+        console.log('🔑 SessionBootstrapper: Current stable ID:', stableId);
+        
         // Register or update device immediately on login
         const id = await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
         
@@ -48,30 +78,67 @@ const SessionBootstrapper = () => {
         } else {
           console.error('❌ SessionBootstrapper: Registration returned null - device NOT registered!');
         }
+        
+        // Initial self-check
+        await checkSessionActive();
       } catch (error) {
         console.error('❌ SessionBootstrapper: Registration failed with error:', error);
       }
 
-      // Heartbeat interval (60 seconds)
+      // Heartbeat interval (60 seconds) with self-check
       if (heartbeatTimerRef.current) window.clearInterval(heartbeatTimerRef.current);
-      heartbeatTimerRef.current = window.setInterval(() => {
+      heartbeatTimerRef.current = window.setInterval(async () => {
         if (sessionIdRef.current) {
           deviceSessionService.heartbeat(sessionIdRef.current);
         }
+        // Self-check on every heartbeat
+        await checkSessionActive();
       }, 60000);
 
-      // Update on focus/visibility (web)
-      const onFocus = () => {
+      // Update on focus/visibility (web) with self-check
+      const onFocus = async () => {
         if (sessionIdRef.current) deviceSessionService.heartbeat(sessionIdRef.current);
+        await checkSessionActive();
       };
-      const onVisibility = () => {
+      const onVisibility = async () => {
         if (!document.hidden && sessionIdRef.current) {
           deviceSessionService.heartbeat(sessionIdRef.current);
+          await checkSessionActive();
         }
       };
 
       window.addEventListener('focus', onFocus);
       document.addEventListener('visibilitychange', onVisibility);
+
+      // Realtime instant logout enforcement
+      if (currentStableIdRef.current) {
+        const logoutChannel = supabase
+          .channel(`instant-logout-${user.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'user_sessions',
+              filter: `user_id=eq.${user.id}`
+            },
+            async (payload: any) => {
+              const updatedSession = payload.new;
+              const sessionStableId = updatedSession.device_stable_id || updatedSession.device_fingerprint;
+              
+              // If this update is for the current device and it's marked inactive
+              if (sessionStableId === currentStableIdRef.current && updatedSession.is_active === false) {
+                console.log('🚪 Realtime: Current device marked inactive - forcing immediate logout');
+                await immediateLogoutService.performImmediateLogout();
+                window.location.href = '/login';
+              }
+            }
+          )
+          .subscribe();
+
+        // Store for cleanup
+        (window as any).__logoutChannel = logoutChannel;
+      }
 
       // Listen to Capacitor App lifecycle events (native)
       let appStateListener: any = null;
@@ -110,6 +177,13 @@ const SessionBootstrapper = () => {
         window.removeEventListener('focus', onFocus);
         document.removeEventListener('visibilitychange', onVisibility);
         
+        // Remove realtime channel
+        const logoutChannel = (window as any).__logoutChannel;
+        if (logoutChannel) {
+          supabase.removeChannel(logoutChannel);
+          delete (window as any).__logoutChannel;
+        }
+        
         // Remove Capacitor listeners
         if (appStateListener) {
           appStateListener.remove();
@@ -134,7 +208,7 @@ const SessionBootstrapper = () => {
         });
       }
     };
-  }, [user?.id]);
+  }, [user?.id, checkSessionActive]);
 
   return null;
 };
