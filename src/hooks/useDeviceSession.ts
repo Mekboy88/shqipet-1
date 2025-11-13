@@ -273,10 +273,11 @@ export const useDeviceSession = () => {
           // Only re-detect from user_agent if it exists
           if (uaString) {
             try {
-              const uaData: any = (navigator as any).userAgentData;
+              // CRITICAL: Don't use current device's navigator.userAgentData for other devices
+              // Each device should be detected from its OWN stored user_agent string only
               const detected = await detectFromUserAgent(uaString, {
-                platform: session.platform_type === 'ios' ? 'iOS' : session.platform_type === 'android' ? 'Android' : uaData?.platform,
-                mobile: uaData?.mobile,
+                platform: session.platform_type === 'ios' ? 'iOS' : session.platform_type === 'android' ? 'Android' : undefined,
+                mobile: undefined, // Let detection determine from UA string
                 model: undefined,
               });
               
