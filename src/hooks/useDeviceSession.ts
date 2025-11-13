@@ -156,130 +156,22 @@ export const useDeviceSession = () => {
 
   // Register current device
   // Register current device (no profile dependency)
+  // DEPRECATED: Legacy function - use deviceSessionService.registerOrUpdateCurrentDevice instead
   const registerCurrentDevice = useCallback(async () => {
+    console.warn('⚠️ DEPRECATED: registerCurrentDevice in useDeviceSession - use deviceSessionService instead');
     if (!user) {
       console.log('❌ No user found for device registration');
       return null;
     }
 
     try {
-      const userId = user.id;
-      const fingerprint = generateDeviceFingerprint();
-      const fingerprintHash = createFingerprintHash(fingerprint);
-      const deviceDetails = await detectDeviceDetails(navigator.userAgent);
-
-      // Check if device already exists and is active
-      const { data: existingSessions, error: fetchError } = await supabase
-        .from('user_sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('device_fingerprint', fingerprintHash)
-        .eq('is_active', true);
-
-      if (fetchError) {
-        console.error('❌ Error fetching existing sessions:', fetchError);
-        return null;
-      }
-
-      let sessionId: string | null = null;
-
-      if (existingSessions && existingSessions.length > 0) {
-        // Update existing session - preserve locked device type
-        const existingSession = existingSessions[0];
-        const newLoginCount = (existingSession.login_count || 0) + 1;
-
-        // If device_type_locked is true, reuse existing device_type; otherwise detect fresh
-        const isLocked = existingSession.device_type_locked || false;
-        const finalDeviceType = isLocked 
-          ? existingSession.device_type 
-          : (deviceDetails.deviceType === 'smartphone' ? 'mobile' : deviceDetails.deviceType);
-        
-        console.log('🔒 Device type lock status:', {
-          isLocked,
-          existingType: existingSession.device_type,
-          detectedType: deviceDetails.deviceType,
-          finalType: finalDeviceType
-        });
-
-        const { data, error } = await supabase
-          .from('user_sessions')
-          .update({
-            last_activity: new Date().toISOString(),
-            login_count: newLoginCount,
-            user_agent: navigator.userAgent,
-            device_name: deviceDetails.deviceName,
-            device_type: finalDeviceType,
-            browser_info: deviceDetails.browser,
-            operating_system: deviceDetails.operatingSystem,
-          })
-          .eq('id', existingSession.id)
-          .select()
-          .single();
-
-        if (!error && data) {
-          sessionId = data.id;
-          console.log('✅ Updated existing device session:', sessionId);
-        }
-      } else {
-        // Create new session with enhanced device information
-        const screenRes = `${screen.width}x${screen.height}`;
-        const hardwareInfo = {
-          cpu: navigator.hardwareConcurrency || 'Unknown',
-          memory: (navigator as any).deviceMemory || 'Unknown',
-          platform: navigator.platform,
-        };
-        
-        // Normalize device type for storage (convert 'smartphone' to 'mobile')
-        const normalizedDeviceType = deviceDetails.deviceType === 'smartphone' 
-          ? 'mobile' 
-          : deviceDetails.deviceType;
-        
-        console.log('📱 Creating new session with device type:', {
-          detected: deviceDetails.deviceType,
-          normalized: normalizedDeviceType,
-          deviceName: deviceDetails.deviceName
-        });
-
-        const { data, error } = await supabase
-          .from('user_sessions')
-          .insert({
-            user_id: userId,
-            device_name: deviceDetails.deviceName,
-            device_type: normalizedDeviceType,
-            browser_info: deviceDetails.browser,
-            operating_system: deviceDetails.operatingSystem,
-            device_fingerprint: fingerprintHash,
-            is_trusted: false,
-            login_count: 1,
-            user_agent: navigator.userAgent,
-            last_activity: new Date().toISOString(),
-            is_active: true,
-            session_token: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            screen_resolution: screenRes,
-            platform_type: 'web',
-            hardware_info: hardwareInfo,
-            mfa_enabled: false,
-            session_status: 'active',
-            security_alerts: [],
-            device_type_locked: false, // Allow re-detection until manually locked
-          })
-          .select()
-          .single();
-
-        if (!error && data) {
-          sessionId = data.id;
-          console.log('✅ Created new device session:', sessionId);
-        } else if (error) {
-          console.error('❌ Error creating session:', error);
-        }
-      }
-
-      return sessionId;
+      // Delegate to global service which uses stable ID correctly
+      return await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
     } catch (error) {
       console.error('❌ Error registering device:', error);
       return null;
     }
-  }, [user, generateDeviceFingerprint, createFingerprintHash, detectDeviceDetails]);
+  }, [user]);
 
   // Load trusted devices with improved error handling
   const loadTrustedDevices = useCallback(async (opts?: { silent?: boolean }) => {
@@ -332,7 +224,15 @@ export const useDeviceSession = () => {
         const deviceMap = new Map<string, any>();
         
         sessions.forEach(session => {
-          const stableId = session.device_stable_id || session.device_fingerprint;
+          // CRITICAL: Use ONLY device_stable_id (no fallback to fingerprint)
+          const stableId = session.device_stable_id;
+          
+          // Skip sessions without stable ID (data corruption case)
+          if (!stableId) {
+            console.warn('⚠️ Session missing stable ID, skipping:', session.id);
+            return;
+          }
+          
           const existing = deviceMap.get(stableId);
           
           if (!existing || new Date(session.last_activity || session.updated_at) > new Date(existing.last_activity || existing.updated_at)) {
@@ -349,9 +249,16 @@ export const useDeviceSession = () => {
         setCurrentStableId(currentStableIdValue);
         console.log('🔑 Current stable ID:', currentStableIdValue);
 
-        const transformedDevices: TrustedDevice[] = await Promise.all(dedupedSessions.map(async (session: any) => {
-          // Match by stable ID (fallback to fingerprint)
-          const sessionStableId = session.device_stable_id || session.device_fingerprint;
+        const transformedDevices: TrustedDevice[] = (await Promise.all(dedupedSessions.map(async (session: any) => {
+          // CRITICAL: Match by stable ID ONLY (no fallback)
+          const sessionStableId = session.device_stable_id;
+          
+          // Skip sessions without stable ID (safety check)
+          if (!sessionStableId) {
+            console.warn('⚠️ Skipping session without stable ID:', session.id);
+            return null;
+          }
+          
           const isCurrentDevice = sessionStableId === currentStableIdValue;
 
           // Prefer stored database values, only re-detect if UA exists
@@ -426,7 +333,7 @@ export const useDeviceSession = () => {
             platform_type: session.platform_type,
             session_status: session.session_status
           };
-        }));
+        }))).filter(Boolean) as TrustedDevice[]; // Remove nulls from skipped sessions
 
         console.log('📱 Showing unique devices:', transformedDevices.length);
         setTrustedDevices(transformedDevices);
@@ -580,7 +487,7 @@ export const useDeviceSession = () => {
       console.error('❌ Manual refresh failed:', error);
       toast.error('Failed to refresh devices');
     }
-  }, [user, registerCurrentDevice, loadTrustedDevices]);
+  }, [user, loadTrustedDevices]);
 
   // Initialize on mount and when user changes (prevent duplicate runs)
   useEffect(() => {
@@ -741,8 +648,14 @@ export const useDeviceSession = () => {
         async (payload) => {
           const updatedSession = payload.new as any;
           
-          // Check if this update is for the current device
-          const isCurrentDevice = updatedSession.device_fingerprint === currentFingerprint;
+          // CRITICAL: Match by stable ID ONLY
+          const sessionStableId = updatedSession.device_stable_id;
+          if (!sessionStableId) {
+            console.warn('⚠️ Realtime logout check: session missing stable ID');
+            return;
+          }
+          
+          const isCurrentDevice = sessionStableId === currentStableId;
           
           // If current device session was deactivated and we're not the one triggering logout
           if (isCurrentDevice && updatedSession.is_active === false && !isLoggingOutRef.current) {
