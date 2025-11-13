@@ -144,7 +144,10 @@ export async function detectFromUserAgent(
   }
 
   const osName = mapOS(res.os?.name);
-  const browserName = res.browser?.name || 'Unknown Browser';
+  const osVersion = res.os?.version ? ` ${res.os.version}` : '';
+  const browserBase = res.browser?.name || 'Unknown Browser';
+  const browserVersion = res.browser?.version ? ` ${res.browser.version}` : '';
+  const browserName = `${browserBase}${browserVersion}`.trim();
 
   // Generate descriptive device names
   let deviceName = 'Unknown Device';
@@ -181,6 +184,6 @@ export async function detectFromUserAgent(
     deviceType,
     deviceName,
     browser: browserName,
-    operatingSystem: osName,
+    operatingSystem: `${osName}${osVersion}`,
   };
 }
