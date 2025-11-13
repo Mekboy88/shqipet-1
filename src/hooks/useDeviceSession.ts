@@ -331,6 +331,9 @@ export const useDeviceSession = () => {
           const existing = latestByKey[key];
           const sTime = new Date(s.last_activity || s.updated_at || s.created_at).getTime();
           const eTime = existing ? new Date(existing.last_activity || existing.updated_at || existing.created_at).getTime() : -1;
+          
+          console.log(`🔑 Session ${s.id}: key="${key.substring(0, 40)}...", stable_id="${s.device_stable_id}", device="${s.device_name}", type="${s.device_type}"`);
+          
           if (!existing || sTime > eTime) {
             latestByKey[key] = s;
           }
@@ -339,24 +342,30 @@ export const useDeviceSession = () => {
         console.log('🧹 Deduplicated sessions:', { before: sessions.length, after: dedupedSessions.length });
 
         const transformedDevices: TrustedDevice[] = await Promise.all(dedupedSessions.map(async (session: any) => {
-          const deviceDetails = await detectDeviceDetails(session.user_agent || '');
           const isCurrentDevice = session.device_fingerprint === currentFingerprint;
 
-          // UA-based override to fix misclassified iPad/iPhone/Android sessions for display
-          const ua = session.user_agent || '';
-          const uaMobile = /iPhone|Android.+Mobile|Windows Phone/i.test(ua);
-          const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
-          let resolvedType: TrustedDevice['device_type'] = (session.device_type as any) || deviceDetails.deviceType;
-          if ((resolvedType === 'desktop' || resolvedType === 'laptop') && (uaMobile || uaTablet)) {
-            resolvedType = uaMobile ? 'mobile' : 'tablet';
+          // Use stored database values directly - don't re-detect on every load
+          // Only fallback to detection if database values are missing
+          let deviceName = session.device_name;
+          let deviceType = session.device_type;
+          let browserInfo = session.browser_info;
+          let operatingSystem = session.operating_system;
+
+          // Only detect if values are missing from database
+          if (!deviceName || !deviceType || !browserInfo || !operatingSystem) {
+            const deviceDetails = await detectDeviceDetails(session.user_agent || '');
+            deviceName = deviceName || deviceDetails.deviceName;
+            deviceType = deviceType || deviceDetails.deviceType;
+            browserInfo = browserInfo || deviceDetails.browser;
+            operatingSystem = operatingSystem || deviceDetails.operatingSystem;
           }
 
           return {
             id: session.id,
-            device_name: session.device_name || deviceDetails.deviceName,
-            device_type: resolvedType,
-            browser_info: session.browser_info || deviceDetails.browser,
-            operating_system: session.operating_system || deviceDetails.operatingSystem,
+            device_name: deviceName,
+            device_type: deviceType as TrustedDevice['device_type'],
+            browser_info: browserInfo,
+            operating_system: operatingSystem,
             device_fingerprint: session.device_fingerprint || '',
             first_seen: session.created_at || new Date().toISOString(),
             last_seen: session.last_activity || new Date().toISOString(),

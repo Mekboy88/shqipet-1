@@ -306,6 +306,9 @@ class DeviceSessionService {
         deviceType: normalizedType,
         platformType: platform_type,
         deviceName: details.deviceName,
+        deviceModel: details.deviceModel,
+        browser: details.browser,
+        os: details.operatingSystem,
         isNative: !!nativeInfo
       });
 
@@ -363,7 +366,11 @@ class DeviceSessionService {
           isLocked, 
           finalType, 
           foundByMethod,
-          willUpdateStableId: foundByMethod === 'fingerprint' 
+          willUpdateStableId: foundByMethod === 'fingerprint',
+          oldDeviceName: s.device_name,
+          newDeviceName: details.deviceName,
+          oldDeviceType: s.device_type,
+          newDeviceType: finalType
         });
         
         const updateData: any = {
