@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Monitor, Smartphone, Tablet, Laptop, RefreshCw, LogOut, MapPin, Chrome, Globe, Activity, ShieldCheck, Shield, Loader2, AlertTriangle, HelpCircle, Bug } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, RefreshCw, LogOut, MapPin, Chrome, Globe, Activity, ShieldCheck, Shield, Loader2, AlertTriangle, HelpCircle, Bug, Map, List } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,7 @@ const ManageSessionsForm: React.FC = () => {
   const [forceRegistering, setForceRegistering] = useState(false);
   const [diagnostics, setDiagnostics] = useState<any>(null);
   const [lastRegError, setLastRegError] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const { signOut, user } = useAuth();
   
   const {
@@ -478,8 +480,9 @@ Last Error: ${lastRegError || 'None'}`;
         
         {trustedDevices.length > 0 ? (
           <>
-            <div className="grid gap-3 mb-6">
-              {[...trustedDevices]
+            {viewMode === 'list' ? (
+              <div className="grid gap-3 mb-6">
+                {[...trustedDevices]
                 .sort((a, b) => {
                   // Pin current device to top
                   if (a.is_current) return -1;
@@ -614,13 +617,8 @@ Last Error: ${lastRegError || 'None'}`;
                   </CardContent>
                 </Card>
               ))}
-            </div>
-
-            <div className="mt-8">
-              <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                Device Locations
-                <span className="text-xs font-normal text-muted-foreground">(Approximate city-level)</span>
-              </h4>
+              </div>
+            ) : (
               <DeviceMapView 
                 devices={trustedDevices.map(d => ({
                   id: d.id,
@@ -637,7 +635,7 @@ Last Error: ${lastRegError || 'None'}`;
                   if (device) openDeviceDetails(device);
                 }}
               />
-            </div>
+            )}
           </>
         ) : (
           <div className="text-center py-12 text-muted-foreground">

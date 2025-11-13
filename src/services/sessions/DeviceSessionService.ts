@@ -273,6 +273,8 @@ class DeviceSessionService {
 
   async registerOrUpdateCurrentDevice(userId: string): Promise<string | null> {
     try {
+      console.log('🔄 Starting device registration for user:', userId);
+      
       // 1. Get native device info first (if available)
       const nativeInfo = await this.getNativeDeviceInfo();
       console.log('🔧 Native device info:', nativeInfo);

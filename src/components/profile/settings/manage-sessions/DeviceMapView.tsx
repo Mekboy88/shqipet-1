@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Monitor, Smartphone, Tablet, Laptop } from 'lucide-react';
+import { renderToString } from 'react-dom/server';
 
 interface DeviceLocation {
   id: string;
@@ -24,6 +25,22 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
   const map = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
+  // Get Lucide icon for device type
+  const getDeviceIcon = (deviceType: string) => {
+    switch (deviceType?.toLowerCase()) {
+      case 'smartphone':
+        return Smartphone;
+      case 'tablet':
+        return Tablet;
+      case 'laptop':
+        return Laptop;
+      case 'desktop':
+        return Monitor;
+      default:
+        return Smartphone;
+    }
+  };
+
   // Get device icon color based on status
   const getDeviceColor = (deviceType: string, isCurrent: boolean, sessionStatus?: string) => {
     // Status-based colors (priority over device type)
@@ -39,32 +56,6 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
       case 'desktop': return '#fbbf24'; // yellow
       default: return '#f43f5e'; // red
     }
-  };
-
-  // Mock geocoding function (replace with real API in production)
-  const geocodeLocation = (location?: string): { lat: number; lng: number } => {
-    // For demo purposes, return random coordinates
-    // In production, use a real geocoding API
-    const cities = {
-      'New York': { lat: 40.7128, lng: -74.0060 },
-      'London': { lat: 51.5074, lng: -0.1278 },
-      'Tokyo': { lat: 35.6762, lng: 139.6503 },
-      'Paris': { lat: 48.8566, lng: 2.3522 },
-      'Sydney': { lat: -33.8688, lng: 151.2093 },
-      'Unknown location': { lat: 0, lng: 0 }
-    };
-
-    if (location) {
-      for (const [city, coords] of Object.entries(cities)) {
-        if (location.includes(city)) return coords;
-      }
-    }
-    
-    // Random location if not found
-    return {
-      lat: (Math.random() - 0.5) * 160,
-      lng: (Math.random() - 0.5) * 360
-    };
   };
 
   useEffect(() => {
@@ -98,84 +89,64 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
     existingMarkers.forEach(marker => marker.remove());
 
     const bounds = new maplibregl.LngLatBounds();
-    let added = 0;
+    let validDevices = 0;
+    const totalDevices = devices.length;
 
     devices.forEach(device => {
       const hasCoords = typeof device.latitude === 'number' && typeof device.longitude === 'number';
-      const coords = hasCoords ? { lat: device.latitude as number, lng: device.longitude as number } : geocodeLocation(device.location);
+      const coords = hasCoords ? { lat: device.latitude as number, lng: device.longitude as number } : null;
 
-      if (
-        coords == null ||
-        Number.isNaN(coords.lat) || Number.isNaN(coords.lng) ||
-        (coords.lat === 0 && coords.lng === 0)
-      ) {
-        return; // Skip invalid/unknown locations
+      // Skip devices without valid coordinates
+      if (!coords || Number.isNaN(coords.lat) || Number.isNaN(coords.lng)) {
+        return;
       }
 
-      // Create custom marker element
+      validDevices++;
+
+      // Get Lucide icon component
+      const IconComponent = getDeviceIcon(device.device_type);
+      const color = getDeviceColor(device.device_type, device.is_current, device.session_status);
+
+      // Create custom marker element with Lucide icon
       const el = document.createElement('div');
       el.className = 'device-marker';
-      const markerColor = getDeviceColor(device.device_type, device.is_current, device.session_status);
-      el.style.cssText = `
-        width: 32px;
-        height: 32px;
-        background-color: ${markerColor};
-        border: 3px solid white;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.2s, box-shadow 0.2s;
-        ${device.session_status === 'active' || device.is_current ? 'animation: pulse-glow 2s infinite;' : ''}
+
+      // Render Lucide icon to HTML string
+      const iconHtml = renderToString(
+        <IconComponent size={24} color="white" strokeWidth={2} />
+      );
+
+      el.innerHTML = `
+        <div style="
+          width: 48px;
+          height: 48px;
+          background: ${color};
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+          border: 3px solid ${device.is_current ? '#fff' : 'transparent'};
+        ">
+          ${iconHtml}
+        </div>
       `;
-
-      // Add device icon
-      const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      iconSvg.setAttribute('width', '16');
-      iconSvg.setAttribute('height', '16');
-      iconSvg.setAttribute('viewBox', '0 0 24 24');
-      iconSvg.setAttribute('fill', 'white');
-      iconSvg.setAttribute('stroke', 'white');
-      iconSvg.setAttribute('stroke-width', '2');
-
-      let iconPath = '';
-      switch (device.device_type) {
-        case 'smartphone':
-          iconPath = 'M17 2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z';
-          break;
-        case 'tablet':
-          iconPath = 'M21 4H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H3V6h18v12z';
-          break;
-        case 'laptop':
-          iconPath = 'M20 18v-1c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2v1H0v2h24v-2h-4zM4 5h16v10H4V5z';
-          break;
-        default:
-          iconPath = 'M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h3l-1 1v2h12v-2l-1-1h3c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z';
-      }
-
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', iconPath);
-      iconSvg.appendChild(path);
-      el.appendChild(iconSvg);
-
-      // Hover effect
+      
       el.addEventListener('mouseenter', () => {
         el.style.transform = 'scale(1.2)';
-        el.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
       });
+      
       el.addEventListener('mouseleave', () => {
         el.style.transform = 'scale(1)';
-        el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
       });
 
-      // Click event
-      el.addEventListener('click', () => {
-        if (onDeviceClick) {
+      if (onDeviceClick) {
+        el.addEventListener('click', () => {
           onDeviceClick(device.id);
-        }
-      });
+        });
+      }
 
       // Create popup with status indicator
       const statusColor = device.session_status === 'active' || device.is_current ? '#10b981' : 
@@ -200,27 +171,42 @@ const DeviceMapView: React.FC<DeviceMapViewProps> = ({ devices, onDeviceClick })
         .addTo(map.current!);
 
       bounds.extend([coords.lng, coords.lat]);
-      added += 1;
     });
 
     // Fit map to show all markers
-    if (added > 0) {
-      map.current.fitBounds(bounds, { padding: 50, maxZoom: 5 });
-    } else {
-      // Reset to default
-      map.current.setCenter([0, 20]);
-      map.current.setZoom(1.5);
+    if (validDevices > 0 && map.current) {
+      map.current.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 8
+      });
     }
+
+    // Log info for debugging
+    console.log(`📍 Showing ${validDevices} of ${totalDevices} devices on map`);
   }, [devices, mapLoaded, onDeviceClick]);
 
+  const devicesWithCoords = devices.filter(d => 
+    typeof d.latitude === 'number' && typeof d.longitude === 'number' &&
+    !Number.isNaN(d.latitude) && !Number.isNaN(d.longitude)
+  );
+
+  if (devices.length === 0) {
+    return (
+      <div className="h-[400px] flex items-center justify-center bg-muted/20 rounded-lg">
+        <p className="text-muted-foreground">No devices registered</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative w-full h-[400px] rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-      <div ref={mapContainer} className="absolute inset-0" />
-      {devices.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-          <p className="text-gray-500 text-sm">No device locations to display</p>
+    <div className="space-y-2">
+      {devicesWithCoords.length < devices.length && (
+        <div className="text-sm text-muted-foreground text-center py-2 px-4 bg-muted/30 rounded-md">
+          Showing {devicesWithCoords.length} of {devices.length} devices on map
+          {devicesWithCoords.length === 0 && ' (location data being collected)'}
         </div>
       )}
+      <div ref={mapContainer} className="w-full h-[400px] rounded-lg border border-border" />
     </div>
   );
 };
