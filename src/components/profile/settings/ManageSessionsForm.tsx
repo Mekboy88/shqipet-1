@@ -204,8 +204,16 @@ const ManageSessionsForm: React.FC = () => {
     // Find the device to check if it's the current one
     const deviceToRemove = trustedDevices.find(d => d.id === deviceId);
     
-    // Block if trying to remove current device (by stable ID)
-    if (deviceToRemove && deviceToRemove.device_stable_id === currentStableId) {
+    if (!deviceToRemove) {
+      toast.error('Device not found');
+      return;
+    }
+
+    const sessionCount = deviceToRemove.session_count || 1;
+    const allStableIds = deviceToRemove.all_stable_ids || [];
+    
+    // Block if trying to remove current device (by any of its stable IDs)
+    if (allStableIds.includes(currentStableId || '')) {
       toast.error('Cannot remove your current device. Please use the logout button instead.');
       return;
     }
@@ -217,6 +225,17 @@ const ManageSessionsForm: React.FC = () => {
         toast.success('Logging out current session...');
         await signOut();
         return;
+      }
+      
+      // Show confirmation for multiple sessions
+      if (sessionCount > 1) {
+        const confirmed = window.confirm(
+          `This will log out ${sessionCount} active sessions on this device. Continue?`
+        );
+        if (!confirmed) {
+          setRemovingDeviceId(null);
+          return;
+        }
       }
       
       await removeDevice(deviceId);
@@ -546,11 +565,28 @@ Last Error: ${lastRegError || 'None'}`;
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 mb-2">
-                          {getBrowserIcon(device.browser_info)}
-                          <p className="text-sm text-muted-foreground">
-                            {device.browser_info || 'Unknown Browser'}
-                          </p>
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          {/* Show multiple browser badges or single browser */}
+                          {device.all_browsers && device.all_browsers.length > 1 ? (
+                            <>
+                              <span className="text-xs text-muted-foreground font-medium">
+                                {device.session_count} session{device.session_count !== 1 ? 's' : ''}:
+                              </span>
+                              {device.all_browsers.map((browser, idx) => (
+                                <div key={idx} className="flex items-center gap-1 bg-accent/50 px-2 py-0.5 rounded-md">
+                                  {getBrowserIcon(browser)}
+                                  <span className="text-xs text-muted-foreground">{browser}</span>
+                                </div>
+                              ))}
+                            </>
+                          ) : (
+                            <>
+                              {getBrowserIcon(device.browser_info)}
+                              <p className="text-sm text-muted-foreground">
+                                {device.browser_info || 'Unknown Browser'}
+                              </p>
+                            </>
+                          )}
                           <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
                             {device.operating_system || 'Unknown OS'}
                           </span>
