@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { detectFromUserAgent } from '@/utils/deviceType';
+import { deviceSessionService } from '@/services/sessions/DeviceSessionService';
 
 interface DeviceFingerprint {
   userAgent: string;
@@ -447,11 +448,11 @@ export const useDeviceSession = () => {
       // Ensure profile exists first
       await ensureUserProfile();
 
-      // Re-register current device first
-      const sessionId = await registerCurrentDevice();
+      // Re-register current device via global service to ensure this device is up to date
+      const sessionId = user ? await deviceSessionService.registerOrUpdateCurrentDevice(user.id) : null;
       if (sessionId) {
         setCurrentDeviceId(sessionId);
-        console.log('✅ Current device re-registered:', sessionId);
+        console.log('✅ Current device re-registered (global service):', sessionId);
       }
       
       // Then load all devices
@@ -496,16 +497,7 @@ export const useDeviceSession = () => {
           console.warn('⚠️ Could not ensure user profile exists; continuing and relying on existing state.');
         }
 
-        // Step 1: Register current device
-        const sessionId = await registerCurrentDevice();
-        if (sessionId) {
-          setCurrentDeviceId(sessionId);
-          console.log('✅ Device registered with ID:', sessionId);
-        } else {
-          console.log('⚠️ Device registration failed, continuing with load...');
-        }
-        
-        // Step 2: Load all devices (including the one just registered)
+        // Step 1: Load all devices (registration handled globally by SessionBootstrapper)
         await loadTrustedDevices();
       } catch (error) {
         console.error('❌ Initialization failed:', error);
