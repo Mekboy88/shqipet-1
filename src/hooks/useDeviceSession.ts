@@ -227,12 +227,15 @@ export const useDeviceSession = () => {
         }
 
         // CRITICAL: Group by PHYSICAL device (not browser)
-        // Physical key = screen + platform + timezone (NO browser/userAgent)
+        // Physical key = screen + OS + device_type (from DATABASE only, NO current navigator)
         const createPhysicalKey = (session: any): string => {
-          const screen = session.screen_resolution || 'unknown';
-          const tz = session.hardware_info?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-          const platform = session.hardware_info?.platform || navigator.platform;
-          return `${screen}|${tz}|${platform}`.toLowerCase();
+          // Use ONLY stored database values - NEVER current browser values
+          const screen = session.screen_resolution || 'no-screen';
+          const os = (session.operating_system || 'unknown-os').toLowerCase();
+          const deviceType = (session.device_type || 'unknown').toLowerCase();
+          // For more precise grouping, include platform_type (web/ios/android)
+          const platformType = (session.platform_type || 'web').toLowerCase();
+          return `${screen}|${os}|${deviceType}|${platformType}`.toLowerCase();
         };
 
         // Group all sessions by physical device
@@ -273,7 +276,14 @@ export const useDeviceSession = () => {
         });
 
         console.log(`📱 Grouped ${sessions.length} sessions into ${dedupedSessions.length} physical devices`);
-        console.log('📱 All sessions (backend deduplicated):', dedupedSessions.length);
+        console.log('📱 Physical device breakdown:', dedupedSessions.map(d => ({
+          device: d.device_name,
+          type: d.device_type,
+          platform: d.platform_type,
+          browsers: d.all_browsers,
+          sessionCount: d.session_count,
+          screen: d.screen_resolution,
+        })));
 
         // Get current stable ID
         const currentStableIdValue = await deviceSessionService.getStableDeviceId();
