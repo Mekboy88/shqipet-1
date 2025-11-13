@@ -254,8 +254,8 @@ Trusted: ${device.is_trusted ? 'Yes' : 'No'}
               {device.ip_address && (
                 <div className="flex items-center justify-between pt-2 border-t border-border">
                   <div className="flex items-center gap-2">
-                    <Globe size={14} className="text-muted-foreground" />
-                    <span className="text-sm font-mono text-foreground">{device.ip_address}</span>
+                    <span className="text-sm font-bold text-foreground">IP:</span>
+                    <span className="text-sm font-mono font-semibold text-foreground">{device.ip_address}</span>
                   </div>
                   <Button
                     size="sm"
