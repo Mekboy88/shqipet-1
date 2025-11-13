@@ -409,6 +409,7 @@ class DeviceSessionService {
         cpu: navigator.hardwareConcurrency || 'Unknown',
         memory: (navigator as any).deviceMemory || 'Unknown',
         platform: navigator.platform,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
 
       // UPSERT: Insert or update based on unique constraint (user_id, device_stable_id)

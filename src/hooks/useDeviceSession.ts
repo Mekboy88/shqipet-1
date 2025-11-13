@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { detectFromUserAgent } from '@/utils/deviceType';
 import { deviceSessionService } from '@/services/sessions/DeviceSessionService';
+import { immediateLogoutService } from '@/utils/auth/immediateLogoutService';
 import { UAParser } from 'ua-parser-js';
 
 interface DeviceFingerprint {
@@ -46,6 +47,12 @@ interface TrustedDevice {
   mfa_enabled?: boolean;
   security_alerts?: any[];
   session_status?: 'active' | 'logged_in' | 'inactive';
+  // Physical device grouping
+  physical_key?: string;
+  all_browsers?: string[];
+  all_session_ids?: string[];
+  all_stable_ids?: string[];
+  session_count?: number;
 }
 
 export const useDeviceSession = () => {
@@ -219,29 +226,53 @@ export const useDeviceSession = () => {
           return;
         }
 
-        // CRITICAL: Deduplicate by device_stable_id to show ONE card per physical device
-        // Group all sessions by device_stable_id and keep only the most recent one
-        const deviceMap = new Map<string, any>();
+        // CRITICAL: Group by PHYSICAL device (not browser)
+        // Physical key = screen + platform + timezone (NO browser/userAgent)
+        const createPhysicalKey = (session: any): string => {
+          const screen = session.screen_resolution || 'unknown';
+          const tz = session.hardware_info?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const platform = session.hardware_info?.platform || navigator.platform;
+          return `${screen}|${tz}|${platform}`.toLowerCase();
+        };
+
+        // Group all sessions by physical device
+        const physicalDeviceMap = new Map<string, any[]>();
         
         sessions.forEach(session => {
-          // CRITICAL: Use ONLY device_stable_id (no fallback to fingerprint)
-          const stableId = session.device_stable_id;
-          
-          // Skip sessions without stable ID (data corruption case)
-          if (!stableId) {
-            console.warn('⚠️ Session missing stable ID, skipping:', session.id);
-            return;
+          const physicalKey = createPhysicalKey(session);
+          if (!physicalDeviceMap.has(physicalKey)) {
+            physicalDeviceMap.set(physicalKey, []);
           }
-          
-          const existing = deviceMap.get(stableId);
-          
-          if (!existing || new Date(session.last_activity || session.updated_at) > new Date(existing.last_activity || existing.updated_at)) {
-            deviceMap.set(stableId, session);
-          }
+          physicalDeviceMap.get(physicalKey)!.push(session);
         });
-        
-        const dedupedSessions = Array.from(deviceMap.values());
-        console.log(`📱 Deduplicated from ${sessions.length} sessions to ${dedupedSessions.length} unique devices`);
+
+        // For each physical device, create a merged session showing all browsers
+        const dedupedSessions = Array.from(physicalDeviceMap.entries()).map(([physicalKey, deviceSessions]) => {
+          // Sort by most recent activity
+          deviceSessions.sort((a, b) => 
+            new Date(b.last_activity || b.updated_at).getTime() - 
+            new Date(a.last_activity || a.updated_at).getTime()
+          );
+
+          // Use most recent session as base, but collect all browsers
+          const primarySession = deviceSessions[0];
+          const allBrowsers = [...new Set(deviceSessions.map(s => s.browser_info).filter(Boolean))];
+          const allSessionIds = deviceSessions.map(s => s.id);
+          const allStableIds = deviceSessions.map(s => s.device_stable_id).filter(Boolean);
+          const isAnyActive = deviceSessions.some(s => s.is_active === true);
+
+          return {
+            ...primarySession,
+            physical_key: physicalKey,
+            all_browsers: allBrowsers,
+            all_session_ids: allSessionIds,
+            all_stable_ids: allStableIds,
+            session_count: deviceSessions.length,
+            is_active: isAnyActive,
+          };
+        });
+
+        console.log(`📱 Grouped ${sessions.length} sessions into ${dedupedSessions.length} physical devices`);
         console.log('📱 All sessions (backend deduplicated):', dedupedSessions.length);
 
         // Get current stable ID
@@ -250,22 +281,22 @@ export const useDeviceSession = () => {
         console.log('🔑 Current stable ID:', currentStableIdValue);
 
         const transformedDevices: TrustedDevice[] = (await Promise.all(dedupedSessions.map(async (session: any) => {
-          // CRITICAL: Match by stable ID ONLY (no fallback)
-          const sessionStableId = session.device_stable_id;
-          
-          // Skip sessions without stable ID (safety check)
-          if (!sessionStableId) {
-            console.warn('⚠️ Skipping session without stable ID:', session.id);
-            return null;
-          }
-          
-          const isCurrentDevice = sessionStableId === currentStableIdValue;
+          // Check if this physical device includes the current browser session
+          const allStableIds = session.all_stable_ids || [];
+          const isCurrentDevice = allStableIds.includes(currentStableIdValue);
 
-          // Prefer stored database values, only re-detect if UA exists
+          // Prefer stored database values
           let deviceName = session.device_name || 'Unknown Device';
           let deviceType = session.device_type || 'unknown';
           let browserInfo = session.browser_info || '';
           let operatingSystem = session.operating_system || '';
+
+          // Show combined browser info if multiple browsers
+          if (session.all_browsers && session.all_browsers.length > 1) {
+            browserInfo = `${session.all_browsers.length} browsers`;
+          } else if (session.all_browsers && session.all_browsers.length === 1) {
+            browserInfo = session.all_browsers[0];
+          }
 
           // CRITICAL: Do NOT fallback to navigator.userAgent - this makes all devices appear as current device
           const uaString = session.user_agent;
@@ -342,7 +373,13 @@ export const useDeviceSession = () => {
             latitude: session.latitude,
             longitude: session.longitude,
             platform_type: session.platform_type,
-            session_status: session.session_status
+            session_status: session.session_status,
+            // Physical device grouping
+            physical_key: session.physical_key,
+            all_browsers: session.all_browsers || [],
+            all_session_ids: session.all_session_ids || [],
+            all_stable_ids: session.all_stable_ids || [],
+            session_count: session.session_count || 1,
           };
         }))).filter(Boolean) as TrustedDevice[]; // Remove nulls from skipped sessions
 
@@ -397,22 +434,48 @@ export const useDeviceSession = () => {
     }
   }, [user, loadTrustedDevices]);
 
-  // Remove device with instant logout enforcement
+  // Remove device with instant logout enforcement (ALL sessions for this physical device)
   const removeDevice = useCallback(async (deviceId: string) => {
     if (!user) return;
 
+    const deviceToRemove = trustedDevices.find(d => d.id === deviceId);
+    if (!deviceToRemove) {
+      toast.error('Device not found');
+      return;
+    }
+
     try {
+      console.log('🚪 Logging out physical device:', deviceToRemove.device_name);
+      console.log('🗑️ Will end ALL sessions:', deviceToRemove.all_session_ids);
+
       // Mark that we're intentionally logging out (to prevent self-logout)
       isLoggingOutRef.current = true;
       
+      // Mark ALL sessions for this physical device as inactive
+      const sessionIdsToRemove = deviceToRemove.all_session_ids || [deviceId];
+      
       const { error } = await supabase
         .from('user_sessions')
-        .update({ is_active: false })
-        .eq('id', deviceId);
+        .update({ 
+          is_active: false, 
+          session_status: 'inactive' 
+        })
+        .in('id', sessionIdsToRemove);
 
       if (!error) {
+        console.log(`✅ Logged out ${sessionIdsToRemove.length} session(s) for this device`);
+        
+        // Check if we just logged out the current device
+        const currentStableIds = deviceToRemove.all_stable_ids || [];
+        if (currentStableIds.includes(currentStableId || '')) {
+          toast.success('Current device logged out - redirecting...');
+          await immediateLogoutService.performImmediateLogout();
+          window.location.href = '/login';
+          return;
+        }
+
         await loadTrustedDevices();
-        toast.success('Device removed successfully');
+        toast.success(`Device logged out (${sessionIdsToRemove.length} session(s) ended)`);
       }
       
       // Reset logout flag after a delay
@@ -424,7 +487,7 @@ export const useDeviceSession = () => {
       toast.error('Failed to remove device');
       isLoggingOutRef.current = false;
     }
-  }, [user, loadTrustedDevices]);
+  }, [user, trustedDevices, currentStableId, loadTrustedDevices]);
 
   // Logout all other devices (bulk update)
   const logoutAllOtherDevices = useCallback(async () => {
