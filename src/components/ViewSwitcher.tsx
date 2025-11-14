@@ -133,17 +133,27 @@ const ViewSwitcher: React.FC = () => {
         maxTouchPoints: navigator.maxTouchPoints
       });
       
-      // Force redirect to mobile if requested
+      // Force mobile override param on primary (ignored in single-domain mode)
       if (forceMobile && isPrimaryDomain(hostname)) {
+        console.log('⚡ forceMobile=1 detected, staying on primary domain (single-domain mode)');
+        sessionStorage.setItem('mobileRedirectChecked', '1');
+        return;
+      }
+
+      // Consolidate on primary domain: if on m.shqipet.com, send to shqipet.com with mobile preference
+      if (isMobileSubdomain(hostname)) {
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
-        const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
-        console.log('⚡ Force redirect to mobile:', targetUrl);
+        const url = new URL(buildUrlFor(PRIMARY_DOMAINS[0]));
+        url.searchParams.set('forceMobile', '1');
+        url.searchParams.set('clearPrefersDesktop', '1');
+        const targetUrl = url.toString();
+        console.log('🏁 Consolidating to primary domain with mobile preference:', targetUrl);
         window.location.replace(targetUrl);
         return;
       }
 
-      // Mobile/Tablet on primary domain → redirect to m.shqipet.com (but NEVER for real desktop browsers or if user prefers desktop)
+      // Mobile/Tablet on primary domain → stay on shqipet.com using responsive layout (no subdomain redirect)
       if ((isRealMobile || isRealTablet) && !isDesktopBrowser && isPrimaryDomain(hostname)) {
         // Honor user preference for desktop view
         if (prefersDesktop) {
@@ -152,29 +162,8 @@ const ViewSwitcher: React.FC = () => {
           return;
         }
         
+        console.log('📱 Staying on primary domain with mobile layout. No redirect.');
         sessionStorage.setItem('mobileRedirectChecked', '1');
-        setIsRedirecting(true);
-        const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
-        console.log('📱 Redirecting mobile/tablet user to:', targetUrl);
-        
-        // Log redirect to database if user is authenticated
-        supabase.auth.getUser().then(({ data: { user } }) => {
-          if (user) {
-            supabase.from('profiles').update({
-              last_device: isRealMobile ? 'mobile' : 'tablet',
-              last_redirect_host: MOBILE_SUBDOMAIN,
-              last_redirect_at: new Date().toISOString()
-            }).eq('id', user.id).then(() => {
-              window.location.replace(targetUrl);
-            }).catch(() => {
-              window.location.replace(targetUrl);
-            });
-          } else {
-            window.location.replace(targetUrl);
-          }
-        }).catch(() => {
-          window.location.replace(targetUrl);
-        });
         return;
       }
       
