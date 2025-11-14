@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions."regenerate-avatars"]
 verify_jwt = false
+
+[functions."manage-session"]
+verify_jwt = true

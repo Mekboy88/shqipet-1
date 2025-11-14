@@ -51,10 +51,18 @@ Deno.serve(async (req) => {
     );
 
     // Verify user is authenticated
+    const authHeader = req.headers.get('Authorization') || '';
+    const jwt = authHeader.replace('Bearer ', '').trim();
+    if (!jwt) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const {
       data: { user },
       error: authError,
-    } = await supabaseClient.auth.getUser();
+    } = await supabaseClient.auth.getUser(jwt);
 
     if (authError || !user) {
       console.error('Authentication error:', authError);
