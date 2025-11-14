@@ -225,8 +225,9 @@ export const useDeviceSession = () => {
           return;
         }
 
-        // CRITICAL: Group by PHYSICAL device using stored physical_key ONLY (stable across resolution/OS patch)
-        const createPhysicalKey = (session: any): string => {
+        // Group primarily by stable ID to guarantee 1 card per actual device; fallback to physical_key
+        const createGroupKey = (session: any): string => {
+          if (session.device_stable_id) return `stable:${session.device_stable_id}`;
           const storedKey = session.physical_key;
           if (storedKey && typeof storedKey === 'string') {
             const key = storedKey.toLowerCase();
@@ -257,7 +258,7 @@ export const useDeviceSession = () => {
         const physicalDeviceMap = new Map<string, any[]>();
         
         sessions.forEach(session => {
-          const physicalKey = createPhysicalKey(session);
+          const physicalKey = createGroupKey(session);
           if (!physicalDeviceMap.has(physicalKey)) {
             physicalDeviceMap.set(physicalKey, []);
           }
