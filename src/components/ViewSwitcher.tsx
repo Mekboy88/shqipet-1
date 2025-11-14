@@ -300,12 +300,12 @@ const ViewSwitcher: React.FC = () => {
 
   // Determine layout type based on real device + window size
   const getLayoutType = () => {
-    // Desktop browsers: choose between laptop/desktop based on screen size
+    // Desktop browsers: robust detection (avoid classifying Android/iPad as desktop)
     const userAgent = navigator.userAgent.toLowerCase();
-    const isDesktopBrowser = userAgent.includes('macintosh') || 
-                            userAgent.includes('windows') || 
-                            userAgent.includes('linux') ||
-                            (userAgent.includes('safari') && !userAgent.includes('mobile'));
+    const isMacDesktop = (userAgent.includes('macintosh') || userAgent.includes('mac os x')) && (navigator.maxTouchPoints || 0) < 2;
+    const isWindowsDesktop = userAgent.includes('windows nt');
+    const isLinuxDesktop = userAgent.includes('linux') && !userAgent.includes('android');
+    const isDesktopBrowser = isMacDesktop || isWindowsDesktop || isLinuxDesktop || (userAgent.includes('safari') && !userAgent.includes('mobile'));
     
     if (isDesktopBrowser) {
       // Desktop browsers: laptop or desktop based on width
