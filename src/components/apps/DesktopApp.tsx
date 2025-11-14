@@ -13,7 +13,6 @@ import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import Verification from "@/pages/auth/Verification";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
-import CookiesConsent from "@/pages/auth/CookiesConsent";
 import Welcome from "@/pages/Welcome";
 import NotFound from "@/pages/NotFound";
 import Photos from "@/pages/Photos";
@@ -134,7 +133,6 @@ const DesktopApp: React.FC = () => {
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
           <Route path="/auth/verification" element={<Verification />} />
-          <Route path="/auth/cookies-consent" element={<CookiesConsent />} /> 
           <Route path="/auth/forgot-password" element={<ForgotPassword />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/admin/login" element={<AdminLogin />} />

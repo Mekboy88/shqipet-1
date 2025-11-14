@@ -54,8 +54,9 @@ const EmailRegistrationFlow = ({ email, firstName, lastName, onBack }: EmailRegi
         localStorage.removeItem('verificationEmail');
         localStorage.removeItem('verificationType');
         localStorage.removeItem('tempEmailUserData');
-        // Go to cookies
-        navigate('/auth/cookies-consent');
+        localStorage.removeItem('isNewUser');
+        // Go directly to home
+        navigate('/');
       } else {
         toast.error(result.error || 'Kodi i verifikimit është i gabuar');
       }

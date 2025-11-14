@@ -157,9 +157,10 @@ export const useVerificationForm = () => {
           localStorage.removeItem('verificationPhone');
           localStorage.removeItem('verificationType');
           localStorage.removeItem('tempUserData');
+          localStorage.removeItem('isNewUser');
           
           setTimeout(() => {
-            navigate('/auth/cookies-consent');
+            navigate('/');
           }, 1000);
         } else {
           toast.error(result.error || 'Invalid verification code');
