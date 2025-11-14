@@ -118,6 +118,14 @@ export const useSessionManagement = () => {
         throw new Error('Not authenticated');
       }
 
+      // 5C: Auto-revoke expired sessions before fetching
+      try {
+        await supabase.rpc('revoke_expired_sessions');
+      } catch (revokeError) {
+        console.warn('Failed to auto-revoke expired sessions:', revokeError);
+      }
+
+      // 5B: Fetch only real data from database (no demo/fake data)
       const { data, error } = await supabase
         .from('user_sessions')
         .select('*')
@@ -126,13 +134,14 @@ export const useSessionManagement = () => {
 
       if (error) throw error;
 
+      // 5B: Only show real sessions - empty array if none exist
       setState((prev) => ({
         ...prev,
         sessions: data || [],
         loading: false,
       }));
 
-      console.log('Fetched sessions:', data?.length || 0);
+      console.log('Fetched real sessions:', data?.length || 0);
     } catch (error) {
       console.error('Failed to fetch sessions:', error);
       setState((prev) => ({
@@ -285,6 +294,14 @@ export const useSessionManagement = () => {
         console.log('User not authenticated, skipping session management');
         setState((prev) => ({ ...prev, loading: false }));
         return;
+      }
+
+      // 5C: Auto-revoke expired sessions on initialization
+      try {
+        await supabase.rpc('revoke_expired_sessions');
+        console.log('Expired sessions revoked on initialization');
+      } catch (error) {
+        console.warn('Failed to auto-revoke expired sessions:', error);
       }
 
       await registerCurrentDevice();
