@@ -38,10 +38,18 @@ export const isAdminPath = (pathname: string) => {
 
 export const shouldRedirectToPrimary = () => {
   const hostname = window?.location?.hostname;
-  // Redirect www.shqipet.com to shqipet.com
+  const { pathname, search, hash } = window.location;
+  
+  // Redirect www.shqipet.com to shqipet.com (301 permanent)
   if (hostname === 'www.shqipet.com') {
-    return `https://shqipet.com${window.location.pathname}${window.location.search}`;
+    return `https://shqipet.com${pathname}${search}${hash}`;
   }
+  
+  // Redirect m.shqipet.com to shqipet.com (301 permanent)
+  if (hostname === 'm.shqipet.com') {
+    return `https://shqipet.com${pathname}${search}${hash}`;
+  }
+  
   return null;
 };
 
