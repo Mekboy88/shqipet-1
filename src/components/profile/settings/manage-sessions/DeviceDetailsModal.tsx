@@ -49,10 +49,10 @@ export const DeviceDetailsModal = ({
     return 'text-red-500';
   };
 
-  const getLastActiveText = () => {
-    if (!session.last_activity) return 'Unknown';
+  const getLoggedInText = () => {
+    if (!session.created_at) return 'Unknown';
     try {
-      return formatDistanceToNow(new Date(session.last_activity), { addSuffix: true });
+      return formatDistanceToNow(new Date(session.created_at), { addSuffix: true });
     } catch (e) {
       return 'Unknown';
     }
@@ -225,8 +225,8 @@ export const DeviceDetailsModal = ({
                     <span className="font-medium">{session.session_status || 'Active'}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block mb-0.5">Last Active:</span>
-                    <span className="font-medium">{getLastActiveText()}</span>
+                    <span className="text-muted-foreground block mb-0.5">Logged in:</span>
+                    <span className="font-medium">{getLoggedInText()}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground block mb-0.5">Created:</span>
