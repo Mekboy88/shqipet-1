@@ -54,7 +54,7 @@ const ManageSessionsForm: React.FC = () => {
     logoutAllOtherDevices
   } = useDeviceSession();
 
-  // Collect diagnostics when this page is opened (registration handled globally by SessionBootstrapper)
+  // Collect diagnostics only - registration handled globally by SessionBootstrapper
   useEffect(() => {
     if (!user?.id) return;
     
@@ -79,6 +79,21 @@ const ManageSessionsForm: React.FC = () => {
       }
     })();
   }, [user?.id]);
+
+  const handleUpdateCurrentDevice = async () => {
+    if (!user?.id) return;
+    setForceRegistering(true);
+    try {
+      await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+      await refreshDevices();
+      toast.success('Current device info updated');
+    } catch (e: any) {
+      console.error('❌ Failed to update current device:', e);
+      toast.error('Failed to update device info');
+    } finally {
+      setForceRegistering(false);
+    }
+  };
 
   const getDeviceIcon = (deviceType: string, isActive: boolean = false) => {
     // Dynamic color based on activity

@@ -226,17 +226,15 @@ export const useDeviceSession = () => {
           return;
         }
 
-        // CRITICAL: Group by PHYSICAL device (not browser)
-        // Prefer stored physical_key from DB; fallback if missing
+        // CRITICAL: Group by PHYSICAL device using stored physical_key ONLY
         const createPhysicalKey = (session: any): string => {
           const storedKey = session.physical_key;
           if (storedKey && typeof storedKey === 'string') return storedKey.toLowerCase();
-          // Fallback: build from stored DB fields ONLY
+          // Fallback for legacy sessions without physical_key (will be updated on next register)
           const screen = session.screen_resolution || 'no-screen';
           const os = (session.operating_system || 'unknown-os').toLowerCase();
           const deviceType = (session.device_type || 'unknown').toLowerCase();
-          const platformType = (session.platform_type || 'web').toLowerCase();
-          return `${screen}|${os}|${deviceType}|${platformType}`.toLowerCase();
+          return `${deviceType}|${os}|${screen}`.toLowerCase();
         };
 
         // Debug logging - what sessions do we have?
@@ -344,10 +342,7 @@ export const useDeviceSession = () => {
             deviceType = 'mobile';
           }
 
-          // Display strictly from DB values; no UA-based overrides for current device
-          // (Removed browser-detection override to prevent misclassification)
-
-          // Final fallbacks
+          // Display STRICTLY from DB values - NO UA-based overrides
           browserInfo = browserInfo || 'Unknown Browser';
           operatingSystem = operatingSystem || 'Unknown OS';
 
