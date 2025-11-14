@@ -74,9 +74,8 @@ export const DeviceDetailsModal = ({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="relative w-[96vw] max-w-none h-[85vh] p-0 overflow-hidden">
-        <div className="flex h-full flex-col">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="w-[96vw] max-w-none h-[88vh] p-0 overflow-hidden">
         {/* Header */}
         <DialogHeader className="p-4 pb-3 border-b">
           <div className="flex items-center justify-between">
@@ -106,7 +105,7 @@ export const DeviceDetailsModal = ({
         </DialogHeader>
 
         {/* Content - Two columns layout */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex h-[calc(100%-116px)] overflow-hidden">
           {/* Left Column - Device Details */}
           <div className="flex-1 px-4 py-3 overflow-y-auto space-y-3">
             {/* Device Information */}
@@ -286,37 +285,34 @@ export const DeviceDetailsModal = ({
           </div>
         </div>
 
-        {/* Action Buttons (overlay, no extra white space) */}
-        <div className="pointer-events-none">
-          <div className="absolute inset-x-3 bottom-3 flex gap-2 pointer-events-auto">
-            {!session.is_trusted && (
-              <Button
-                onClick={() => onTrustDevice(session.device_stable_id)}
-                variant="default"
-                size="sm"
-              >
-                <Shield size={14} className="mr-1.5" />
-                Trust Device
-              </Button>
-            )}
-            {!isCurrentDevice && (
-              <Button
-                onClick={() => {
-                  onRevokeSession(session.device_stable_id);
-                  onClose();
-                }}
-                variant="destructive"
-                size="sm"
-              >
-                <AlertTriangle size={14} className="mr-1.5" />
-                Revoke Session
-              </Button>
-            )}
-            <Button onClick={onClose} variant="outline" size="sm" className="ml-auto">
-              Close
+        {/* Action Buttons */}
+        <div className="flex gap-2 border-t p-3">
+          {!session.is_trusted && (
+            <Button
+              onClick={() => onTrustDevice(session.device_stable_id)}
+              variant="default"
+              size="sm"
+            >
+              <Shield size={14} className="mr-1.5" />
+              Trust Device
             </Button>
-          </div>
-        </div>
+          )}
+          {!isCurrentDevice && (
+            <Button
+              onClick={() => {
+                onRevokeSession(session.device_stable_id);
+                onClose();
+              }}
+              variant="destructive"
+              size="sm"
+            >
+              <AlertTriangle size={14} className="mr-1.5" />
+              Revoke Session
+            </Button>
+          )}
+          <Button onClick={onClose} variant="outline" size="sm" className="ml-auto">
+            Close
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

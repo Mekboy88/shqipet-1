@@ -43,7 +43,7 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
     if (currentSection === 'profile') {
       return (
         <div className="flex-1 flex flex-col h-full overflow-hidden">
-          <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 h-full">
+          <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)]">
             <ProfileSettingsSkeleton />
           </div>
         </div>
@@ -51,7 +51,7 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
     }
     return (
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 h-full">
+        <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)]">
           <SettingsSkeleton />
         </div>
       </div>
@@ -60,14 +60,14 @@ const ProfileSettingsContent: React.FC<ProfileSettingsContentProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden pointer-events-auto isolate">
-      <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 h-full">
+      <div className="flex-1 p-4 lg:p-6 overflow-y-auto border-l border-gray-200 lg:border-l-0 max-h-[calc(100vh-2rem)]">
         <ProfileSettingsHeader 
           activeSection={currentSection} 
           userInfo={userInfo}
           saving={currentSection === 'privacy' ? childSaving : saving}
         />
         
-        <div className="w-full pb-2">
+        <div className="w-full pb-8">
           {Component ? (
             <Component 
               userInfo={userInfo} 
