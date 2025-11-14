@@ -739,6 +739,55 @@ export const useDeviceSession = () => {
     };
   }, [user?.id]); // Only depend on user.id - no callback dependencies
 
+  // Instant UI refresh on local UPSERT completion (custom event fallback for realtime)
+  useEffect(() => {
+    const onLocalUpdated = (e: Event) => {
+      if (!user) return;
+      // Load without flicker
+      loadDevicesRef.current?.({ silent: true });
+    };
+    window.addEventListener('user-sessions:updated', onLocalUpdated as EventListener);
+    return () => {
+      window.removeEventListener('user-sessions:updated', onLocalUpdated as EventListener);
+    };
+  }, [user?.id]);
+
+  // Guarantee real-time, automatic reclassification on mount, visibility, and resize
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let resizeTimer: number | null = null;
+
+    const ensureCurrent = async () => {
+      try {
+        await deviceSessionService.registerOrUpdateCurrentDevice(user.id, { forceReclassify: true });
+      } catch (e) {
+        console.warn('⚠️ ensureCurrent reclassify failed', e);
+      }
+    };
+
+    // Run once immediately to correct any stale classification
+    ensureCurrent();
+
+    const onVis = () => {
+      if (document.visibilityState === 'visible') ensureCurrent();
+    };
+    const onResize = () => {
+      if (resizeTimer) window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(ensureCurrent, 400);
+    };
+
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('resize', onResize);
+      if (resizeTimer) window.clearTimeout(resizeTimer);
+    };
+  }, [user?.id]);
+
+
   // Real-time instant logout enforcement - monitors current device session
   useEffect(() => {
     if (!user || !currentDeviceId) {
