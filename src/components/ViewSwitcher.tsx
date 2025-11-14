@@ -52,7 +52,7 @@ const isPublicPage = (pathname: string): boolean => {
 };
 
 const ViewSwitcher: React.FC = () => {
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const isRedirecting = false;
 
   // Mobile redirect logic - runs synchronously before first paint
   React.useLayoutEffect(() => {
@@ -142,16 +142,10 @@ const ViewSwitcher: React.FC = () => {
 
       // Mobile/Tablet users on primary domain → redirect to mobile subdomain (unless they prefer desktop)
       if ((isRealMobile || isRealTablet) && !isDesktopBrowser && isPrimaryDomain(hostname)) {
-        // Honor user preference for desktop view
-        if (prefersDesktop) {
-          console.log('📱→💻 User prefers desktop view, staying on primary domain');
-          sessionStorage.setItem('mobileRedirectChecked', '1');
-          return;
-        }
         
         // Redirect to mobile subdomain
         sessionStorage.setItem('mobileRedirectChecked', '1');
-        setIsRedirecting(true);
+        
         const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
         console.log('📱 Redirecting mobile/tablet user to mobile subdomain:', targetUrl);
         window.location.replace(targetUrl);
@@ -161,7 +155,6 @@ const ViewSwitcher: React.FC = () => {
       // Desktop on mobile subdomain → redirect back to primary (instant, no DB lookup)
       if (isDesktopBrowser && isMobileSubdomain(hostname)) {
         sessionStorage.setItem('mobileRedirectChecked', '1');
-        setIsRedirecting(true);
         const targetUrl = buildUrlFor(PRIMARY_DOMAINS[0]);
         console.log('💻 Redirecting desktop user to primary domain:', targetUrl);
         window.location.replace(targetUrl);
@@ -177,13 +170,6 @@ const ViewSwitcher: React.FC = () => {
   }, []);
 
   // Show loading while redirecting
-  if (isRedirecting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <GlobeLoader size="lg" showText={true} />
-      </div>
-    );
-  }
 
   // Fallback device detection without hooks for initial render
   const getBasicDeviceInfo = () => {
