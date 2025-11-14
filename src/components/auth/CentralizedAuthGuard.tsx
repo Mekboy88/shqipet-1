@@ -36,9 +36,9 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     authContext = useAuth();
   } catch (error) {
     console.warn('CentralizedAuthGuard: Auth context not ready yet');
-    // On mobile, never show skeleton — go straight to login
+    // On mobile, never show skeleton — go straight to root
     if (isMobileUA) {
-      return <Navigate to="/auth/login" replace />;
+      return <Navigate to="/" replace />;
     }
     return <GlobalSkeleton />;
   }
@@ -101,13 +101,13 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
 if (loading && !forceRender) {
   console.log('⏳ CentralizedAuthGuard: Auth still loading', { path: location.pathname });
 
-  // If not on a public route, immediately navigate to login on mobile to prevent skeleton
+  // If not on a public route, immediately navigate to root on mobile to prevent skeleton
   if (!isPublicRoute && isMobileUA) {
     try {
       const fullPath = location.pathname + location.search + location.hash;
       sessionStorage.setItem('redirectAfterAuth', fullPath);
     } catch {}
-    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+    return <Navigate to="/" replace state={{ from: location }} />;
   }
 
   if (noSkeletonRoutes.includes(location.pathname)) {
@@ -140,14 +140,14 @@ if (loading && !forceRender) {
     return <Navigate to="/" replace />;
   }
   
-  // If user is not authenticated and on protected route, redirect to login
+  // If user is not authenticated and on protected route, redirect to root
   if (!user && !isPublicRoute && !forceRender) {
-    console.log('🚫 CentralizedAuthGuard: Unauthenticated user on protected route, redirecting to login');
+    console.log('🚫 CentralizedAuthGuard: Unauthenticated user on protected route, redirecting to root');
     try {
       const fullPath = location.pathname + location.search + location.hash;
       sessionStorage.setItem('redirectAfterAuth', fullPath);
     } catch {}
-    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+    return <Navigate to="/" replace state={{ from: location }} />;
   }
   
   // Render children for all other cases
