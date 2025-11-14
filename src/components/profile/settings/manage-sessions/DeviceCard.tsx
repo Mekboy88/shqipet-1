@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { InteractiveMap } from './InteractiveMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
-import { formatLocationWithFlag } from '@/utils/countryFlags';
+import { formatLocationWithFlag, getCountryFlag } from '@/utils/countryFlags';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
@@ -95,7 +95,7 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
                 <p>{getLastActiveText()}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-muted-foreground">Location</p>
+                <p className="text-muted-foreground">Location {getCountryFlag(session.country_code)}</p>
                 <p className="break-words">{locationText}</p>
               </div>
               <div className="space-y-1">
