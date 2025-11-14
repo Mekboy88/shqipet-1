@@ -23,9 +23,18 @@ export function getDisplayDeviceType(session: UserSession): DeviceType {
 
   // macOS: "Macintosh" appears on both MacBook and iMac. Use resolution thresholds.
   if (/macintosh/.test(ua) && !/ipad/.test(ua)) {
+    const dpr = (globalThis as any).devicePixelRatio || 1;
     if (w && h) {
-      // iMac typical effective/physical resolutions
-      if ((w >= 4480 && h >= 2520) || (w >= 2560 && h >= 1440)) return 'desktop';
+      // Known iMac scaled CSS resolutions and large desktops
+      const macDesktopScaled: Array<[number, number]> = [
+        [2240, 1260], // iMac 24" default scaled
+        [2048, 1152], // iMac 21.5" 4K scaled
+        [2560, 1440], // iMac 27" scaled
+      ];
+      if (macDesktopScaled.some(([cw, ch]) => cw === w && ch === h)) return 'desktop';
+      if (w >= 2560 || h >= 1440) return 'desktop';
+      // Otherwise assume MacBook (high-DPI typical)
+      if (dpr >= 2) return 'laptop';
       return 'laptop';
     }
     return 'laptop';
@@ -48,6 +57,14 @@ export function getDisplayDeviceType(session: UserSession): DeviceType {
 
   // Fallback to stored type to avoid over-correction
   return stored;
+}
+
+export function getDisplayTitle(session: UserSession, deviceType: DeviceType) {
+  const title = (session.device_name || '').trim();
+  const typeLabel = deviceType.charAt(0).toUpperCase() + deviceType.slice(1);
+  if (!title) return typeLabel;
+  const alreadyHasType = /(desktop|laptop|mobile|tablet)/i.test(title);
+  return alreadyHasType ? title : `${title.replace(/\s+/g, ' ').trim()} ${typeLabel}`;
 }
 
 export function getDisplayDeviceName(session: UserSession, deviceType: DeviceType) {

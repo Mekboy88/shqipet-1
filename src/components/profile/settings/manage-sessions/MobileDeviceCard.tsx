@@ -6,7 +6,7 @@ import { StaticMiniMap } from './StaticMiniMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatLocationWithFlag } from '@/utils/countryFlags';
-import { getDisplayDeviceType, getDisplayDeviceName } from '@/utils/deviceDisplay';
+import { getDisplayDeviceType, getDisplayTitle } from '@/utils/deviceDisplay';
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
 interface MobileDeviceCardProps {
@@ -119,7 +119,7 @@ export const MobileDeviceCard = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold truncate">
-                  {session.device_name || 'Unknown Device'}
+                  {getDisplayTitle(session, displayType)}
                 </h3>
                 {isCurrentDevice && (
                   <Badge className="bg-blue-500 text-white text-xs">Current</Badge>
