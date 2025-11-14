@@ -66,9 +66,9 @@ export const DeviceDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[700px] max-h-[700px] p-0 overflow-hidden">
+      <DialogContent className="max-w-[700px] max-h-[700px] md:max-h-[700px] p-0 overflow-hidden sm:max-w-full sm:max-h-screen sm:h-screen sm:rounded-none">
         {/* Header */}
-        <DialogHeader className="p-6 pb-4">
+        <DialogHeader className="p-4 sm:p-6 pb-4 border-b sm:border-none">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -95,12 +95,21 @@ export const DeviceDetailsModal = ({
           </div>
         </DialogHeader>
 
-        {/* Content - Fixed height, no scroll */}
-        <div className="px-6 pb-6 h-[580px] flex flex-col gap-4">
+        {/* Content - Fixed height on desktop, scrollable on mobile */}
+        <div className="px-4 sm:px-6 pb-4 sm:pb-6 h-auto sm:h-[580px] flex flex-col gap-4 overflow-y-auto sm:overflow-hidden">
+          {/* Mobile Map (40% of screen at top) */}
+          <div className="sm:hidden h-[40vh] rounded-lg overflow-hidden border mb-4">
+            <InteractiveMap
+              latitude={session.latitude ? Number(session.latitude) : undefined}
+              longitude={session.longitude ? Number(session.longitude) : undefined}
+              className="w-full h-full"
+            />
+          </div>
+
           {/* Main Content Area */}
-          <div className="flex gap-4 flex-1">
+          <div className="flex flex-col sm:flex-row gap-4 flex-1">
             {/* Left Column - Device Details */}
-            <div className="flex-1 space-y-4 overflow-auto">
+            <div className="flex-1 space-y-4 sm:overflow-auto">
               {/* Device Information */}
               <div className="space-y-2">
                 <h4 className="font-semibold text-sm flex items-center gap-2">
@@ -212,8 +221,8 @@ export const DeviceDetailsModal = ({
               </div>
             </div>
 
-            {/* Right Column - Map */}
-            <div className="flex-1 flex flex-col">
+            {/* Right Column - Map (hidden on mobile, shown above) */}
+            <div className="hidden sm:flex flex-1 flex-col">
               <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
                 <MapPin size={16} />
                 Device Location
@@ -228,12 +237,12 @@ export const DeviceDetailsModal = ({
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 border-t pt-4">
+          {/* Action Buttons - Fixed at bottom on mobile */}
+          <div className="flex flex-col sm:flex-row gap-2 border-t pt-4 sticky sm:static bottom-0 bg-background sm:bg-transparent -mx-4 sm:mx-0 px-4 sm:px-0 pb-4 sm:pb-0">
             {!session.is_trusted && (
               <Button
                 onClick={() => onTrustDevice(session.device_stable_id)}
-                className="flex-1"
+                className="flex-1 w-full sm:w-auto"
                 variant="default"
               >
                 <Shield size={16} className="mr-2" />
@@ -246,14 +255,14 @@ export const DeviceDetailsModal = ({
                   onRevokeSession(session.device_stable_id);
                   onClose();
                 }}
-                className="flex-1"
+                className="flex-1 w-full sm:w-auto"
                 variant="destructive"
               >
                 <AlertTriangle size={16} className="mr-2" />
                 Revoke Session
               </Button>
             )}
-            <Button onClick={onClose} variant="outline" className="flex-1">
+            <Button onClick={onClose} variant="outline" className="flex-1 w-full sm:w-auto">
               Close
             </Button>
           </div>
