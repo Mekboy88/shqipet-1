@@ -1,4 +1,4 @@
-import { Monitor, Smartphone, Tablet, Circle } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, Circle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { InteractiveMap } from './InteractiveMap';
@@ -20,6 +20,8 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
         return Smartphone;
       case 'tablet':
         return Tablet;
+      case 'laptop':
+        return Laptop;
       default:
         return Monitor;
     }
