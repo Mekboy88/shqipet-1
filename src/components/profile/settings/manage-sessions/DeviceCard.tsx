@@ -45,11 +45,9 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
     }
   };
 
-  const locationText = formatLocationWithFlag(
-    session.city,
-    session.country,
-    session.country_code
-  );
+  const locationText = session.city && session.country 
+    ? `${session.city}, ${session.country}`
+    : session.country || 'Unknown location';
 
   return (
     <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow overflow-hidden" onClick={onClick}>
