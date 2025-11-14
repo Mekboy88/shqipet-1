@@ -19,8 +19,12 @@ const RootAuthRedirect: React.FC<{ children: React.ReactNode }> = ({ children })
   
   console.log('🔍 RootAuthRedirect - path:', location.pathname, 'user:', !!user, 'loading:', loading);
   
+  // Detect mobile device
+  const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '').toLowerCase();
+  const isMobileUA = /iphone|ipod|android|blackberry|windows phone|mobile|webos|opera mini|ipad/.test(ua);
+  
   // Public routes that don't need auth
-  const publicRoutes = ['/auth/login', '/auth/register', '/register', '/auth/verification', '/auth/callback', '/terms-of-use', '/privacy-policy', '/create-post', '/compose', '/post/create', '/messages'];
+  const publicRoutes = ['/', '/auth/login', '/auth/register', '/register', '/auth/verification', '/auth/callback', '/terms-of-use', '/privacy-policy', '/create-post', '/compose', '/post/create', '/messages'];
   const isPublicRoute = publicRoutes.includes(location.pathname);
   const isAdminRoute = location.pathname.startsWith('/admin');
   
@@ -57,13 +61,14 @@ const RootAuthRedirect: React.FC<{ children: React.ReactNode }> = ({ children })
     return <>{children}</>;
   }
   
-  // If not authenticated and on protected route, redirect to login
+  // If not authenticated and on protected route, redirect appropriately
   if (!user && !isPublicRoute) {
-    console.log('🚫 RootAuthRedirect - Unauthenticated user on protected route, redirecting to login');
+    console.log('🚫 RootAuthRedirect - Unauthenticated user on protected route, redirecting');
     if (isAdminRoute) {
       return <Navigate to="/admin/login" replace />;
     }
-    return <Navigate to="/auth/login" replace />;
+    // On mobile: redirect to root (login renders there), on desktop: /auth/login
+    return <Navigate to={isMobileUA ? "/" : "/auth/login"} replace />;
   }
   
   // Render children for all other cases - PRESERVE CURRENT URL

@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 
 import { useAuth } from '@/contexts/AuthContext';
 import Feed from '@/components/Feed';
+import Login from '@/pages/auth/Login';
 
 const Home: React.FC = () => {
   // Safe auth access with error handling
@@ -20,6 +21,10 @@ const Home: React.FC = () => {
   const { user, loading } = authContext;
   console.log('🏠 Home page - user:', !!user, 'loading:', loading);
   
+  // Detect mobile device
+  const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '').toLowerCase();
+  const isMobileUA = /iphone|ipod|android|blackberry|windows phone|mobile|webos|opera mini|ipad/.test(ua);
+  
   // Show loading while checking auth
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
@@ -27,7 +32,12 @@ const Home: React.FC = () => {
     </div>;
   }
   
-  // If no user, redirect to login
+  // On mobile: show login at root instead of redirecting
+  if (!user && isMobileUA) {
+    return <Login />;
+  }
+  
+  // On desktop: redirect to /auth/login
   if (!user) {
     return <Navigate to="/auth/login" replace />;
   }
