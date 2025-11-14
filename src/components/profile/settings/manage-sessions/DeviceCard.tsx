@@ -56,6 +56,16 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
     return 'bg-red-500';
   };
 
+  const makeDisplayName = (s: UserSession) => {
+    const type = deriveDisplayDeviceType(s);
+    const browser = s.browser_info ? `${s.browser_info}` : 'Browser';
+    const bver = s.browser_version ? ` ${s.browser_version}` : '';
+    const os = s.operating_system ? `${s.operating_system}` : 'OS';
+    const over = s.device_os_version ? ` ${s.device_os_version}` : '';
+    const typeCap = type.charAt(0).toUpperCase() + type.slice(1);
+    return `${browser}${bver} ${os}${over} ${typeCap}`.trim();
+  };
+
   const getLoginTimeText = () => {
     if (!session.created_at) return 'Unknown';
     try {
@@ -81,7 +91,7 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
                   <DeviceIcon size={24} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold leading-tight">{session.device_name || 'Unknown Device'}</h3>
+                  <h3 className="font-semibold leading-tight">{makeDisplayName(session)}</h3>
                   <p className="text-xs text-muted-foreground">
                     {(session.operating_system || 'OS')} {session.device_os_version || ''} • {(session.browser_info || 'Browser')} {session.browser_version || ''}
                   </p>
