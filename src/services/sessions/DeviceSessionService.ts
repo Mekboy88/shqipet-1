@@ -603,6 +603,60 @@ class DeviceSessionService {
       console.error('❌ heartbeat failed', e);
     }
   }
+
+  async cleanupStaleSessions(userId: string, daysInactive: number = 30): Promise<number> {
+    try {
+      console.log('🧹 Cleaning up stale sessions:', { userId, daysInactive });
+
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysInactive);
+
+      // Delete sessions that haven't been updated in X days and are not active
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .delete()
+        .eq('user_id', userId)
+        .eq('is_active', false)
+        .lt('updated_at', cutoffDate.toISOString())
+        .select('id');
+
+      if (error) {
+        console.error('❌ Failed to cleanup stale sessions:', error);
+        throw error;
+      }
+
+      const deletedCount = data?.length || 0;
+      console.log(`✅ Cleaned up ${deletedCount} stale sessions`);
+      return deletedCount;
+    } catch (error) {
+      console.error('❌ Error in cleanupStaleSessions:', error);
+      throw error;
+    }
+  }
+
+  async countStaleSessions(userId: string, daysInactive: number = 30): Promise<number> {
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysInactive);
+
+      const { count, error } = await supabase
+        .from('user_sessions')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_active', false)
+        .lt('updated_at', cutoffDate.toISOString());
+
+      if (error) {
+        console.error('❌ Failed to count stale sessions:', error);
+        throw error;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error('❌ Error in countStaleSessions:', error);
+      return 0;
+    }
+  }
 }
 
 export const deviceSessionService = DeviceSessionService.getInstance();
