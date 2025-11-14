@@ -66,7 +66,7 @@ export const DeviceDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[1400px] w-[90vw] max-h-[90vh] h-[800px] p-0 overflow-hidden">
+      <DialogContent className="w-[96vw] max-w-none h-[90vh] p-0 overflow-hidden">
         {/* Header */}
         <DialogHeader className="p-6 pb-4 border-b">
           <div className="flex items-center justify-between">
