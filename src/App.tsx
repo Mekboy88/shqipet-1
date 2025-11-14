@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useInstantUpdates } from '@/hooks/useInstantUpdates';
+import { useSessionRevocationMonitor } from '@/hooks/useSessionRevocationMonitor';
 import GlobalSkeleton from '@/components/ui/GlobalSkeleton';
 import GlobalErrorBoundary from '@/components/ErrorBoundary/GlobalErrorBoundary';
 import BulletproofErrorBoundary from '@/components/ErrorBoundary/BulletproofErrorBoundary';
@@ -145,6 +146,9 @@ function App() {
   
   // Enable global elastic scrolling with momentum on all pages
   useGlobalElasticScrolling({ enabled: true, maxElasticDistance: 400, elasticityMultiplier: 13 });
+  
+  // Monitor for session revocations and auto-logout if current device session is revoked
+  useSessionRevocationMonitor();
   
   // SECURITY: Clear any insecure admin portal data on app startup
   React.useEffect(() => {
