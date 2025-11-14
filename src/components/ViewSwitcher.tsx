@@ -56,36 +56,52 @@ const ViewSwitcher: React.FC = () => {
 
   // Mobile redirect logic - runs once on mount
   useEffect(() => {
-    // Skip if already redirected in this session
-    if (sessionStorage.getItem('mobileRedirectChecked') === '1') return;
-    
     try {
       const hostname = window.location.hostname;
       const pathname = window.location.pathname;
       
-      // Skip redirect for admin paths
-      if (isAdminPath(pathname)) {
-        sessionStorage.setItem('mobileRedirectChecked', '1');
-        return;
-      }
-      
-      // Check override conditions
+      // Parse URL parameters FIRST (before guard check)
       const urlParams = new URLSearchParams(window.location.search);
       const forceDesktop = urlParams.get('forceDesktop') === '1';
       const forceMobile = urlParams.get('forceMobile') === '1';
       const resetRedirectGuard = urlParams.get('resetMobileRedirect') === '1';
       const clearPrefers = urlParams.get('clearPrefersDesktop') === '1';
-      const prefersDesktop = localStorage.getItem('prefersDesktop') === '1';
-
+      
+      // Clear preferences if requested
       if (clearPrefers) {
-        try { localStorage.removeItem('prefersDesktop'); } catch {}
+        try { 
+          localStorage.removeItem('prefersDesktop');
+          console.log('🧹 Cleared prefersDesktop from localStorage');
+        } catch {}
       }
 
+      // Reset redirect guard if requested
       if (resetRedirectGuard) {
-        try { sessionStorage.removeItem('mobileRedirectChecked'); } catch {}
+        try { 
+          sessionStorage.removeItem('mobileRedirectChecked');
+          console.log('🔄 Reset mobileRedirectChecked guard');
+        } catch {}
       }
+      
+      // Check guard AFTER potentially clearing it
+      if (sessionStorage.getItem('mobileRedirectChecked') === '1') {
+        console.log('✋ Redirect already checked this session, skipping');
+        return;
+      }
+      
+      // Skip redirect for admin paths
+      if (isAdminPath(pathname)) {
+        console.log('🔐 Admin path detected, skipping redirect');
+        sessionStorage.setItem('mobileRedirectChecked', '1');
+        return;
+      }
+
+      // Read user preference
+      const prefersDesktop = localStorage.getItem('prefersDesktop') === '1';
+      console.log('👤 User preferences:', { prefersDesktop, forceDesktop, forceMobile });
 
       if (forceDesktop) {
+        console.log('💻 Force desktop override active');
         sessionStorage.setItem('mobileRedirectChecked', '1');
         return;
       }
@@ -127,12 +143,19 @@ const ViewSwitcher: React.FC = () => {
         return;
       }
 
-      // Mobile/Tablet on primary domain → redirect to m.shqipet.com (but NEVER for real desktop browsers)
+      // Mobile/Tablet on primary domain → redirect to m.shqipet.com (but NEVER for real desktop browsers or if user prefers desktop)
       if ((isRealMobile || isRealTablet) && !isDesktopBrowser && isPrimaryDomain(hostname)) {
+        // Honor user preference for desktop view
+        if (prefersDesktop) {
+          console.log('📱→💻 User prefers desktop view, staying on primary domain');
+          sessionStorage.setItem('mobileRedirectChecked', '1');
+          return;
+        }
+        
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
-        console.log('Redirecting mobile/tablet user to:', targetUrl);
+        console.log('📱 Redirecting mobile/tablet user to:', targetUrl);
         
         // Log redirect to database if user is authenticated
         supabase.auth.getUser().then(({ data: { user } }) => {
@@ -160,7 +183,7 @@ const ViewSwitcher: React.FC = () => {
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(PRIMARY_DOMAINS[0]);
-        console.log('Redirecting desktop user to:', targetUrl);
+        console.log('💻 Redirecting desktop user to primary domain:', targetUrl);
         
         // Log redirect to database if user is authenticated
         supabase.auth.getUser().then(({ data: { user } }) => {
@@ -183,9 +206,10 @@ const ViewSwitcher: React.FC = () => {
         return;
       }
       
+      console.log('✅ No redirect needed, staying on current domain');
       sessionStorage.setItem('mobileRedirectChecked', '1');
     } catch (error) {
-      console.warn('Mobile redirect check failed:', error);
+      console.warn('❌ Mobile redirect check failed:', error);
       sessionStorage.setItem('mobileRedirectChecked', '1');
     }
   }, []);
