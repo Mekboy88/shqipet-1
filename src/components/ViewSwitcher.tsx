@@ -158,31 +158,13 @@ const ViewSwitcher: React.FC = () => {
         return;
       }
       
-      // Desktop on mobile subdomain → redirect back to primary
+      // Desktop on mobile subdomain → redirect back to primary (instant, no DB lookup)
       if (isDesktopBrowser && isMobileSubdomain(hostname)) {
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(PRIMARY_DOMAINS[0]);
         console.log('💻 Redirecting desktop user to primary domain:', targetUrl);
-        
-        // Log redirect to database if user is authenticated
-        supabase.auth.getUser().then(({ data: { user } }) => {
-          if (user) {
-            supabase.from('profiles').update({
-              last_device: 'desktop',
-              last_redirect_host: PRIMARY_DOMAINS[0],
-              last_redirect_at: new Date().toISOString()
-            }).eq('id', user.id).then(() => {
-              window.location.replace(targetUrl);
-            }).catch(() => {
-              window.location.replace(targetUrl);
-            });
-          } else {
-            window.location.replace(targetUrl);
-          }
-        }).catch(() => {
-          window.location.replace(targetUrl);
-        });
+        window.location.replace(targetUrl);
         return;
       }
       
