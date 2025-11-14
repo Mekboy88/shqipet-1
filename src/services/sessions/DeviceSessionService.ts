@@ -336,7 +336,7 @@ class DeviceSessionService {
     }
   }
 
-  async registerOrUpdateCurrentDevice(userId: string): Promise<string | null> {
+  async registerOrUpdateCurrentDevice(userId: string, opts?: { forceReclassify?: boolean }): Promise<string | null> {
     try {
       console.log('🔄 Starting device registration for user:', userId);
       
@@ -466,7 +466,7 @@ class DeviceSessionService {
         const isMacintosh = /Macintosh/i.test(ua);
         const hasTouchPoints = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
         
-        // Strong mobile/tablet detection
+        // Strong mobile/tablet detection (always override desktop/laptop)
         const stronglyMobile = uaMobile && !uaTablet;
         const stronglyTablet = uaTablet || (isMacintosh && hasTouchPoints);
         
@@ -474,7 +474,27 @@ class DeviceSessionService {
           const correctedType = stronglyMobile ? 'mobile' : 'tablet';
           console.log(`✅ Auto-corrected device_type: stableId=${stableDeviceId}, from=${storedType} → to=${correctedType}`);
           finalType = correctedType;
-          // Keep device_type_locked true so it stays corrected going forward
+        } else if (opts?.forceReclassify || storedType !== normalizedType) {
+          // Safe desktop ↔ laptop reclassification (only when types differ or force)
+          if (storedType === 'desktop' || storedType === 'laptop') {
+            const strongDesktop = 
+              /(imac|mac\s?mini|mac\s?pro|mac\s?studio)/i.test(ua) ||
+              screen.width >= 2560 ||
+              screen.height >= 1440 ||
+              !('getBattery' in navigator);
+            
+            const strongLaptop = 
+              /macbook|notebook|laptop/i.test(ua) ||
+              ('getBattery' in navigator);
+            
+            if (strongDesktop && storedType === 'laptop') {
+              console.warn(`⚠️ Reclassifying laptop → desktop (strong desktop signals, forceReclassify=${opts?.forceReclassify})`);
+              finalType = 'desktop';
+            } else if (strongLaptop && storedType === 'desktop') {
+              console.warn(`⚠️ Reclassifying desktop → laptop (strong laptop signals, forceReclassify=${opts?.forceReclassify})`);
+              finalType = 'laptop';
+            }
+          }
         }
       }
       const loginCount = (existingSession?.login_count || 0) + 1;
@@ -517,7 +537,9 @@ class DeviceSessionService {
         device_name: finalDeviceName,
         device_type: finalType,
         browser_info: details.browser,
-        operating_system: details.operatingSystem,
+        operating_system: finalOperatingSystem, // ✅ Persist normalized OS
+        physical_key: physicalKey, // ✅ Persist physical device key
+        device_model: finalDeviceModel, // ✅ Persist device model
         device_fingerprint: fingerprint,
         login_count: loginCount,
         user_agent: navigator.userAgent,

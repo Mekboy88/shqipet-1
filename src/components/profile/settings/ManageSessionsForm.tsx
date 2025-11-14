@@ -84,7 +84,7 @@ const ManageSessionsForm: React.FC = () => {
     if (!user?.id) return;
     setForceRegistering(true);
     try {
-      await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+      await deviceSessionService.registerOrUpdateCurrentDevice(user.id, { forceReclassify: true });
       await refreshDevices();
       toast.success('Current device info updated');
     } catch (e: any) {
