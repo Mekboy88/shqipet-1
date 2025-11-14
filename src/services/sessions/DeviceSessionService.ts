@@ -524,17 +524,24 @@ class DeviceSessionService {
               screen.height >= 1200 ||
               !('getBattery' in navigator);
             
+            // Only treat as strongLaptop when UA explicitly mentions laptop classes
             const strongLaptop = 
-              /macbook|notebook|laptop/i.test(ua) ||
-              ('getBattery' in navigator);
+              /macbook|notebook|laptop/i.test(ua);
             
             if (strongDesktop && storedType === 'laptop') {
               console.warn(`⚠️ Reclassifying laptop → desktop (strong desktop signals, forceReclassify=${opts?.forceReclassify})`);
               finalType = 'desktop';
-            } else if (strongLaptop && storedType === 'desktop') {
-              console.warn(`⚠️ Reclassifying desktop → laptop (strong laptop signals, forceReclassify=${opts?.forceReclassify})`);
-              finalType = 'laptop';
+            } else if (storedType === 'desktop') {
+              // Do NOT downgrade desktop unless we have explicit strongLaptop evidence and no strongDesktop
+              if (strongLaptop && !strongDesktop) {
+                console.warn(`⚠️ Reclassifying desktop → laptop (explicit laptop UA, forceReclassify=${opts?.forceReclassify})`);
+                finalType = 'laptop';
+              } else {
+                console.log('🛡️ Keeping desktop classification (no explicit laptop evidence)');
+                finalType = 'desktop';
+              }
             }
+
           }
         }
       }

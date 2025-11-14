@@ -292,16 +292,22 @@ const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
     }
   }
   
-  // Priority 4: For generic macOS (without explicit model), check screen size
+  // Priority 4: For generic macOS (without explicit model), check screen size and battery signal
   const isMac = /mac os x|macintosh/i.test(ua);
   if (isMac) {
     const w = window.screen?.width || 0;
     const h = window.screen?.height || 0;
+    const hasBatteryApi = 'getBattery' in (navigator as any);
     
-    // MacBook typical resolutions: 1280-2304 width, 800-1440 height
-    // Desktop Macs/external displays: 2048+ width OR 1200+ height
-    // Examples: 2240x1260 (common 21.5" display), 2560x1440 (27" display), 5120x2880 (5K iMac)
-    if (w >= 2048 || h >= 1200) {
+    // If Battery API exists, it's almost certainly a laptop
+    if (hasBatteryApi) {
+      console.log('🔋 Battery API present on macOS - treating as LAPTOP');
+      return 'laptop';
+    }
+    
+    // Desktop Macs/external displays: >=1680 width OR >=1050 height
+    // Examples: 1920x1080, 2240x1260, 2560x1440, 5120x2880
+    if (w >= 1680 || h >= 1050) {
       console.log(`🖥️ macOS with desktop-size display ${w}x${h} - DESKTOP`);
       return 'desktop';
     } else {
