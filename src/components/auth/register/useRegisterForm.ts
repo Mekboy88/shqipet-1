@@ -444,7 +444,7 @@ export const useRegisterForm = () => {
   // Function to clear form data when navigating to login
   const handleNavigateToLogin = () => {
     clearFormData();
-    navigate('/auth/login');
+    navigate('/');
   };
 
   // Button should be disabled if:

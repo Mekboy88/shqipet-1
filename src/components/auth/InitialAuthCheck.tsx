@@ -55,7 +55,7 @@ const InitialAuthCheck: React.FC<{ children: React.ReactNode }> = ({ children })
     return <Navigate to="/admin/login" replace />;
   }
   
-  return <Navigate to="/auth/login" replace />;
+  return <Navigate to="/" replace />;
 };
 
 export default InitialAuthCheck;
