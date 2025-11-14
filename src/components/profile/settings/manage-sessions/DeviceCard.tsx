@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { InteractiveMap } from './InteractiveMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
+import { formatLocationWithFlag } from '@/utils/countryFlags';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
@@ -43,6 +44,12 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
       return 'Unknown';
     }
   };
+
+  const locationText = formatLocationWithFlag(
+    session.city,
+    session.country,
+    session.country_code
+  );
 
   return (
     <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow overflow-hidden" onClick={onClick}>
@@ -89,7 +96,7 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground">Location</p>
-                <p className="truncate">{session.city || 'Unknown'}{session.country ? `, ${session.country}` : ''}</p>
+                <p className="truncate">{locationText}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground">Screen</p>

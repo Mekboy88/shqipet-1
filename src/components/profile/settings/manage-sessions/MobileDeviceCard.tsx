@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { StaticMiniMap } from './StaticMiniMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
+import { formatLocationWithFlag } from '@/utils/countryFlags';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
@@ -57,6 +58,12 @@ export const MobileDeviceCard = ({
       return 'Unknown';
     }
   };
+
+  const locationText = formatLocationWithFlag(
+    session.city,
+    session.country,
+    session.country_code
+  );
 
   const handleTouchStart = (e: TouchEvent) => {
     if (isCurrentDevice) return; // No swipe for current device
@@ -135,6 +142,7 @@ export const MobileDeviceCard = ({
                 <p className="truncate">
                   {session.browser_info} {session.browser_version}
                 </p>
+                <p className="truncate">{locationText}</p>
                 <p className="truncate">{getLastActiveText()}</p>
               </div>
 
