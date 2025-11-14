@@ -27,21 +27,14 @@ const publicRoutes = [
 ];
 
 const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children }) => {
-  // Simple mobile UA detection (no heavy hooks here)
-  const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '').toLowerCase();
-  const isMobileUA = /iphone|ipod|android|blackberry|windows phone|mobile|webos|opera mini|ipad/.test(ua);
-  
   // Safe auth access with early return
   let authContext;
   try {
     authContext = useAuth();
   } catch (error) {
     console.warn('CentralizedAuthGuard: Auth context not ready yet');
-    // On mobile, never show skeleton — go straight to login
-    if (isMobileUA) {
-      return <Navigate to="/auth/login" replace />;
-    }
-    return <GlobalSkeleton />;
+    // Redirect to root for login
+    return <Navigate to="/" replace />;
   }
   
   const { user, loading } = authContext;
@@ -99,12 +92,12 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     '/auth/forgot-password'
   ];
   
-// CRITICAL: While auth initializes, avoid skeleton on mobile
+// CRITICAL: While auth initializes, avoid skeleton on public routes
 if (loading && !forceRender) {
   console.log('⏳ CentralizedAuthGuard: Auth still loading', { path: location.pathname });
 
-  // If not on a public route, immediately navigate to root on mobile (login renders there)
-  if (!isPublicRoute && isMobileUA) {
+  // If not on a public route, navigate to root (login renders there)
+  if (!isPublicRoute) {
     try {
       const fullPath = location.pathname + location.search + location.hash;
       sessionStorage.setItem('redirectAfterAuth', fullPath);
@@ -117,7 +110,7 @@ if (loading && !forceRender) {
     return <>{children}</>;
   }
 
-  // Desktop or other cases can still show the global skeleton
+  // Other cases can show the global skeleton
   return <GlobalSkeleton />;
 }
   
@@ -142,15 +135,14 @@ if (loading && !forceRender) {
     return <Navigate to="/" replace />;
   }
   
-  // If user is not authenticated and on protected route, redirect appropriately
+  // If user is not authenticated and on protected route, redirect to root
   if (!user && !isPublicRoute && !forceRender) {
-    console.log('🚫 CentralizedAuthGuard: Unauthenticated user on protected route, redirecting');
+    console.log('🚫 CentralizedAuthGuard: Unauthenticated user on protected route, redirecting to root');
     try {
       const fullPath = location.pathname + location.search + location.hash;
       sessionStorage.setItem('redirectAfterAuth', fullPath);
     } catch {}
-    // On mobile, redirect to root (login renders there), otherwise to /auth/login
-    return <Navigate to={isMobileUA ? "/" : "/auth/login"} replace state={{ from: location }} />;
+    return <Navigate to="/" replace state={{ from: location }} />;
   }
   
   // Render children for all other cases

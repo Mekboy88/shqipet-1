@@ -29,12 +29,12 @@ class AuthGuard {
       if (error) {
         console.error('🚨 Session retrieval error:', error);
         authLogger.logSecurityAlert('Session retrieval failed during immediate validation');
-        return { isValid: false, shouldRedirect: true, redirectPath: '/auth/login' };
+        return { isValid: false, shouldRedirect: true, redirectPath: '/' };
       }
 
       if (!session || !session.user) {
         console.log('🚨 No valid session found - redirecting to login');
-        return { isValid: false, shouldRedirect: true, redirectPath: '/auth/login' };
+        return { isValid: false, shouldRedirect: true, redirectPath: '/' };
       }
 
       // CRITICAL: Validate user actually exists in auth
@@ -42,7 +42,7 @@ class AuthGuard {
       if (userError || !authUser.user || authUser.user.id !== session.user.id) {
         console.error('🚨 CRITICAL: User validation failed');
         authLogger.logSecurityAlert('User validation failed during immediate validation');
-        return { isValid: false, shouldRedirect: true, redirectPath: '/auth/login' };
+        return { isValid: false, shouldRedirect: true, redirectPath: '/' };
       }
 
       // CRITICAL: Verify user has a real profile (not empty/anonymous)
@@ -55,7 +55,7 @@ class AuthGuard {
       if (profileError || !profile) {
         console.error('🚨 CRITICAL: No valid profile found for user');
         authLogger.logSecurityAlert('Profile validation failed - no profile found');
-        return { isValid: false, shouldRedirect: true, redirectPath: '/auth/login' };
+        return { isValid: false, shouldRedirect: true, redirectPath: '/' };
       }
 
       // CRITICAL: Check for empty/anonymous profile data
@@ -63,7 +63,7 @@ class AuthGuard {
       if (!hasValidData) {
         console.error('🚨 CRITICAL: Profile contains no valid user data - preventing anonymous account display');
         authLogger.logSecurityAlert('Empty profile data detected - blocking anonymous account');
-        return { isValid: false, shouldRedirect: true, redirectPath: '/auth/login' };
+        return { isValid: false, shouldRedirect: true, redirectPath: '/' };
       }
 
       console.log('✅ Session validation successful - user has valid profile data');
@@ -72,7 +72,7 @@ class AuthGuard {
     } catch (error) {
       console.error('🚨 CRITICAL: Session validation exception:', error);
       authLogger.logSecurityAlert('Session validation exception', { error: error.message });
-      return { isValid: false, shouldRedirect: true, redirectPath: '/auth/login' };
+      return { isValid: false, shouldRedirect: true, redirectPath: '/' };
     }
   }
 
@@ -91,8 +91,8 @@ class AuthGuard {
     localStorage.clear();
     sessionStorage.clear();
     
-    // Force redirect to login
-    window.location.replace('/auth/login');
+    // Force redirect to root
+    window.location.replace('/');
   }
 }
 

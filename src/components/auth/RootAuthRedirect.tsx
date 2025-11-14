@@ -19,18 +19,18 @@ const RootAuthRedirect: React.FC<{ children: React.ReactNode }> = ({ children })
   
   console.log('🔍 RootAuthRedirect - path:', location.pathname, 'user:', !!user, 'loading:', loading);
   
-  // Detect mobile device
-  const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '').toLowerCase();
-  const isMobileUA = /iphone|ipod|android|blackberry|windows phone|mobile|webos|opera mini|ipad/.test(ua);
-  
   // Public routes that don't need auth
   const publicRoutes = ['/', '/auth/login', '/auth/register', '/register', '/auth/verification', '/auth/callback', '/terms-of-use', '/privacy-policy', '/create-post', '/compose', '/post/create', '/messages'];
   const isPublicRoute = publicRoutes.includes(location.pathname);
   const isAdminRoute = location.pathname.startsWith('/admin');
   
-  // Show loading while auth is initializing
+  // Show loading while auth is initializing - but render public routes immediately
   if (loading) {
-    console.log('🔄 RootAuthRedirect - Auth loading, showing spinner');
+    console.log('🔄 RootAuthRedirect - Auth loading');
+    // For public routes (including root), render children immediately to avoid flash
+    if (isPublicRoute) {
+      return <>{children}</>;
+    }
     return <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
     </div>;
@@ -61,14 +61,13 @@ const RootAuthRedirect: React.FC<{ children: React.ReactNode }> = ({ children })
     return <>{children}</>;
   }
   
-  // If not authenticated and on protected route, redirect appropriately
+  // If not authenticated and on protected route, redirect to root
   if (!user && !isPublicRoute) {
-    console.log('🚫 RootAuthRedirect - Unauthenticated user on protected route, redirecting');
+    console.log('🚫 RootAuthRedirect - Unauthenticated user on protected route, redirecting to root');
     if (isAdminRoute) {
       return <Navigate to="/admin/login" replace />;
     }
-    // On mobile: redirect to root (login renders there), on desktop: /auth/login
-    return <Navigate to={isMobileUA ? "/" : "/auth/login"} replace />;
+    return <Navigate to="/" replace />;
   }
   
   // Render children for all other cases - PRESERVE CURRENT URL
