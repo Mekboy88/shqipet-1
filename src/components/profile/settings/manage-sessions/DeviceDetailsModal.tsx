@@ -29,7 +29,7 @@ export const DeviceDetailsModal = ({
   if (!session) return null;
 
   const getDeviceIcon = () => {
-    switch (session.device_type) {
+    switch (deriveDisplayDeviceType(session)) {
       case 'mobile':
         return Smartphone;
       case 'tablet':
@@ -104,7 +104,7 @@ export const DeviceDetailsModal = ({
                 <DeviceIcon size={20} className="text-primary" />
               </div>
               <div>
-                <DialogTitle className="text-base">{session.device_name || 'Unknown Device'}</DialogTitle>
+                <DialogTitle className="text-base">{`${session.browser_info || 'Browser'} ${session.browser_version || ''} ${session.operating_system || 'OS'} ${session.device_os_version || ''} ${(deriveDisplayDeviceType(session)).charAt(0).toUpperCase() + (deriveDisplayDeviceType(session)).slice(1)}`.trim()}</DialogTitle>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   {isCurrentDevice && (
                     <Badge className="bg-blue-500 text-white text-xs">Current Device</Badge>
