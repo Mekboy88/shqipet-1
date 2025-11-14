@@ -75,7 +75,7 @@ export const DeviceDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[96vw] max-w-none h-[88vh] p-0 overflow-hidden">
+      <DialogContent className="w-[96vw] max-w-none h-[85vh] p-0 overflow-hidden">
         {/* Header */}
         <DialogHeader className="p-4 pb-3 border-b">
           <div className="flex items-center justify-between">
@@ -105,7 +105,7 @@ export const DeviceDetailsModal = ({
         </DialogHeader>
 
         {/* Content - Two columns layout */}
-        <div className="flex h-[calc(100%-116px)] overflow-hidden">
+        <div className="flex h-[calc(100%-110px)] overflow-hidden">
           {/* Left Column - Device Details */}
           <div className="flex-1 px-4 py-3 overflow-y-auto space-y-3">
             {/* Device Information */}
@@ -286,7 +286,7 @@ export const DeviceDetailsModal = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 border-t p-3">
+        <div className="flex gap-2 border-t px-3 py-2.5">
           {!session.is_trusted && (
             <Button
               onClick={() => onTrustDevice(session.device_stable_id)}
