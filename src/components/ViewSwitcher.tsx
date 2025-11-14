@@ -140,20 +140,7 @@ const ViewSwitcher: React.FC = () => {
         return;
       }
 
-      // Consolidate on primary domain: if on m.shqipet.com, send to shqipet.com with mobile preference
-      if (isMobileSubdomain(hostname)) {
-        sessionStorage.setItem('mobileRedirectChecked', '1');
-        setIsRedirecting(true);
-        const url = new URL(buildUrlFor(PRIMARY_DOMAINS[0]));
-        url.searchParams.set('forceMobile', '1');
-        url.searchParams.set('clearPrefersDesktop', '1');
-        const targetUrl = url.toString();
-        console.log('🏁 Consolidating to primary domain with mobile preference:', targetUrl);
-        window.location.replace(targetUrl);
-        return;
-      }
-
-      // Mobile/Tablet on primary domain → stay on shqipet.com using responsive layout (no subdomain redirect)
+      // Mobile/Tablet users on primary domain → redirect to mobile subdomain (unless they prefer desktop)
       if ((isRealMobile || isRealTablet) && !isDesktopBrowser && isPrimaryDomain(hostname)) {
         // Honor user preference for desktop view
         if (prefersDesktop) {
@@ -162,8 +149,12 @@ const ViewSwitcher: React.FC = () => {
           return;
         }
         
-        console.log('📱 Staying on primary domain with mobile layout. No redirect.');
+        // Redirect to mobile subdomain
         sessionStorage.setItem('mobileRedirectChecked', '1');
+        setIsRedirecting(true);
+        const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
+        console.log('📱 Redirecting mobile/tablet user to mobile subdomain:', targetUrl);
+        window.location.replace(targetUrl);
         return;
       }
       
