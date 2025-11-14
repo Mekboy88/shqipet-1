@@ -45,9 +45,12 @@ export const shouldRedirectToPrimary = () => {
     return `https://shqipet.com${pathname}${search}${hash}`;
   }
   
-  // Redirect m.shqipet.com to shqipet.com (301 permanent)
+  // Redirect m.shqipet.com to shqipet.com with mobile preference flag
   if (hostname === 'm.shqipet.com') {
-    return `https://shqipet.com${pathname}${search}${hash}`;
+    const params = new URLSearchParams(search);
+    params.set('forceMobile', '1');
+    params.set('clearPrefersDesktop', '1');
+    return `https://shqipet.com${pathname}?${params.toString()}${hash}`;
   }
   
   return null;
