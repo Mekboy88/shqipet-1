@@ -8,6 +8,7 @@ interface CentralizedAuthGuardProps {
 }
 
 const publicRoutes = [
+  '/', // Allow root path (mobile login renders here)
   '/auth/login', 
   '/auth/register', 
   '/register', 
@@ -85,6 +86,7 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
   const isPublicRoute = publicRoutes.includes(location.pathname);
   // Routes where we must not flash the skeleton (render immediately)
   const noSkeletonRoutes = [
+    '/', // Root can be login on mobile
     '/professional-presentation', 
     '/create-post', 
     '/compose', 
@@ -101,13 +103,13 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
 if (loading && !forceRender) {
   console.log('⏳ CentralizedAuthGuard: Auth still loading', { path: location.pathname });
 
-  // If not on a public route, immediately navigate to login on mobile to prevent skeleton
+  // If not on a public route, immediately navigate to root on mobile (login renders there)
   if (!isPublicRoute && isMobileUA) {
     try {
       const fullPath = location.pathname + location.search + location.hash;
       sessionStorage.setItem('redirectAfterAuth', fullPath);
     } catch {}
-    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+    return <Navigate to="/" replace state={{ from: location }} />;
   }
 
   if (noSkeletonRoutes.includes(location.pathname)) {
@@ -140,14 +142,15 @@ if (loading && !forceRender) {
     return <Navigate to="/" replace />;
   }
   
-  // If user is not authenticated and on protected route, redirect to login
+  // If user is not authenticated and on protected route, redirect appropriately
   if (!user && !isPublicRoute && !forceRender) {
-    console.log('🚫 CentralizedAuthGuard: Unauthenticated user on protected route, redirecting to login');
+    console.log('🚫 CentralizedAuthGuard: Unauthenticated user on protected route, redirecting');
     try {
       const fullPath = location.pathname + location.search + location.hash;
       sessionStorage.setItem('redirectAfterAuth', fullPath);
     } catch {}
-    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+    // On mobile, redirect to root (login renders there), otherwise to /auth/login
+    return <Navigate to={isMobileUA ? "/" : "/auth/login"} replace state={{ from: location }} />;
   }
   
   // Render children for all other cases
