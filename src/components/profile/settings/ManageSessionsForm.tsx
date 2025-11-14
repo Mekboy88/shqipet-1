@@ -491,16 +491,6 @@ Last Error: ${lastRegError || 'None'}`;
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             Refresh Devices
           </Button>
-
-          <Button
-            onClick={handleCleanupStaleSessions}
-            variant="outline"
-            className="flex items-center gap-2 h-10"
-          >
-            <RefreshCw size={16} />
-            Clean Up Old Sessions
-          </Button>
-          
           <AlertDialog open={showLogoutAllDialog} onOpenChange={setShowLogoutAllDialog}>
             <AlertDialogTrigger asChild>
               <Button
