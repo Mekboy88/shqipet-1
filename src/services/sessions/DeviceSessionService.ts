@@ -392,13 +392,13 @@ class DeviceSessionService {
       const fingerprint = nativeInfo ? stableDeviceId : this.createFingerprint();
       console.log('🔐 Device identifiers:', { stableDeviceId, fingerprint, isNative: !!nativeInfo });
 
-      // 4. Fetch IP and geolocation (non-blocking - registration continues even if this fails)
-      let geoData = null;
-      try {
-        geoData = await this.fetchIPAndGeolocation();
-      } catch (geoError) {
-        console.warn('⚠️ Geolocation fetch failed, continuing without geo data:', geoError);
-      }
+      // 4. Fetch IP and geolocation (fire-and-forget – do NOT block initial registration)
+      // Start request in parallel to avoid delaying the INSERT/UPSERT
+      const geoPromise = this.fetchIPAndGeolocation().catch((geoError) => {
+        console.warn('⚠️ Geolocation fetch failed (non-blocking):', geoError);
+        return null;
+      });
+      let geoData: any = null; // Will be resolved after upsert if available
 
       // 5. Detect device details
       let details: any;
