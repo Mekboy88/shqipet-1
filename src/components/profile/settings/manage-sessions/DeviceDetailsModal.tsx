@@ -66,7 +66,7 @@ export const DeviceDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl w-[95vw] h-[85vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-[1400px] w-[90vw] max-h-[90vh] h-[800px] p-0 overflow-hidden">
         {/* Header */}
         <DialogHeader className="p-6 pb-4 border-b">
           <div className="flex items-center justify-between">
@@ -96,7 +96,7 @@ export const DeviceDetailsModal = ({
         </DialogHeader>
 
         {/* Content - Two columns layout */}
-        <div className="flex h-[calc(85vh-140px)] overflow-hidden">
+        <div className="flex h-[calc(100%-140px)] overflow-hidden">
           {/* Left Column - Device Details (scrollable) */}
           <div className="flex-1 px-6 py-4 overflow-y-auto space-y-4">
             {/* Device Information */}
