@@ -127,25 +127,6 @@ const GlobeLoader: React.FC<GlobeLoaderProps> = ({
         </div>
       </div>
       
-      {showText && (
-        <div className={`text-center space-y-3 ${textSizes[size]}`}>
-          <div className="font-semibold text-foreground animate-pulse">
-            Po përgatisim Shqipet për ju...
-          </div>
-          <div className="text-xs text-muted-foreground opacity-80 animate-pulse" style={{ animationDelay: '0.8s' }}>
-            Duke u lidhur me komunitetin shqiptar botëror
-          </div>
-          <div className="flex justify-center space-x-1 mt-2" style={{ animationDelay: '1.5s' }}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce"
-                style={{ animationDelay: `${i * 0.2}s`, animationDuration: '1.4s' }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
