@@ -32,6 +32,13 @@ export const useSessionManagement = () => {
     try {
       console.log('Registering current device...');
 
+      // Ensure user is authenticated before proceeding
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      if (!authSession) {
+        console.log('No active session, skipping device registration');
+        return null;
+      }
+
       // Get device info
       const deviceInfo = await deviceDetectionService.getDeviceInfo();
       console.log('Device info obtained:', deviceInfo);
@@ -39,10 +46,6 @@ export const useSessionManagement = () => {
       // Try to get geolocation (non-blocking)
       const geolocation = await geolocationService.requestLocation();
       console.log('Geolocation:', geolocation);
-
-      // Get session token from current auth session
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      const sessionToken = authSession?.access_token;
 
       // Call edge function to register/update session
       const { data, error } = await supabase.functions.invoke('manage-session', {
@@ -52,7 +55,7 @@ export const useSessionManagement = () => {
             ...deviceInfo,
             latitude: geolocation?.latitude,
             longitude: geolocation?.longitude,
-            sessionToken,
+            sessionToken: authSession.access_token,
             mfaEnabled: false, // TODO: Get from user settings
           },
         },
@@ -276,6 +279,14 @@ export const useSessionManagement = () => {
    */
   useEffect(() => {
     const initialize = async () => {
+      // Check if user is authenticated first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('User not authenticated, skipping session management');
+        setState((prev) => ({ ...prev, loading: false }));
+        return;
+      }
+
       await registerCurrentDevice();
       await fetchSessions();
     };
