@@ -562,7 +562,10 @@ class DeviceSessionService {
       // Normalize OS and build physical key + model (DB source of truth)
       const finalOperatingSystem = this.normalizeOperatingSystem(details.operatingSystem, navigator.userAgent);
       const finalDeviceModel = details.deviceModel || this.extractModelFromUA(navigator.userAgent) || 'Unknown Model';
-      const physicalKey = `${finalType}|${finalOperatingSystem}|${screenRes}`.toLowerCase();
+      // Use OS family only (ignore version) and DO NOT include screen resolution to avoid duplicate physical keys
+      const osFamily = (finalOperatingSystem || 'unknown').toLowerCase().split(' ')[0];
+      const physicalKey = `${finalType}|${osFamily}`.toLowerCase();
+
 
       console.log('📦 Physical device key generated:', {
         physicalKey,

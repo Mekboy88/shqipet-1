@@ -225,15 +225,20 @@ export const useDeviceSession = () => {
           return;
         }
 
-        // CRITICAL: Group by PHYSICAL device using stored physical_key ONLY
+        // CRITICAL: Group by PHYSICAL device using stored physical_key ONLY (stable across resolution/OS patch)
         const createPhysicalKey = (session: any): string => {
           const storedKey = session.physical_key;
-          if (storedKey && typeof storedKey === 'string') return storedKey.toLowerCase();
-          // Fallback for legacy sessions without physical_key (will be updated on next register)
-          const screen = session.screen_resolution || 'no-screen';
-          const os = (session.operating_system || 'unknown-os').toLowerCase();
+          if (storedKey && typeof storedKey === 'string') {
+            const key = storedKey.toLowerCase();
+            const parts = key.split('|');
+            // If old format type|os|screen, normalize to type|os
+            if (parts.length >= 3) return `${parts[0]}|${parts[1]}`;
+            return key;
+          }
+          // Fallback for legacy sessions without physical_key: type + OS family (ignore version), no screen res
+          const osFamily = (session.operating_system || 'unknown-os').toLowerCase().split(' ')[0];
           const deviceType = (session.device_type || 'unknown').toLowerCase();
-          return `${deviceType}|${os}|${screen}`.toLowerCase();
+          return `${deviceType}|${osFamily}`.toLowerCase();
         };
 
         // Debug logging - what sessions do we have?
