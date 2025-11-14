@@ -31,10 +31,11 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     fullScreen?: boolean;
+    hideOverlay?: boolean;
   }
->(({ className, children, fullScreen = false, ...props }, ref) => (
+>(({ className, children, fullScreen = false, hideOverlay = false, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay className={fullScreen ? "bg-gray-100" : undefined} />
+    <DialogOverlay className={hideOverlay ? "bg-transparent" : fullScreen ? "bg-gray-100" : undefined} />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(

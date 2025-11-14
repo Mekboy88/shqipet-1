@@ -75,7 +75,7 @@ export const DeviceDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[96vw] max-w-none h-[88vh] p-0 overflow-hidden">
+      <DialogContent className="w-[96vw] max-w-none h-[88vh] p-0 overflow-hidden" hideOverlay>
         {/* Header */}
         <DialogHeader className="p-4 pb-3 border-b">
           <div className="flex items-center justify-between">
