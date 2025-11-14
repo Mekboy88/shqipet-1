@@ -433,54 +433,6 @@ Last Error: ${lastRegError || 'None'}`;
             )}
           </p>
         </div>
-        
-        {/* Dev Strip - Toggle Button */}
-        <div className="flex items-center justify-end mb-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowDevStrip(!showDevStrip)}
-            className="text-xs text-muted-foreground h-7"
-          >
-            <Bug className="w-3 h-3 mr-1" />
-            {showDevStrip ? 'Hide' : 'Show'} Dev Info
-          </Button>
-        </div>
-        
-        {/* Dev Strip */}
-        {showDevStrip && (
-          <div className="bg-muted/50 border border-border rounded-lg p-3 space-y-2 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="text-xs space-y-1">
-                <p className="font-mono">
-                  <span className="text-muted-foreground">Stable ID:</span>{' '}
-                  <span className="font-semibold">
-                    {stableId.substring(0, 8)}...{stableId.substring(stableId.length - 8)}
-                  </span>
-                </p>
-                <p className="text-muted-foreground">
-                  Devices found: <span className="font-semibold text-foreground">{trustedDevices.length}</span>
-                </p>
-              </div>
-              <Button
-                size="sm"
-                onClick={handleForceRegister}
-                disabled={forceRegistering}
-                className="text-xs h-8"
-              >
-                {forceRegistering ? (
-                  <>
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    Registering...
-                  </>
-                ) : (
-                  'Force Register'
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-        
         <div className="flex gap-3 mb-6">
           <Button
             onClick={refreshDevices}
