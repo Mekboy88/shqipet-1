@@ -60,6 +60,17 @@ const ViewSwitcher: React.FC = () => {
       const hostname = window.location.hostname;
       const pathname = window.location.pathname;
       
+      // Normalize auth paths on mobile subdomain early (no reload, no flicker)
+      try {
+        if (isMobileSubdomain(hostname)) {
+          const isAuthPath = /^\/auth(\/|$)/.test(pathname);
+          if (isAuthPath) {
+            const { search, hash } = window.location;
+            history.replaceState(null, '', `/${search}${hash}`);
+          }
+        }
+      } catch {}
+      
       // Parse URL parameters FIRST (before guard check)
       const urlParams = new URLSearchParams(window.location.search);
       const forceDesktop = urlParams.get('forceDesktop') === '1';
