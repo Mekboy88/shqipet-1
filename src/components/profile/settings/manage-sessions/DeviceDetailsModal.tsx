@@ -75,17 +75,17 @@ export const DeviceDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[96vw] max-w-none h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="w-[96vw] max-w-none h-[88vh] p-0 overflow-hidden">
         {/* Header */}
-        <DialogHeader className="p-6 pb-4 border-b">
+        <DialogHeader className="p-4 pb-3 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <DeviceIcon size={24} className="text-primary" />
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <DeviceIcon size={20} className="text-primary" />
               </div>
               <div>
-                <DialogTitle>{session.device_name || 'Unknown Device'}</DialogTitle>
-                <div className="flex items-center gap-2 mt-1">
+                <DialogTitle className="text-base">{session.device_name || 'Unknown Device'}</DialogTitle>
+                <div className="flex items-center gap-1.5 mt-0.5">
                   {isCurrentDevice && (
                     <Badge className="bg-blue-500 text-white text-xs">Current Device</Badge>
                   )}
@@ -99,43 +99,37 @@ export const DeviceDetailsModal = ({
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose}>
-              <X size={20} />
+              <X size={18} />
             </Button>
           </div>
         </DialogHeader>
 
         {/* Content - Two columns layout */}
-        <div className="flex h-[calc(100%-140px)] overflow-hidden">
-          {/* Left Column - Device Details (scrollable) */}
-          <div className="flex-1 px-6 py-4 overflow-y-auto space-y-4">
+        <div className="flex h-[calc(100%-116px)] overflow-hidden">
+          {/* Left Column - Device Details */}
+          <div className="flex-1 px-4 py-3 overflow-y-auto space-y-3">
             {/* Device Information */}
-            <div className="space-y-2">
-              <h4 className="font-semibold text-sm flex items-center gap-2">
-                <Monitor size={16} />
+            <div className="space-y-1.5">
+              <h4 className="font-semibold text-xs flex items-center gap-1.5">
+                <Monitor size={14} />
                 Device Information
               </h4>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm">
-                <div className="grid grid-cols-2 gap-3">
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-xs">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-muted-foreground block mb-1">Type:</span>
+                    <span className="text-muted-foreground block mb-0.5">Type:</span>
                     <span className="font-medium capitalize">{session.device_type}</span>
                   </div>
                   {session.device_brand && (
                     <div>
-                      <span className="text-muted-foreground block mb-1">Brand:</span>
+                      <span className="text-muted-foreground block mb-0.5">Brand:</span>
                       <span className="font-medium">{session.device_brand}</span>
                     </div>
                   )}
                   {session.device_model && (
                     <div>
-                      <span className="text-muted-foreground block mb-1">Model:</span>
+                      <span className="text-muted-foreground block mb-0.5">Model:</span>
                       <span className="font-medium">{session.device_model}</span>
-                    </div>
-                  )}
-                  {session.device_full_name && (
-                    <div>
-                      <span className="text-muted-foreground block mb-1">Full Name:</span>
-                      <span className="font-medium">{session.device_full_name}</span>
                     </div>
                   )}
                 </div>
@@ -143,34 +137,34 @@ export const DeviceDetailsModal = ({
             </div>
 
             {/* System & Browser */}
-            <div className="space-y-2">
-              <h4 className="font-semibold text-sm flex items-center gap-2">
-                <Globe size={16} />
+            <div className="space-y-1.5">
+              <h4 className="font-semibold text-xs flex items-center gap-1.5">
+                <Globe size={14} />
                 System & Browser
               </h4>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm">
-                <div className="grid grid-cols-2 gap-3">
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-xs">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-muted-foreground block mb-1">Operating System:</span>
+                    <span className="text-muted-foreground block mb-0.5">Operating System:</span>
                     <span className="font-medium">
                       {session.operating_system} {session.device_os_version}
                     </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block mb-1">Browser:</span>
+                    <span className="text-muted-foreground block mb-0.5">Browser:</span>
                     <span className="font-medium">
                       {session.browser_info} {session.browser_version}
                     </span>
                   </div>
                   {session.screen_resolution && (
                     <div>
-                      <span className="text-muted-foreground block mb-1">Screen Resolution:</span>
+                      <span className="text-muted-foreground block mb-0.5">Screen:</span>
                       <span className="font-medium">{session.screen_resolution}</span>
                     </div>
                   )}
                   {session.platform_type && (
                     <div>
-                      <span className="text-muted-foreground block mb-1">Platform:</span>
+                      <span className="text-muted-foreground block mb-0.5">Platform:</span>
                       <span className="font-medium capitalize">{session.platform_type}</span>
                     </div>
                   )}
@@ -179,72 +173,68 @@ export const DeviceDetailsModal = ({
             </div>
 
             {/* Location */}
-            <div className="space-y-2">
-              <h4 className="font-semibold text-sm flex items-center gap-2">
-                <MapPin size={16} />
+            <div className="space-y-1.5">
+              <h4 className="font-semibold text-xs flex items-center gap-1.5">
+                <MapPin size={14} />
                 Location
               </h4>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm">
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-xs">
                 {session.city && session.country ? (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="text-muted-foreground block mb-1">Full Location:</span>
+                      <span className="text-muted-foreground block mb-0.5">Location:</span>
                       <span className="font-medium">{locationText}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground block mb-1">City:</span>
-                      <span className="font-medium">{session.city}</span>
                     </div>
                     {session.latitude && session.longitude && (
                       <div>
-                        <span className="text-muted-foreground block mb-1">Coordinates:</span>
-                        <span className="font-medium text-xs">
+                        <span className="text-muted-foreground block mb-0.5">Coordinates:</span>
+                        <span className="font-medium">
                           {Number(session.latitude).toFixed(4)}°, {Number(session.longitude).toFixed(4)}°
                         </span>
                       </div>
                     )}
                     {session.ip_address && (
-                      <div>
-                        <span className="text-muted-foreground block mb-1">IP Address:</span>
+                      <div className="col-span-2">
+                        <span className="text-muted-foreground block mb-0.5">IP Address:</span>
                         <span className="font-medium">{session.ip_address}</span>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center py-2">No location data available</p>
+                  <p className="text-muted-foreground text-center py-1">No location data</p>
                 )}
               </div>
             </div>
 
             {/* Security */}
-            <div className="space-y-2">
-              <h4 className="font-semibold text-sm flex items-center gap-2">
-                <Shield size={16} />
+            <div className="space-y-1.5">
+              <h4 className="font-semibold text-xs flex items-center gap-1.5">
+                <Shield size={14} />
                 Security
               </h4>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm">
-                <div className="grid grid-cols-2 gap-3">
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-xs">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-muted-foreground block mb-1">Trust Score:</span>
-                    <span className={`font-bold text-lg ${getTrustScoreColor(session.trust_score || 50)}`}>
+                    <span className="text-muted-foreground block mb-0.5">Trust Score:</span>
+                    <span className={`font-bold text-base ${getTrustScoreColor(session.trust_score || 50)}`}>
                       {session.trust_score || 50}%
                     </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block mb-1">Session Status:</span>
+                    <span className="text-muted-foreground block mb-0.5">Status:</span>
                     <span className="font-medium">{session.session_status || 'Active'}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block mb-1">Last Active:</span>
+                    <span className="text-muted-foreground block mb-0.5">Last Active:</span>
                     <span className="font-medium">{getLastActiveText()}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block mb-1">Created:</span>
-                    <span className="font-medium text-xs">{formatDate(session.created_at)}</span>
+                    <span className="text-muted-foreground block mb-0.5">Created:</span>
+                    <span className="font-medium">{formatDate(session.created_at)}</span>
                   </div>
                   {session.login_count && (
                     <div>
-                      <span className="text-muted-foreground block mb-1">Login Count:</span>
+                      <span className="text-muted-foreground block mb-0.5">Logins:</span>
                       <span className="font-medium">{session.login_count}</span>
                     </div>
                   )}
@@ -252,24 +242,24 @@ export const DeviceDetailsModal = ({
               </div>
             </div>
 
-            {/* Additional Info */}
+            {/* Technical Details */}
             {(session.user_agent || session.device_fingerprint) && (
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm flex items-center gap-2">
-                  <Clock size={16} />
+              <div className="space-y-1.5">
+                <h4 className="font-semibold text-xs flex items-center gap-1.5">
+                  <Clock size={14} />
                   Technical Details
                 </h4>
-                <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm">
+                <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-xs">
                   {session.user_agent && (
                     <div>
-                      <span className="text-muted-foreground block mb-1">User Agent:</span>
-                      <span className="font-mono text-xs break-all">{session.user_agent}</span>
+                      <span className="text-muted-foreground block mb-0.5">User Agent:</span>
+                      <span className="font-mono text-[10px] break-all">{session.user_agent}</span>
                     </div>
                   )}
                   {session.device_fingerprint && (
                     <div>
-                      <span className="text-muted-foreground block mb-1">Device Fingerprint:</span>
-                      <span className="font-mono text-xs break-all">{session.device_fingerprint}</span>
+                      <span className="text-muted-foreground block mb-0.5">Device Fingerprint:</span>
+                      <span className="font-mono text-[10px] break-all">{session.device_fingerprint}</span>
                     </div>
                   )}
                 </div>
@@ -277,11 +267,11 @@ export const DeviceDetailsModal = ({
             )}
           </div>
 
-          {/* Right Column - Map (full height) */}
-          <div className="w-[45%] border-l flex flex-col">
-            <div className="p-4 border-b">
-              <h4 className="font-semibold text-sm flex items-center gap-2">
-                <MapPin size={16} />
+          {/* Right Column - Map */}
+          <div className="w-[42%] border-l flex flex-col">
+            <div className="p-3 border-b">
+              <h4 className="font-semibold text-xs flex items-center gap-1.5">
+                <MapPin size={14} />
                 Device Location
               </h4>
             </div>
@@ -295,14 +285,15 @@ export const DeviceDetailsModal = ({
           </div>
         </div>
 
-        {/* Action Buttons - Fixed at bottom */}
-        <div className="flex gap-2 border-t p-4">
+        {/* Action Buttons */}
+        <div className="flex gap-2 border-t p-3">
           {!session.is_trusted && (
             <Button
               onClick={() => onTrustDevice(session.device_stable_id)}
               variant="default"
+              size="sm"
             >
-              <Shield size={16} className="mr-2" />
+              <Shield size={14} className="mr-1.5" />
               Trust Device
             </Button>
           )}
@@ -313,12 +304,13 @@ export const DeviceDetailsModal = ({
                 onClose();
               }}
               variant="destructive"
+              size="sm"
             >
-              <AlertTriangle size={16} className="mr-2" />
+              <AlertTriangle size={14} className="mr-1.5" />
               Revoke Session
             </Button>
           )}
-          <Button onClick={onClose} variant="outline" className="ml-auto">
+          <Button onClick={onClose} variant="outline" size="sm" className="ml-auto">
             Close
           </Button>
         </div>
