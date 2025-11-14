@@ -1663,6 +1663,7 @@ export type Database = {
           browser_info: string | null
           browser_version: string | null
           city: string | null
+          composite_fingerprint_hash: string | null
           connection_type: string | null
           consent_tracking: Json | null
           country: string | null
@@ -1712,6 +1713,7 @@ export type Database = {
           browser_info?: string | null
           browser_version?: string | null
           city?: string | null
+          composite_fingerprint_hash?: string | null
           connection_type?: string | null
           consent_tracking?: Json | null
           country?: string | null
@@ -1761,6 +1763,7 @@ export type Database = {
           browser_info?: string | null
           browser_version?: string | null
           city?: string | null
+          composite_fingerprint_hash?: string | null
           connection_type?: string | null
           consent_tracking?: Json | null
           country?: string | null
@@ -1951,6 +1954,15 @@ export type Database = {
       }
       hash_ip_address: { Args: { ip_text: string }; Returns: string }
       is_platform_owner: { Args: { _user_id: string }; Returns: boolean }
+      log_device_security_event: {
+        Args: {
+          p_event_description: string
+          p_event_type: string
+          p_metadata?: Json
+          p_user_id: string
+        }
+        Returns: string
+      }
       log_session_activity: {
         Args: {
           p_event_source?: string
@@ -1968,6 +1980,7 @@ export type Database = {
         Returns: string
       }
       restore_post: { Args: { post_id_param: string }; Returns: undefined }
+      revoke_expired_sessions: { Args: never; Returns: undefined }
       soft_delete_post: { Args: { post_id_param: string }; Returns: undefined }
       sync_phone_verification_status: {
         Args: {
