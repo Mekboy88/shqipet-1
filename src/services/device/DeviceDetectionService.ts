@@ -180,25 +180,98 @@ class DeviceDetectionService {
   }
 
   /**
+   * Get User-Agent Client Hints for more accurate OS info (Chromium only)
+   */
+  private async getUserAgentClientHints(): Promise<{ osName?: string; osVersion?: string; platform?: string } | null> {
+    try {
+      // Check if User-Agent Client Hints API is available
+      if ('userAgentData' in navigator && (navigator as any).userAgentData?.getHighEntropyValues) {
+        const hints = await (navigator as any).userAgentData.getHighEntropyValues([
+          'platform',
+          'platformVersion',
+          'model',
+          'uaFullVersion'
+        ]);
+        
+        return {
+          osName: hints.platform || undefined,
+          osVersion: hints.platformVersion || undefined,
+          platform: hints.platform || undefined,
+        };
+      }
+    } catch (error) {
+      console.warn('User-Agent Client Hints not available:', error);
+    }
+    return null;
+  }
+
+  /**
+   * Detect if device is a laptop based on multiple factors
+   */
+  private isLaptopDevice(result: any): boolean {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const platform = navigator.platform.toLowerCase();
+    
+    // Check for MacBook
+    if (platform.includes('mac') && !userAgent.includes('iphone') && !userAgent.includes('ipad')) {
+      // If it's macOS and has touch support, it might be an iPad, otherwise laptop
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      return !hasTouch;
+    }
+    
+    // Check for Windows laptops - look for non-tablet Windows devices
+    if (platform.includes('win') && !userAgent.includes('tablet')) {
+      return true;
+    }
+    
+    // Check for Linux laptops
+    if (platform.includes('linux') && !userAgent.includes('android')) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
    * Get complete device information with fingerprinting
    */
   async getDeviceInfo(): Promise<DeviceFingerprint> {
     const result = this.parser.getResult();
 
+    // Try to get more accurate OS info from User-Agent Client Hints
+    const clientHints = await this.getUserAgentClientHints();
+
     // Generate fingerprints
     const deviceStableId = await this.generateStableDeviceId();
     const deviceFingerprint = await this.generateDeviceFingerprint();
 
-    // Determine device type
+    // Determine device type with better laptop detection
     let deviceType = 'desktop';
-    if (result.device.type === 'mobile') deviceType = 'mobile';
-    else if (result.device.type === 'tablet') deviceType = 'tablet';
-    else if (/Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      deviceType = navigator.userAgent.includes('iPad') ? 'tablet' : 'mobile';
+    if (result.device.type === 'mobile') {
+      deviceType = 'mobile';
+    } else if (result.device.type === 'tablet') {
+      deviceType = 'tablet';
+    } else if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
+      deviceType = 'mobile';
+    } else if (navigator.userAgent.includes('iPad')) {
+      deviceType = 'tablet';
+    } else if (this.isLaptopDevice(result)) {
+      deviceType = 'laptop';
+    }
+
+    // Use client hints for more accurate OS info if available
+    let osName = result.os.name || 'Unknown';
+    let osVersion = result.os.version || 'Unknown';
+    
+    if (clientHints?.osName) {
+      osName = clientHints.osName;
+      if (clientHints.osVersion) {
+        osVersion = clientHints.osVersion;
+      }
     }
 
     // Generate device name
-    const deviceName = this.generateDeviceName(result, deviceType);
+    const deviceName = this.generateDeviceName(result, deviceType, osName, osVersion);
 
     // Map platform type to allowed database values
     const platformType = this.mapPlatformType(result);
@@ -210,8 +283,8 @@ class DeviceDetectionService {
       deviceBrand: result.device.vendor || undefined,
       deviceModel: result.device.model || undefined,
       deviceName,
-      operatingSystem: result.os.name || 'Unknown',
-      osVersion: result.os.version || 'Unknown',
+      operatingSystem: osName,
+      osVersion: osVersion,
       browserName: result.browser.name || 'Unknown',
       browserVersion: result.browser.version || 'Unknown',
       userAgent: navigator.userAgent,
@@ -251,19 +324,32 @@ class DeviceDetectionService {
   /**
    * Generate a friendly device name
    */
-  private generateDeviceName(result: any, deviceType: string): string {
+  private generateDeviceName(result: any, deviceType: string, osName?: string, osVersion?: string): string {
     const parts: string[] = [];
 
-    // Add browser
+    // Add browser with version
     if (result.browser.name) {
       parts.push(result.browser.name);
+      if (result.browser.version) {
+        const majorVersion = result.browser.version.split('.')[0];
+        parts.push(majorVersion);
+      }
     }
 
-    // Add OS
-    if (result.os.name) {
-      parts.push(result.os.name);
-      if (result.os.version) {
-        parts.push(result.os.version);
+    // Add OS with version (use provided values or fallback to parsed values)
+    const finalOsName = osName || result.os.name;
+    const finalOsVersion = osVersion || result.os.version;
+    
+    if (finalOsName) {
+      parts.push(finalOsName);
+      if (finalOsVersion && finalOsVersion !== 'Unknown') {
+        // For macOS, show shorter version (e.g., "14.0" instead of "14.0.0")
+        const versionParts = finalOsVersion.split('.');
+        if (finalOsName.toLowerCase().includes('mac') && versionParts.length >= 2) {
+          parts.push(`${versionParts[0]}.${versionParts[1]}`);
+        } else {
+          parts.push(finalOsVersion);
+        }
       }
     }
 
