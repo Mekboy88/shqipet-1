@@ -14,14 +14,14 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     authContext = useAuth();
   } catch (error) {
     console.warn('AuthGuard: Auth context not ready yet');
-    return <Navigate to="/auth/login" replace />;
+    return <Navigate to="/" replace />;
   }
   
   const { user } = authContext;
 
   // Immediate redirect if not authenticated - no loading states
   if (!user) {
-    return <Navigate to="/auth/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Render children immediately if authenticated
