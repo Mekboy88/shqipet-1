@@ -1665,8 +1665,9 @@ export type Database = {
           country_code: string | null
           created_at: string | null
           device_fingerprint: string
+          device_model: string | null
           device_name: string | null
-          device_stable_id: string | null
+          device_stable_id: string
           device_type: string | null
           device_type_locked: boolean | null
           hardware_info: Json | null
@@ -1682,6 +1683,7 @@ export type Database = {
           mfa_enabled: boolean | null
           network_provider: string | null
           operating_system: string | null
+          physical_key: string | null
           platform_type: string | null
           screen_resolution: string | null
           security_alerts: Json | null
@@ -1699,8 +1701,9 @@ export type Database = {
           country_code?: string | null
           created_at?: string | null
           device_fingerprint: string
+          device_model?: string | null
           device_name?: string | null
-          device_stable_id?: string | null
+          device_stable_id: string
           device_type?: string | null
           device_type_locked?: boolean | null
           hardware_info?: Json | null
@@ -1716,6 +1719,7 @@ export type Database = {
           mfa_enabled?: boolean | null
           network_provider?: string | null
           operating_system?: string | null
+          physical_key?: string | null
           platform_type?: string | null
           screen_resolution?: string | null
           security_alerts?: Json | null
@@ -1733,8 +1737,9 @@ export type Database = {
           country_code?: string | null
           created_at?: string | null
           device_fingerprint?: string
+          device_model?: string | null
           device_name?: string | null
-          device_stable_id?: string | null
+          device_stable_id?: string
           device_type?: string | null
           device_type_locked?: boolean | null
           hardware_info?: Json | null
@@ -1750,6 +1755,7 @@ export type Database = {
           mfa_enabled?: boolean | null
           network_provider?: string | null
           operating_system?: string | null
+          physical_key?: string | null
           platform_type?: string | null
           screen_resolution?: string | null
           security_alerts?: Json | null
