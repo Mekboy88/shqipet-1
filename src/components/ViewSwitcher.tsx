@@ -53,9 +53,10 @@ const isPublicPage = (pathname: string): boolean => {
 
 const ViewSwitcher: React.FC = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
 
-  // Mobile redirect logic - runs once on mount
-  useEffect(() => {
+  // CRITICAL: Mobile redirect logic - runs synchronously BEFORE any render
+  React.useLayoutEffect(() => {
     try {
       const hostname = window.location.hostname;
       const pathname = window.location.pathname;
@@ -86,6 +87,7 @@ const ViewSwitcher: React.FC = () => {
       // Check guard AFTER potentially clearing it
       if (sessionStorage.getItem('mobileRedirectChecked') === '1') {
         console.log('✋ Redirect already checked this session, skipping');
+        setIsCheckingRedirect(false);
         return;
       }
       
@@ -93,6 +95,7 @@ const ViewSwitcher: React.FC = () => {
       if (isAdminPath(pathname)) {
         console.log('🔐 Admin path detected, skipping redirect');
         sessionStorage.setItem('mobileRedirectChecked', '1');
+        setIsCheckingRedirect(false);
         return;
       }
 
@@ -103,6 +106,7 @@ const ViewSwitcher: React.FC = () => {
       if (forceDesktop) {
         console.log('💻 Force desktop override active');
         sessionStorage.setItem('mobileRedirectChecked', '1');
+        setIsCheckingRedirect(false);
         return;
       }
       
@@ -137,6 +141,7 @@ const ViewSwitcher: React.FC = () => {
       if (forceMobile && isPrimaryDomain(hostname)) {
         console.log('⚡ forceMobile=1 detected, staying on primary domain (single-domain mode)');
         sessionStorage.setItem('mobileRedirectChecked', '1');
+        setIsCheckingRedirect(false);
         return;
       }
 
@@ -146,10 +151,11 @@ const ViewSwitcher: React.FC = () => {
         if (prefersDesktop) {
           console.log('📱→💻 User prefers desktop view, staying on primary domain');
           sessionStorage.setItem('mobileRedirectChecked', '1');
+          setIsCheckingRedirect(false);
           return;
         }
         
-        // Redirect to mobile subdomain
+        // Redirect to mobile subdomain (do NOT set isCheckingRedirect(false), page will redirect)
         sessionStorage.setItem('mobileRedirectChecked', '1');
         setIsRedirecting(true);
         const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
@@ -170,11 +176,24 @@ const ViewSwitcher: React.FC = () => {
       
       console.log('✅ No redirect needed, staying on current domain');
       sessionStorage.setItem('mobileRedirectChecked', '1');
+      setIsCheckingRedirect(false);
     } catch (error) {
       console.warn('❌ Mobile redirect check failed:', error);
       sessionStorage.setItem('mobileRedirectChecked', '1');
+      setIsCheckingRedirect(false);
     }
   }, []);
+  
+  // CRITICAL: Block ALL rendering until redirect check completes
+  if (isCheckingRedirect || isRedirecting) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   // Show loading while redirecting
   if (isRedirecting) {
