@@ -107,7 +107,7 @@ export const DeviceDetailsModal = ({
         {/* Content - Two columns layout */}
         <div className="flex h-[calc(100%-116px)] overflow-hidden">
           {/* Left Column - Device Details */}
-          <div className="flex-1 px-4 py-3 overflow-y-auto space-y-3">
+          <div className="flex-1 px-4 pt-3 pb-6 overflow-y-auto space-y-3">
             {/* Device Information */}
             <div className="space-y-1.5">
               <h4 className="font-semibold text-xs flex items-center gap-1.5">
