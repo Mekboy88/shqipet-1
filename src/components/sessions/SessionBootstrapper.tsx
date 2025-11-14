@@ -63,7 +63,7 @@ const SessionBootstrapper = () => {
         console.log('🔑 SessionBootstrapper: Current stable ID:', stableId);
         
         // Register or update device immediately on login
-        const id = await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+        const id = await deviceSessionService.registerOrUpdateCurrentDevice(user.id, { forceReclassify: true });
         
         if (cancelled) {
           console.log('⚠️ SessionBootstrapper: Registration cancelled (component unmounted)');
@@ -101,7 +101,7 @@ const SessionBootstrapper = () => {
         if (sessionIdRef.current) deviceSessionService.heartbeat(sessionIdRef.current);
         // Re-register to ensure device is always up-to-date
         try {
-          await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+          await deviceSessionService.registerOrUpdateCurrentDevice(user.id, { forceReclassify: true });
           console.log('✅ Device re-registered on focus');
         } catch (e) {
           console.error('❌ Failed to re-register on focus:', e);
@@ -116,7 +116,7 @@ const SessionBootstrapper = () => {
           }
           // Re-register to ensure device is always up-to-date
           try {
-            await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+            await deviceSessionService.registerOrUpdateCurrentDevice(user.id, { forceReclassify: true });
             console.log('✅ Device re-registered on visibility change');
           } catch (e) {
             console.error('❌ Failed to re-register on visibility change:', e);
