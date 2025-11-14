@@ -1,9 +1,8 @@
-
 import React from 'react';
-import { Navigate } from 'react-router-dom';
 
 import { useAuth } from '@/contexts/AuthContext';
 import Feed from '@/components/Feed';
+import Login from '@/pages/auth/Login';
 
 const Home: React.FC = () => {
   // Safe auth access with error handling
@@ -27,9 +26,9 @@ const Home: React.FC = () => {
     </div>;
   }
   
-  // If no user, redirect to login
+  // If no user, show login at root URL
   if (!user) {
-    return <Navigate to="/auth/login" replace />;
+    return <Login />;
   }
 
   return (
