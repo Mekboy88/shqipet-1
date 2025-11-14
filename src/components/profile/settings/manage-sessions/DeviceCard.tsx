@@ -96,7 +96,7 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground">Location</p>
-                <p className="truncate">{locationText}</p>
+                <p className="break-words">{locationText}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground">Screen</p>
