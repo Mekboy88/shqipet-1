@@ -5,7 +5,6 @@ import { InteractiveMap } from './InteractiveMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatLocationWithFlag, getCountryFlag } from '@/utils/countryFlags';
-import { getDisplayDeviceType, getDisplayTitle } from '@/utils/deviceDisplay';
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
 interface DeviceCardProps {
@@ -15,11 +14,20 @@ interface DeviceCardProps {
 }
 
 export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProps) => {
-  const displayType = getDisplayDeviceType(session);
-  const DeviceIcon =
-    displayType === 'mobile' ? Smartphone :
-    displayType === 'tablet' ? Tablet :
-    displayType === 'laptop' ? Laptop : Monitor;
+  const getDeviceIcon = () => {
+    switch (session.device_type) {
+      case 'mobile':
+        return Smartphone;
+      case 'tablet':
+        return Tablet;
+      case 'laptop':
+        return Laptop;
+      default:
+        return Monitor;
+    }
+  };
+
+  const DeviceIcon = getDeviceIcon();
 
   const getTrustScoreColor = (score: number) => {
     if (score >= 80) return 'bg-green-500';
@@ -52,7 +60,7 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
                   <DeviceIcon size={24} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold leading-tight">{getDisplayTitle(session, displayType)}</h3>
+                  <h3 className="font-semibold leading-tight">{session.device_name || 'Unknown Device'}</h3>
                   <p className="text-xs text-muted-foreground">
                     {(session.operating_system || 'OS')} {session.device_os_version || ''} • {(session.browser_info || 'Browser')} {session.browser_version || ''}
                   </p>
