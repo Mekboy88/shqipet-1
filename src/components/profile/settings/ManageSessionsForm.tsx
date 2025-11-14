@@ -374,7 +374,7 @@ Last Error: ${lastRegError || 'None'}`;
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Diagnostics Strip - Always visible for debugging */}
-      {diagnostics && (
+      {false && diagnostics && (
         <Card className="border-blue-500/20 bg-blue-500/5">
           <CardContent className="p-3">
             <div className="flex items-start justify-between gap-3">
