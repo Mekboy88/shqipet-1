@@ -227,13 +227,14 @@ export const useDeviceSession = () => {
         }
 
         // CRITICAL: Group by PHYSICAL device (not browser)
-        // Physical key = screen + OS + device_type (from DATABASE only, NO current navigator)
+        // Prefer stored physical_key from DB; fallback if missing
         const createPhysicalKey = (session: any): string => {
-          // Use ONLY stored database values - NEVER current browser values
+          const storedKey = session.physical_key;
+          if (storedKey && typeof storedKey === 'string') return storedKey.toLowerCase();
+          // Fallback: build from stored DB fields ONLY
           const screen = session.screen_resolution || 'no-screen';
           const os = (session.operating_system || 'unknown-os').toLowerCase();
           const deviceType = (session.device_type || 'unknown').toLowerCase();
-          // For more precise grouping, include platform_type (web/ios/android)
           const platformType = (session.platform_type || 'web').toLowerCase();
           return `${screen}|${os}|${deviceType}|${platformType}`.toLowerCase();
         };
@@ -343,31 +344,8 @@ export const useDeviceSession = () => {
             deviceType = 'mobile';
           }
 
-          // DISPLAY OVERRIDE: If this is the current device and stored as desktop/laptop but UA says mobile/tablet, override display only
-          if (isCurrentDevice && (deviceType === 'desktop' || deviceType === 'laptop')) {
-            const ua = navigator.userAgent;
-            const uaMobile = /iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua);
-            const uaTablet = /iPad|Tablet|Kindle|Silk|PlayBook|Galaxy Tab|Android(?!.*Mobile)/i.test(ua);
-            const isMacintosh = /Macintosh/i.test(ua);
-            const hasTouchPoints = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
-            
-            const stronglyMobile = uaMobile && !uaTablet;
-            const stronglyTablet = uaTablet || (isMacintosh && hasTouchPoints);
-            
-            if (stronglyMobile || stronglyTablet) {
-              const correctedType = stronglyMobile ? 'mobile' : 'tablet';
-              console.log(`🔧 Display override for current device: ${deviceType} → ${correctedType} (DB will auto-correct on next register)`);
-              deviceType = correctedType;
-              
-              // Also update device name to reflect the correction
-              if (stronglyTablet && (isMacintosh && hasTouchPoints)) {
-                deviceName = 'iPad';
-              } else if (stronglyMobile) {
-                const details = await detectDeviceDetails(ua);
-                deviceName = details.deviceName;
-              }
-            }
-          }
+          // Display strictly from DB values; no UA-based overrides for current device
+          // (Removed browser-detection override to prevent misclassification)
 
           // Final fallbacks
           browserInfo = browserInfo || 'Unknown Browser';
@@ -534,6 +512,9 @@ export const useDeviceSession = () => {
     try {
       console.log('🚪 Logging out all other devices (bulk update)');
       console.log('🔑 Keeping current stable ID:', currentStableId);
+      
+      // Ensure current device session is registered/active before bulk logout
+      await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
       
       // Update ALL sessions where device_stable_id != currentStableId
       const { error } = await supabase
