@@ -106,7 +106,7 @@ class ErrorRecoveryService {
       console.warn('Error clearing storage:', error);
     }
     
-    window.location.href = '/auth/login';
+    window.location.href = '/';
   };
 
   // Handle generic errors

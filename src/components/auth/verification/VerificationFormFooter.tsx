@@ -25,7 +25,7 @@ const VerificationFormFooter = ({ verificationMethod }: VerificationFormFooterPr
       <div className="text-center mt-2">
         <p className="text-sm text-gray-600">
           Already have an account?{' '}
-          <Link to="/auth/login" className="text-facebook-primary hover:underline">
+          <Link to="/" className="text-facebook-primary hover:underline">
             Log in
           </Link>
         </p>

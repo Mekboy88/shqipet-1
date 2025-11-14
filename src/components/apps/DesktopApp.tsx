@@ -2,7 +2,14 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DesktopLayout from '@/components/layout/DesktopLayout';
 import NavbarNoTooltip from '@/components/NavbarNoTooltip';
+import { useAuth } from '@/contexts/AuthContext';
 import Home from "@/pages/Home";
+
+// Guard component to prevent navbar rendering for unauthenticated users
+const GuardedNavbar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  return <>{user ? <><NavbarNoTooltip />{children}</> : <>{children}</>}</>;
+};
 import Watch from "@/pages/Watch";
 import Reels from "@/pages/Reels";
 import Marketplace from "@/pages/Marketplace";
@@ -107,7 +114,7 @@ const DesktopApp: React.FC = () => {
     <DesktopLayout>
       <div className="relative">
         <Routes>
-          <Route path="/" element={<><NavbarNoTooltip /><Home /></>} />
+          <Route path="/" element={<GuardedNavbar><Home /></GuardedNavbar>} />
           <Route path="/reels" element={<><NavbarNoTooltip /><Reels /></>} />
           <Route path="/interesante" element={<><NavbarNoTooltip /><Reels /></>} />
           <Route path="/watch" element={<><NavbarNoTooltip /><Watch /></>} />
@@ -130,7 +137,7 @@ const DesktopApp: React.FC = () => {
           <Route path="/history" element={<><NavbarNoTooltip /><HistoryPage /></>} />
           <Route path="/messages" element={<><NavbarNoTooltip /><div className="pt-14"><Messages /></div></>} />
           <Route path="/messages/standalone" element={<Messages />} />
-          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/login" element={<Navigate to="/" replace />} />
           <Route path="/auth/register" element={<Register />} />
           <Route path="/auth/verification" element={<Verification />} />
           <Route path="/auth/forgot-password" element={<ForgotPassword />} />

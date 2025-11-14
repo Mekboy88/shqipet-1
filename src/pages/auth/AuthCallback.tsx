@@ -27,7 +27,7 @@ const AuthCallback: React.FC = () => {
           if (error) {
             console.error('❌ Auth callback error:', error);
             toast.error('Email verification failed');
-            navigate('/auth/login');
+            navigate('/');
             return;
           }
 
@@ -49,7 +49,7 @@ const AuthCallback: React.FC = () => {
           } else {
             console.log('⚠️ No active session found');
             toast.error('Verification failed - please try again');
-            navigate('/auth/login');
+            navigate('/');
           }
         } else {
           // Handle other auth callback types if needed
@@ -59,7 +59,7 @@ const AuthCallback: React.FC = () => {
       } catch (error: any) {
         console.error('❌ Auth callback processing failed:', error);
         toast.error('Authentication failed');
-        navigate('/auth/login');
+        navigate('/');
       } finally {
         setIsProcessing(false);
       }

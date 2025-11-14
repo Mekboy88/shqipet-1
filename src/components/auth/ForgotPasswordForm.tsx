@@ -352,7 +352,7 @@ const ForgotPasswordForm = () => {
           <Button 
             type="button" 
             variant="outline" 
-            onClick={() => navigate('/auth/login')}
+            onClick={() => navigate('/')}
             className="px-6 py-3"
             disabled={isLoading}
           >
@@ -571,7 +571,7 @@ const ForgotPasswordForm = () => {
         <Button 
           type="button"
           className="flex items-center space-x-2 w-full justify-center py-3 bg-red-400 hover:bg-red-500"
-          onClick={() => navigate('/auth/login')}
+          onClick={() => navigate('/')}
         >
           <ArrowLeft size={16} />
           <span>Shkoni tek Identifikimi</span>
