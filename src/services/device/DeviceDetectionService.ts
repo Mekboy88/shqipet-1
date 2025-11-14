@@ -200,6 +200,9 @@ class DeviceDetectionService {
     // Generate device name
     const deviceName = this.generateDeviceName(result, deviceType);
 
+    // Map platform type to allowed database values
+    const platformType = this.mapPlatformType(result);
+
     return {
       deviceFingerprint,
       deviceStableId,
@@ -213,9 +216,36 @@ class DeviceDetectionService {
       browserVersion: result.browser.version || 'Unknown',
       userAgent: navigator.userAgent,
       screenResolution: `${window.screen.width}x${window.screen.height}`,
-      platformType: navigator.platform,
+      platformType,
       hardwareCapabilities: this.detectHardwareCapabilities(),
     };
+  }
+
+  /**
+   * Map platform to allowed database values: 'web', 'ios', 'android', 'pwa'
+   */
+  private mapPlatformType(result: any): string {
+    const os = result.os.name?.toLowerCase() || '';
+    
+    // Check if running as PWA
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                  (window.navigator as any).standalone === true;
+    
+    if (isPWA) {
+      return 'pwa';
+    }
+    
+    // Map based on OS
+    if (os.includes('ios') || os.includes('iphone') || os.includes('ipad')) {
+      return 'ios';
+    }
+    
+    if (os.includes('android')) {
+      return 'android';
+    }
+    
+    // Default to web for desktop/other platforms
+    return 'web';
   }
 
   /**
