@@ -29,28 +29,8 @@ export const MobileDeviceCard = ({
   const touchStartX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const deriveDisplayDeviceType = (s: UserSession): 'mobile' | 'tablet' | 'laptop' | 'desktop' => {
-    const base = (s.device_type || '').toLowerCase();
-    if (base === 'mobile' || base === 'tablet' || base === 'laptop') return base as any;
-    const nameBlob = `${s.device_full_name || ''} ${s.device_name || ''} ${s.user_agent || ''}`.toLowerCase();
-    if (/macbook|thinkpad|latitude|elitebook|pavilion|inspiron|aspire|zenbook|vivobook|swift|spectre|surface laptop/.test(nameBlob)) {
-      return 'laptop';
-    }
-    const res = s.screen_resolution || '';
-    const m = res.match(/(\d+)\s*x\s*(\d+)/i);
-    if (m) {
-      const w = parseInt(m[1], 10);
-      const h = parseInt(m[2], 10);
-      const ar = w / h;
-      if (w >= 1200 && w <= 3200 && h >= 700 && h <= 2000 && ar >= 1.5 && ar <= 1.9) {
-        return 'laptop';
-      }
-    }
-    return base === 'desktop' || base === '' ? 'desktop' : (base as any);
-  };
-
   const getDeviceIcon = () => {
-    switch (deriveDisplayDeviceType(session)) {
+    switch (session.device_type) {
       case 'mobile':
         return Smartphone;
       case 'tablet':
@@ -68,16 +48,6 @@ export const MobileDeviceCard = ({
     if (score >= 80) return 'bg-green-500';
     if (score >= 50) return 'bg-yellow-500';
     return 'bg-red-500';
-  };
-
-  const makeDisplayName = (s: UserSession) => {
-    const type = deriveDisplayDeviceType(s);
-    const browser = s.browser_info ? `${s.browser_info}` : 'Browser';
-    const bver = s.browser_version ? ` ${s.browser_version}` : '';
-    const os = s.operating_system ? `${s.operating_system}` : 'OS';
-    const over = s.device_os_version ? ` ${s.device_os_version}` : '';
-    const typeCap = type.charAt(0).toUpperCase() + type.slice(1);
-    return `${browser}${bver} ${os}${over} ${typeCap}`.trim();
   };
 
   const getLoginTimeText = () => {
@@ -158,7 +128,7 @@ export const MobileDeviceCard = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold truncate">
-                  {makeDisplayName(session)}
+                  {session.device_name || 'Unknown Device'}
                 </h3>
                 {isCurrentDevice && (
                   <Badge className="bg-blue-500 text-white text-xs">Current</Badge>

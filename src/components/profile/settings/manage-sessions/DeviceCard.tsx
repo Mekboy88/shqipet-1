@@ -15,28 +15,8 @@ interface DeviceCardProps {
 }
 
 export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProps) => {
-  const deriveDisplayDeviceType = (s: UserSession): 'mobile' | 'tablet' | 'laptop' | 'desktop' => {
-    const base = (s.device_type || '').toLowerCase();
-    if (base === 'mobile' || base === 'tablet' || base === 'laptop') return base as any;
-    const nameBlob = `${s.device_full_name || ''} ${s.device_name || ''} ${s.user_agent || ''}`.toLowerCase();
-    if (/macbook|thinkpad|latitude|elitebook|pavilion|inspiron|aspire|zenbook|vivobook|swift|spectre|surface laptop/.test(nameBlob)) {
-      return 'laptop';
-    }
-    const res = s.screen_resolution || '';
-    const m = res.match(/(\d+)\s*x\s*(\d+)/i);
-    if (m) {
-      const w = parseInt(m[1], 10);
-      const h = parseInt(m[2], 10);
-      const ar = w / h;
-      if (w >= 1200 && w <= 3200 && h >= 700 && h <= 2000 && ar >= 1.5 && ar <= 1.9) {
-        return 'laptop';
-      }
-    }
-    return base === 'desktop' || base === '' ? 'desktop' : (base as any);
-  };
-
   const getDeviceIcon = () => {
-    switch (deriveDisplayDeviceType(session)) {
+    switch (session.device_type) {
       case 'mobile':
         return Smartphone;
       case 'tablet':
@@ -54,16 +34,6 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
     if (score >= 80) return 'bg-green-500';
     if (score >= 50) return 'bg-yellow-500';
     return 'bg-red-500';
-  };
-
-  const makeDisplayName = (s: UserSession) => {
-    const type = deriveDisplayDeviceType(s);
-    const browser = s.browser_info ? `${s.browser_info}` : 'Browser';
-    const bver = s.browser_version ? ` ${s.browser_version}` : '';
-    const os = s.operating_system ? `${s.operating_system}` : 'OS';
-    const over = s.device_os_version ? ` ${s.device_os_version}` : '';
-    const typeCap = type.charAt(0).toUpperCase() + type.slice(1);
-    return `${browser}${bver} ${os}${over} ${typeCap}`.trim();
   };
 
   const getLoginTimeText = () => {
@@ -91,7 +61,7 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
                   <DeviceIcon size={24} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold leading-tight">{makeDisplayName(session)}</h3>
+                  <h3 className="font-semibold leading-tight">{session.device_name || 'Unknown Device'}</h3>
                   <p className="text-xs text-muted-foreground">
                     {(session.operating_system || 'OS')} {session.device_os_version || ''} • {(session.browser_info || 'Browser')} {session.browser_version || ''}
                   </p>
