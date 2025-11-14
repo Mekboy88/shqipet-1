@@ -20,7 +20,7 @@ const RootAuthRedirect: React.FC<{ children: React.ReactNode }> = ({ children })
   console.log('🔍 RootAuthRedirect - path:', location.pathname, 'user:', !!user, 'loading:', loading);
   
   // Public routes that don't need auth
-  const publicRoutes = ['/', '/auth/login', '/auth/register', '/register', '/auth/verification', '/auth/callback', '/terms-of-use', '/privacy-policy', '/create-post', '/compose', '/post/create', '/messages'];
+  const publicRoutes = ['/', '/auth', '/auth/login', '/auth/register', '/register', '/auth/verification', '/auth/callback', '/terms-of-use', '/privacy-policy', '/create-post', '/compose', '/post/create', '/messages'];
   const isPublicRoute = publicRoutes.includes(location.pathname);
   const isAdminRoute = location.pathname.startsWith('/admin');
   
@@ -44,7 +44,7 @@ const RootAuthRedirect: React.FC<{ children: React.ReactNode }> = ({ children })
   }
   
   // If user is authenticated and on auth pages, check for redirect or go home
-  if (user && location.pathname.startsWith('/auth/')) {
+  if (user && (location.pathname === '/auth' || location.pathname.startsWith('/auth/'))) {
     const redirectPath = sessionStorage.getItem('redirectAfterAuth');
     if (redirectPath && redirectPath !== '/auth/login' && redirectPath !== '/auth/register') {
       sessionStorage.removeItem('redirectAfterAuth');

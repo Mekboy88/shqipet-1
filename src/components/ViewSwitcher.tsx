@@ -146,9 +146,9 @@ const ViewSwitcher: React.FC = () => {
         // Redirect to mobile subdomain
         sessionStorage.setItem('mobileRedirectChecked', '1');
         
-        // Strip auth paths when redirecting to mobile subdomain
+        // Strip /auth and /auth/* paths when redirecting to mobile subdomain
         const { search, hash } = window.location;
-        const isAuthPath = pathname.startsWith('/auth/');
+        const isAuthPath = /^\/auth(\/|$)/.test(pathname);
         const targetPath = isAuthPath ? '/' : pathname;
         const targetUrl = `https://${MOBILE_SUBDOMAIN}${targetPath}${search}${hash}`;
         

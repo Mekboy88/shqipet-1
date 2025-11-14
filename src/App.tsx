@@ -215,6 +215,7 @@ function App() {
                      
                       <Routes>
                       {/* Public routes - NO AUTH CHECK */}
+                      <Route path="/auth" element={<Navigate to="/" replace />} />
                       <Route path="/auth/login" element={<Navigate to="/" replace />} />
                       <Route path="/auth/register" element={<Register />} />
                       <Route path="/register" element={<Register />} />

@@ -101,8 +101,9 @@ const LaptopApp: React.FC = () => {
           <Route path="/history" element={<><NavbarNoTooltip /><HistoryPage /></>} />
           <Route path="/messages" element={<><NavbarNoTooltip /><div className="pt-14"><Messages /></div></>} />
           <Route path="/messages/standalone" element={<Messages />} />
-          <Route path="/auth/login" element={<Navigate to="/" replace />} />
-          <Route path="/auth/register" element={<Register />} />
+      <Route path="/auth" element={<Navigate to="/" replace />} />
+      <Route path="/auth/login" element={<Navigate to="/" replace />} />
+      <Route path="/auth/register" element={<Register />} />
           <Route path="/auth/verification" element={<Verification />} />
           <Route path="/auth/forgot-password" element={<ForgotPassword />} />
           <Route path="/welcome" element={<Welcome />} />
