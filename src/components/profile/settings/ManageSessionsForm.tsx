@@ -1,26 +1,116 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Monitor } from 'lucide-react';
+import { useState } from 'react';
+import { RefreshCw, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useSessionManagement } from '@/hooks/useSessionManagement';
+import { DeviceCard } from './manage-sessions/DeviceCard';
+import { DeviceDetailsModal } from './manage-sessions/DeviceDetailsModal';
+import type { Database } from '@/integrations/supabase/types';
 
-const ManageSessionsForm: React.FC = () => {
+type UserSession = Database['public']['Tables']['user_sessions']['Row'];
+
+const ManageSessionsForm = () => {
+  const {
+    sessions,
+    loading,
+    error,
+    currentDeviceId,
+    revokeSession,
+    trustDevice,
+    refreshSessions,
+  } = useSessionManagement();
+
+  const [selectedSession, setSelectedSession] = useState<UserSession | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleCardClick = (session: UserSession) => {
+    setSelectedSession(session);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSession(null);
+  };
+
+  if (loading && sessions.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="bg-destructive/10 border border-destructive rounded-lg p-6 text-center">
+          <p className="text-destructive font-medium">Error loading sessions</p>
+          <p className="text-sm text-muted-foreground mt-2">{error}</p>
+          <Button onClick={refreshSessions} variant="outline" className="mt-4">
+            <RefreshCw size={16} className="mr-2" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (sessions.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="bg-muted/50 rounded-lg p-12 text-center">
+          <p className="text-lg font-medium mb-2">No active sessions</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Your device sessions will appear here once you log in.
+          </p>
+          <Button onClick={refreshSessions} variant="outline">
+            <RefreshCw size={16} className="mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <Card className="border border-border bg-card rounded-2xl shadow-lg">
-        <CardContent className="p-12">
-          <div className="text-center text-muted-foreground">
-            <Monitor size={64} className="mx-auto mb-6 text-muted-foreground/30" />
-            <h2 className="text-2xl font-bold text-foreground mb-3">
-              Device Management
-            </h2>
-            <p className="text-base mb-2">
-              Device session management is being rebuilt.
-            </p>
-            <p className="text-sm">
-              This feature will be available soon with improved security and functionality.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Active Sessions</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your devices and sessions
+          </p>
+        </div>
+        <Button onClick={refreshSessions} variant="outline" size="sm">
+          <RefreshCw size={16} className="mr-2" />
+          Refresh
+        </Button>
+      </div>
+
+      {/* Device Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {sessions.map((session) => (
+          <DeviceCard
+            key={session.id}
+            session={session}
+            isCurrentDevice={session.device_stable_id === currentDeviceId}
+            onClick={() => handleCardClick(session)}
+          />
+        ))}
+      </div>
+
+      {/* Device Details Modal */}
+      <DeviceDetailsModal
+        session={selectedSession}
+        isCurrentDevice={selectedSession?.device_stable_id === currentDeviceId}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onTrustDevice={trustDevice}
+        onRevokeSession={revokeSession}
+      />
     </div>
   );
 };
