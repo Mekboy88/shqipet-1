@@ -19,6 +19,14 @@ const CookiesConsent = () => {
   });
 
 useEffect(() => {
+  // Only allow access if user just registered (prevent showing before login)
+  const isNewUser = localStorage.getItem('isNewUser');
+  if (!isNewUser) {
+    console.log('🚫 Cookie consent: Not a new user, redirecting to login');
+    navigate('/auth/login', { replace: true });
+    return;
+  }
+
   // Initialize from saved preferences for cross-platform sync and set SEO title/meta
   try {
     const saved = localStorage.getItem('cookiePreferences');
@@ -36,7 +44,7 @@ useEffect(() => {
     document.head.appendChild(meta);
   }
   meta.content = metaDesc;
-}, []);
+}, [navigate]);
 
 const handleToggleChange = (type: 'thirdPartyCookies' | 'externalCookies') => {
   setCookiePreferences((prev) => ({
@@ -108,7 +116,10 @@ const savePreferences = (preferences: typeof cookiePreferences) => {
   localStorage.setItem('cookieConsent', 'true');
   localStorage.setItem('consentTimestamp', new Date().toISOString());
 
-  // 3. Send to backend or analytics if needed (stubbed)
+  // 3. Clear the new user flag (cookies consent completed)
+  localStorage.removeItem('isNewUser');
+
+  // 4. Send to backend or analytics if needed (stubbed)
   console.log('Cookie preferences saved:', preferences);
   console.log('Consent logged at:', new Date().toISOString());
 };
