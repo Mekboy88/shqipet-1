@@ -298,14 +298,20 @@ export const useDeviceSession = () => {
         });
 
         console.log(`📱 Grouped ${sessions.length} sessions into ${dedupedSessions.length} physical devices`);
-        console.log('📱 Physical device breakdown:', dedupedSessions.map(d => ({
+        console.log('📱 Physical device breakdown (ALL TYPES):', dedupedSessions.map(d => ({
           device: d.device_name,
           type: d.device_type,
           platform: d.platform_type,
           browsers: d.all_browsers,
           sessionCount: d.session_count,
           screen: d.screen_resolution,
+          physicalKey: d.physical_key,
+          isActive: d.is_active,
         })));
+        
+        // CRITICAL: Show ALL devices regardless of type or active status
+        console.log('🚨 RENDERING ALL DEVICE TYPES - mobile, tablet, desktop, laptop, android, iOS');
+
 
         // Get current stable ID
         const currentStableIdValue = await deviceSessionService.getStableDeviceId();
@@ -328,6 +334,7 @@ export const useDeviceSession = () => {
 
           console.log('🔍 DEBUG: Checking device group:', {
             device_name: session.device_name,
+            device_type: session.device_type,
             all_stable_ids: allStableIds,
             current_stable_id: currentStableIdValue,
             device_fingerprint: session.device_fingerprint,
@@ -336,7 +343,9 @@ export const useDeviceSession = () => {
             match_by_fingerprint: matchByFingerprint,
             is_current_match: isCurrentDevice,
             all_browsers: session.all_browsers,
+            physical_key: session.physical_key,
           });
+
 
           // Prefer stored database values
           let deviceName = session.device_name || 'Unknown Device';
@@ -403,20 +412,39 @@ export const useDeviceSession = () => {
           };
         }))).filter(Boolean) as TrustedDevice[]; // Remove nulls from skipped sessions
 
-        console.log('📱 Showing unique devices:', transformedDevices.length);
+        console.log('📱 FINAL: Showing ALL devices (mobile, tablet, desktop, laptop):', transformedDevices.length);
+        console.log('📱 FINAL: Device types in list:', transformedDevices.map(d => ({
+          name: d.device_name,
+          type: d.device_type,
+          isCurrent: d.is_current,
+          isActive: d.session_status,
+        })));
+        
         setTrustedDevices(transformedDevices);
+
         if (!silent) setError(null);
 
         // Update current device ID if found
         const currentDevice = transformedDevices.find(d => d.is_current);
         if (currentDevice) {
           setCurrentDeviceId(currentDevice.id);
-          console.log('✅ Found current device:', currentDevice.id);
+          console.log('✅ Found current device:', {
+            id: currentDevice.id,
+            name: currentDevice.device_name,
+            type: currentDevice.device_type,
+            stableIds: currentDevice.all_stable_ids,
+          });
         } else {
-          console.log('⚠️ Current device not found in session list - attempting auto-registration');
+          console.log('⚠️ Current device not found in session list - will auto-register');
+          console.log('⚠️ Current stable ID:', currentStableIdValue);
+          console.log('⚠️ Available devices:', transformedDevices.map(d => ({
+            name: d.device_name,
+            type: d.device_type,
+            stableIds: d.all_stable_ids,
+          })));
           setCurrentDeviceId(null);
           
-          // Auto-register current device if not found
+          // Auto-register current device if not found (SessionBootstrapper should handle this)
           if (!silent && user?.id) {
             try {
               console.log('🔄 Auto-registering current device...');
