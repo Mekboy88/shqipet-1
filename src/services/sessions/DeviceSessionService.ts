@@ -520,8 +520,8 @@ class DeviceSessionService {
           if (storedType === 'desktop' || storedType === 'laptop') {
             const strongDesktop = 
               /(imac|mac\s?mini|mac\s?pro|mac\s?studio)/i.test(ua) ||
-              screen.width >= 2560 ||
-              screen.height >= 1440 ||
+              screen.width >= 2048 ||
+              screen.height >= 1200 ||
               !('getBattery' in navigator);
             
             const strongLaptop = 

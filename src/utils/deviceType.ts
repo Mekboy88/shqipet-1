@@ -298,13 +298,14 @@ const guessDesktopVsLaptop = async (): Promise<'desktop' | 'laptop'> => {
     const w = window.screen?.width || 0;
     const h = window.screen?.height || 0;
     
-    // MacBook typical resolutions: 1280-2880 width, 800-1800 height
-    // iMac resolutions: 1920+ width (21.5"), 2560+ width (27"+), 5120 width (5K)
-    if (w >= 2560 || h >= 1440) {
-      console.log('🖥️ macOS with high resolution - likely iMac/Desktop');
+    // MacBook typical resolutions: 1280-2304 width, 800-1440 height
+    // Desktop Macs/external displays: 2048+ width OR 1200+ height
+    // Examples: 2240x1260 (common 21.5" display), 2560x1440 (27" display), 5120x2880 (5K iMac)
+    if (w >= 2048 || h >= 1200) {
+      console.log(`🖥️ macOS with desktop-size display ${w}x${h} - DESKTOP`);
       return 'desktop';
     } else {
-      console.log('💻 macOS with standard resolution - likely MacBook/Laptop');
+      console.log(`💻 macOS with laptop-size display ${w}x${h} - LAPTOP`);
       return 'laptop';
     }
   }
