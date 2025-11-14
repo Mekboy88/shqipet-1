@@ -625,6 +625,12 @@ class DeviceSessionService {
       }
 
       console.log('✅ Session UPSERT successful:', data.id, '- Stable ID:', stableDeviceId);
+      // Notify UI instantly in case realtime is delayed
+      try {
+        window.dispatchEvent(new CustomEvent('user-sessions:updated', {
+          detail: { userId, sessionId: data.id, type: 'UPSERT' }
+        }));
+      } catch {}
       return data.id;
     } catch (e) {
       console.error('❌ registerOrUpdateCurrentDevice failed with exception:', e);
