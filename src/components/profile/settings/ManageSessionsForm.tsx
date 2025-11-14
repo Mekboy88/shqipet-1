@@ -526,28 +526,6 @@ Last Error: ${lastRegError || 'None'}`;
                             Your shqipet account is being used on this device
                           </p>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFixDeviceType(device.id);
-                          }}
-                          disabled={fixingDeviceId === device.id}
-                          className="w-full text-xs h-8"
-                        >
-                          {fixingDeviceId === device.id ? (
-                            <>
-                              <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
-                              Updating device info...
-                            </>
-                          ) : (
-                            <>
-                              <RefreshCw className="w-3 h-3 mr-1.5" />
-                              Update device info
-                            </>
-                          )}
-                        </Button>
                       </div>
                     )}
                     
