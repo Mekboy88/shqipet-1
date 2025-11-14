@@ -307,16 +307,29 @@ export const useDeviceSession = () => {
         const currentStableIdValue = await deviceSessionService.getStableDeviceId();
         setCurrentStableId(currentStableIdValue);
         console.log('🔑 DEBUG: Current browser stable ID:', currentStableIdValue);
+        
+        // Also generate current fingerprint hash for fallback matching
+        const currentFingerprintHash = createFingerprintHash(generateDeviceFingerprint());
+        console.log('🔑 DEBUG: Current browser fingerprint hash:', currentFingerprintHash);
 
         const transformedDevices: TrustedDevice[] = (await Promise.all(dedupedSessions.map(async (session: any) => {
           // Check if this physical device includes the current browser session
           const allStableIds = session.all_stable_ids || [];
-          const isCurrentDevice = allStableIds.includes(currentStableIdValue);
+          const matchByStableId = allStableIds.includes(currentStableIdValue);
+          
+          // Fallback: also check by fingerprint match
+          const matchByFingerprint = session.device_fingerprint === currentFingerprintHash;
+          
+          const isCurrentDevice = matchByStableId || matchByFingerprint;
 
           console.log('🔍 DEBUG: Checking device group:', {
             device_name: session.device_name,
             all_stable_ids: allStableIds,
             current_stable_id: currentStableIdValue,
+            device_fingerprint: session.device_fingerprint,
+            current_fingerprint_hash: currentFingerprintHash,
+            match_by_stable_id: matchByStableId,
+            match_by_fingerprint: matchByFingerprint,
             is_current_match: isCurrentDevice,
             all_browsers: session.all_browsers,
           });
@@ -396,7 +409,24 @@ export const useDeviceSession = () => {
           setCurrentDeviceId(currentDevice.id);
           console.log('✅ Found current device:', currentDevice.id);
         } else {
-          console.log('⚠️ Current device not found in session list');
+          console.log('⚠️ Current device not found in session list - attempting auto-registration');
+          setCurrentDeviceId(null);
+          
+          // Auto-register current device if not found
+          if (!silent && user?.id) {
+            try {
+              console.log('🔄 Auto-registering current device...');
+              await deviceSessionService.registerOrUpdateCurrentDevice(user.id, { forceReclassify: true });
+              console.log('✅ Current device registered, reloading devices...');
+              
+              // Reload devices after registration
+              setTimeout(() => {
+                loadTrustedDevices({ silent: true });
+              }, 1000);
+            } catch (error) {
+              console.error('❌ Failed to auto-register current device:', error);
+            }
+          }
         }
       }
     } catch (error) {
