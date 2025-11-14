@@ -3,7 +3,9 @@ import { RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSessionManagement } from '@/hooks/useSessionManagement';
 import { DeviceCard } from './manage-sessions/DeviceCard';
+import { MobileDeviceCard } from './manage-sessions/MobileDeviceCard';
 import { DeviceDetailsModal } from './manage-sessions/DeviceDetailsModal';
+import { useSmartBreakpoint } from '@/hooks/useRealDeviceDetection';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
@@ -19,6 +21,7 @@ const ManageSessionsForm = () => {
     refreshSessions,
   } = useSessionManagement();
 
+  const { isMobile } = useSmartBreakpoint();
   const [selectedSession, setSelectedSession] = useState<UserSession | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -90,17 +93,32 @@ const ManageSessionsForm = () => {
         </Button>
       </div>
 
-      {/* Device Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {sessions.map((session) => (
-          <DeviceCard
-            key={session.id}
-            session={session}
-            isCurrentDevice={session.device_stable_id === currentDeviceId}
-            onClick={() => handleCardClick(session)}
-          />
-        ))}
-      </div>
+      {/* Device Cards - Grid on desktop, Stacked on mobile */}
+      {isMobile ? (
+        <div className="space-y-3">
+          {sessions.map((session) => (
+            <MobileDeviceCard
+              key={session.id}
+              session={session}
+              isCurrentDevice={session.device_stable_id === currentDeviceId}
+              onClick={() => handleCardClick(session)}
+              onTrust={() => trustDevice(session.device_stable_id)}
+              onRevoke={() => revokeSession(session.device_stable_id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {sessions.map((session) => (
+            <DeviceCard
+              key={session.id}
+              session={session}
+              isCurrentDevice={session.device_stable_id === currentDeviceId}
+              onClick={() => handleCardClick(session)}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Device Details Modal */}
       <DeviceDetailsModal
