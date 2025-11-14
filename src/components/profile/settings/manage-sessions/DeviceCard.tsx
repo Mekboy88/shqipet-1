@@ -36,10 +36,10 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
     return 'bg-red-500';
   };
 
-  const getLastActiveText = () => {
-    if (!session.last_activity) return 'Unknown';
+  const getLoginTimeText = () => {
+    if (!session.created_at) return 'Unknown';
     try {
-      return formatDistanceToNow(new Date(session.last_activity), { addSuffix: true });
+      return formatDistanceToNow(new Date(session.created_at), { addSuffix: true });
     } catch (e) {
       return 'Unknown';
     }
@@ -89,8 +89,8 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-muted-foreground">Last active</p>
-                <p>{getLastActiveText()}</p>
+                <p className="text-muted-foreground">Logged in</p>
+                <p>{getLoginTimeText()}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground">Location {getCountryFlag(session.country_code)}</p>

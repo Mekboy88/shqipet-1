@@ -70,13 +70,8 @@ export const useSessionManagement = () => {
 
       setState((prev) => ({ ...prev, currentDeviceId: deviceInfo.deviceStableId }));
 
-      // Start periodic activity updates (every 5 minutes)
-      if (activityIntervalRef.current) {
-        clearInterval(activityIntervalRef.current);
-      }
-      activityIntervalRef.current = setInterval(() => {
-        updateActivity(deviceInfo.deviceStableId);
-      }, 5 * 60 * 1000);
+      // Note: We don't update activity periodically to preserve the original login time display
+      // Activity is only updated on login, not during navigation
 
       return data.session;
     } catch (error) {

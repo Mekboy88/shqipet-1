@@ -50,10 +50,10 @@ export const MobileDeviceCard = ({
     return 'bg-red-500';
   };
 
-  const getLastActiveText = () => {
-    if (!session.last_activity) return 'Unknown';
+  const getLoginTimeText = () => {
+    if (!session.created_at) return 'Unknown';
     try {
-      return formatDistanceToNow(new Date(session.last_activity), { addSuffix: true });
+      return formatDistanceToNow(new Date(session.created_at), { addSuffix: true });
     } catch (e) {
       return 'Unknown';
     }
@@ -143,7 +143,7 @@ export const MobileDeviceCard = ({
                   {session.browser_info} {session.browser_version}
                 </p>
                 <p className="truncate">{locationText}</p>
-                <p className="truncate">{getLastActiveText()}</p>
+                <p className="truncate">{getLoginTimeText()}</p>
               </div>
 
               <div className="flex items-center gap-2 mt-2">
