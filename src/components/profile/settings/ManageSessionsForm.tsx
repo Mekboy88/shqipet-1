@@ -95,6 +95,32 @@ const ManageSessionsForm: React.FC = () => {
     }
   };
 
+  const handleCleanupStaleSessions = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const count = await deviceSessionService.countStaleSessions(user.id, 30);
+      
+      if (count === 0) {
+        toast.info('No stale sessions to clean up');
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Found ${count} stale session${count > 1 ? 's' : ''} (inactive for 30+ days).\n\nDelete them?`
+      );
+
+      if (!confirmed) return;
+
+      const deleted = await deviceSessionService.cleanupStaleSessions(user.id, 30);
+      await refreshDevices();
+      toast.success(`Cleaned up ${deleted} stale session${deleted > 1 ? 's' : ''}`);
+    } catch (e: any) {
+      console.error('Cleanup error:', e);
+      toast.error('Failed to cleanup stale sessions');
+    }
+  };
+
   const getDeviceIcon = (deviceType: string, isActive: boolean = false) => {
     // Dynamic color based on activity
     const colorClass = isActive 
@@ -464,6 +490,15 @@ Last Error: ${lastRegError || 'None'}`;
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             Refresh Devices
+          </Button>
+
+          <Button
+            onClick={handleCleanupStaleSessions}
+            variant="outline"
+            className="flex items-center gap-2 h-10"
+          >
+            <RefreshCw size={16} />
+            Clean Up Old Sessions
           </Button>
           
           <AlertDialog open={showLogoutAllDialog} onOpenChange={setShowLogoutAllDialog}>
