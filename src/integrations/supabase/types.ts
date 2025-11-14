@@ -1658,24 +1658,35 @@ export type Database = {
       }
       user_sessions: {
         Row: {
+          anomaly_flags: Json | null
           app_version: string | null
           browser_info: string | null
+          browser_version: string | null
           city: string | null
+          connection_type: string | null
+          consent_tracking: Json | null
           country: string | null
           country_code: string | null
           created_at: string | null
+          data_retention_days: number | null
+          device_brand: string | null
           device_fingerprint: string
+          device_full_name: string | null
           device_model: string | null
           device_name: string | null
+          device_os_version: string | null
           device_stable_id: string
           device_type: string | null
           device_type_locked: boolean | null
           hardware_info: Json | null
           id: string
           ip_address: string | null
+          ip_hash: string | null
           is_active: boolean | null
           is_trusted: boolean | null
+          is_vpn: boolean | null
           last_activity: string | null
+          last_verified_at: string | null
           latitude: number | null
           location: string | null
           login_count: number | null
@@ -1687,31 +1698,44 @@ export type Database = {
           platform_type: string | null
           screen_resolution: string | null
           security_alerts: Json | null
+          session_expires_at: string | null
           session_status: string | null
           session_token: string | null
+          trust_score: number | null
           updated_at: string | null
           user_agent: string | null
           user_id: string
         }
         Insert: {
+          anomaly_flags?: Json | null
           app_version?: string | null
           browser_info?: string | null
+          browser_version?: string | null
           city?: string | null
+          connection_type?: string | null
+          consent_tracking?: Json | null
           country?: string | null
           country_code?: string | null
           created_at?: string | null
+          data_retention_days?: number | null
+          device_brand?: string | null
           device_fingerprint: string
+          device_full_name?: string | null
           device_model?: string | null
           device_name?: string | null
+          device_os_version?: string | null
           device_stable_id: string
           device_type?: string | null
           device_type_locked?: boolean | null
           hardware_info?: Json | null
           id?: string
           ip_address?: string | null
+          ip_hash?: string | null
           is_active?: boolean | null
           is_trusted?: boolean | null
+          is_vpn?: boolean | null
           last_activity?: string | null
+          last_verified_at?: string | null
           latitude?: number | null
           location?: string | null
           login_count?: number | null
@@ -1723,31 +1747,44 @@ export type Database = {
           platform_type?: string | null
           screen_resolution?: string | null
           security_alerts?: Json | null
+          session_expires_at?: string | null
           session_status?: string | null
           session_token?: string | null
+          trust_score?: number | null
           updated_at?: string | null
           user_agent?: string | null
           user_id: string
         }
         Update: {
+          anomaly_flags?: Json | null
           app_version?: string | null
           browser_info?: string | null
+          browser_version?: string | null
           city?: string | null
+          connection_type?: string | null
+          consent_tracking?: Json | null
           country?: string | null
           country_code?: string | null
           created_at?: string | null
+          data_retention_days?: number | null
+          device_brand?: string | null
           device_fingerprint?: string
+          device_full_name?: string | null
           device_model?: string | null
           device_name?: string | null
+          device_os_version?: string | null
           device_stable_id?: string
           device_type?: string | null
           device_type_locked?: boolean | null
           hardware_info?: Json | null
           id?: string
           ip_address?: string | null
+          ip_hash?: string | null
           is_active?: boolean | null
           is_trusted?: boolean | null
+          is_vpn?: boolean | null
           last_activity?: string | null
+          last_verified_at?: string | null
           latitude?: number | null
           location?: string | null
           login_count?: number | null
@@ -1759,8 +1796,10 @@ export type Database = {
           platform_type?: string | null
           screen_resolution?: string | null
           security_alerts?: Json | null
+          session_expires_at?: string | null
           session_status?: string | null
           session_token?: string | null
+          trust_score?: number | null
           updated_at?: string | null
           user_agent?: string | null
           user_id?: string
@@ -1794,6 +1833,7 @@ export type Database = {
           total_usage: number
         }[]
       }
+      calculate_trust_score: { Args: { p_session_id: string }; Returns: number }
       can_view_profile: { Args: { profile_id: string }; Returns: boolean }
       can_view_sensitive_profile_data: {
         Args: { profile_id: string }
@@ -1810,6 +1850,7 @@ export type Database = {
       }
       current_user_is_admin: { Args: never; Returns: boolean }
       current_user_is_super_admin: { Args: never; Returns: boolean }
+      delete_expired_sessions: { Args: never; Returns: number }
       deny_permission: {
         Args: {
           _device_type: Database["public"]["Enums"]["device_type"]
@@ -1908,6 +1949,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_ip_address: { Args: { ip_text: string }; Returns: string }
       is_platform_owner: { Args: { _user_id: string }; Returns: boolean }
       log_session_activity: {
         Args: {
