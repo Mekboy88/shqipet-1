@@ -79,26 +79,14 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
   // Routes where we must not flash the skeleton (render immediately)
   const noSkeletonRoutes = ['/professional-presentation', '/create-post', '/compose', '/post/create'];
   
-  // Detect mobile device to skip skeleton loading
-  const isMobileDevice = React.useMemo(() => {
-    const ua = navigator.userAgent.toLowerCase();
-    return /iphone|ipod|android|blackberry|windows phone|mobile|webos|opera mini|ipad|android tablet/.test(ua);
-  }, []);
-  
-  // CRITICAL: Show loading skeleton while auth is still initializing (unless forced or on mobile)
-  if (loading && !forceRender && !isMobileDevice) {
+  // CRITICAL: Show loading skeleton while auth is still initializing (unless forced)
+  if (loading && !forceRender) {
     console.log('⏳ CentralizedAuthGuard: Auth still loading', { path: location.pathname });
     if (noSkeletonRoutes.includes(location.pathname)) {
       // Render page content immediately to avoid flicker on fast paths
       return <>{children}</>;
     }
     return <GlobalSkeleton />;
-  }
-  
-  // Skip skeleton on mobile - render immediately
-  if (isMobileDevice && loading && !forceRender) {
-    console.log('📱 CentralizedAuthGuard: Mobile device - skipping skeleton, rendering immediately');
-    return <>{children}</>;
   }
   
   // If we're force rendering due to timeout, treat as if auth completed
