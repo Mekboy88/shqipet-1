@@ -503,6 +503,13 @@ class DeviceSessionService {
       const finalDeviceModel = details.deviceModel || this.extractModelFromUA(navigator.userAgent) || 'Unknown Model';
       const physicalKey = `${finalType}|${finalOperatingSystem}|${screenRes}`.toLowerCase();
 
+      console.log('📦 Physical device key generated:', {
+        physicalKey,
+        deviceModel: finalDeviceModel,
+        operatingSystem: finalOperatingSystem,
+        screenRes
+      });
+
       // UPSERT: Insert or update based on unique constraint (user_id, device_stable_id)
       const sessionData: any = {
         user_id: userId,
