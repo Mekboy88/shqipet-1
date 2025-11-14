@@ -1,5 +1,5 @@
 import { useState, useRef, TouchEvent } from 'react';
-import { Monitor, Smartphone, Tablet, Circle, Shield, Trash2 } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, Circle, Shield, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StaticMiniMap } from './StaticMiniMap';
@@ -34,6 +34,8 @@ export const MobileDeviceCard = ({
         return Smartphone;
       case 'tablet':
         return Tablet;
+      case 'laptop':
+        return Laptop;
       default:
         return Monitor;
     }

@@ -1,4 +1,4 @@
-import { Monitor, Smartphone, Tablet, MapPin, Globe, Clock, Shield, AlertTriangle, X } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, MapPin, Globe, Clock, Shield, AlertTriangle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,8 @@ export const DeviceDetailsModal = ({
         return Smartphone;
       case 'tablet':
         return Tablet;
+      case 'laptop':
+        return Laptop;
       default:
         return Monitor;
     }
