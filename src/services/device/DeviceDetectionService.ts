@@ -221,29 +221,38 @@ class DeviceDetectionService {
       return 'tablet';
     }
     
-    // For desktop-class devices, check for laptop indicators
-    // Check for common laptop brands and models
-    if (userAgent.includes('macbook') || 
-        /laptop|notebook/i.test(userAgent) ||
-        // Windows laptops often have specific model indicators
-        /thinkpad|latitude|elitebook|pavilion|inspiron|aspire|zenbook|vivobook|swift|spectre/i.test(userAgent)) {
+    // For desktop-class devices, check for laptop-specific indicators in user agent
+    // MacBook is a clear laptop indicator
+    if (userAgent.includes('macbook')) {
       return 'laptop';
     }
     
-    // Check for battery API (laptops typically have batteries)
-    // @ts-ignore - Battery API not in TypeScript types
-    if ('getBattery' in navigator || 'battery' in navigator) {
+    // Check for explicit laptop/notebook keywords in user agent
+    if (/laptop|notebook/i.test(userAgent)) {
       return 'laptop';
     }
     
-    // If screen width suggests a laptop (typically 1280-1920 width)
+    // Check for common Windows laptop model names
+    if (/thinkpad|latitude|elitebook|pavilion|inspiron|aspire|zenbook|vivobook|swift|spectre|surface laptop/i.test(userAgent)) {
+      return 'laptop';
+    }
+    
+    // Check for typical laptop screen resolutions (13-17 inch displays)
+    // Most laptops have width between 1280-1920 and specific aspect ratios
     const screenWidth = window.screen.width;
-    if (screenWidth >= 1280 && screenWidth <= 1920 && window.screen.height >= 720 && window.screen.height <= 1200) {
-      return 'laptop';
+    const screenHeight = window.screen.height;
+    const aspectRatio = screenWidth / screenHeight;
+    
+    // Common laptop resolutions and aspect ratios
+    if (screenWidth >= 1280 && screenWidth <= 1920) {
+      // 16:9 or 16:10 aspect ratio (common for laptops)
+      if ((aspectRatio >= 1.6 && aspectRatio <= 1.8) && screenHeight <= 1200) {
+        return 'laptop';
+      }
     }
     
     // Default to desktop for all other desktop-class devices
-    // This includes iMac, Mac Mini, Windows desktops, Linux desktops, etc.
+    // This includes iMac, Mac Mini, Windows desktops, Linux desktops, ultra-wide monitors, etc.
     return 'desktop';
   }
 
