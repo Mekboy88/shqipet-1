@@ -791,6 +791,23 @@ export const useDeviceSession = () => {
     };
   }, [user?.id, currentDeviceId, createFingerprintHash, generateDeviceFingerprint]);
 
+  // Repair all user sessions (reclassify device_type, device_name, OS, physical_key)
+  const repairAllSessions = useCallback(async () => {
+    if (!user?.id) return { repaired: 0, errors: ['No user ID'] };
+    
+    try {
+      const result = await deviceSessionService.repairAllUserSessions(user.id);
+      if (result.repaired > 0) {
+        // Reload devices after repair
+        await loadDevicesRef.current?.({ silent: true });
+      }
+      return result;
+    } catch (e: any) {
+      console.error('❌ Failed to repair sessions:', e);
+      return { repaired: 0, errors: [e.message] };
+    }
+  }, [user?.id]);
+
   return {
     trustedDevices,
     currentDeviceId,
@@ -804,6 +821,7 @@ export const useDeviceSession = () => {
     refreshDevices,
     toggleDeviceTrust,
     removeDevice,
-    logoutAllOtherDevices
+    logoutAllOtherDevices,
+    repairAllSessions
   };
 };
