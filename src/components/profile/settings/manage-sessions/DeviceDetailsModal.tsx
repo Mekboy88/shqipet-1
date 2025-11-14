@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { InteractiveMap } from './InteractiveMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow, format } from 'date-fns';
+import { formatLocationWithFlag } from '@/utils/countryFlags';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
@@ -65,6 +66,12 @@ export const DeviceDetailsModal = ({
       return 'Unknown';
     }
   };
+
+  const locationText = formatLocationWithFlag(
+    session.city,
+    session.country,
+    session.country_code
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -181,19 +188,13 @@ export const DeviceDetailsModal = ({
                 {session.city && session.country ? (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
+                      <span className="text-muted-foreground block mb-1">Full Location:</span>
+                      <span className="font-medium">{locationText}</span>
+                    </div>
+                    <div>
                       <span className="text-muted-foreground block mb-1">City:</span>
                       <span className="font-medium">{session.city}</span>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground block mb-1">Country:</span>
-                      <span className="font-medium">{session.country}</span>
-                    </div>
-                    {session.country_code && (
-                      <div>
-                        <span className="text-muted-foreground block mb-1">Country Code:</span>
-                        <span className="font-medium">{session.country_code}</span>
-                      </div>
-                    )}
                     {session.latitude && session.longitude && (
                       <div>
                         <span className="text-muted-foreground block mb-1">Coordinates:</span>
