@@ -206,30 +206,30 @@ class DeviceDetectionService {
   }
 
   /**
-   * Detect if device is a laptop based on multiple factors
+   * Detect device type more accurately
    */
-  private isLaptopDevice(result: any): boolean {
+  private detectDeviceType(result: any): string {
     const userAgent = navigator.userAgent.toLowerCase();
-    const platform = navigator.platform.toLowerCase();
     
-    // Check for MacBook
-    if (platform.includes('mac') && !userAgent.includes('iphone') && !userAgent.includes('ipad')) {
-      // If it's macOS and has touch support, it might be an iPad, otherwise laptop
-      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      return !hasTouch;
+    // Check for mobile devices first
+    if (result.device.type === 'mobile' || /mobile|android|iphone/i.test(navigator.userAgent)) {
+      return 'mobile';
     }
     
-    // Check for Windows laptops - look for non-tablet Windows devices
-    if (platform.includes('win') && !userAgent.includes('tablet')) {
-      return true;
+    // Check for tablets
+    if (result.device.type === 'tablet' || /ipad|tablet/i.test(navigator.userAgent)) {
+      return 'tablet';
     }
     
-    // Check for Linux laptops
-    if (platform.includes('linux') && !userAgent.includes('android')) {
-      return true;
+    // For desktop-class devices, default to 'desktop'
+    // Only classify as 'laptop' if there are specific laptop indicators
+    if (userAgent.includes('macbook')) {
+      return 'laptop';
     }
     
-    return false;
+    // Default to desktop for all other desktop-class devices
+    // This includes iMac, Mac Mini, Windows desktops, Linux desktops, etc.
+    return 'desktop';
   }
 
   /**
@@ -245,19 +245,8 @@ class DeviceDetectionService {
     const deviceStableId = await this.generateStableDeviceId();
     const deviceFingerprint = await this.generateDeviceFingerprint();
 
-    // Determine device type with better laptop detection
-    let deviceType = 'desktop';
-    if (result.device.type === 'mobile') {
-      deviceType = 'mobile';
-    } else if (result.device.type === 'tablet') {
-      deviceType = 'tablet';
-    } else if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-      deviceType = 'mobile';
-    } else if (navigator.userAgent.includes('iPad')) {
-      deviceType = 'tablet';
-    } else if (this.isLaptopDevice(result)) {
-      deviceType = 'laptop';
-    }
+    // Detect device type accurately
+    const deviceType = this.detectDeviceType(result);
 
     // Use client hints for more accurate OS info if available
     let osName = result.os.name || 'Unknown';
