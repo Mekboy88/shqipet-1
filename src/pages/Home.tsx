@@ -7,12 +7,17 @@ import Feed from '@/components/Feed';
 import Login from '@/pages/auth/Login';
 
 const Home: React.FC = () => {
+  const isMobileHost = typeof window !== 'undefined' && window.location.hostname === 'm.shqipet.com';
+  
   // Safe auth access with error handling
   let authContext;
   try {
     authContext = useAuth();
   } catch (error) {
     console.warn('Home: Auth context not ready yet');
+    if (isMobileHost) {
+      return <Login />;
+    }
     return <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
     </div>;
@@ -23,6 +28,11 @@ const Home: React.FC = () => {
   
   // Show loading while checking auth
   if (loading) {
+    if (isMobileHost) {
+      // Mobile: show login instantly to avoid spinner/flicker
+      return <Login />;
+    }
+    // Desktop: keep spinner
     return <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
     </div>;

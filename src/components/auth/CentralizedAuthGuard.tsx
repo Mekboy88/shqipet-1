@@ -9,6 +9,7 @@ interface CentralizedAuthGuardProps {
 
 const publicRoutes = [
   '/', // Allow root path (mobile login renders here)
+  '/auth',
   '/auth/login', 
   '/auth/register', 
   '/register', 
@@ -84,6 +85,7 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     '/create-post', 
     '/compose', 
     '/post/create',
+    '/auth',
     '/auth/login',
     '/auth/register',
     '/register',
@@ -122,7 +124,7 @@ if (loading && !forceRender) {
   // If user is authenticated and on auth pages, redirect to preserved path or home
   if (
     user &&
-    (location.pathname.startsWith('/auth/') || location.pathname === '/welcome')
+    (location.pathname === '/auth' || location.pathname.startsWith('/auth/') || location.pathname === '/welcome')
   ) {
     console.log('🔄 CentralizedAuthGuard: Authenticated user on auth page, checking for preserved path');
     const redirectPath = sessionStorage.getItem('redirectAfterAuth');
