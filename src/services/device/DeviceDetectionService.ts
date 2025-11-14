@@ -249,62 +249,76 @@ class DeviceDetectionService {
       return 'laptop';
     }
     
-    // 2. SCREEN CHARACTERISTICS (Secondary indicators)
+    // 2. MACINTOSH DETECTION (covers all Macs when not specifically "iMac")
+    // Macintosh appears in UA for both MacBooks and iMacs, need screen size to distinguish
     const screenWidth = window.screen.width;
     const screenHeight = window.screen.height;
     const aspectRatio = screenWidth / screenHeight;
-    const diagonal = Math.sqrt(screenWidth * screenWidth + screenHeight * screenHeight);
     
+    if (platform.includes('mac') || /macintosh/i.test(userAgent)) {
+      // Explicit iMac = desktop
+      if (/imac/i.test(userAgent)) {
+        return 'desktop';
+      }
+      
+      // iMac typical resolutions (27" 5K, 24" 4.5K) = desktop
+      if ((screenWidth === 5120 && screenHeight === 2880) || // 27" 5K iMac
+          (screenWidth === 4480 && screenHeight === 2520)) { // 24" iMac
+        return 'desktop';
+      }
+      
+      // MacBook typical resolutions and scaled resolutions
+      // MacBooks typically have screens 13-16 inches with resolutions under 3456 width
+      // Common MacBook resolutions: 1440x900, 1680x1050, 1920x1080, 1920x1200, 
+      //   2560x1600, 2880x1800, 3024x1890, 3456x2234
+      // Scaled resolutions commonly seen: 1728x1117, 2240x1260, etc.
+      if (screenWidth <= 3456) {
+        return 'laptop';
+      }
+      
+      // For larger resolutions on Mac, check DPR (MacBooks have high DPR)
+      const dpr = window.devicePixelRatio || 1;
+      if (dpr >= 2.0) {
+        // High DPI strongly suggests MacBook (Retina display)
+        return 'laptop';
+      }
+    }
+    
+    // 3. SCREEN CHARACTERISTICS (For non-Mac devices)
     // Typical laptop screen sizes (13-17 inch range)
-    // Common resolutions: 1366x768, 1440x900, 1536x864, 1600x900, 1920x1080, 1920x1200
     const typicalLaptopResolutions = [
       { w: 1366, h: 768 },
       { w: 1440, h: 900 },
       { w: 1536, h: 864 },
       { w: 1600, h: 900 },
+      { w: 1680, h: 1050 },
+      { w: 1920, h: 1080 },
+      { w: 1920, h: 1200 },
     ];
     
     // Exact match for typical laptop resolutions
     if (typicalLaptopResolutions.some(res => 
       screenWidth === res.w && screenHeight === res.h
     )) {
-      return 'laptop';
-    }
-    
-    // 1920x1080 or 1920x1200 with 16:9 or 16:10 ratio and reasonable height
-    // Could be laptop or desktop, so we need additional checks
-    if ((screenWidth === 1920 && (screenHeight === 1080 || screenHeight === 1200)) ||
-        (screenWidth === 2560 && screenHeight === 1440)) {
-      // These resolutions are common for both laptops and desktops
-      // Look for additional clues
-      
-      // If platform suggests Mac and it's not iMac resolution, likely MacBook
-      if (platform.includes('mac') && !/imac/i.test(userAgent)) {
-        return 'laptop';
-      }
-      
-      // Check pixel density - laptops often have higher DPR
+      // For common resolutions, check DPR to distinguish laptop from desktop
       const dpr = window.devicePixelRatio || 1;
-      if (dpr >= 1.5) {
-        // High DPI more common in laptops (Retina, etc.)
+      if (dpr >= 1.5 || screenWidth <= 1680) {
         return 'laptop';
       }
     }
     
-    // 3. DESKTOP INDICATORS (Explicit)
+    // 4. DESKTOP INDICATORS (Explicit)
     // Ultra-wide monitors (almost certainly desktop)
-    if (screenWidth >= 2560 && aspectRatio > 2.0) {
+    if (aspectRatio >= 2.0) {
       return 'desktop';
     }
     
-    // Very large monitors (27"+ range, almost certainly desktop)
-    if (screenWidth >= 2560 || screenHeight >= 1440) {
+    // Very large monitors (27"+ range)
+    if (screenWidth >= 2560 && screenHeight >= 1440) {
       return 'desktop';
     }
     
-    // 4. DEFAULT TO DESKTOP for ambiguous cases
-    // This is the conservative choice - better to show desktop icon for a laptop
-    // than laptop icon for a desktop
+    // 5. DEFAULT TO DESKTOP for ambiguous cases
     return 'desktop';
   }
 
