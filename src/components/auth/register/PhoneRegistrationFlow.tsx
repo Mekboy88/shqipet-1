@@ -122,8 +122,8 @@ const PhoneRegistrationFlow: React.FC<PhoneRegistrationFlowProps> = ({
       
       if (result.success) {
         toast.success('Regjistrimi u krye me sukses!');
-        localStorage.setItem('isNewUser', 'true');
-        navigate('/auth/cookies-consent');
+        localStorage.removeItem('isNewUser');
+        navigate('/');
       } else {
         toast.error(result.error || 'Kodi i verifikimit është i gabuar');
       }

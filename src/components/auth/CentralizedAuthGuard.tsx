@@ -16,7 +16,6 @@ const publicRoutes = [
   '/terms-of-use', 
   '/privacy-policy',
   '/auth/forgot-password',
-  '/auth/cookies-consent',
   // Public compose routes
   '/create-post',
   '/compose',
@@ -95,11 +94,9 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
   }
   
   // If user is authenticated and on auth pages, redirect to preserved path or home
-  // EXCEPTION: allow /auth/cookies-consent even when authenticated (post-registration flow)
   if (
     user &&
-    (location.pathname.startsWith('/auth/') || location.pathname === '/welcome') &&
-    location.pathname !== '/auth/cookies-consent'
+    (location.pathname.startsWith('/auth/') || location.pathname === '/welcome')
   ) {
     console.log('🔄 CentralizedAuthGuard: Authenticated user on auth page, checking for preserved path');
     const redirectPath = sessionStorage.getItem('redirectAfterAuth');
