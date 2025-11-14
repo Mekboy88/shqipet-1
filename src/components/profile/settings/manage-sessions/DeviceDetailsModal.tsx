@@ -74,7 +74,7 @@ export const DeviceDetailsModal = ({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="relative w-[96vw] max-w-none h-[85vh] p-0 overflow-hidden">
         <div className="flex h-full flex-col">
         {/* Header */}
