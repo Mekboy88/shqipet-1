@@ -1,7 +1,7 @@
 import { Monitor, Smartphone, Tablet, Circle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { StaticMiniMap } from './StaticMiniMap';
+import { InteractiveMap } from './InteractiveMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -43,81 +43,68 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
   };
 
   return (
-    <Card
-      className="aspect-square cursor-pointer hover:shadow-lg transition-shadow relative overflow-hidden group"
-      onClick={onClick}
-    >
-      <CardContent className="p-4 h-full flex flex-col">
-        {/* Mini Map in top-right corner */}
-        <div className="absolute top-2 right-2 w-[100px] h-[100px] rounded-lg overflow-hidden border-2 border-background shadow-lg z-10">
-          <StaticMiniMap
-            latitude={session.latitude ? Number(session.latitude) : undefined}
-            longitude={session.longitude ? Number(session.longitude) : undefined}
-            className="w-full h-full"
-          />
-        </div>
+    <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow overflow-hidden" onClick={onClick}>
+      <CardContent className="p-0">
+        <div className="flex flex-col md:flex-row items-stretch min-h-[220px]">
+          {/* Left: Details */}
+          <div className="flex-1 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <DeviceIcon size={24} className="text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold leading-tight">{session.device_name || 'Unknown Device'}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {(session.operating_system || 'OS')} {session.device_os_version || ''} • {(session.browser_info || 'Browser')} {session.browser_version || ''}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {isCurrentDevice && (
+                  <Badge className="bg-blue-500 text-white text-xs">Current</Badge>
+                )}
+                {session.is_trusted && (
+                  <Badge className="bg-green-600 text-white text-xs">Trusted</Badge>
+                )}
+                <Badge variant="secondary" className={`${getTrustScoreColor(session.trust_score || 50)} text-white text-xs`}>
+                  {session.trust_score || 50}%
+                </Badge>
+              </div>
+            </div>
 
-        {/* Device Icon */}
-        <div className="flex justify-center mb-4">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <DeviceIcon size={32} className="text-primary" />
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="space-y-1">
+                <p className="text-muted-foreground">Status</p>
+                <div className="flex items-center gap-2">
+                  <Circle size={8} className={`${session.is_active ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
+                  <span>{session.is_active ? 'Active' : 'Inactive'}</span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-muted-foreground">Last active</p>
+                <p>{getLastActiveText()}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-muted-foreground">Location</p>
+                <p className="truncate">{session.city || 'Unknown'}{session.country ? `, ${session.country}` : ''}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-muted-foreground">Screen</p>
+                <p>{session.screen_resolution || '—'}</p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Device Info */}
-        <div className="flex-1 space-y-2">
-          <h3 className="font-semibold text-center truncate pr-24">
-            {session.device_name || 'Unknown Device'}
-          </h3>
-
-          <div className="text-xs text-muted-foreground text-center space-y-1">
-            <p className="truncate">
-              {session.operating_system} {session.device_os_version}
-            </p>
-            <p className="truncate">
-              {session.browser_info} {session.browser_version}
-            </p>
-          </div>
-        </div>
-
-        {/* Status and Trust Score */}
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-2">
-            <Circle
-              size={8}
-              className={`${session.is_active ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`}
+          {/* Right: Map */}
+          <div className="md:w-[40%] w-full md:min-h-[220px] border-t md:border-t-0 md:border-l">
+            <InteractiveMap
+              latitude={session.latitude ? Number(session.latitude) : undefined}
+              longitude={session.longitude ? Number(session.longitude) : undefined}
+              className="w-full h-full"
             />
-            <span className="text-xs text-muted-foreground">
-              {session.is_active ? 'Active' : 'Inactive'}
-            </span>
           </div>
-
-          <Badge
-            variant="secondary"
-            className={`${getTrustScoreColor(session.trust_score || 50)} text-white text-xs`}
-          >
-            {session.trust_score || 50}%
-          </Badge>
         </div>
-
-        {/* Last Active */}
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          {getLastActiveText()}
-        </p>
-
-        {/* Current Device Badge */}
-        {isCurrentDevice && (
-          <Badge className="absolute top-2 left-2 bg-blue-500 text-white">
-            Current
-          </Badge>
-        )}
-
-        {/* Trusted Badge */}
-        {session.is_trusted && (
-          <Badge className="absolute bottom-2 left-2 bg-green-600 text-white text-xs">
-            Trusted
-          </Badge>
-        )}
       </CardContent>
     </Card>
   );
