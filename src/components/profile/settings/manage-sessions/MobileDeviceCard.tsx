@@ -6,7 +6,7 @@ import { StaticMiniMap } from './StaticMiniMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatLocationWithFlag } from '@/utils/countryFlags';
-
+import { getDisplayDeviceType, getDisplayDeviceName } from '@/utils/deviceDisplay';
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
 interface MobileDeviceCardProps {
@@ -29,20 +29,11 @@ export const MobileDeviceCard = ({
   const touchStartX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const getDeviceIcon = () => {
-    switch (session.device_type) {
-      case 'mobile':
-        return Smartphone;
-      case 'tablet':
-        return Tablet;
-      case 'laptop':
-        return Laptop;
-      default:
-        return Monitor;
-    }
-  };
-
-  const DeviceIcon = getDeviceIcon();
+  const displayType = getDisplayDeviceType(session);
+  const DeviceIcon =
+    displayType === 'mobile' ? Smartphone :
+    displayType === 'tablet' ? Tablet :
+    displayType === 'laptop' ? Laptop : Monitor;
 
   const getTrustScoreColor = (score: number) => {
     if (score >= 80) return 'bg-green-500';
