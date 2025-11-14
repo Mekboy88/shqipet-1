@@ -29,8 +29,28 @@ export const MobileDeviceCard = ({
   const touchStartX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  const deriveDisplayDeviceType = (s: UserSession): 'mobile' | 'tablet' | 'laptop' | 'desktop' => {
+    const base = (s.device_type || '').toLowerCase();
+    if (base === 'mobile' || base === 'tablet' || base === 'laptop') return base as any;
+    const nameBlob = `${s.device_full_name || ''} ${s.device_name || ''} ${s.user_agent || ''}`.toLowerCase();
+    if (/macbook|thinkpad|latitude|elitebook|pavilion|inspiron|aspire|zenbook|vivobook|swift|spectre|surface laptop/.test(nameBlob)) {
+      return 'laptop';
+    }
+    const res = s.screen_resolution || '';
+    const m = res.match(/(\d+)\s*x\s*(\d+)/i);
+    if (m) {
+      const w = parseInt(m[1], 10);
+      const h = parseInt(m[2], 10);
+      const ar = w / h;
+      if (w >= 1200 && w <= 3200 && h >= 700 && h <= 2000 && ar >= 1.5 && ar <= 1.9) {
+        return 'laptop';
+      }
+    }
+    return base === 'desktop' || base === '' ? 'desktop' : (base as any);
+  };
+
   const getDeviceIcon = () => {
-    switch (session.device_type) {
+    switch (deriveDisplayDeviceType(session)) {
       case 'mobile':
         return Smartphone;
       case 'tablet':
