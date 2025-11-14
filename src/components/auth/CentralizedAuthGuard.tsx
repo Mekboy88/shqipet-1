@@ -26,12 +26,20 @@ const publicRoutes = [
 ];
 
 const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children }) => {
+  // Simple mobile UA detection (no heavy hooks here)
+  const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '').toLowerCase();
+  const isMobileUA = /iphone|ipod|android|blackberry|windows phone|mobile|webos|opera mini|ipad/.test(ua);
+  
   // Safe auth access with early return
   let authContext;
   try {
     authContext = useAuth();
   } catch (error) {
     console.warn('CentralizedAuthGuard: Auth context not ready yet');
+    // On mobile, never show skeleton — go straight to login
+    if (isMobileUA) {
+      return <Navigate to="/auth/login" replace />;
+    }
     return <GlobalSkeleton />;
   }
   
@@ -89,15 +97,27 @@ const CentralizedAuthGuard: React.FC<CentralizedAuthGuardProps> = ({ children })
     '/auth/forgot-password'
   ];
   
-  // CRITICAL: Show loading skeleton while auth is still initializing (unless forced)
-  if (loading && !forceRender) {
-    console.log('⏳ CentralizedAuthGuard: Auth still loading', { path: location.pathname });
-    if (noSkeletonRoutes.includes(location.pathname)) {
-      // Render page content immediately to avoid flicker on fast paths
-      return <>{children}</>;
-    }
-    return <GlobalSkeleton />;
+// CRITICAL: While auth initializes, avoid skeleton on mobile
+if (loading && !forceRender) {
+  console.log('⏳ CentralizedAuthGuard: Auth still loading', { path: location.pathname });
+
+  // If not on a public route, immediately navigate to login on mobile to prevent skeleton
+  if (!isPublicRoute && isMobileUA) {
+    try {
+      const fullPath = location.pathname + location.search + location.hash;
+      sessionStorage.setItem('redirectAfterAuth', fullPath);
+    } catch {}
+    return <Navigate to="/auth/login" replace state={{ from: location }} />;
   }
+
+  if (noSkeletonRoutes.includes(location.pathname)) {
+    // Render page content immediately to avoid flicker on fast paths
+    return <>{children}</>;
+  }
+
+  // Desktop or other cases can still show the global skeleton
+  return <GlobalSkeleton />;
+}
   
   // If we're force rendering due to timeout, treat as if auth completed
   if (forceRender) {
