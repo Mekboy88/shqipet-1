@@ -45,22 +45,22 @@ const getDeviceBrand = (ua: string): string => {
   if (/htc/i.test(u)) return 'HTC';
   
   // Lenovo
-  if /(lenovo|ideapad|thinkpad)/i.test(u)) return 'Lenovo';
+  if (/(lenovo|ideapad|thinkpad)/i.test(u)) return 'Lenovo';
   
   // Asus
-  if /(asus|zenbook|vivobook)/i.test(u)) return 'Asus';
+  if (/(asus|zenbook|vivobook)/i.test(u)) return 'Asus';
   
   // Acer
-  if /(acer|aspire)/i.test(u)) return 'Acer';
+  if (/(acer|aspire)/i.test(u)) return 'Acer';
   
   // HP
-  if /(hp |hewlett)/i.test(u)) return 'HP';
+  if (/(hp |hewlett)/i.test(u)) return 'HP';
   
   // Dell
-  if /(dell|inspiron|xps)/i.test(u)) return 'Dell';
+  if (/(dell|inspiron|xps)/i.test(u)) return 'Dell';
   
   // Microsoft
-  if /(microsoft|surface)/i.test(u)) return 'Microsoft';
+  if (/(microsoft|surface)/i.test(u)) return 'Microsoft';
   
   // Apple
   if (/(iphone|ipad|ipod|macbook|imac|mac)/i.test(u)) return 'Apple';
@@ -135,7 +135,7 @@ const getDeviceModel = (ua: string): string | null => {
   if (/ideapad/i.test(u)) return 'IdeaPad';
   if (/zenbook/i.test(u)) return 'ZenBook';
   if (/vivobook/i.test(u)) return 'VivoBook';
-  if /(xps|inspiron)/i.test(u)) return u.match(/(xps|inspiron)/i)?.[0] || 'Dell Laptop';
+  if (/(xps|inspiron)/i.test(u)) return u.match(/(xps|inspiron)/i)?.[0] || 'Dell Laptop';
   
   return null;
 };
