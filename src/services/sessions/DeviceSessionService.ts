@@ -123,43 +123,84 @@ class DeviceSessionService {
 
     const STORAGE_KEY = 'device_stable_id';
     const COOKIE_KEY = 'device_stable_id';
-    
-    // Try localStorage first
+    const SEED_KEY = 'device_seed';
+
+    // Try to read an existing stable ID first (fast path)
     let stableId: string | null = null;
     try {
       stableId = localStorage.getItem(STORAGE_KEY);
     } catch (e) {
       console.warn('localStorage unavailable:', e);
     }
-    
-    // Fallback to cookie if localStorage unavailable/blocked
     if (!stableId) {
       stableId = getCookie(COOKIE_KEY);
     }
-    
+
+    // Ensure a persistent per-device seed exists
+    let seed: string | null = null;
+    try {
+      seed = localStorage.getItem(SEED_KEY);
+    } catch (e) {
+      console.warn('localStorage unavailable for seed:', e);
+    }
+    if (!seed) {
+      seed = (crypto && 'randomUUID' in crypto) ? crypto.randomUUID() : `${Date.now()}_${Math.random()}`;
+      try {
+        localStorage.setItem(SEED_KEY, seed);
+      } catch (e) {
+        console.warn('Failed to persist device seed to localStorage:', e);
+      }
+      try {
+        setCookie(SEED_KEY, seed, 730);
+      } catch (e) {
+        console.warn('Failed to persist device seed to cookie:', e);
+      }
+    }
+
     if (!stableId) {
-      // Generate deterministic stable ID based on device fingerprint
-      // This ensures same physical device gets same ID even if storage is blocked
-      const fingerprint = this.generateDeviceFingerprint();
-      const fingerprintHash = this.hashFingerprint(fingerprint);
-      stableId = `dv_${fingerprintHash}`;
-      
-      console.log('🔑 Generated deterministic stable ID from fingerprint:', stableId);
-      
-      // Store in both localStorage and cookie for faster access (best-effort)
+      // Build a robust, collision-resistant fingerprint with a persistent seed
+      const raw = [
+        navigator.userAgent,
+        navigator.platform,
+        navigator.language,
+        `${screen.width}x${screen.height}`,
+        String(navigator.hardwareConcurrency || 0),
+        Intl.DateTimeFormat().resolvedOptions().timeZone || 'tz',
+        seed,
+      ].join('|');
+
+      // Hash with SHA-256 using Web Crypto
+      const encoder = new TextEncoder();
+      const rawBytes = encoder.encode(raw);
+      let hex = '';
+      try {
+        const digest = await crypto.subtle.digest('SHA-256', rawBytes);
+        hex = Array.from(new Uint8Array(digest))
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
+      } catch (e) {
+        console.warn('SHA-256 not available, falling back to simple hash (less stable):', e);
+        // Fallback to legacy hash to avoid blocking registration
+        const fingerprint = this.generateDeviceFingerprint();
+        hex = this.hashFingerprint(fingerprint);
+      }
+
+      stableId = `dv_${hex.slice(0, 20)}`; // Short, stable, collision-resistant
+      console.log('🔑 Generated stable device ID (seeded):', { stableId, seed });
+
+      // Persist for future fast reads
       try {
         localStorage.setItem(STORAGE_KEY, stableId);
       } catch (error) {
-        console.warn('localStorage unavailable:', error);
+        console.warn('localStorage unavailable for stable ID:', error);
       }
-      
       try {
         setCookie(COOKIE_KEY, stableId, 730); // 2 years
       } catch (error) {
-        console.warn('Cookie unavailable:', error);
+        console.warn('Cookie unavailable for stable ID:', error);
       }
     }
-    
+
     return stableId;
   }
 
