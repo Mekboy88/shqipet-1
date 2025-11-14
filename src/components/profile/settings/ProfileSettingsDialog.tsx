@@ -18,6 +18,8 @@ const ProfileSettingsDialog: React.FC<ProfileSettingsDialogProps> = ({
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-30 overflow-hidden pointer-events-none">
+      {/* Wallpaper layer - behind everything, starts below top bar */}
+      <div className="absolute top-[57px] left-0 right-0 bottom-0 bg-gray-100 pointer-events-none"></div>
       
       {/* Windows container */}
       <div className="relative w-[1040px] h-[calc(100vh-120px)] overflow-visible absolute left-1/2 transform -translate-x-1/2 z-10 pointer-events-auto" style={{ top: '80px' }}>
