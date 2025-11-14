@@ -2,6 +2,144 @@ import { UAParser } from 'ua-parser-js';
 
 export type DeviceCategory = 'desktop' | 'laptop' | 'tablet' | 'mobile' | 'unknown';
 
+/**
+ * Get device brand from user agent (Samsung, Google, Xiaomi, Huawei, etc.)
+ */
+const getDeviceBrand = (ua: string): string => {
+  const u = ua.toLowerCase();
+  
+  // Samsung devices
+  if (/(samsung|sm-|galaxy|gt-)/i.test(u)) return 'Samsung';
+  
+  // Google devices
+  if (/(pixel|nexus)/i.test(u)) return 'Google';
+  
+  // Xiaomi devices
+  if (/(xiaomi|mi |redmi|poco)/i.test(u)) return 'Xiaomi';
+  
+  // Huawei devices
+  if (/(huawei|honor|hms)/i.test(u)) return 'Huawei';
+  
+  // OnePlus
+  if (/oneplus/i.test(u)) return 'OnePlus';
+  
+  // Oppo
+  if (/(oppo|cph)/i.test(u)) return 'Oppo';
+  
+  // Vivo
+  if (/vivo/i.test(u)) return 'Vivo';
+  
+  // Motorola
+  if (/(motorola|moto)/i.test(u)) return 'Motorola';
+  
+  // LG
+  if (/lg-|lge/i.test(u)) return 'LG';
+  
+  // Sony
+  if (/(sony|xperia)/i.test(u)) return 'Sony';
+  
+  // Nokia
+  if (/nokia/i.test(u)) return 'Nokia';
+  
+  // HTC
+  if (/htc/i.test(u)) return 'HTC';
+  
+  // Lenovo
+  if /(lenovo|ideapad|thinkpad)/i.test(u)) return 'Lenovo';
+  
+  // Asus
+  if /(asus|zenbook|vivobook)/i.test(u)) return 'Asus';
+  
+  // Acer
+  if /(acer|aspire)/i.test(u)) return 'Acer';
+  
+  // HP
+  if /(hp |hewlett)/i.test(u)) return 'HP';
+  
+  // Dell
+  if /(dell|inspiron|xps)/i.test(u)) return 'Dell';
+  
+  // Microsoft
+  if /(microsoft|surface)/i.test(u)) return 'Microsoft';
+  
+  // Apple
+  if (/(iphone|ipad|ipod|macbook|imac|mac)/i.test(u)) return 'Apple';
+  
+  return 'Unknown';
+};
+
+/**
+ * Get specific device model name from user agent
+ */
+const getDeviceModel = (ua: string): string | null => {
+  const u = ua.toLowerCase();
+  
+  // Samsung Galaxy models
+  if (/galaxy s24/i.test(u)) return 'Galaxy S24';
+  if (/galaxy s23/i.test(u)) return 'Galaxy S23';
+  if (/galaxy s22/i.test(u)) return 'Galaxy S22';
+  if (/galaxy s21/i.test(u)) return 'Galaxy S21';
+  if (/galaxy s20/i.test(u)) return 'Galaxy S20';
+  if (/galaxy note/i.test(u)) return 'Galaxy Note';
+  if (/galaxy a/i.test(u)) return 'Galaxy A Series';
+  if (/galaxy z fold/i.test(u)) return 'Galaxy Z Fold';
+  if (/galaxy z flip/i.test(u)) return 'Galaxy Z Flip';
+  if (/galaxy tab/i.test(u)) return 'Galaxy Tab';
+  
+  // Google Pixel
+  if (/pixel 9/i.test(u)) return 'Pixel 9';
+  if (/pixel 8/i.test(u)) return 'Pixel 8';
+  if (/pixel 7/i.test(u)) return 'Pixel 7';
+  if (/pixel 6/i.test(u)) return 'Pixel 6';
+  if (/pixel 5/i.test(u)) return 'Pixel 5';
+  if (/pixel 4/i.test(u)) return 'Pixel 4';
+  
+  // Xiaomi
+  if (/redmi note/i.test(u)) return 'Redmi Note';
+  if (/redmi/i.test(u)) return 'Redmi';
+  if (/poco/i.test(u)) return 'Poco';
+  if (/mi 1\d/i.test(u)) return 'Mi Series';
+  
+  // OnePlus
+  if (/oneplus \d+/i.test(u)) return u.match(/oneplus \d+/i)?.[0].toUpperCase() || 'OnePlus';
+  
+  // iPhone models
+  if (/iphone 16/i.test(u)) return 'iPhone 16';
+  if (/iphone 15/i.test(u)) return 'iPhone 15';
+  if (/iphone 14/i.test(u)) return 'iPhone 14';
+  if (/iphone 13/i.test(u)) return 'iPhone 13';
+  if (/iphone 12/i.test(u)) return 'iPhone 12';
+  if (/iphone 11/i.test(u)) return 'iPhone 11';
+  if (/iphone x/i.test(u)) return 'iPhone X';
+  if (/iphone se/i.test(u)) return 'iPhone SE';
+  
+  // iPad models
+  if (/ipad pro/i.test(u)) return 'iPad Pro';
+  if (/ipad air/i.test(u)) return 'iPad Air';
+  if (/ipad mini/i.test(u)) return 'iPad Mini';
+  
+  // Mac models
+  if (/macbook pro/i.test(u)) return 'MacBook Pro';
+  if (/macbook air/i.test(u)) return 'MacBook Air';
+  if (/macbook/i.test(u)) return 'MacBook';
+  if (/imac/i.test(u)) return 'iMac';
+  if (/mac pro/i.test(u)) return 'Mac Pro';
+  if (/mac studio/i.test(u)) return 'Mac Studio';
+  if (/mac mini/i.test(u)) return 'Mac mini';
+  
+  // Windows laptops
+  if (/surface laptop/i.test(u)) return 'Surface Laptop';
+  if (/surface pro/i.test(u)) return 'Surface Pro';
+  if (/surface book/i.test(u)) return 'Surface Book';
+  if (/thinkpad/i.test(u)) return 'ThinkPad';
+  if (/ideapad/i.test(u)) return 'IdeaPad';
+  if (/zenbook/i.test(u)) return 'ZenBook';
+  if (/vivobook/i.test(u)) return 'VivoBook';
+  if /(xps|inspiron)/i.test(u)) return u.match(/(xps|inspiron)/i)?.[0] || 'Dell Laptop';
+  
+  return null;
+};
+
 const mapOS = (name?: string, version?: string) => {
   const n = (name || '').toLowerCase();
   const normalize = (ver?: string) => {
@@ -17,56 +155,101 @@ const mapOS = (name?: string, version?: string) => {
   if (n.includes('ios')) return `iOS${v}`;
   if (n.includes('ipados')) return `iPadOS${v}`;
   if (n.includes('android')) return `Android${v}`;
-  if (n.includes('windows')) return `Windows${v}`;
+  if (n.includes('windows')) {
+    // Better Windows version names
+    if (v.startsWith(' 11')) return 'Windows 11';
+    if (v.startsWith(' 10')) return 'Windows 10';
+    return `Windows${v}`;
+  }
+  if (n.includes('chrome')) return 'ChromeOS';
   if (n.includes('mac')) return `macOS${v}`;
-  if (n.includes('linux')) return 'Linux';
+  if (n.includes('linux')) {
+    if (n.includes('ubuntu')) return 'Ubuntu';
+    if (n.includes('fedora')) return 'Fedora';
+    if (n.includes('debian')) return 'Debian';
+    return 'Linux';
+  }
   return 'Unknown OS';
 };
 
 const fromRules = (ua: string): DeviceCategory => {
   const u = ua.toLowerCase();
   
-  // Priority 1: Mobile detection (MUST be first - most specific)
-  if (/(iphone|ipod|android.+mobile|windows phone|blackberry|bb10)/i.test(u)) {
-    console.log('📱 Mobile device detected via UA pattern');
+  console.log('🔍 Device detection UA:', ua);
+  
+  // Priority 1: Mobile phones (MUST be first - most specific)
+  // iPhone
+  if (/(iphone|ipod)/i.test(u)) {
+    console.log('📱 iPhone detected');
     return 'mobile';
   }
   
-  // Priority 2: iPad detection (iPadOS 13+ reports as Macintosh)
+  // Android phones (with "mobile" keyword)
+  if (/android/i.test(u) && /mobile/i.test(u)) {
+    console.log('📱 Android phone detected (has mobile keyword)');
+    return 'mobile';
+  }
+  
+  // Other mobile phones
+  if (/(windows phone|blackberry|bb10)/i.test(u)) {
+    console.log('📱 Other mobile phone detected');
+    return 'mobile';
+  }
+  
+  // Priority 2: Tablets
+  // iPad detection (iPadOS 13+ reports as Macintosh)
   const isMacintosh = /macintosh/i.test(ua);
   const maxTouchPoints = typeof navigator !== 'undefined' ? navigator.maxTouchPoints : 0;
   if (isMacintosh && maxTouchPoints > 1) {
-    console.log('🔍 iPad detected via Macintosh + touch points');
+    console.log('📲 iPad detected via Macintosh + touch points');
     return 'tablet';
   }
   
-  // Priority 3: Other tablets
-  if (/(ipad|tablet|kindle|silk|playbook|galaxy tab|android(?!.*mobile))/i.test(u)) {
-    console.log('📲 Tablet detected via UA pattern');
+  // Explicit iPad
+  if (/ipad/i.test(u)) {
+    console.log('📲 iPad explicitly detected');
     return 'tablet';
   }
   
-  // Priority 4: Explicit laptop indicators (MacBook, notebook, laptop)
+  // Android tablets (Android WITHOUT "mobile")
+  if (/android/i.test(u) && !/mobile/i.test(u)) {
+    console.log('📲 Android tablet detected (no mobile keyword)');
+    return 'tablet';
+  }
+  
+  // Other tablets
+  if (/(tablet|kindle|silk|playbook|galaxy tab)/i.test(u)) {
+    console.log('📲 Other tablet detected');
+    return 'tablet';
+  }
+  
+  // Priority 3: Chromebooks
+  if (/cros|chromebook/i.test(u)) {
+    console.log('💻 Chromebook detected');
+    return 'laptop';
+  }
+  
+  // Priority 4: Explicit laptop indicators
   if (/(macbook|notebook|laptop)/i.test(u)) {
     console.log('💻 Laptop explicitly detected via UA');
     return 'laptop';
   }
   
-  // Priority 5: Explicit desktop indicators (iMac, Mac Pro, Mac Studio, Mac mini)
+  // Priority 5: Explicit desktop indicators
   if (/(imac|mac\s?pro|mac\s?studio|mac\s?mini)/i.test(u)) {
     console.log('🖥️ Desktop Mac explicitly detected via UA');
     return 'desktop';
   }
   
-  // Priority 6: Windows/Linux - use heuristics later
-  if (/(windows nt|linux x86_64)/i.test(u)) {
-    // Return 'unknown' to trigger battery detection for Windows/Linux
+  // Priority 6: Windows/Linux - need battery detection
+  if (/(windows nt|linux x86_64|x11)/i.test(u)) {
+    console.log('🔍 Windows/Linux detected - will use battery heuristics');
     return 'unknown';
   }
   
   // Priority 7: Generic macOS without explicit model
   if (/mac os x|macintosh/i.test(u)) {
-    // Return 'unknown' to trigger battery detection (could be laptop or desktop)
+    console.log('🔍 Generic macOS detected - will use battery heuristics');
     return 'unknown';
   }
   
