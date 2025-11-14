@@ -221,9 +221,24 @@ class DeviceDetectionService {
       return 'tablet';
     }
     
-    // For desktop-class devices, default to 'desktop'
-    // Only classify as 'laptop' if there are specific laptop indicators
-    if (userAgent.includes('macbook')) {
+    // For desktop-class devices, check for laptop indicators
+    // Check for common laptop brands and models
+    if (userAgent.includes('macbook') || 
+        /laptop|notebook/i.test(userAgent) ||
+        // Windows laptops often have specific model indicators
+        /thinkpad|latitude|elitebook|pavilion|inspiron|aspire|zenbook|vivobook|swift|spectre/i.test(userAgent)) {
+      return 'laptop';
+    }
+    
+    // Check for battery API (laptops typically have batteries)
+    // @ts-ignore - Battery API not in TypeScript types
+    if ('getBattery' in navigator || 'battery' in navigator) {
+      return 'laptop';
+    }
+    
+    // If screen width suggests a laptop (typically 1280-1920 width)
+    const screenWidth = window.screen.width;
+    if (screenWidth >= 1280 && screenWidth <= 1920 && window.screen.height >= 720 && window.screen.height <= 1200) {
       return 'laptop';
     }
     
