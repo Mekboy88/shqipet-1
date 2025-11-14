@@ -72,9 +72,20 @@ const ViewSwitcher: React.FC = () => {
       // Check override conditions
       const urlParams = new URLSearchParams(window.location.search);
       const forceDesktop = urlParams.get('forceDesktop') === '1';
+      const forceMobile = urlParams.get('forceMobile') === '1';
+      const resetRedirectGuard = urlParams.get('resetMobileRedirect') === '1';
+      const clearPrefers = urlParams.get('clearPrefersDesktop') === '1';
       const prefersDesktop = localStorage.getItem('prefersDesktop') === '1';
-      
-      if (forceDesktop || prefersDesktop) {
+
+      if (clearPrefers) {
+        try { localStorage.removeItem('prefersDesktop'); } catch {}
+      }
+
+      if (resetRedirectGuard) {
+        try { sessionStorage.removeItem('mobileRedirectChecked'); } catch {}
+      }
+
+      if (forceDesktop) {
         sessionStorage.setItem('mobileRedirectChecked', '1');
         return;
       }
@@ -106,6 +117,16 @@ const ViewSwitcher: React.FC = () => {
         maxTouchPoints: navigator.maxTouchPoints
       });
       
+      // Force redirect to mobile if requested
+      if (forceMobile && isPrimaryDomain(hostname)) {
+        sessionStorage.setItem('mobileRedirectChecked', '1');
+        setIsRedirecting(true);
+        const targetUrl = buildUrlFor(MOBILE_SUBDOMAIN);
+        console.log('⚡ Force redirect to mobile:', targetUrl);
+        window.location.replace(targetUrl);
+        return;
+      }
+
       // Mobile/Tablet on primary domain → redirect to m.shqipet.com (but NEVER for real desktop browsers)
       if ((isRealMobile || isRealTablet) && !isDesktopBrowser && isPrimaryDomain(hostname)) {
         sessionStorage.setItem('mobileRedirectChecked', '1');
