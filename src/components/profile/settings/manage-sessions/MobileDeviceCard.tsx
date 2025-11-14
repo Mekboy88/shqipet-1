@@ -6,7 +6,6 @@ import { StaticMiniMap } from './StaticMiniMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatLocationWithFlag } from '@/utils/countryFlags';
-import { getDisplayDeviceType, getDisplayTitle } from '@/utils/deviceDisplay';
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
 interface MobileDeviceCardProps {
@@ -29,11 +28,20 @@ export const MobileDeviceCard = ({
   const touchStartX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const displayType = getDisplayDeviceType(session);
-  const DeviceIcon =
-    displayType === 'mobile' ? Smartphone :
-    displayType === 'tablet' ? Tablet :
-    displayType === 'laptop' ? Laptop : Monitor;
+  const getDeviceIcon = () => {
+    switch (session.device_type) {
+      case 'mobile':
+        return Smartphone;
+      case 'tablet':
+        return Tablet;
+      case 'laptop':
+        return Laptop;
+      default:
+        return Monitor;
+    }
+  };
+
+  const DeviceIcon = getDeviceIcon();
 
   const getTrustScoreColor = (score: number) => {
     if (score >= 80) return 'bg-green-500';
@@ -119,7 +127,7 @@ export const MobileDeviceCard = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold truncate">
-                  {getDisplayTitle(session, displayType)}
+                  {session.device_name || 'Unknown Device'}
                 </h3>
                 {isCurrentDevice && (
                   <Badge className="bg-blue-500 text-white text-xs">Current</Badge>
