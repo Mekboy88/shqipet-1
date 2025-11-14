@@ -51,7 +51,8 @@ const ManageSessionsForm: React.FC = () => {
     refreshDevices,
     toggleDeviceTrust,
     removeDevice,
-    logoutAllOtherDevices
+    logoutAllOtherDevices,
+    repairAllSessions
   } = useDeviceSession();
 
   // Collect diagnostics only - registration handled globally by SessionBootstrapper
@@ -92,6 +93,30 @@ const ManageSessionsForm: React.FC = () => {
       toast.error('Failed to update device info');
     } finally {
       setForceRegistering(false);
+    }
+  };
+
+  const handleRepairAllDevices = async () => {
+    if (!user?.id) return;
+    
+    const toastId = toast.loading('Repairing all device classifications...');
+    try {
+      const result = await repairAllSessions();
+      
+      if (result.repaired > 0) {
+        toast.success(`Repaired ${result.repaired} device(s)`, { id: toastId });
+        await refreshDevices();
+      } else {
+        toast.info('No devices needed repair', { id: toastId });
+      }
+      
+      if (result.errors.length > 0) {
+        console.error('❌ Repair errors:', result.errors);
+        toast.error(`${result.errors.length} error(s) during repair`, { id: toastId });
+      }
+    } catch (e: any) {
+      console.error('❌ Failed to repair devices:', e);
+      toast.error('Failed to repair devices', { id: toastId });
     }
   };
 
@@ -643,6 +668,42 @@ Last Error: ${lastRegError || 'None'}`;
                               : device.location || 'Unknown location'}
                           </span>
                         </div>
+
+                        {/* Technical Details - Collapsible */}
+                        <details className="mt-2 text-xs">
+                          <summary className="cursor-pointer text-muted-foreground hover:text-foreground flex items-center gap-1">
+                            <HelpCircle size={12} />
+                            Technical Details
+                          </summary>
+                          <div className="mt-2 space-y-1 pl-4 border-l-2 border-muted">
+                            {device.device_stable_id && (
+                              <div className="flex gap-2">
+                                <span className="text-muted-foreground">Stable ID:</span>
+                                <span className="font-mono text-foreground">{device.device_stable_id}</span>
+                              </div>
+                            )}
+                            <div className="flex gap-2">
+                              <span className="text-muted-foreground">Device Type:</span>
+                              <span className="text-foreground">{device.device_type}</span>
+                            </div>
+                            {device.screen_resolution && (
+                              <div className="flex gap-2">
+                                <span className="text-muted-foreground">Screen:</span>
+                                <span className="text-foreground">{device.screen_resolution}</span>
+                              </div>
+                            )}
+                            {device.physical_key && (
+                              <div className="flex gap-2">
+                                <span className="text-muted-foreground">Physical Key:</span>
+                                <span className="font-mono text-foreground text-[10px]">{device.physical_key}</span>
+                              </div>
+                            )}
+                            <div className="flex gap-2">
+                              <span className="text-muted-foreground">Last Activity:</span>
+                              <span className="text-foreground">{formatTimeAgo(device.last_seen)}</span>
+                            </div>
+                          </div>
+                        </details>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <div className="flex items-center gap-1.5">

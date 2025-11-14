@@ -631,6 +631,81 @@ class DeviceSessionService {
     }
   }
 
+  /**
+   * Repair/reclassify all sessions for a user by recomputing device_type, device_name, OS, physical_key
+   * from stored user_agent. This fixes legacy "Mac-only" rows caused by old stableId collisions.
+   */
+  async repairAllUserSessions(userId: string): Promise<{ repaired: number; errors: string[] }> {
+    console.log('🔧 Starting repair of all sessions for user:', userId);
+    
+    try {
+      // Fetch all sessions for this user
+      const { data: sessions, error: fetchError } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (fetchError) throw fetchError;
+      if (!sessions || sessions.length === 0) {
+        console.log('⚠️ No sessions found to repair');
+        return { repaired: 0, errors: [] };
+      }
+
+      console.log(`🔧 Found ${sessions.length} sessions to repair`);
+
+      let repaired = 0;
+      const errors: string[] = [];
+
+      for (const session of sessions) {
+        try {
+          // Reclassify from user_agent
+          const ua = session.user_agent || navigator.userAgent;
+          const uaData: any = (navigator as any).userAgentData;
+          const detected = await detectFromUserAgent(ua, {
+            platform: uaData?.platform,
+            mobile: uaData?.mobile,
+            model: undefined,
+          });
+
+          // Recompute physical_key
+          const normalizedOS = detected.operatingSystem.split(' ')[0];
+          const screenRes = session.screen_resolution || `${screen.width}x${screen.height}`;
+          const physicalKey = `${detected.deviceType}_${normalizedOS}_${screenRes}`;
+
+          // Update session with correct classification
+          const { error: updateError } = await supabase
+            .from('user_sessions')
+            .update({
+              device_type: detected.deviceType,
+              device_name: detected.deviceName,
+              operating_system: detected.operatingSystem,
+              browser_info: detected.browser,
+              physical_key: physicalKey,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', session.id);
+
+          if (updateError) {
+            errors.push(`Failed to repair session ${session.id}: ${updateError.message}`);
+            console.error('❌ Failed to repair session:', session.id, updateError);
+          } else {
+            repaired++;
+            console.log(`✅ Repaired session ${session.id}: ${detected.deviceName} (${detected.deviceType})`);
+          }
+        } catch (e: any) {
+          errors.push(`Error repairing session ${session.id}: ${e.message}`);
+          console.error('❌ Error repairing session:', session.id, e);
+        }
+      }
+
+      console.log(`🔧 Repair complete: ${repaired}/${sessions.length} sessions repaired`);
+      return { repaired, errors };
+    } catch (e: any) {
+      console.error('❌ Repair failed:', e);
+      return { repaired: 0, errors: [e.message] };
+    }
+  }
+
   async heartbeat(sessionId: string) {
     try {
       await supabase

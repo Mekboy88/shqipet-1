@@ -95,14 +95,32 @@ const SessionBootstrapper = () => {
         await checkSessionActive();
       }, 60000);
 
-      // Update on focus/visibility (web) with self-check
+      // Update on focus/visibility (web) with self-check AND re-registration
       const onFocus = async () => {
+        console.log('🔄 Window focused - re-registering device and checking session');
         if (sessionIdRef.current) deviceSessionService.heartbeat(sessionIdRef.current);
+        // Re-register to ensure device is always up-to-date
+        try {
+          await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+          console.log('✅ Device re-registered on focus');
+        } catch (e) {
+          console.error('❌ Failed to re-register on focus:', e);
+        }
         await checkSessionActive();
       };
       const onVisibility = async () => {
-        if (!document.hidden && sessionIdRef.current) {
-          deviceSessionService.heartbeat(sessionIdRef.current);
+        console.log('🔄 Visibility changed - re-registering device and checking session');
+        if (!document.hidden) {
+          if (sessionIdRef.current) {
+            deviceSessionService.heartbeat(sessionIdRef.current);
+          }
+          // Re-register to ensure device is always up-to-date
+          try {
+            await deviceSessionService.registerOrUpdateCurrentDevice(user.id);
+            console.log('✅ Device re-registered on visibility change');
+          } catch (e) {
+            console.error('❌ Failed to re-register on visibility change:', e);
+          }
           await checkSessionActive();
         }
       };
