@@ -3,12 +3,10 @@ import { Circle, Shield, Trash2, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StaticMiniMap } from './StaticMiniMap';
-import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow, differenceInMinutes, differenceInHours, differenceInDays, format } from 'date-fns';
 import { formatLocationWithFlag } from '@/utils/countryFlags';
 import { getDeviceIcon, deriveTitle, getDeviceLabel, getBrowserIcon } from '@/utils/deviceSessionDisplay';
-
-type UserSession = Database['public']['Tables']['user_sessions']['Row'];
+import type { UserSession } from '@/types/database';
 
 interface MobileDeviceCardProps {
   session: UserSession;

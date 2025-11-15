@@ -1,6 +1,4 @@
-import type { Database } from '@/integrations/supabase/types';
-
-type UserSession = Database['public']['Tables']['user_sessions']['Row'];
+import type { UserSession } from '@/types/database';
 
 type DeviceType = 'mobile' | 'tablet' | 'laptop' | 'desktop';
 
