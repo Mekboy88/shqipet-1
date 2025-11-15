@@ -71,7 +71,7 @@ const ProfileSummaryCard = () => {
     <>
       <Card className="bg-card rounded-lg border border-border shadow-md overflow-hidden w-full">
         <div className="relative">
-        <NewCoverPhoto height={96} className="rounded-none" />
+        <NewCoverPhoto userId={user?.id} height={96} className="rounded-none" />
           {/* Avatar positioned at the bottom of the cover, half out and half in */}
           <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
             <Avatar 
