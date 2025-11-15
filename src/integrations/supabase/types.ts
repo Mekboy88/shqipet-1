@@ -1658,158 +1658,83 @@ export type Database = {
       }
       user_sessions: {
         Row: {
-          anomaly_flags: Json | null
-          app_version: string | null
-          browser_info: string | null
+          browser_name: string | null
           browser_version: string | null
           city: string | null
-          composite_fingerprint_hash: string | null
-          connection_type: string | null
-          consent_tracking: Json | null
           country: string | null
           country_code: string | null
-          created_at: string | null
-          data_retention_days: number | null
-          device_brand: string | null
-          device_fingerprint: string
-          device_full_name: string | null
-          device_model: string | null
-          device_name: string | null
-          device_os_version: string | null
+          created_at: string
+          device_id: string
           device_stable_id: string
-          device_type: string | null
-          device_type_locked: boolean | null
-          hardware_info: Json | null
+          device_type: string
           id: string
-          ip_address: string | null
-          ip_hash: string | null
-          is_active: boolean | null
-          is_trusted: boolean | null
-          is_vpn: boolean | null
-          last_activity: string | null
-          last_verified_at: string | null
+          is_current_device: boolean
+          is_trusted: boolean
           latitude: number | null
-          location: string | null
-          login_count: number | null
+          logout_reason: string | null
           longitude: number | null
-          mfa_enabled: boolean | null
-          network_provider: string | null
           operating_system: string | null
-          physical_key: string | null
-          platform_type: string | null
+          platform: string | null
+          region: string | null
           screen_resolution: string | null
-          security_alerts: Json | null
-          session_expires_at: string | null
-          session_status: string | null
-          session_token: string | null
-          trust_score: number | null
-          updated_at: string | null
+          session_id: string
+          updated_at: string
           user_agent: string | null
           user_id: string
         }
         Insert: {
-          anomaly_flags?: Json | null
-          app_version?: string | null
-          browser_info?: string | null
+          browser_name?: string | null
           browser_version?: string | null
           city?: string | null
-          composite_fingerprint_hash?: string | null
-          connection_type?: string | null
-          consent_tracking?: Json | null
           country?: string | null
           country_code?: string | null
-          created_at?: string | null
-          data_retention_days?: number | null
-          device_brand?: string | null
-          device_fingerprint: string
-          device_full_name?: string | null
-          device_model?: string | null
-          device_name?: string | null
-          device_os_version?: string | null
+          created_at?: string
+          device_id: string
           device_stable_id: string
-          device_type?: string | null
-          device_type_locked?: boolean | null
-          hardware_info?: Json | null
+          device_type: string
           id?: string
-          ip_address?: string | null
-          ip_hash?: string | null
-          is_active?: boolean | null
-          is_trusted?: boolean | null
-          is_vpn?: boolean | null
-          last_activity?: string | null
-          last_verified_at?: string | null
+          is_current_device?: boolean
+          is_trusted?: boolean
           latitude?: number | null
-          location?: string | null
-          login_count?: number | null
+          logout_reason?: string | null
           longitude?: number | null
-          mfa_enabled?: boolean | null
-          network_provider?: string | null
           operating_system?: string | null
-          physical_key?: string | null
-          platform_type?: string | null
+          platform?: string | null
+          region?: string | null
           screen_resolution?: string | null
-          security_alerts?: Json | null
-          session_expires_at?: string | null
-          session_status?: string | null
-          session_token?: string | null
-          trust_score?: number | null
-          updated_at?: string | null
+          session_id?: string
+          updated_at?: string
           user_agent?: string | null
           user_id: string
         }
         Update: {
-          anomaly_flags?: Json | null
-          app_version?: string | null
-          browser_info?: string | null
+          browser_name?: string | null
           browser_version?: string | null
           city?: string | null
-          composite_fingerprint_hash?: string | null
-          connection_type?: string | null
-          consent_tracking?: Json | null
           country?: string | null
           country_code?: string | null
-          created_at?: string | null
-          data_retention_days?: number | null
-          device_brand?: string | null
-          device_fingerprint?: string
-          device_full_name?: string | null
-          device_model?: string | null
-          device_name?: string | null
-          device_os_version?: string | null
+          created_at?: string
+          device_id?: string
           device_stable_id?: string
-          device_type?: string | null
-          device_type_locked?: boolean | null
-          hardware_info?: Json | null
+          device_type?: string
           id?: string
-          ip_address?: string | null
-          ip_hash?: string | null
-          is_active?: boolean | null
-          is_trusted?: boolean | null
-          is_vpn?: boolean | null
-          last_activity?: string | null
-          last_verified_at?: string | null
+          is_current_device?: boolean
+          is_trusted?: boolean
           latitude?: number | null
-          location?: string | null
-          login_count?: number | null
+          logout_reason?: string | null
           longitude?: number | null
-          mfa_enabled?: boolean | null
-          network_provider?: string | null
           operating_system?: string | null
-          physical_key?: string | null
-          platform_type?: string | null
+          platform?: string | null
+          region?: string | null
           screen_resolution?: string | null
-          security_alerts?: Json | null
-          session_expires_at?: string | null
-          session_status?: string | null
-          session_token?: string | null
-          trust_score?: number | null
-          updated_at?: string | null
+          session_id?: string
+          updated_at?: string
           user_agent?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "user_sessions_user_id_fkey"
+            foreignKeyName: "fk_user_sessions_profile"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
