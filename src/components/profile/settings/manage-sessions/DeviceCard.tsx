@@ -1,10 +1,11 @@
-import { Monitor, Smartphone, Tablet, Laptop, Circle } from 'lucide-react';
+import { Circle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { InteractiveMap } from './InteractiveMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatLocationWithFlag, getCountryFlag } from '@/utils/countryFlags';
+import { getDeviceIcon, deriveTitle, getDeviceLabel } from '@/utils/deviceSessionDisplay';
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
 interface DeviceCardProps {
@@ -14,20 +15,9 @@ interface DeviceCardProps {
 }
 
 export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProps) => {
-  const getDeviceIcon = () => {
-    switch (session.device_type) {
-      case 'mobile':
-        return Smartphone;
-      case 'tablet':
-        return Tablet;
-      case 'laptop':
-        return Laptop;
-      default:
-        return Monitor;
-    }
-  };
-
-  const DeviceIcon = getDeviceIcon();
+  const DeviceIcon = getDeviceIcon(session.device_type);
+  const displayTitle = deriveTitle(session.device_name, session.device_type);
+  const deviceLabel = getDeviceLabel(session.device_type);
 
   const getTrustScoreColor = (score: number) => {
     if (score >= 80) return 'bg-green-500';
@@ -60,7 +50,10 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
                   <DeviceIcon size={24} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold leading-tight">{session.device_name || 'Unknown Device'}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold leading-tight">{displayTitle}</h3>
+                    <Badge variant="outline" className="text-xs">{deviceLabel}</Badge>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {(session.operating_system || 'OS')} {session.device_os_version || ''} • {(session.browser_info || 'Browser')} {session.browser_version || ''}
                   </p>
