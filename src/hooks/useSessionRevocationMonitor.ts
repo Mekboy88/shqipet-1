@@ -140,7 +140,7 @@ export const useSessionRevocationMonitor = () => {
 
             await signOut();
           }
-        }, 5000);
+        }, 2000);
 
       } catch (error) {
         console.error('Failed to setup session revocation monitor:', error);

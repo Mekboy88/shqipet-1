@@ -42,6 +42,24 @@ Deno.serve(async (req) => {
 
     const { action, sessionData, deviceStableId } = await req.json();
 
+    // Guard: If upsert requested for a revoked device, force re-login by blocking session recreation
+    if (action === 'upsert') {
+      const { data: rev } = await supabase
+        .from('session_revocations')
+        .select('id, created_at')
+        .eq('user_id', user.id)
+        .eq('device_stable_id', sessionData?.deviceStableId || '')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (rev) {
+        return new Response(
+          JSON.stringify({ error: 'DEVICE_REVOKED', message: 'This device was revoked. Please sign in again.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     if (action === 'upsert') {
       let locationData: any = {
         latitude: sessionData.latitude,
