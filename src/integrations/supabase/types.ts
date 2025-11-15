@@ -838,6 +838,7 @@ export type Database = {
           user_id: string
           user_image: string | null
           user_name: string | null
+          user_verified: boolean | null
           visibility: string
         }
         Insert: {
@@ -856,6 +857,7 @@ export type Database = {
           user_id: string
           user_image?: string | null
           user_name?: string | null
+          user_verified?: boolean | null
           visibility?: string
         }
         Update: {
@@ -874,6 +876,7 @@ export type Database = {
           user_id?: string
           user_image?: string | null
           user_name?: string | null
+          user_verified?: boolean | null
           visibility?: string
         }
         Relationships: [
