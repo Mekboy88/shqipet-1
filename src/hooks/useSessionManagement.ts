@@ -214,6 +214,51 @@ export const useSessionManagement = () => {
     }
   };
 
+  const revokeAllOtherDevices = async () => {
+    if (!user) return;
+
+    const currentId = deviceDetectionService.getCurrentDeviceStableId();
+    const otherDevices = Array.from(
+      new Set(
+        sessions
+          .filter(s => s.device_stable_id !== currentId)
+          .map(s => s.device_stable_id)
+      )
+    );
+
+    if (otherDevices.length === 0) {
+      toast.info('No other devices to log out');
+      return;
+    }
+
+    try {
+      const results = await Promise.allSettled(
+        otherDevices.map(deviceId =>
+          supabase.functions.invoke('manage-session', {
+            body: {
+              action: 'revoke',
+              deviceStableId: deviceId,
+            },
+          })
+        )
+      );
+
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+
+      if (failed === 0) {
+        toast.success(`Logged out ${successful} other device${successful > 1 ? 's' : ''}`);
+      } else {
+        toast.warning(`Logged out ${successful} device${successful > 1 ? 's' : ''}, ${failed} failed`);
+      }
+
+      await refreshSessions();
+    } catch (err: any) {
+      console.error('Failed to revoke all other devices:', err);
+      toast.error('Failed to log out other devices');
+    }
+  };
+
   return {
     sessions,
     loading,
@@ -222,5 +267,6 @@ export const useSessionManagement = () => {
     refreshSessions,
     trustDevice,
     revokeSession,
+    revokeAllOtherDevices,
   };
 };
