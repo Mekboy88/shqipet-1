@@ -53,9 +53,12 @@ export const useSessionManagement = () => {
         const message = body?.message || err?.message || '';
         const isRevoked = code === 'DEVICE_REVOKED' || message.includes('DEVICE_REVOKED') || status === 403;
         if (isRevoked) {
-          toast.error('This device was revoked recently. Session won\'t be registered yet.');
-          // Do NOT sign out here; user already authenticated.
-          setHasRegistered(true);
+          console.log('🚫 DEVICE_REVOKED detected - signing out immediately');
+          toast.error('This device was revoked', {
+            description: 'You have been signed out for security reasons.',
+            duration: 5000,
+          });
+          await signOut();
           return;
         } else {
           toast.error('Failed to register device session');

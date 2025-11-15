@@ -119,7 +119,7 @@ export const useSessionRevocationMonitor = () => {
             }
           });
 
-        // Heartbeat: every 5 seconds, verify session still exists
+        // Heartbeat: every 1 second, verify session still exists (hardened fallback)
         heartbeatInterval = setInterval(async () => {
           if (!deviceStableId) return;
 
@@ -130,8 +130,10 @@ export const useSessionRevocationMonitor = () => {
             .eq('device_stable_id', deviceStableId)
             .maybeSingle();
 
-          if (!data && !error) {
-            console.log('💔 Heartbeat detected missing session! Logging out...');
+          // Immediate logout if session missing OR error querying
+          if (!data || error) {
+            console.log('💔 Heartbeat detected missing session or error! Logging out...');
+            if (error) console.error('Heartbeat error:', error);
             
             toast.error('Your session was revoked', {
               description: 'You have been logged out for security reasons.',
@@ -140,7 +142,7 @@ export const useSessionRevocationMonitor = () => {
 
             await signOut();
           }
-        }, 2000);
+        }, 1000);
 
       } catch (error) {
         console.error('Failed to setup session revocation monitor:', error);
