@@ -27,14 +27,6 @@ export const useSessionManagement = () => {
           return;
         }
 
-        // If this device was recently revoked, skip invoking and sign out immediately
-        try {
-          if (typeof window !== 'undefined' && sessionStorage.getItem('device_revoked') === '1') {
-            await signOut();
-            return;
-          }
-        } catch {}
-
         const deviceInfo = deviceDetectionService.getDeviceInfo();
         const location = await deviceDetectionService.getBrowserLocation();
 
@@ -52,7 +44,7 @@ export const useSessionManagement = () => {
         if (error) throw error;
         setCurrentDeviceId(deviceInfo.deviceStableId);
         setHasRegistered(true);
-        try { sessionStorage.removeItem('device_revoked'); } catch {}
+        
       } catch (err: any) {
         console.error('Failed to register session:', err);
         const status = err?.context?.status || err?.status;
@@ -61,9 +53,9 @@ export const useSessionManagement = () => {
         const message = body?.message || err?.message || '';
         const isRevoked = code === 'DEVICE_REVOKED' || message.includes('DEVICE_REVOKED') || status === 403;
         if (isRevoked) {
-          try { sessionStorage.setItem('device_revoked', '1'); } catch {}
-          toast.error('This device was revoked. Please sign in again.');
-          await signOut();
+          toast.error('This device was revoked recently. Session won\'t be registered yet.');
+          // Do NOT sign out here; user already authenticated.
+          setHasRegistered(true);
           return;
         } else {
           toast.error('Failed to register device session');
