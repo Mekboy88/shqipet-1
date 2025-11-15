@@ -72,14 +72,7 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: Devi
       <CardContent className="p-0">
         <div className="flex flex-col md:flex-row items-stretch min-h-[220px]">
           <div className="flex-1 p-4 space-y-3">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold leading-tight">{displayTitle}</h3>
-                <Badge variant="outline" className="text-xs">{deviceLabel}</Badge>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3 mb-3">
               <div className="flex flex-col items-center gap-2">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                   <DeviceIcon size={24} className="text-primary" />
@@ -95,11 +88,18 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: Devi
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <BrowserIcon size={12} className="text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">
-                  {session.browser_name || 'Unknown'} {session.browser_version || ''}
-                </p>
+              
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold leading-tight">{displayTitle}</h3>
+                  <Badge variant="outline" className="text-xs">{deviceLabel}</Badge>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <BrowserIcon size={12} className="text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">
+                    {session.browser_name || 'Unknown'} {session.browser_version || ''}
+                  </p>
+                </div>
               </div>
             </div>
 
