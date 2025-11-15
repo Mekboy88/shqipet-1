@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { PrivacyCompliantMap } from './PrivacyCompliantMap';
+import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow, format, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
 import { formatLocationWithFlag } from '@/utils/countryFlags';
 import { getBrowserIcon } from '@/utils/deviceSessionDisplay';
-import type { UserSession } from '@/types/database';
+
+type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
 interface DeviceDetailsModalProps {
   session: UserSession | null;

@@ -825,8 +825,6 @@ export type Database = {
         Row: {
           comments_count: number | null
           content: Json
-          content_images: string[] | null
-          content_text: string | null
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -838,16 +836,11 @@ export type Database = {
           shares_count: number | null
           updated_at: string | null
           user_id: string
-          user_image: string | null
-          user_name: string | null
-          user_verified: boolean | null
           visibility: string
         }
         Insert: {
           comments_count?: number | null
           content?: Json
-          content_images?: string[] | null
-          content_text?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -859,16 +852,11 @@ export type Database = {
           shares_count?: number | null
           updated_at?: string | null
           user_id: string
-          user_image?: string | null
-          user_name?: string | null
-          user_verified?: boolean | null
           visibility?: string
         }
         Update: {
           comments_count?: number | null
           content?: Json
-          content_images?: string[] | null
-          content_text?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -880,9 +868,6 @@ export type Database = {
           shares_count?: number | null
           updated_at?: string | null
           user_id?: string
-          user_image?: string | null
-          user_name?: string | null
-          user_verified?: boolean | null
           visibility?: string
         }
         Relationships: [
@@ -1013,12 +998,10 @@ export type Database = {
       }
       profiles: {
         Row: {
-          about_me: string | null
           auth_user_id: string | null
           avatar_sizes: Json | null
           avatar_url: string | null
           bio: string | null
-          city_location: string | null
           cover_gradient: string | null
           cover_position: string | null
           cover_sizes: Json | null
@@ -1035,7 +1018,6 @@ export type Database = {
           last_name: string | null
           last_redirect_at: string | null
           last_redirect_host: string | null
-          location: string | null
           phone_number: string | null
           phone_verified: boolean | null
           photo_text_transform: Json | null
@@ -1043,21 +1025,15 @@ export type Database = {
           prefers_desktop: boolean
           primary_role: string | null
           professional_button_color: string | null
-          school: string | null
-          school_completed: boolean | null
           show_cover_controls: boolean | null
           updated_at: string
           username: string | null
-          website: string | null
-          working_at: string | null
         }
         Insert: {
-          about_me?: string | null
           auth_user_id?: string | null
           avatar_sizes?: Json | null
           avatar_url?: string | null
           bio?: string | null
-          city_location?: string | null
           cover_gradient?: string | null
           cover_position?: string | null
           cover_sizes?: Json | null
@@ -1074,7 +1050,6 @@ export type Database = {
           last_name?: string | null
           last_redirect_at?: string | null
           last_redirect_host?: string | null
-          location?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           photo_text_transform?: Json | null
@@ -1082,21 +1057,15 @@ export type Database = {
           prefers_desktop?: boolean
           primary_role?: string | null
           professional_button_color?: string | null
-          school?: string | null
-          school_completed?: boolean | null
           show_cover_controls?: boolean | null
           updated_at?: string
           username?: string | null
-          website?: string | null
-          working_at?: string | null
         }
         Update: {
-          about_me?: string | null
           auth_user_id?: string | null
           avatar_sizes?: Json | null
           avatar_url?: string | null
           bio?: string | null
-          city_location?: string | null
           cover_gradient?: string | null
           cover_position?: string | null
           cover_sizes?: Json | null
@@ -1113,7 +1082,6 @@ export type Database = {
           last_name?: string | null
           last_redirect_at?: string | null
           last_redirect_host?: string | null
-          location?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           photo_text_transform?: Json | null
@@ -1121,13 +1089,9 @@ export type Database = {
           prefers_desktop?: boolean
           primary_role?: string | null
           professional_button_color?: string | null
-          school?: string | null
-          school_completed?: boolean | null
           show_cover_controls?: boolean | null
           updated_at?: string
           username?: string | null
-          website?: string | null
-          working_at?: string | null
         }
         Relationships: []
       }
@@ -1823,7 +1787,6 @@ export type Database = {
         }
         Returns: string
       }
-      get_current_user_role: { Args: never; Returns: string }
       get_full_profile: {
         Args: { profile_id: string }
         Returns: {
@@ -1979,8 +1942,6 @@ export type Database = {
         | "user"
         | "super_admin"
         | "platform_owner_root"
-        | "developer"
-        | "support"
       device_type:
         | "mobile_ios"
         | "mobile_android"
@@ -2131,8 +2092,6 @@ export const Constants = {
         "user",
         "super_admin",
         "platform_owner_root",
-        "developer",
-        "support",
       ],
       device_type: [
         "mobile_ios",

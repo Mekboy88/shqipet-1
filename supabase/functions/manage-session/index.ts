@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
         .from('user_sessions')
         .upsert({
           user_id: user.id,
-          device_id: sessionData.deviceStableId, // Use stable ID to ensure consistency
+          device_id: sessionData.deviceId,
           device_stable_id: sessionData.deviceStableId,
           device_type: detectedDeviceType,
           operating_system: sessionData.operatingSystem,
