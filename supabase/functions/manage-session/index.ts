@@ -233,6 +233,49 @@ Deno.serve(async (req) => {
         JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    } else if (action === 'tab_close') {
+      // Decrement active tab count when a tab closes
+      const targetDeviceStableId = deviceStableId || sessionData?.deviceStableId;
+      if (!targetDeviceStableId) {
+        return new Response(
+          JSON.stringify({ error: 'Missing deviceStableId for tab_close' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Get current count
+      const { data: existing } = await supabase
+        .from('user_sessions')
+        .select('active_tabs_count')
+        .eq('user_id', user.id)
+        .eq('device_stable_id', targetDeviceStableId)
+        .single();
+
+      const newCount = Math.max((existing?.active_tabs_count ?? 1) - 1, 0);
+
+      // Update count and set is_current_device false if no tabs remain
+      const { error } = await supabase
+        .from('user_sessions')
+        .update({ 
+          active_tabs_count: newCount,
+          is_current_device: newCount > 0
+        })
+        .eq('user_id', user.id)
+        .eq('device_stable_id', targetDeviceStableId);
+
+      if (error) {
+        console.error('Failed to decrement tab count:', error);
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`✅ Tab closed for device ${targetDeviceStableId}, new count: ${newCount}`);
+      return new Response(
+        JSON.stringify({ success: true, count: newCount }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     return new Response(

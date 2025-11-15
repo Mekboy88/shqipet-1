@@ -9,6 +9,7 @@ import GlobalErrorBoundary from '@/components/ErrorBoundary/GlobalErrorBoundary'
 import BulletproofErrorBoundary from '@/components/ErrorBoundary/BulletproofErrorBoundary';
 import { ErrorRecoveryProvider } from '@/components/ErrorBoundary/ErrorRecoveryProvider';
 // Removed toast system - using notification system instead
+import { SessionsProvider } from './contexts/SessionsContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ChatSettingsProvider } from './contexts/ChatSettingsContext';
@@ -190,13 +191,14 @@ function App() {
           <QueryClientProvider client={queryClient}>
         <VideoSettingsProvider>
           <AuthProvider>
-            <SessionBootstrapper />
-            <GlobalSessionRevocationMonitor />
-            <ThemeProvider>
-              <ChatSettingsProvider>
-                <NotificationSettingsProvider>
-                  <PublishingProgressProvider>
-                    <PostsProvider>
+            <SessionsProvider>
+              <SessionBootstrapper />
+              <GlobalSessionRevocationMonitor />
+              <ThemeProvider>
+                <ChatSettingsProvider>
+                  <NotificationSettingsProvider>
+                    <PublishingProgressProvider>
+                      <PostsProvider>
                 <Router>
                   <RootAuthRedirect>
                     <AppBackground>
@@ -351,6 +353,7 @@ function App() {
                 </NotificationSettingsProvider>
               </ChatSettingsProvider>
             </ThemeProvider>
+            </SessionsProvider>
           </AuthProvider>
           </VideoSettingsProvider>
         </QueryClientProvider>
