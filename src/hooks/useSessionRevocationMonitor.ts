@@ -36,27 +36,55 @@ export const useSessionRevocationMonitor = () => {
               filter: `user_id=eq.${user.id}`,
             },
             async (payload) => {
-              console.log('🚨 Session deleted:', payload);
+              console.log('🚨 Session DELETE event received:', { 
+                hasOld: !!payload.old, 
+                deviceStableId: payload.old?.device_stable_id 
+              });
               
-              // Check if the deleted session is for the current device
+              // Direct match: if we have the device_stable_id in old data
               if (payload.old?.device_stable_id === deviceStableId) {
-                console.log('⚠️ Current device session was revoked! Logging out...');
+                console.log('⚠️ Current device session was revoked (direct match)! Logging out...');
                 
                 toast.error('Your session was revoked from another device', {
                   description: 'You have been logged out for security reasons.',
                   duration: 5000,
                 });
 
-                // Wait a brief moment for the toast to show
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Force logout
                 await signOut();
+                return;
+              }
+
+              // Fallback: if old data is missing or incomplete, verify session exists
+              console.log('🔍 Fallback check: querying if current device session still exists...');
+              const { data, error } = await supabase
+                .from('user_sessions')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('device_stable_id', deviceStableId)
+                .limit(1)
+                .single();
+
+              if (error && error.code === 'PGRST116') {
+                // No rows found - current device session was deleted
+                console.log('⚠️ Current device session was revoked (fallback check)! Logging out...');
+                
+                toast.error('Your session was revoked from another device', {
+                  description: 'You have been logged out for security reasons.',
+                  duration: 5000,
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await signOut();
+              } else if (!error && data) {
+                console.log('✅ Current device session still exists, no logout needed');
+              } else if (error) {
+                console.error('❌ Error checking session:', error);
               }
             }
           )
           .subscribe((status) => {
-            console.log('Session revocation monitor status:', status);
+            console.log('📡 Session revocation monitor status:', status);
           });
       } catch (error) {
         console.error('Failed to setup session revocation monitor:', error);
