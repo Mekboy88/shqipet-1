@@ -50,16 +50,33 @@ Deno.serve(async (req) => {
         .select('id, created_at')
         .eq('user_id', user.id)
         .eq('device_stable_id', sessionData?.deviceStableId || '')
-        .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Only check last 5 minutes
+        .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
       if (rev) {
-        console.log('🚫 Blocking session creation for recently revoked device:', sessionData?.deviceStableId);
-        return new Response(
-          JSON.stringify({ error: 'DEVICE_REVOKED', message: 'This device was revoked. Please sign in again.' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        // Allow re-login if the current JWT was issued AFTER the revocation
+        let tokenIatMs = 0;
+        try {
+          const authHeader = req.headers.get('Authorization') || '';
+          const jwt = authHeader.split(' ')[1] || '';
+          const payload = JSON.parse(atob((jwt.split('.')[1] || '')));
+          if (payload?.iat) tokenIatMs = Number(payload.iat) * 1000;
+        } catch (_) {
+          // ignore decode errors, default to 0 to enforce block
+        }
+        const revMs = new Date(rev.created_at).getTime();
+        const reauthenticated = tokenIatMs > revMs;
+
+        if (!reauthenticated) {
+          console.log('🚫 Blocking session creation for recently revoked device:', sessionData?.deviceStableId);
+          return new Response(
+            JSON.stringify({ error: 'DEVICE_REVOKED', message: 'This device was revoked. Please sign in again.' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          console.log('✅ Revocation bypassed due to fresh authentication after revocation.');
+        }
       }
     }
 
