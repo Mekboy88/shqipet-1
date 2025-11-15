@@ -31,6 +31,12 @@ class DeviceDetectionService {
 
   /**
    * Detect actual device type using user agent, touch support, and screen characteristics
+   * 
+   * Screen size ranges:
+   * - Mobile: < 768px width
+   * - Tablet: 768px - 1024px width
+   * - Laptop: 1024px - 1920px width (includes 1728x1117)
+   * - Desktop: >= 1920px width
    */
   private detectDeviceType(): 'mobile' | 'tablet' | 'laptop' | 'desktop' {
     const result = UAParser(navigator.userAgent);
@@ -62,18 +68,23 @@ class DeviceDetectionService {
       return 'tablet';
     }
     
-    // Mobile: Touch device or narrow viewport
-    if ((hasTouch && maxViewport < 768) || viewportWidth < 640) {
+    // Priority 4: Screen size-based detection with comprehensive ranges
+    // Mobile: < 768px (smartphones in any orientation)
+    if (viewportWidth < 768) {
       return 'mobile';
     }
     
-    // Tablet: Touch device with medium viewport or typical tablet width
-    if ((hasTouch && maxViewport >= 768 && maxViewport < 1024) || (viewportWidth >= 640 && viewportWidth < 1024)) {
+    // Tablet: 768px - 1024px (tablets like iPad, Android tablets)
+    if (viewportWidth >= 768 && viewportWidth < 1024) {
       return 'tablet';
     }
     
-    // Priority 4: Use viewport width for desktop/laptop distinction
-    if (viewportWidth < 1440) return 'laptop';
+    // Laptop: 1024px - 1920px (laptops, including 1728x1117 and smaller notebooks)
+    if (viewportWidth >= 1024 && viewportWidth < 1920) {
+      return 'laptop';
+    }
+    
+    // Desktop: >= 1920px (large monitors, 4K displays)
     return 'desktop';
   }
 
