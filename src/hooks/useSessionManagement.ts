@@ -171,7 +171,13 @@ export const useSessionManagement = () => {
   };
 
   const revokeSession = async (deviceStableId: string) => {
-    // Optimistically remove session from UI immediately
+    // Prevent revoking the session of the current device from itself
+    if (deviceStableId === currentDeviceId) {
+      toast.error('Cannot revoke the current device. Please use Sign out on this device.');
+      return;
+    }
+
+    // Optimistically remove session from UI immediately for other devices
     const previousSessions = [...sessions];
     setSessions(prevSessions =>
       prevSessions.filter(session => session.device_stable_id !== deviceStableId)
@@ -183,7 +189,7 @@ export const useSessionManagement = () => {
       });
 
       if (error) throw error;
-      toast.success('Device logged out instantly');
+      toast.success('Device logged out');
       
       // Refresh to sync with server (happens in background)
       refreshSessions();
