@@ -32,11 +32,47 @@ class DeviceDetectionService {
   /**
    * Detect actual device type using user agent, touch support, and screen characteristics
    * 
-   * Screen size ranges:
-   * - Mobile: < 768px width
-   * - Tablet: 768px - 1024px width
-   * - Laptop: 1024px - 1920px width (includes 1728x1117)
-   * - Desktop: >= 1920px width
+   * Comprehensive Screen Size Ranges:
+   * 
+   * MOBILE (< 768px):
+   * - 320px: iPhone SE, older phones
+   * - 360px: Common Android phones
+   * - 375px: iPhone 6/7/8, iPhone X/11 Pro
+   * - 390px: iPhone 12/13 Pro
+   * - 393px: Pixel 5, Samsung Galaxy S21
+   * - 414px: iPhone 6/7/8 Plus, iPhone 11/XR
+   * - 428px: iPhone 12/13 Pro Max
+   * - 480px: Small tablets in portrait
+   * - 640px: Large phones, phablets
+   * - 768px: Small tablets in portrait (boundary)
+   * 
+   * TABLET (768px - 1024px):
+   * - 768px: iPad Mini, iPad (portrait)
+   * - 800px: Small Android tablets
+   * - 810px: iPad Air (portrait)
+   * - 820px: iPad Pro 11" (portrait)
+   * - 834px: iPad Pro 10.5" (portrait)
+   * - 912px: Surface Go
+   * - 1024px: iPad (landscape), standard tablet (boundary)
+   * 
+   * LAPTOP (1024px - 1920px):
+   * - 1024px: Small laptops, netbooks
+   * - 1280px: 13" laptops (1280x720, 1280x800)
+   * - 1366px: Common laptop resolution (1366x768)
+   * - 1440px: 14" laptops (1440x900)
+   * - 1536px: 15" laptops with scaling
+   * - 1600px: 15" MacBook Pro
+   * - 1680px: 15" laptops (1680x1050)
+   * - 1728px: Your specific case (1728x1117)
+   * - 1920px: Full HD laptops (boundary)
+   * 
+   * DESKTOP (>= 1920px):
+   * - 1920px: Full HD monitors (1920x1080)
+   * - 2560px: QHD/2K monitors (2560x1440)
+   * - 3440px: Ultrawide monitors (3440x1440)
+   * - 3840px: 4K monitors (3840x2160)
+   * - 5120px: 5K monitors (5120x2880)
+   * - 7680px: 8K monitors (7680x4320)
    */
   private detectDeviceType(): 'mobile' | 'tablet' | 'laptop' | 'desktop' {
     const result = UAParser(navigator.userAgent);
