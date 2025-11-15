@@ -836,6 +836,8 @@ export type Database = {
           shares_count: number | null
           updated_at: string | null
           user_id: string
+          user_image: string | null
+          user_name: string | null
           visibility: string
         }
         Insert: {
@@ -852,6 +854,8 @@ export type Database = {
           shares_count?: number | null
           updated_at?: string | null
           user_id: string
+          user_image?: string | null
+          user_name?: string | null
           visibility?: string
         }
         Update: {
@@ -868,6 +872,8 @@ export type Database = {
           shares_count?: number | null
           updated_at?: string | null
           user_id?: string
+          user_image?: string | null
+          user_name?: string | null
           visibility?: string
         }
         Relationships: [
@@ -1808,6 +1814,7 @@ export type Database = {
         }
         Returns: string
       }
+      get_current_user_role: { Args: never; Returns: string }
       get_full_profile: {
         Args: { profile_id: string }
         Returns: {
