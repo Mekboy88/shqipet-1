@@ -16,6 +16,7 @@ interface NewCoverPhotoProps {
   style?: React.CSSProperties;
   onMouseMove?: (e: React.MouseEvent<HTMLDivElement>) => void;
   overridePosition?: string; // Allow parent to override position during drag
+  isDragging?: boolean; // Disable transitions during active drag
 }
 
 const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
@@ -26,7 +27,8 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
   children,
   style,
   onMouseMove,
-  overridePosition
+  overridePosition,
+  isDragging = false
 }) => {
   const { resolvedUrl, position: hookPosition, loading, lastGoodUrl, loadCover } = useCover(userId);
 
@@ -72,7 +74,10 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
           <img
             src={displayUrl}
             alt="Cover photo"
-            className="absolute inset-0 w-full h-full object-cover transition-[object-position] duration-75 ease-out"
+            className={cn(
+              "absolute inset-0 w-full h-full object-cover",
+              !isDragging && "transition-[object-position] duration-75 ease-out"
+            )}
             style={{ 
               objectPosition: position,
               imageRendering: 'crisp-edges'
