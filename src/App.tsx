@@ -194,7 +194,8 @@ function App() {
             <SessionsProvider>
               <SessionBootstrapper />
               <GlobalSessionRevocationMonitor />
-              <ThemeProvider>
+              <ProfileSettingsProvider>
+                <ThemeProvider>
                 <ChatSettingsProvider>
                   <NotificationSettingsProvider>
                     <PublishingProgressProvider>
@@ -242,14 +243,10 @@ function App() {
                       <Route path="/interesante" element={<Reels />} />
                       <Route path="/watch" element={<Watch />} />
 <Route path="/profile" element={<Profile />} />
-<Route
-  path="/profile/settings"
-  element={
-    <ProfileSettingsProvider>
-      <ProfileSettings />
-    </ProfileSettingsProvider>
-  }
-/>
+                        <Route
+                          path="/profile/settings"
+                          element={<ProfileSettings />}
+                        />
                        <Route path="/profile/settings/location" element={<LocationPreferences />} />
                        <Route path="/professional-presentation" element={<ProfessionalPresentation />} />
                         <Route path="/photos" element={<Photos />} />
@@ -353,6 +350,7 @@ function App() {
                 </NotificationSettingsProvider>
               </ChatSettingsProvider>
             </ThemeProvider>
+            </ProfileSettingsProvider>
             </SessionsProvider>
           </AuthProvider>
           </VideoSettingsProvider>
