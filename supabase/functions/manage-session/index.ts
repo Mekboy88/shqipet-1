@@ -145,7 +145,6 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'revoke') {
-      const { deviceStableId } = sessionData;
       if (!deviceStableId) {
         return new Response(JSON.stringify({ error: 'Device ID required' }), {
           status: 400,
