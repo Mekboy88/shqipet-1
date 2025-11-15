@@ -98,11 +98,28 @@ export const useSessionManagement = () => {
         (payload) => {
           const deletedSession = payload.old as UserSession;
           if (deletedSession.device_stable_id === currentDeviceId) {
-            toast.error('Your session was revoked from another device');
-            setTimeout(() => {
-              supabase.auth.signOut();
-            }, 2000);
+            toast.error('Your session was revoked. Logging out...', {
+              duration: 1000,
+            });
+            // Instant logout - no delay
+            supabase.auth.signOut();
+          } else {
+            // Update sessions list when another device is logged out
+            refreshSessions();
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_sessions',
+          filter: `user_id=eq.${user?.id}`,
+        },
+        () => {
+          // Refresh sessions when any session is updated (e.g., trust status)
+          refreshSessions();
         }
       )
       .subscribe();
@@ -149,15 +166,25 @@ export const useSessionManagement = () => {
   };
 
   const revokeSession = async (deviceStableId: string) => {
+    // Optimistically remove session from UI immediately
+    const previousSessions = [...sessions];
+    setSessions(prevSessions =>
+      prevSessions.filter(session => session.device_stable_id !== deviceStableId)
+    );
+
     try {
       const { error } = await supabase.functions.invoke('manage-session', {
         body: { action: 'revoke', deviceStableId },
       });
 
       if (error) throw error;
-      toast.success('Device session revoked');
+      toast.success('Device logged out instantly');
+      
+      // Refresh to sync with server (happens in background)
       refreshSessions();
     } catch (err: any) {
+      // Revert optimistic update on error
+      setSessions(previousSessions);
       console.error('Failed to revoke session:', err);
       toast.error('Failed to revoke device session');
     }
