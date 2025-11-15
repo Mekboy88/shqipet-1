@@ -140,13 +140,19 @@ class MediaService {
     try {
       console.log(`📡 Attempting proxy blob fetch for key: ${key}`);
       
+      // Get the user's session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session - user must be logged in to access media');
+      }
+      
       // Use direct fetch with query params instead of invoke for better reliability
       const proxyUrl = `${supabase.supabaseUrl}/functions/v1/wasabi-proxy?key=${encodeURIComponent(key)}`;
       
       const response = await fetch(proxyUrl, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'apikey': supabase.supabaseKey,
         }
       });
