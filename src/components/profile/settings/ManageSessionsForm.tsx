@@ -20,6 +20,7 @@ const ManageSessionsForm = () => {
     revokeSession,
     trustDevice,
     refreshSessions,
+    revokeAllOtherDevices,
   } = useSessionManagement();
 
   const { isMobile } = useSmartBreakpoint();
@@ -50,6 +51,10 @@ const ManageSessionsForm = () => {
 
   const handleRefresh = async () => {
     await refreshSessions();
+  };
+
+  const handleLogoutAllOthers = async () => {
+    await revokeAllOtherDevices();
   };
 
   if (loading && sessions.length === 0) {

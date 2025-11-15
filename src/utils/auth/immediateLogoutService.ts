@@ -40,8 +40,8 @@ class ImmediateLogoutService {
       console.log('✅ Session storage cleared');
       
       // SECURITY FIX: Clear ALL auth-related data including last profile
-      // Remove 'shqipet_last_profile' from keep list to prevent data leakage
-      const keysToKeep = ['theme', 'language'];
+      // Keep device_stable_id to preserve device identity across logouts
+      const keysToKeep = ['theme', 'language', 'device_stable_id'];
       const allKeys = Object.keys(localStorage);
       
       allKeys.forEach(key => {
