@@ -137,7 +137,7 @@ class MediaService {
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
-          apikey: supabase.supabaseKey,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         }
       });
       if (!response.ok) {
@@ -165,13 +165,13 @@ class MediaService {
       }
       
       // Use direct fetch with query params instead of invoke for better reliability
-      const proxyUrl = `${supabase.supabaseUrl}/functions/v1/wasabi-proxy?key=${encodeURIComponent(key)}`;
+      const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wasabi-proxy?key=${encodeURIComponent(key)}`;
       
       const response = await fetch(proxyUrl, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-          'apikey': supabase.supabaseKey,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         }
       });
 
