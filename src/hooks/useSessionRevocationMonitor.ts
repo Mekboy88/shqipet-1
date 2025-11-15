@@ -23,6 +23,7 @@ export const useSessionRevocationMonitor = () => {
         deviceStableId = deviceDetectionService.getCurrentDeviceStableId();
 
         console.log('🔒 Session revocation monitor: Watching device', deviceStableId);
+        console.log('👤 User ID:', user.id);
 
         // Subscribe to revocation signals AND session deletions
         channel = supabase
@@ -37,6 +38,7 @@ export const useSessionRevocationMonitor = () => {
             },
             async (payload) => {
               console.log('🚨 Revocation signal received:', payload.new);
+              console.log('🔍 Comparing:', payload.new?.device_stable_id, '===', deviceStableId);
               
               // Check if this revocation is for the current device
               if (payload.new?.device_stable_id === deviceStableId) {
@@ -110,6 +112,11 @@ export const useSessionRevocationMonitor = () => {
           )
           .subscribe((status) => {
             console.log('📡 Session revocation monitor status:', status);
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Successfully subscribed to session revocation events');
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+              console.error('❌ Subscription error:', status);
+            }
           });
 
         // Heartbeat: every 5 seconds, verify session still exists
