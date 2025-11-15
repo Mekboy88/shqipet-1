@@ -6,9 +6,7 @@ import { DeviceCard } from './manage-sessions/DeviceCard';
 import { MobileDeviceCard } from './manage-sessions/MobileDeviceCard';
 import { DeviceDetailsModal } from './manage-sessions/DeviceDetailsModal';
 import { useSmartBreakpoint } from '@/hooks/useRealDeviceDetection';
-import type { Database } from '@/integrations/supabase/types';
-
-type UserSession = Database['public']['Tables']['user_sessions']['Row'];
+import type { UserSession } from '@/types/database';
 
 const ManageSessionsForm = () => {
   const {

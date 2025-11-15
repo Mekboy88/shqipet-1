@@ -1,7 +1,5 @@
 import { Monitor, Smartphone, Tablet, Laptop, Chrome, Globe } from 'lucide-react';
-import type { Database } from '@/integrations/supabase/types';
-
-type UserSession = Database['public']['Tables']['user_sessions']['Row'];
+import type { UserSession } from '@/types/database';
 
 /**
  * Map browser name to appropriate icon

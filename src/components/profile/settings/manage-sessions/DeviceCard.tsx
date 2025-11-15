@@ -3,12 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PrivacyCompliantMap } from './PrivacyCompliantMap';
-import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow, differenceInMinutes, differenceInHours, differenceInDays, format } from 'date-fns';
 import { getCountryFlag } from '@/utils/countryFlags';
 import { getDeviceIcon, deriveTitle, getDeviceLabel, getBrowserIcon } from '@/utils/deviceSessionDisplay';
-
-type UserSession = Database['public']['Tables']['user_sessions']['Row'];
+import type { UserSession } from '@/types/database';
 
 interface DeviceCardProps {
   session: UserSession;

@@ -3,9 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { deviceDetectionService } from '@/services/deviceDetectionService';
 import { toast } from 'sonner';
-import type { Database } from '@/integrations/supabase/types';
-
-type UserSession = Database['public']['Tables']['user_sessions']['Row'];
+import type { UserSession } from '@/types/database';
 
 export const useSessionManagement = () => {
   const { user } = useAuth();
