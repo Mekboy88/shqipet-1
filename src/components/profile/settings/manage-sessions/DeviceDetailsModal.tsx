@@ -8,6 +8,7 @@ import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow, format, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
 import { formatLocationWithFlag } from '@/utils/countryFlags';
 import { getBrowserIcon } from '@/utils/deviceSessionDisplay';
+import { useState, useEffect } from 'react';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
@@ -29,6 +30,21 @@ export const DeviceDetailsModal = ({
   onRevokeSession,
 }: DeviceDetailsModalProps) => {
   if (!session) return null;
+
+  // Local state for instant UI feedback
+  const [localIsTrusted, setLocalIsTrusted] = useState(session.is_trusted);
+
+  // Sync local state when session prop changes
+  useEffect(() => {
+    setLocalIsTrusted(session.is_trusted);
+  }, [session.is_trusted]);
+
+  const handleTrustToggle = () => {
+    // Update local state immediately for instant feedback
+    setLocalIsTrusted(prev => !prev);
+    // Trigger the actual save
+    onTrustDevice(session.device_stable_id);
+  };
 
   const getDeviceIcon = () => {
     switch (session.device_type) {
@@ -221,11 +237,11 @@ export const DeviceDetailsModal = ({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Trusted Device:</span>
                   <div className="flex items-center gap-2">
-                    <span>{session.is_trusted ? 'Yes' : 'No'}</span>
+                    <span>{localIsTrusted ? 'Yes' : 'No'}</span>
                     {!isCurrentDevice && (
                       <Switch 
-                        checked={session.is_trusted}
-                        onCheckedChange={() => onTrustDevice(session.device_stable_id)}
+                        checked={localIsTrusted}
+                        onCheckedChange={handleTrustToggle}
                         className="scale-75"
                       />
                     )}
