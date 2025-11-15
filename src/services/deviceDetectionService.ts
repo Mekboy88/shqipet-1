@@ -30,21 +30,44 @@ class DeviceDetectionService {
   }
 
   /**
-   * Detect device type based on viewport size and user agent
+   * Detect actual device type using user agent, touch support, and screen characteristics
    */
   private detectDeviceType(): 'mobile' | 'tablet' | 'laptop' | 'desktop' {
-    const width = window.innerWidth; // Use viewport width, not screen width
     const result = UAParser(navigator.userAgent);
     const deviceType = result.device?.type;
-
-    // Priority 1: Use UA parser if reliable
+    const ua = navigator.userAgent.toLowerCase();
+    
+    // Priority 1: Check user agent for mobile/tablet keywords
+    if (ua.includes('mobile') || ua.includes('android') && !ua.includes('tablet')) {
+      return 'mobile';
+    }
+    
+    if (ua.includes('ipad') || ua.includes('tablet') || (ua.includes('android') && !ua.includes('mobile'))) {
+      return 'tablet';
+    }
+    
+    // Priority 2: Use UA parser device type
     if (deviceType === 'mobile') return 'mobile';
     if (deviceType === 'tablet') return 'tablet';
-
-    // Priority 2: Use viewport width for responsive detection
-    if (width < 768) return 'mobile';
-    if (width >= 768 && width < 1024) return 'tablet';
-    if (width >= 1024 && width < 1440) return 'laptop';
+    
+    // Priority 3: Check for touch support + screen size for physical device detection
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const screenWidth = window.screen.width;
+    const screenHeight = window.screen.height;
+    const maxDimension = Math.max(screenWidth, screenHeight);
+    
+    // Mobile: Touch device with small screen
+    if (hasTouch && maxDimension < 768) {
+      return 'mobile';
+    }
+    
+    // Tablet: Touch device with medium screen
+    if (hasTouch && maxDimension >= 768 && maxDimension < 1024) {
+      return 'tablet';
+    }
+    
+    // Priority 4: Use screen size for desktop/laptop distinction
+    if (screenWidth < 1440) return 'laptop';
     return 'desktop';
   }
 
