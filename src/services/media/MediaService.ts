@@ -116,94 +116,89 @@ class MediaService {
   }
 
   /**
-   * Get presigned URL from Supabase function
+   * Get presigned URL from wasabi-get-url function
    */
   private async getPresignedUrl(key: string): Promise<string> {
-    const { data, error } = await supabase.functions.invoke('wasabi-get-url', {
-      body: { key, expires: 900 }
-    });
-
-    const url = (data as any)?.url || (data as any)?.getUrl || (data as any)?.signedUrl;
-
-    if (error || !url) {
-      throw new Error(`Failed to get presigned URL: ${error?.message || (data && JSON.stringify(data))}`);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('No active session for presigned URL');
     }
 
-    // If the function returned the protected proxy URL, fetch it with auth and return a blob URL
-    if (typeof url === 'string' && url.includes('/functions/v1/wasabi-proxy')) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No active session for proxy fetch');
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wasabi-get-url`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify({ key })
+    });
 
-      const response = await fetch(url, {
+    if (!response.ok) {
+      throw new Error(`Failed to get presigned URL: ${response.status}`);
+    }
+
+    const result = await response.json();
+    const returnedUrl = result.url;
+
+    // If the function returned a proxy URL, fetch it with auth and return blob
+    if (returnedUrl?.includes('/wasabi-proxy')) {
+      const response = await fetch(returnedUrl, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         }
       });
       if (!response.ok) {
-        const t = await response.text().catch(() => '');
-        throw new Error(`Proxy URL fetch failed: ${response.status} ${t}`);
+        throw new Error(`Failed to fetch from proxy URL: ${response.status}`);
       }
       const blob = await response.blob();
       return URL.createObjectURL(blob);
     }
 
-    return url as string;
+    return returnedUrl;
   }
 
   /**
-   * Get proxy blob URL from Supabase function
+   * Get proxy blob URL directly from wasabi-proxy function
    */
   async getProxyBlob(key: string): Promise<string> {
-    try {
-      console.log(`📡 Attempting proxy blob fetch for key: ${key}`);
-      
-      // Get the user's session token for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('No active session - user must be logged in to access media');
-      }
-      
-      // Use direct fetch with query params instead of invoke for better reliability
-      const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wasabi-proxy?key=${encodeURIComponent(key)}`;
-      
-      const response = await fetch(proxyUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        }
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`❌ Proxy function error:`, errorText);
-        throw new Error(`Proxy request failed: ${response.status} ${errorText}`);
-      }
-
-      // Create blob from response
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      console.log(`✅ Proxy blob created: ${blobUrl.substring(0, 50)}...`);
-      return blobUrl;
-      
-    } catch (error) {
-      console.error(`❌ Proxy blob failed for key ${key}:`, error);
-      throw error;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('No active session for proxy blob');
     }
+    
+    // Use direct fetch with query params instead of invoke for better reliability
+    const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wasabi-proxy?key=${encodeURIComponent(key)}`;
+    
+    const response = await fetch(proxyUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Proxy failed with status ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    
+    return blobUrl;
   }
 
   /**
    * Preload image to prevent flicker
    */
   async preloadImage(url: string): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve();
-      img.onerror = () => {
-        console.warn('⚠️ Image preload failed, proceeding without blocking');
-        resolve();
-      };
+      img.onerror = reject;
       img.src = url;
     });
   }
@@ -215,31 +210,40 @@ class MediaService {
     const now = Date.now();
     const timeUntilExpiry = cached.expiresAt - now;
     
-    // Refresh if less than 30 seconds until expiry
-    return timeUntilExpiry > REFRESH_THRESHOLD_MS;
+    // Refresh if within threshold of expiry
+    if (timeUntilExpiry < REFRESH_THRESHOLD_MS) {
+      return false;
+    }
+    
+    return cached.expiresAt > now;
   }
 
   /**
    * Cache resolved URL
    */
   private cacheUrl(cacheKey: string, url: string, type: 'presigned' | 'blob'): void {
-    mediaCache.set(cacheKey, {
-      url,
-      type,
-      expiresAt: Date.now() + CACHE_DURATION_MS
-    });
-    // Persist last good per-key to localStorage for cross-refresh fallback
-    try {
-      localStorage.setItem(`media:last:${cacheKey}`, JSON.stringify({ url, type, ts: Date.now() }));
-    } catch {}
+    const expiresAt = Date.now() + CACHE_DURATION_MS;
+    mediaCache.set(cacheKey, { url, type, expiresAt });
+
+    // Don't persist blob URLs (they're object URLs) or wasabi-proxy URLs
+    if (type !== 'blob' && !url.includes('/wasabi-proxy')) {
+      try {
+        localStorage.setItem(`media:last:${cacheKey}`, JSON.stringify({
+          url,
+          timestamp: Date.now()
+        }));
+      } catch (e) {
+        console.warn('Failed to persist media cache:', e);
+      }
+    }
   }
 
   /**
-   * Generate cache key from Wasabi key
+   * Get normalized cache key
    */
   private getCacheKey(key: string): string {
-    // Normalize key by removing common prefixes
-    return key.replace(/^(undefined\/|shqipet\/)*/, '');
+    // Normalize Wasabi keys (remove leading slash, etc.)
+    return key.replace(/^\/+/, '').toLowerCase();
   }
 
   /**
@@ -249,6 +253,9 @@ class MediaService {
     const cacheKey = this.getCacheKey(key);
     mediaCache.delete(cacheKey);
     lastGoodUrls.delete(cacheKey);
+    try {
+      localStorage.removeItem(`media:last:${cacheKey}`);
+    } catch {}
   }
 
   /**
@@ -257,8 +264,8 @@ class MediaService {
   clearAllCaches(): void {
     mediaCache.clear();
     lastGoodUrls.clear();
+    inflightRequests.clear();
   }
 }
 
-// Export singleton instance
 export const mediaService = new MediaService();
