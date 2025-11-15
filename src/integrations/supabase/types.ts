@@ -825,6 +825,8 @@ export type Database = {
         Row: {
           comments_count: number | null
           content: Json
+          content_images: string[] | null
+          content_text: string | null
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -844,6 +846,8 @@ export type Database = {
         Insert: {
           comments_count?: number | null
           content?: Json
+          content_images?: string[] | null
+          content_text?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -863,6 +867,8 @@ export type Database = {
         Update: {
           comments_count?: number | null
           content?: Json
+          content_images?: string[] | null
+          content_text?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
