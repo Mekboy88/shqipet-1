@@ -104,7 +104,6 @@ import CurrencySettingsPage from '@/pages/admin/localization/CurrencySettingsPag
 import PrivacyPage from '@/pages/admin/localization/PrivacyPage';
 import LocalizationPage from '@/pages/admin/localization/LocalizationPage';
 import { TranslationEditorPage } from '@/components/admin/localization/TranslationEditorPage';
-import { ProfileSettingsProvider } from '@/contexts/ProfileSettingsContext';
 import ProfessionalPresentation from '@/pages/ProfessionalPresentation';
 import CreatePostDesktop from '@/pages/CreatePostDesktop';
 import Messages from '@/pages/Messages';
@@ -126,7 +125,7 @@ const DesktopApp: React.FC = () => {
           <Route path="/gaming" element={<><NavbarNoTooltip /><Gaming /></>} />
           <Route path="/tasks" element={<><NavbarNoTooltip /><Tasks /></>} />
           <Route path="/profile" element={<><NavbarNoTooltip /><Profile /></>} />
-          <Route path="/profile/settings" element={<><NavbarNoTooltip /><Profile /><ProfileSettingsProvider><ProfileSettings /></ProfileSettingsProvider></>} />
+          <Route path="/profile/settings" element={<><NavbarNoTooltip /><Profile /><ProfileSettings /></>} />
           <Route path="/profile/*" element={<><NavbarNoTooltip /><Profile /></>} />
           <Route path="/professional-presentation" element={<ProfessionalPresentation />} />
           <Route path="/photos" element={<Photos />} />
