@@ -102,11 +102,15 @@ export const useSessionManagement = () => {
         },
         (payload) => {
           const deletedSession = payload.old as UserSession;
-          if (deletedSession.device_stable_id === currentDeviceId) {
+          const currentDeviceStableId = deviceDetectionService.getDeviceInfo().deviceStableId;
+          
+          // If current device session was revoked, use consistent logout path
+          if (deletedSession.device_stable_id === currentDeviceStableId) {
+            console.log('⚠️ Current device session was deleted via DELETE event! Logging out...');
             toast.error('Your session was revoked. Logging out...', {
               duration: 1000,
             });
-            // Instant logout - no delay
+            // Use consistent logout through signOut from context (which uses immediateLogoutService)
             supabase.auth.signOut();
           } else {
             // Update sessions list when another device is logged out
