@@ -46,7 +46,13 @@ export const useSessionManagement = () => {
         setHasRegistered(true);
       } catch (err: any) {
         console.error('Failed to register session:', err);
-        toast.error('Failed to register device session');
+        const msg = err?.message || err?.error || '';
+        if (msg.includes('DEVICE_REVOKED')) {
+          toast.error('This device was revoked. Please sign in again.');
+          await signOut();
+        } else {
+          toast.error('Failed to register device session');
+        }
         setHasRegistered(true);
       }
     };
