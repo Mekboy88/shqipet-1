@@ -145,13 +145,44 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'revoke') {
-      const { error } = await supabase
+      const { deviceStableId } = sessionData;
+      if (!deviceStableId) {
+        return new Response(JSON.stringify({ error: 'Device ID required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      console.log('🔥 Revoking device session:', deviceStableId, 'for user:', user.id);
+
+      // 1) Insert revocation signal to trigger instant logout on target device
+      const { error: signalError } = await supabase
+        .from('session_revocations')
+        .insert({
+          user_id: user.id,
+          device_stable_id: deviceStableId
+        });
+
+      if (signalError) {
+        console.error('❌ Failed to insert revocation signal:', signalError);
+        throw signalError;
+      }
+
+      console.log('✅ Revocation signal inserted for device:', deviceStableId);
+
+      // 2) Delete the session from user_sessions
+      const { error: deleteError } = await supabase
         .from('user_sessions')
         .delete()
         .eq('user_id', user.id)
         .eq('device_stable_id', deviceStableId);
 
-      if (error) throw error;
+      if (deleteError) {
+        console.error('❌ Failed to delete session:', deleteError);
+        throw deleteError;
+      }
+
+      console.log('✅ Session deleted for device:', deviceStableId);
 
       return new Response(
         JSON.stringify({ success: true }),
