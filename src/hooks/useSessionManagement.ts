@@ -8,7 +8,7 @@ import type { Database } from '@/integrations/supabase/types';
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
 export const useSessionManagement = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +75,16 @@ export const useSessionManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSessions(data || []);
+      
+      // Deduplicate sessions by device_stable_id, keeping the most recent
+      const uniqueMap = new Map<string, UserSession>();
+      for (const session of (data || [])) {
+        const existing = uniqueMap.get(session.device_stable_id);
+        if (!existing || new Date(session.created_at) > new Date(existing.created_at)) {
+          uniqueMap.set(session.device_stable_id, session);
+        }
+      }
+      setSessions(Array.from(uniqueMap.values()));
     } catch (err: any) {
       console.error('Failed to fetch sessions:', err);
       setError(err.message);
@@ -111,7 +120,7 @@ export const useSessionManagement = () => {
               duration: 1000,
             });
             // Use consistent logout through signOut from context (which uses immediateLogoutService)
-            supabase.auth.signOut();
+            signOut();
           } else {
             // Update sessions list when another device is logged out
             refreshSessions();
