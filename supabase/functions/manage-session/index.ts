@@ -5,6 +5,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Universal device type detection based on viewport width
+// Rules: mobile < 768px | tablet < 1024px | laptop < 1920px | desktop >= 1920px
+function detectDeviceType(screenResolution: string): string {
+  const width = parseInt(screenResolution.split('x')[0]);
+  
+  if (width < 768) return 'mobile';
+  if (width < 1024) return 'tablet';
+  if (width < 1920) return 'laptop';
+  return 'desktop';
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -63,13 +74,20 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Detect device type based on screen resolution using universal rules
+      const detectedDeviceType = detectDeviceType(sessionData.screenResolution);
+      console.log('Device detection:', {
+        screenResolution: sessionData.screenResolution,
+        detectedType: detectedDeviceType
+      });
+
       const { data, error } = await supabase
         .from('user_sessions')
         .upsert({
           user_id: user.id,
           device_id: sessionData.deviceId,
           device_stable_id: sessionData.deviceStableId,
-          device_type: sessionData.deviceType,
+          device_type: detectedDeviceType,
           operating_system: sessionData.operatingSystem,
           browser_name: sessionData.browserName,
           browser_version: sessionData.browserVersion,

@@ -30,107 +30,38 @@ class DeviceDetectionService {
   }
 
   /**
-   * Detect actual device type using user agent, touch support, and screen characteristics
+   * Universal device detection based on viewport width
    * 
-   * Comprehensive Screen Size Ranges:
-   * 
-   * MOBILE (< 768px):
-   * - 320px: iPhone SE, older phones
-   * - 360px: Common Android phones
-   * - 375px: iPhone 6/7/8, iPhone X/11 Pro
-   * - 390px: iPhone 12/13 Pro
-   * - 393px: Pixel 5, Samsung Galaxy S21
-   * - 414px: iPhone 6/7/8 Plus, iPhone 11/XR
-   * - 428px: iPhone 12/13 Pro Max
-   * - 480px: Small tablets in portrait
-   * - 640px: Large phones, phablets
-   * - 768px: Small tablets in portrait (boundary)
-   * 
-   * TABLET (768px - 1024px):
-   * - 768px: iPad Mini, iPad (portrait)
-   * - 800px: Small Android tablets
-   * - 810px: iPad Air (portrait)
-   * - 820px: iPad Pro 11" (portrait)
-   * - 834px: iPad Pro 10.5" (portrait)
-   * - 912px: Surface Go
-   * - 1024px: iPad (landscape), standard tablet (boundary)
-   * 
-   * LAPTOP (1024px - 1920px):
-   * - 1024px: Small laptops, netbooks
-   * - 1280px: 13" laptops (1280x720, 1280x800)
-   * - 1366px: Common laptop resolution (1366x768)
-   * - 1440px: 14" laptops (1440x900)
-   * - 1536px: 15" laptops with scaling
-   * - 1600px: 15" MacBook Pro
-   * - 1680px: 15" laptops (1680x1050)
-   * - 1728px: Your specific case (1728x1117)
-   * - 1920px: Full HD laptops (boundary)
-   * 
-   * DESKTOP (>= 1920px):
-   * - 1920px: Full HD monitors (1920x1080)
-   * - 2560px: QHD/2K monitors (2560x1440)
-   * - 3440px: Ultrawide monitors (3440x1440)
-   * - 3840px: 4K monitors (3840x2160)
-   * - 5120px: 5K monitors (5120x2880)
-   * - 7680px: 8K monitors (7680x4320)
+   * MOBILE: width < 768px
+   * TABLET: 768px ≤ width < 1024px
+   * LAPTOP: 1024px ≤ width < 1920px
+   * DESKTOP: width ≥ 1920px
    */
   private detectDeviceType(): 'mobile' | 'tablet' | 'laptop' | 'desktop' {
-    const result = UAParser(navigator.userAgent);
-    const deviceType = result.device?.type;
-    const ua = navigator.userAgent.toLowerCase();
-    
-    // Get the most accurate viewport dimensions for current device
     const viewportWidth = window.innerWidth;
-    const screenWidth = window.screen.width;
-    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     
-    // Debug logging to see what's being detected
-    console.log('🔍 Device Detection for Current Device:', {
+    console.log('🔍 Device Detection:', {
       viewportWidth,
-      screenWidth,
-      deviceType,
-      hasTouch,
+      screenWidth: window.screen.width,
+      screenHeight: window.screen.height,
       userAgent: navigator.userAgent
     });
     
-    // Special case: iPadOS reports as Mac with touch
-    const isIpadLike = /mac os x/.test(ua) && (navigator.platform === 'MacIntel') && navigator.maxTouchPoints > 1;
-    if (isIpadLike) {
-      console.log('✅ Detected: iPad/Tablet (iPadOS detection)');
-      return 'tablet';
-    }
-    
-    // Priority 1: Explicit mobile devices by UA for phones
-    const isMobilePhone = (ua.includes('mobile') || (ua.includes('android') && !ua.includes('tablet'))) && viewportWidth < 768;
-    if (isMobilePhone) {
-      console.log('✅ Detected: Mobile (UA + viewport < 768px)');
-      return 'mobile';
-    }
-    
-    // Priority 2: Explicit tablet devices by UA
-    const isTabletUA = ua.includes('ipad') || ua.includes('tablet') || (ua.includes('android') && !ua.includes('mobile'));
-    if (isTabletUA || deviceType === 'tablet') {
-      console.log('✅ Detected: Tablet (UA or device type)');
-      return 'tablet';
-    }
-    
-    // Priority 3: Screen size-based detection (MOST RELIABLE for current device)
-    // This ensures 100% accuracy based on actual viewport width
+    // Universal detection rules
     if (viewportWidth < 768) {
-      console.log('✅ Detected: Mobile (viewport < 768px)');
+      console.log('✅ Detected: mobile (width < 768px)');
       return 'mobile';
     }
-    if (viewportWidth >= 768 && viewportWidth < 1024) {
-      console.log('✅ Detected: Tablet (768px ≤ viewport < 1024px)');
+    if (viewportWidth < 1024) {
+      console.log('✅ Detected: tablet (768px ≤ width < 1024px)');
       return 'tablet';
     }
-    if (viewportWidth >= 1024 && viewportWidth < 1920) {
-      console.log('✅ Detected: Laptop (1024px ≤ viewport < 1920px)', { viewportWidth });
+    if (viewportWidth < 1920) {
+      console.log('✅ Detected: laptop (1024px ≤ width < 1920px)');
       return 'laptop';
     }
     
-    // Priority 4: Desktop for large screens
-    console.log('✅ Detected: Desktop (viewport ≥ 1920px)');
+    console.log('✅ Detected: desktop (width ≥ 1920px)');
     return 'desktop';
   }
 
