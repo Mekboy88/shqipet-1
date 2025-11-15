@@ -41,10 +41,11 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
     }
   }, []);
 
-  // Use only real HTTP URLs (never blobs/data URIs) - memoized
+  // Allow HTTP URLs, blob URLs, and data URIs - memoized
   const displayUrl = React.useMemo(() => {
-    const httpOnly = (u?: string | null) => (u && /^https?:/.test(u)) ? u : null;
-    return httpOnly(resolvedUrl) || httpOnly(lastGoodUrl);
+    const pick = (u?: string | null) =>
+      u && (/^https?:/.test(u) || u.startsWith('blob:') || u.startsWith('data:')) ? u : null;
+    return pick(resolvedUrl) || pick(lastGoodUrl);
   }, [resolvedUrl, lastGoodUrl]);
 
   return (
