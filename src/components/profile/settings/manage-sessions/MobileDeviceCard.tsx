@@ -1,12 +1,12 @@
 import { useState, useRef, TouchEvent } from 'react';
-import { Circle, Shield, Trash2 } from 'lucide-react';
+import { Circle, Shield, Trash2, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StaticMiniMap } from './StaticMiniMap';
 import type { Database } from '@/integrations/supabase/types';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, differenceInMinutes, differenceInHours, differenceInDays, format } from 'date-fns';
 import { formatLocationWithFlag } from '@/utils/countryFlags';
-import { getDeviceIcon, deriveTitle, getDeviceLabel } from '@/utils/deviceSessionDisplay';
+import { getDeviceIcon, deriveTitle, getDeviceLabel, getBrowserIcon } from '@/utils/deviceSessionDisplay';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
@@ -31,13 +31,40 @@ export const MobileDeviceCard = ({
   const cardRef = useRef<HTMLDivElement>(null);
   
   const DeviceIcon = getDeviceIcon(session.device_type);
+  const BrowserIcon = getBrowserIcon(session.browser_name);
   const displayTitle = deriveTitle(session.browser_name, session.operating_system, session.device_type);
   const deviceLabel = getDeviceLabel(session.device_type);
 
-  const getLoginTimeText = () => {
+  const getSessionStartTime = () => {
     if (!session.created_at) return 'Unknown';
     try {
-      return formatDistanceToNow(new Date(session.created_at), { addSuffix: true });
+      return format(new Date(session.created_at), 'MMM dd, hh:mm a');
+    } catch (e) {
+      return 'Unknown';
+    }
+  };
+
+  const getSessionDuration = () => {
+    if (!session.created_at) return 'Unknown';
+    try {
+      const now = new Date();
+      const start = new Date(session.created_at);
+      const days = differenceInDays(now, start);
+      const hours = differenceInHours(now, start);
+      const minutes = differenceInMinutes(now, start);
+
+      if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
+      if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+      return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    } catch (e) {
+      return 'Unknown';
+    }
+  };
+
+  const getLastActiveTime = () => {
+    if (!session.updated_at) return 'Unknown';
+    try {
+      return formatDistanceToNow(new Date(session.updated_at), { addSuffix: true });
     } catch (e) {
       return 'Unknown';
     }
@@ -117,14 +144,19 @@ export const MobileDeviceCard = ({
                 {isCurrentDevice && (
                   <Badge className="bg-blue-500 text-white text-xs">Current</Badge>
                 )}
-                {session.is_trusted && (
+                {session.is_trusted ? (
                   <Badge className="bg-green-600 text-white text-xs">Trusted</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs">Not Trusted</Badge>
                 )}
               </div>
 
-              <p className="text-xs text-muted-foreground mb-2">
-                {session.operating_system || 'Unknown OS'} • {session.browser_name || 'Unknown Browser'}
-              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <BrowserIcon size={12} className="text-muted-foreground" />
+                <p className="text-xs text-muted-foreground truncate">
+                  {session.browser_name || 'Unknown'} {session.browser_version || ''}
+                </p>
+              </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
@@ -135,8 +167,19 @@ export const MobileDeviceCard = ({
                   </div>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Logged in</p>
-                  <p className="truncate">{getLoginTimeText()}</p>
+                  <p className="text-muted-foreground">Started</p>
+                  <p className="truncate">{getSessionStartTime()}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground flex items-center gap-1">
+                    <Clock size={10} />
+                    Duration
+                  </p>
+                  <p className="truncate">{getSessionDuration()}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Last Active</p>
+                  <p className="truncate">{getLastActiveTime()}</p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-muted-foreground">Location</p>
