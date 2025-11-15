@@ -30,10 +30,10 @@ class DeviceDetectionService {
   }
 
   /**
-   * Detect device type based on screen size and user agent
+   * Detect device type based on viewport size and user agent
    */
   private detectDeviceType(): 'mobile' | 'tablet' | 'laptop' | 'desktop' {
-    const width = window.screen.width;
+    const width = window.innerWidth; // Use viewport width, not screen width
     const result = UAParser(navigator.userAgent);
     const deviceType = result.device?.type;
 
@@ -41,7 +41,7 @@ class DeviceDetectionService {
     if (deviceType === 'mobile') return 'mobile';
     if (deviceType === 'tablet') return 'tablet';
 
-    // Priority 2: Use screen width
+    // Priority 2: Use viewport width for responsive detection
     if (width < 768) return 'mobile';
     if (width >= 768 && width < 1024) return 'tablet';
     if (width >= 1024 && width < 1440) return 'laptop';
