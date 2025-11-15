@@ -13,6 +13,7 @@ export const useSessionManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
+  const [hasRegistered, setHasRegistered] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -42,9 +43,11 @@ export const useSessionManagement = () => {
 
         if (error) throw error;
         setCurrentDeviceId(deviceInfo.deviceStableId);
+        setHasRegistered(true);
       } catch (err: any) {
         console.error('Failed to register session:', err);
         toast.error('Failed to register device session');
+        setHasRegistered(true);
       }
     };
 
@@ -83,7 +86,9 @@ export const useSessionManagement = () => {
   };
 
   useEffect(() => {
-    refreshSessions();
+    if (hasRegistered) {
+      refreshSessions();
+    }
 
     const channel = supabase
       .channel('user_sessions_changes')
@@ -127,7 +132,7 @@ export const useSessionManagement = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, currentDeviceId]);
+  }, [user, currentDeviceId, hasRegistered]);
 
   const trustDevice = async (deviceStableId: string) => {
     // Find the session to determine new state
