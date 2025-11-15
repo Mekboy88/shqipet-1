@@ -62,11 +62,10 @@ export const useSessionRevocationMonitor = () => {
                 .select('id')
                 .eq('user_id', user.id)
                 .eq('device_stable_id', deviceStableId)
-                .limit(1)
-                .single();
+                .maybeSingle();
 
-              if (error && error.code === 'PGRST116') {
-                // No rows found - current device session was deleted
+              if (!data) {
+                // No row found - current device session was deleted
                 console.log('⚠️ Current device session was revoked (fallback check)! Logging out...');
                 
                 toast.error('Your session was revoked from another device', {
@@ -76,10 +75,10 @@ export const useSessionRevocationMonitor = () => {
 
                 await new Promise(resolve => setTimeout(resolve, 500));
                 await signOut();
-              } else if (!error && data) {
-                console.log('✅ Current device session still exists, no logout needed');
               } else if (error) {
                 console.error('❌ Error checking session:', error);
+              } else {
+                console.log('✅ Current device session still exists, no logout needed');
               }
             }
           )
