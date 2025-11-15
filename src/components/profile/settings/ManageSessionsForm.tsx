@@ -77,6 +77,15 @@ const ManageSessionsForm = () => {
     );
   }
 
+  // Sort sessions to always show current device first
+  const sortedSessions = [...sessions].sort((a, b) => {
+    const aIsCurrent = a.device_stable_id === currentDeviceId;
+    const bIsCurrent = b.device_stable_id === currentDeviceId;
+    if (aIsCurrent && !bIsCurrent) return -1;
+    if (!aIsCurrent && bIsCurrent) return 1;
+    return 0;
+  });
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
@@ -98,7 +107,7 @@ const ManageSessionsForm = () => {
       {/* Device Cards - Grid on desktop, Stacked on mobile */}
       {isMobile ? (
         <div className="space-y-3">
-          {sessions.map((session) => (
+          {sortedSessions.map((session) => (
             <MobileDeviceCard
               key={session.id}
               session={session}
@@ -111,7 +120,7 @@ const ManageSessionsForm = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
-          {sessions.map((session) => (
+          {sortedSessions.map((session) => (
             <DeviceCard
               key={session.id}
               session={session}
