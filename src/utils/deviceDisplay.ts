@@ -72,18 +72,16 @@ export function getDisplayDeviceType(session: UserSession): DeviceType {
 }
 
 export function getDisplayTitle(session: UserSession, deviceType: DeviceType) {
-  const title = (session.device_name || '').trim();
+  const browser = session.browser_name || 'Browser';
+  const os = session.operating_system || 'OS';
   const typeLabel = deviceType.charAt(0).toUpperCase() + deviceType.slice(1);
-  if (!title) return typeLabel;
-  const alreadyHasType = /(desktop|laptop|mobile|tablet)/i.test(title);
-  return alreadyHasType ? title : `${title.replace(/\s+/g, ' ').trim()} ${typeLabel}`;
+  return `${browser} on ${os} • ${typeLabel}`;
 }
 
 export function getDisplayDeviceName(session: UserSession, deviceType: DeviceType) {
-  const browser = session.browser_info || 'Browser';
+  const browser = session.browser_name || 'Browser';
   const bver = session.browser_version || '';
   const os = session.operating_system || 'OS';
-  const osver = session.device_os_version || '';
   const typeLabel = deviceType.charAt(0).toUpperCase() + deviceType.slice(1);
-  return `${browser} ${bver} ${os} ${osver} ${typeLabel}`.replace(/\s+/g, ' ').trim();
+  return `${browser} ${bver} on ${os} • ${typeLabel}`.replace(/\s+/g, ' ').trim();
 }

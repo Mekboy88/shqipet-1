@@ -34,33 +34,10 @@ export const getDeviceLabel = (deviceType: string | null): string => {
   }
 };
 
-// Normalize the device title to match the actual device_type
-export const deriveTitle = (deviceName: string | null, deviceType: string | null): string => {
-  const correctLabel = getDeviceLabel(deviceType);
-  const name = deviceName || 'Unknown Device';
+export const deriveTitle = (browserName: string | null, operatingSystem: string | null, deviceType: string | null): string => {
+  const browser = browserName || 'Unknown Browser';
+  const os = operatingSystem || 'Unknown OS';
+  const type = getDeviceLabel(deviceType);
   
-  // Device words to check for mismatch
-  const deviceWords = ['Desktop', 'Laptop', 'Mobile', 'Tablet', 'Smartphone'];
-  
-  // Check if name contains any device word
-  let hasDeviceWord = false;
-  let normalizedName = name;
-  
-  for (const word of deviceWords) {
-    if (name.includes(word)) {
-      hasDeviceWord = true;
-      // Replace with correct label if it's wrong
-      if (word.toLowerCase() !== correctLabel.toLowerCase()) {
-        normalizedName = name.replace(new RegExp(word, 'gi'), correctLabel);
-      }
-      break;
-    }
-  }
-  
-  // If no device word found, append the type
-  if (!hasDeviceWord) {
-    normalizedName = `${name} • ${correctLabel}`;
-  }
-  
-  return normalizedName;
+  return `${browser} on ${os} • ${type}`;
 };
