@@ -304,10 +304,6 @@ export const DeviceDetailsModal = ({
             </Button>
           </div>
         </div>
-          <Button onClick={onClose} variant="outline">
-            Close
-          </Button>
-        </div>
       </DialogContent>
     </Dialog>
   );
