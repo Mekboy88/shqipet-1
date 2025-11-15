@@ -1,8 +1,9 @@
-import { Monitor, Smartphone, Tablet, Laptop, MapPin, Clock, Shield, X, Globe, Chrome } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, MapPin, Clock, Shield, X, Globe, Chrome, AlertTriangle, HelpCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { InteractiveMap } from './InteractiveMap';
+import { Switch } from '@/components/ui/switch';
+import { PrivacyCompliantMap } from './PrivacyCompliantMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow, format, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
 import { formatLocationWithFlag } from '@/utils/countryFlags';
@@ -219,7 +220,16 @@ export const DeviceDetailsModal = ({
               <div className="text-xs space-y-1">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Trusted Device:</span>
-                  <span>{session.is_trusted ? 'Yes' : 'No'}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{session.is_trusted ? 'Yes' : 'No'}</span>
+                    {!isCurrentDevice && (
+                      <Switch 
+                        checked={session.is_trusted}
+                        onCheckedChange={() => onTrustDevice(session.device_stable_id)}
+                        className="scale-75"
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Current Device:</span>
@@ -228,8 +238,12 @@ export const DeviceDetailsModal = ({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Session ID:</span>
                   <span className="text-xs font-mono truncate max-w-[150px]">
-                    {session.session_id}
+                    ...{session.session_id.slice(-12)}
                   </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Country Code:</span>
+                  <span className="uppercase">{session.country_code || 'N/A'}</span>
                 </div>
               </div>
             </div>
@@ -237,26 +251,59 @@ export const DeviceDetailsModal = ({
 
           {session.latitude && session.longitude && (
             <div className="w-[400px] border-l">
-              <InteractiveMap 
+              <PrivacyCompliantMap 
                 latitude={session.latitude} 
                 longitude={session.longitude}
+                city={session.city}
+                country={session.country}
+                className="w-full h-full"
               />
             </div>
           )}
         </div>
 
-        <div className="p-4 border-t flex gap-2 justify-end">
-          {!session.is_trusted && !isCurrentDevice && (
-            <Button onClick={() => onTrustDevice(session.device_stable_id)} variant="default">
-              <Shield size={16} className="mr-2" />
-              Trust Device
+        <div className="p-4 border-t bg-muted/30">
+          <div className="flex items-start gap-2 mb-3 text-xs text-muted-foreground">
+            <HelpCircle size={14} className="mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium mb-1">Why am I seeing this?</p>
+              <p className="text-xs">
+                We show your active sessions for security. Location is approximate (city-level only) and coordinates are rounded for privacy. 
+                Maps are blurred and non-interactive to comply with GDPR, CCPA, and international privacy laws.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex gap-2 justify-end flex-wrap">
+            {!isCurrentDevice && (
+              <>
+                <Button 
+                  onClick={() => {
+                    // Report unknown device
+                    alert('This device has been reported. Our security team will review this activity.');
+                  }} 
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                >
+                  <AlertTriangle size={14} className="mr-1" />
+                  Report Unknown Device
+                </Button>
+                <Button 
+                  onClick={() => onRevokeSession(session.device_stable_id)} 
+                  variant="destructive"
+                  size="sm"
+                  className="text-xs"
+                >
+                  Log Out This Device
+                </Button>
+              </>
+            )}
+            <Button onClick={onClose} variant="secondary" size="sm" className="text-xs">
+              Close
             </Button>
-          )}
-          {!isCurrentDevice && (
-            <Button onClick={() => onRevokeSession(session.device_stable_id)} variant="destructive">
-              Revoke Session
-            </Button>
-          )}
+          </div>
+        </div>
           <Button onClick={onClose} variant="outline">
             Close
           </Button>
