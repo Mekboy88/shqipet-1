@@ -1,11 +1,12 @@
-import { Monitor, Smartphone, Tablet, Laptop, MapPin, Clock, Shield, X } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, MapPin, Clock, Shield, X, Globe, Chrome } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { InteractiveMap } from './InteractiveMap';
 import type { Database } from '@/integrations/supabase/types';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow, format, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
 import { formatLocationWithFlag } from '@/utils/countryFlags';
+import { getBrowserIcon } from '@/utils/deviceSessionDisplay';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
@@ -42,11 +43,38 @@ export const DeviceDetailsModal = ({
   };
 
   const DeviceIcon = getDeviceIcon();
+  const BrowserIcon = getBrowserIcon(session.browser_name);
 
-  const getLoggedInText = () => {
+  const getSessionStartTime = () => {
     if (!session.created_at) return 'Unknown';
     try {
-      return formatDistanceToNow(new Date(session.created_at), { addSuffix: true });
+      return format(new Date(session.created_at), 'MMM dd, yyyy hh:mm a');
+    } catch (e) {
+      return 'Unknown';
+    }
+  };
+
+  const getSessionDuration = () => {
+    if (!session.created_at) return 'Unknown';
+    try {
+      const now = new Date();
+      const start = new Date(session.created_at);
+      const days = differenceInDays(now, start);
+      const hours = differenceInHours(now, start);
+      const minutes = differenceInMinutes(now, start);
+
+      if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
+      if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+      return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    } catch (e) {
+      return 'Unknown';
+    }
+  };
+
+  const getLastActiveTime = () => {
+    if (!session.updated_at) return 'Unknown';
+    try {
+      return formatDistanceToNow(new Date(session.updated_at), { addSuffix: true });
     } catch (e) {
       return 'Unknown';
     }
@@ -79,13 +107,18 @@ export const DeviceDetailsModal = ({
                 <DeviceIcon size={20} className="text-primary" />
               </div>
               <div>
-                <DialogTitle className="text-base">{deviceTitle}</DialogTitle>
+                <DialogTitle className="text-base flex items-center gap-2">
+                  <BrowserIcon size={16} className="text-muted-foreground" />
+                  {deviceTitle}
+                </DialogTitle>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   {isCurrentDevice && (
                     <Badge className="bg-blue-500 text-white text-xs">Current Device</Badge>
                   )}
-                  {session.is_trusted && (
+                  {session.is_trusted ? (
                     <Badge className="bg-green-600 text-white text-xs">Trusted</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-xs">Not Trusted</Badge>
                   )}
                   <Badge variant="default" className="text-xs">Active</Badge>
                 </div>
@@ -160,16 +193,20 @@ export const DeviceDetailsModal = ({
               </h4>
               <div className="text-xs space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">First Login:</span>
+                  <span className="text-muted-foreground">Session Started:</span>
+                  <span>{getSessionStartTime()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Session Duration:</span>
+                  <span>{getSessionDuration()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Last Active:</span>
+                  <span>{getLastActiveTime()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Created:</span>
                   <span>{formatDate(session.created_at)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Last Activity:</span>
-                  <span>{formatDate(session.updated_at)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Time Since Login:</span>
-                  <span>{getLoggedInText()}</span>
                 </div>
               </div>
             </div>

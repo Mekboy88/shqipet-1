@@ -1,7 +1,24 @@
-import { Monitor, Smartphone, Tablet, Laptop } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Laptop, Chrome, Globe } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
+
+/**
+ * Map browser name to appropriate icon
+ */
+export const getBrowserIcon = (browserName: string | null) => {
+  if (!browserName) return Globe;
+  
+  const browser = browserName.toLowerCase();
+  
+  // Chrome, Edge, Brave all use Chrome icon
+  if (browser.includes('chrome') || browser.includes('edge') || browser.includes('brave')) {
+    return Chrome;
+  }
+  
+  // Default to Globe for other browsers
+  return Globe;
+};
 
 /**
  * Map device_type to icon component based on screen size detection
