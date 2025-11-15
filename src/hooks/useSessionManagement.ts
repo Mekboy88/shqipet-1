@@ -113,17 +113,36 @@ export const useSessionManagement = () => {
   }, [user, currentDeviceId]);
 
   const trustDevice = async (deviceStableId: string) => {
+    // Optimistically update the UI immediately
+    const previousSessions = [...sessions];
+    setSessions(prevSessions =>
+      prevSessions.map(session =>
+        session.device_stable_id === deviceStableId
+          ? { ...session, is_trusted: !session.is_trusted }
+          : session
+      )
+    );
+
     try {
       const { error } = await supabase.functions.invoke('manage-session', {
         body: { action: 'trust', deviceStableId },
       });
 
       if (error) throw error;
-      toast.success('Device marked as trusted');
+      
+      // Find the updated session to show appropriate message
+      const updatedSession = sessions.find(s => s.device_stable_id === deviceStableId);
+      const newTrustState = !updatedSession?.is_trusted;
+      
+      toast.success(newTrustState ? 'Device marked as trusted' : 'Device trust removed');
+      
+      // Refresh to sync with server (happens in background)
       refreshSessions();
     } catch (err: any) {
+      // Revert optimistic update on error
+      setSessions(previousSessions);
       console.error('Failed to trust device:', err);
-      toast.error('Failed to mark device as trusted');
+      toast.error('Failed to update device trust status');
     }
   };
 
