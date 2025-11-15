@@ -90,8 +90,8 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: Devi
               </div>
               
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold leading-tight">{displayTitle}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-sm font-semibold leading-tight">{displayTitle}</h3>
                   <Badge variant="outline" className="text-xs">{deviceLabel}</Badge>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
