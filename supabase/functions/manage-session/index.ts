@@ -33,6 +33,36 @@ interface GeolocationResult {
   longitude?: number;
 }
 
+// Helper: Reverse geocode coordinates to get location
+async function reverseGeocode(lat: number, lon: number): Promise<GeolocationResult> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`,
+      {
+        headers: {
+          'User-Agent': 'Lovable-Session-Manager/1.0'
+        }
+      }
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        city: data.address?.city || data.address?.town || data.address?.village,
+        country: data.address?.country,
+        countryCode: data.address?.country_code?.toUpperCase(),
+        latitude: lat,
+        longitude: lon
+      };
+    }
+  } catch (error) {
+    console.warn('Reverse geocoding failed:', error);
+  }
+  
+  // Return coords even if reverse geocoding fails
+  return { latitude: lat, longitude: lon };
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -114,14 +144,14 @@ Deno.serve(async (req) => {
         const { data: ipHashData } = await supabaseClient.rpc('hash_ip_address', { ip_text: ipAddress });
         const ipHash = ipHashData || null;
 
-        // Fetch real geolocation data only (no fake data)
+        // Fetch geolocation with browser fallback
         let geolocation: GeolocationResult = {};
         try {
+          // Try IP-based geolocation first
           if (ipAddress !== 'unknown') {
             const geoResponse = await fetch(`https://ipapi.co/${ipAddress}/json/`);
             if (geoResponse.ok) {
               const geoData = await geoResponse.json();
-              // Only use real data from API
               if (geoData.city && geoData.country_name) {
                 geolocation = {
                   city: geoData.city,
@@ -130,13 +160,26 @@ Deno.serve(async (req) => {
                   latitude: geoData.latitude,
                   longitude: geoData.longitude,
                 };
-                console.log('Real geolocation fetched:', geolocation);
+                console.log('IP geolocation fetched:', geolocation);
               }
             }
           }
+          
+          // Fallback: Use browser-provided coordinates if IP geo failed
+          if (!geolocation.city && sessionData.latitude && sessionData.longitude) {
+            console.log('IP geolocation incomplete, using browser coordinates');
+            geolocation = await reverseGeocode(sessionData.latitude, sessionData.longitude);
+            console.log('Browser geolocation used:', geolocation);
+          }
         } catch (geoError) {
           console.warn('Geolocation fetch failed:', geoError);
-          // NO FALLBACK TO FAKE DATA - leave empty if geolocation fails
+          // Last resort: store browser coords even without city/country
+          if (sessionData.latitude && sessionData.longitude) {
+            geolocation = {
+              latitude: sessionData.latitude,
+              longitude: sessionData.longitude
+            };
+          }
         }
 
         // 5C: Validate session token
@@ -397,6 +440,75 @@ Deno.serve(async (req) => {
         console.log('Device trusted:', data.id);
         return new Response(
           JSON.stringify({ success: true, session: data }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'normalize': {
+        // Normalize existing sessions: fix device_name/type mismatches and fill location
+        console.log('Normalizing sessions for user:', user.id);
+        
+        const { data: userSessions, error: fetchError } = await supabaseClient
+          .from('user_sessions')
+          .select('*')
+          .eq('user_id', user.id);
+        
+        if (fetchError) throw fetchError;
+        
+        let updatedCount = 0;
+        const deviceWords = ['Desktop', 'Laptop', 'Mobile', 'Tablet', 'Smartphone'];
+        
+        for (const session of userSessions || []) {
+          let needsUpdate = false;
+          const updates: any = {};
+          
+          // Fix device_name if it contains wrong device word
+          if (session.device_name && session.device_type) {
+            const correctLabel = session.device_type === 'desktop' ? 'Desktop' :
+                                session.device_type === 'laptop' ? 'Laptop' :
+                                session.device_type === 'mobile' ? 'Mobile' :
+                                session.device_type === 'tablet' ? 'Tablet' : 'Desktop';
+            
+            let fixedName = session.device_name;
+            for (const word of deviceWords) {
+              if (fixedName.includes(word) && word.toLowerCase() !== correctLabel.toLowerCase()) {
+                fixedName = fixedName.replace(new RegExp(word, 'gi'), correctLabel);
+                needsUpdate = true;
+                break;
+              }
+            }
+            if (needsUpdate) {
+              updates.device_name = fixedName;
+            }
+          }
+          
+          // Fill location if missing but coords exist
+          if ((!session.city || !session.country) && session.latitude && session.longitude) {
+            try {
+              const location = await reverseGeocode(session.latitude, session.longitude);
+              if (location.city || location.country) {
+                updates.city = location.city || session.city;
+                updates.country = location.country || session.country;
+                updates.country_code = location.countryCode || session.country_code;
+                needsUpdate = true;
+              }
+            } catch (e) {
+              console.warn('Reverse geocode failed for session:', session.id);
+            }
+          }
+          
+          if (needsUpdate && Object.keys(updates).length > 0) {
+            await supabaseClient
+              .from('user_sessions')
+              .update(updates)
+              .eq('id', session.id);
+            updatedCount++;
+          }
+        }
+        
+        console.log(`Normalized ${updatedCount} sessions`);
+        return new Response(
+          JSON.stringify({ success: true, normalized: updatedCount }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

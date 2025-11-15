@@ -19,6 +19,7 @@ const ManageSessionsForm = () => {
     revokeSession,
     trustDevice,
     refreshSessions,
+    normalizeSessions,
   } = useSessionManagement();
 
   const { isMobile } = useSmartBreakpoint();
@@ -87,10 +88,15 @@ const ManageSessionsForm = () => {
             Manage your devices and sessions
           </p>
         </div>
-        <Button onClick={refreshSessions} variant="outline" size="sm">
-          <RefreshCw size={16} className="mr-2" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={normalizeSessions} variant="secondary" size="sm">
+            Fix Display
+          </Button>
+          <Button onClick={refreshSessions} variant="outline" size="sm">
+            <RefreshCw size={16} className="mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Device Cards - Grid on desktop, Stacked on mobile */}

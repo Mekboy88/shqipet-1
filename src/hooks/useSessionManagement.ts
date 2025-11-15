@@ -279,6 +279,44 @@ export const useSessionManagement = () => {
   }, []);
 
   /**
+   * Normalize existing sessions (fix device names and locations)
+   */
+  const normalizeSessions = useCallback(async () => {
+    try {
+      console.log('Normalizing sessions...');
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const response = await supabase.functions.invoke('manage-session', {
+        body: { 
+          action: 'normalize'
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      console.log('Sessions normalized:', response.data);
+      toast({
+        title: 'Sessions normalized',
+        description: `Fixed ${response.data?.normalized || 0} session(s)`,
+      });
+
+      // Refresh sessions to show updated data
+      await fetchSessions();
+    } catch (error) {
+      console.error('Failed to normalize sessions:', error);
+      toast({
+        title: 'Normalization failed',
+        description: error instanceof Error ? error.message : 'Failed to normalize sessions',
+        variant: 'destructive',
+      });
+    }
+  }, [toast, fetchSessions]);
+
+  /**
    * Initialize: register device and fetch sessions
    */
   useEffect(() => {
@@ -315,5 +353,6 @@ export const useSessionManagement = () => {
     revokeSession,
     trustDevice,
     refreshSessions: fetchSessions,
+    normalizeSessions,
   };
 };
