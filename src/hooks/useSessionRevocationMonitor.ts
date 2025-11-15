@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { deviceDetectionService } from '@/services/device/DeviceDetectionService';
+import { deviceDetectionService } from '@/services/deviceDetectionService';
 import { toast } from 'sonner';
 
 /**
@@ -19,7 +19,7 @@ export const useSessionRevocationMonitor = () => {
     const setupMonitoring = async () => {
       try {
         // Get current device ID
-        const deviceInfo = await deviceDetectionService.getDeviceInfo();
+        const deviceInfo = deviceDetectionService.getDeviceInfo();
         deviceStableId = deviceInfo.deviceStableId;
 
         console.log('🔒 Session revocation monitor: Watching device', deviceStableId);
