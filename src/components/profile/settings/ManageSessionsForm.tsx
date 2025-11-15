@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect as React_useEffect } from 'react';
+import * as React from 'react';
 import { RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSessionManagement } from '@/hooks/useSessionManagement';
@@ -33,6 +34,22 @@ const ManageSessionsForm = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedSession(null);
+  };
+
+  // Sync selectedSession with updated sessions data
+  React.useEffect(() => {
+    if (selectedSession && sessions.length > 0) {
+      const updatedSession = sessions.find(
+        s => s.device_stable_id === selectedSession.device_stable_id
+      );
+      if (updatedSession) {
+        setSelectedSession(updatedSession);
+      }
+    }
+  }, [sessions, selectedSession]);
+
+  const handleRefresh = async () => {
+    await refreshSessions();
   };
 
   if (loading && sessions.length === 0) {
@@ -97,7 +114,7 @@ const ManageSessionsForm = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={refreshSessions} variant="outline" size="sm">
+          <Button onClick={handleRefresh} variant="outline" size="sm">
             <RefreshCw size={16} className="mr-2" />
             Refresh
           </Button>
