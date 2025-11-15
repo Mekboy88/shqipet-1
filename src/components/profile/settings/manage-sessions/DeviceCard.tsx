@@ -77,21 +77,23 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: Devi
                 <h3 className="font-semibold leading-tight">{displayTitle}</h3>
                 <Badge variant="outline" className="text-xs">{deviceLabel}</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                {isCurrentDevice && (
-                  <Badge className="bg-blue-500 text-white text-xs">Current</Badge>
-                )}
-                {session.is_trusted ? (
-                  <Badge className="bg-green-600 text-white text-xs">Trusted</Badge>
-                ) : (
-                  <Badge variant="outline" className="text-xs">Not Trusted</Badge>
-                )}
-              </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <DeviceIcon size={24} className="text-primary" />
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <DeviceIcon size={24} className="text-primary" />
+                </div>
+                <div className="flex items-center gap-2">
+                  {isCurrentDevice && (
+                    <Badge className="bg-blue-500 text-white text-xs">Current</Badge>
+                  )}
+                  {session.is_trusted ? (
+                    <Badge className="bg-green-600 text-white text-xs">Trusted</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-xs">Not Trusted</Badge>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <BrowserIcon size={12} className="text-muted-foreground" />
