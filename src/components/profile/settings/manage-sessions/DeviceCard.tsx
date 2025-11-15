@@ -2,7 +2,7 @@ import { Circle, LogOut, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { InteractiveMap } from './InteractiveMap';
+import { PrivacyCompliantMap } from './PrivacyCompliantMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow, differenceInMinutes, differenceInHours, differenceInDays, format } from 'date-fns';
 import { getCountryFlag } from '@/utils/countryFlags';
@@ -148,10 +148,13 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: Devi
           </div>
 
           {session.latitude && session.longitude && (
-            <div className="w-full md:w-[350px] h-[200px] md:h-auto">
-              <InteractiveMap 
+            <div className="w-full md:w-[350px] h-[200px] md:h-auto border-l">
+              <PrivacyCompliantMap 
                 latitude={session.latitude} 
                 longitude={session.longitude}
+                city={session.city}
+                country={session.country}
+                className="w-full h-full"
               />
             </div>
           )}
