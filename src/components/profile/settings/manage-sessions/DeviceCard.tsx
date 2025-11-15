@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { InteractiveMap } from './InteractiveMap';
 import type { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
-import { formatLocationWithFlag, getCountryFlag } from '@/utils/countryFlags';
+import { getCountryFlag } from '@/utils/countryFlags';
 import { getDeviceIcon, deriveTitle, getDeviceLabel } from '@/utils/deviceSessionDisplay';
+
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
 interface DeviceCardProps {
@@ -16,14 +17,8 @@ interface DeviceCardProps {
 
 export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProps) => {
   const DeviceIcon = getDeviceIcon(session.device_type);
-  const displayTitle = deriveTitle(session.device_name, session.device_type);
+  const displayTitle = deriveTitle(session.browser_name, session.operating_system, session.device_type);
   const deviceLabel = getDeviceLabel(session.device_type);
-
-  const getTrustScoreColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 50) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
 
   const getLoginTimeText = () => {
     if (!session.created_at) return 'Unknown';
@@ -42,7 +37,6 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
     <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow overflow-hidden" onClick={onClick}>
       <CardContent className="p-0">
         <div className="flex flex-col md:flex-row items-stretch min-h-[220px]">
-          {/* Left: Details */}
           <div className="flex-1 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -55,7 +49,7 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
                     <Badge variant="outline" className="text-xs">{deviceLabel}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {(session.operating_system || 'OS')} {session.device_os_version || ''} • {(session.browser_info || 'Browser')} {session.browser_version || ''}
+                    {session.operating_system || 'Unknown OS'} • {session.browser_name || 'Unknown Browser'} {session.browser_version || ''}
                   </p>
                 </div>
               </div>
@@ -66,9 +60,6 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
                 {session.is_trusted && (
                   <Badge className="bg-green-600 text-white text-xs">Trusted</Badge>
                 )}
-                <Badge variant="secondary" className={`${getTrustScoreColor(session.trust_score || 50)} text-white text-xs`}>
-                  {session.trust_score || 50}%
-                </Badge>
               </div>
             </div>
 
@@ -76,8 +67,8 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
               <div className="space-y-1">
                 <p className="text-muted-foreground">Status</p>
                 <div className="flex items-center gap-2">
-                  <Circle size={8} className={`${session.is_active ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
-                  <span>{session.is_active ? 'Active' : 'Inactive'}</span>
+                  <Circle size={8} className="fill-green-500 text-green-500" />
+                  <span>Active</span>
                 </div>
               </div>
               <div className="space-y-1">
@@ -90,19 +81,19 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground">Screen</p>
-                <p>{session.screen_resolution || '—'}</p>
+                <p>{session.screen_resolution || 'Unknown'}</p>
               </div>
             </div>
           </div>
 
-          {/* Right: Map */}
-          <div className="md:w-[40%] w-full md:min-h-[220px] border-t md:border-t-0 md:border-l">
-            <InteractiveMap
-              latitude={session.latitude ? Number(session.latitude) : undefined}
-              longitude={session.longitude ? Number(session.longitude) : undefined}
-              className="w-full h-full"
-            />
-          </div>
+          {session.latitude && session.longitude && (
+            <div className="w-full md:w-[350px] h-[200px] md:h-auto">
+              <InteractiveMap 
+                latitude={session.latitude} 
+                longitude={session.longitude}
+              />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

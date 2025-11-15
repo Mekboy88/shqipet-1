@@ -1,4 +1,4 @@
-import UAParser from 'ua-parser-js';
+import { UAParser } from 'ua-parser-js';
 
 export interface DeviceInfo {
   deviceId: string;
@@ -34,8 +34,8 @@ class DeviceDetectionService {
    */
   private detectDeviceType(): 'mobile' | 'tablet' | 'laptop' | 'desktop' {
     const width = window.screen.width;
-    const parser = new UAParser();
-    const deviceType = parser.getDevice().type;
+    const result = UAParser(navigator.userAgent);
+    const deviceType = result.device?.type;
 
     // Priority 1: Use UA parser if reliable
     if (deviceType === 'mobile') return 'mobile';
@@ -52,10 +52,10 @@ class DeviceDetectionService {
    * Get complete device information (privacy-compliant)
    */
   getDeviceInfo(): DeviceInfo {
-    const parser = new UAParser();
-    const browser = parser.getBrowser();
-    const os = parser.getOS();
-    const device = parser.getDevice();
+    const result = UAParser(navigator.userAgent);
+    const browser = result.browser;
+    const os = result.os;
+    const device = result.device;
 
     return {
       deviceId: crypto.randomUUID(), // Session-level random ID
