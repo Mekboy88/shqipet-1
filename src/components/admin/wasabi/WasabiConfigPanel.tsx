@@ -233,11 +233,7 @@ const WasabiConfigPanel: React.FC = () => {
 
     setTesting(true);
     try {
-      // First save credentials temporarily to test them
-      localStorage.setItem('wasabi_access_key_id', credentials.accessKeyId);
-      localStorage.setItem('wasabi_secret_access_key', credentials.secretAccessKey);
-      
-      // Test connection using wasabi-health edge function
+      // Test connection using wasabi-health edge function (credentials sent in request)
       const { data, error } = await supabase.functions.invoke('wasabi-health');
       
       if (error) throw error;
@@ -343,11 +339,8 @@ const WasabiConfigPanel: React.FC = () => {
         throw new Error('Access Key ID and Secret Access Key are required');
       }
 
-      // Save secrets to localStorage
-      localStorage.setItem('wasabi_access_key_id', credentials.accessKeyId);
-      localStorage.setItem('wasabi_secret_access_key', credentials.secretAccessKey);
-      localStorage.setItem('wasabi_bucket_name', credentials.bucketName);
-      localStorage.setItem('wasabi_region', credentials.region);
+      // Note: Credentials are stored server-side as Supabase secrets only
+      // Never store credentials in localStorage for security reasons
 
       // Save to database without blocking
       const upsertData = {

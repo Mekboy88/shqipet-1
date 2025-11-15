@@ -4,10 +4,10 @@ project_id = "uaiwjxojbpeljzxcvgof"
 verify_jwt = true
 
 [functions.wasabi-proxy]
-verify_jwt = false
+verify_jwt = true
 
 [functions.wasabi-get-url]
-verify_jwt = false
+verify_jwt = true
 
 [functions.track-resource-usage]
 verify_jwt = false
