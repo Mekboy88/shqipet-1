@@ -8,7 +8,6 @@ interface ImportMetaEnv {
   readonly VITE_MAPBOX_PUBLIC_TOKEN?: string
   readonly VITE_ADMIN_DEFAULT_PAGE_SIZE?: string
   readonly LOCK_SYNC_FILES?: string
-  readonly [key: string]: string | boolean | undefined
 }
 
 interface ImportMeta {
