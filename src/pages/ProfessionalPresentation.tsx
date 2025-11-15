@@ -27,7 +27,7 @@ const resolveMediaUrl = (value: string | null | undefined) => {
   if (!value) return '';
   const v = String(value);
   if (v.startsWith('http') || v.startsWith('blob:') || v.startsWith('data:')) return v;
-  return `${supabase.supabaseUrl}/functions/v1/wasabi-proxy?key=${encodeURIComponent(v)}`;
+  return `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wasabi-proxy?key=${encodeURIComponent(v)}`;
 };
 
 // ===== Reusable: Editable & Draggable (fixed caret + sticky toolbar) =====
@@ -1307,7 +1307,7 @@ const PhotoStrip = React.memo(({
       } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
       setUploadProgress(40);
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/wasabi-upload`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wasabi-upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`
