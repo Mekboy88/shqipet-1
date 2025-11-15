@@ -43,16 +43,19 @@ Deno.serve(async (req) => {
     const { action, sessionData, deviceStableId } = await req.json();
 
     // Guard: If upsert requested for a revoked device, force re-login by blocking session recreation
+    // Only block if the revocation is recent (within 5 minutes) to allow fresh sign-ins after
     if (action === 'upsert') {
       const { data: rev } = await supabase
         .from('session_revocations')
         .select('id, created_at')
         .eq('user_id', user.id)
         .eq('device_stable_id', sessionData?.deviceStableId || '')
+        .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Only check last 5 minutes
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
       if (rev) {
+        console.log('🚫 Blocking session creation for recently revoked device:', sessionData?.deviceStableId);
         return new Response(
           JSON.stringify({ error: 'DEVICE_REVOKED', message: 'This device was revoked. Please sign in again.' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
