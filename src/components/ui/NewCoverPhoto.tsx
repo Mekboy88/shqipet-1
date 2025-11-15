@@ -15,6 +15,7 @@ interface NewCoverPhotoProps {
   children?: React.ReactNode;
   style?: React.CSSProperties;
   onMouseMove?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  overridePosition?: string; // Allow parent to override position during drag
 }
 
 const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
@@ -24,9 +25,13 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
   showLoading = true,
   children,
   style,
-  onMouseMove
+  onMouseMove,
+  overridePosition
 }) => {
-  const { resolvedUrl, position, loading, lastGoodUrl, loadCover } = useCover(userId);
+  const { resolvedUrl, position: hookPosition, loading, lastGoodUrl, loadCover } = useCover(userId);
+
+  // Use override position during drag, otherwise use hook position
+  const position = overridePosition || hookPosition;
 
   // UI Debug toggle: enable via ?coverDebug=1 or localStorage.setItem('coverDebug','1')
   const [debugEnabled, setDebugEnabled] = React.useState(false);
@@ -56,6 +61,7 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
       )}
       style={{ 
         height: `${height}px`,
+        cursor: onMouseMove ? 'grab' : 'default',
         ...style
       }}
       onMouseMove={onMouseMove}
@@ -66,7 +72,7 @@ const NewCoverPhoto: React.FC<NewCoverPhotoProps> = React.memo(({
           <img
             src={displayUrl}
             alt="Cover photo"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover transition-[object-position] duration-75 ease-out"
             style={{ 
               objectPosition: position,
               imageRendering: 'crisp-edges'

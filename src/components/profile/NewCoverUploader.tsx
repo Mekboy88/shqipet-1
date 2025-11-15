@@ -82,15 +82,35 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
     fileInputRef.current?.click();
   };
 
+  const rafRef = useRef<number | null>(null);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragMode) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    setDragPosition(`${Math.round(x)}% ${Math.round(y)}%`);
+    // Cancel any pending animation frame to avoid queuing up updates
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+
+    // Use requestAnimationFrame for smooth 60fps updates
+    rafRef.current = requestAnimationFrame(() => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      
+      // Use 1 decimal precision for smooth sub-pixel positioning (not rounded integers)
+      setDragPosition(`center ${y.toFixed(1)}%`);
+    });
   };
+
+  // Cleanup animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   const saveDragPosition = async () => {
     setIsSaving(true);
@@ -119,10 +139,11 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
         userId={userId}
         height={height}
         className={className}
-        style={{
-          backgroundPosition: isDragMode ? dragPosition : position
-        }}
+        overridePosition={isDragMode ? dragPosition : undefined}
         onMouseMove={handleMouseMove}
+        style={{
+          cursor: isDragMode ? 'grabbing' : 'grab'
+        }}
       >
         {/* Debug HUD */}
         {DebugHUD && <DebugHUD />}
