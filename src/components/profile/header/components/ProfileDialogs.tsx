@@ -37,7 +37,7 @@ const ProfileDialogs: React.FC<ProfileDialogsProps> = ({
         <PhotoSelectionDialog 
           onClose={onClosePhotoDialog} 
           onUploadClick={() => console.log('Upload clicked')} 
-          onPhotoSelect={() => console.log('Photo selected')} 
+          onPhotoSelect={(photoUrl) => onProfilePhotoSelect(photoUrl)} 
         />
       )}
 
