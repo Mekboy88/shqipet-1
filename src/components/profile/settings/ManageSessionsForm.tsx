@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSessionManagement } from '@/hooks/useSessionManagement';
@@ -25,6 +25,11 @@ const ManageSessionsForm = () => {
   const { isMobile } = useSmartBreakpoint();
   const [selectedSession, setSelectedSession] = useState<UserSession | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    // Auto-normalize sessions on load (no extra buttons)
+    normalizeSessions();
+  }, []);
 
   const handleCardClick = (session: UserSession) => {
     setSelectedSession(session);
@@ -89,9 +94,6 @@ const ManageSessionsForm = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={normalizeSessions} variant="secondary" size="sm">
-            Fix Display
-          </Button>
           <Button onClick={refreshSessions} variant="outline" size="sm">
             <RefreshCw size={16} className="mr-2" />
             Refresh
