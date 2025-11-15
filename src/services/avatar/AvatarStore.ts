@@ -35,7 +35,12 @@ const ensureState = (userId: string): AvatarV2State => {
     const raw = localStorage.getItem(`avatar_cache_${userId}`);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed?.url && typeof parsed.url === 'string' && /^(https?:)/i.test(parsed.url)) {
+      if (
+        parsed?.url &&
+        typeof parsed.url === 'string' &&
+        /^(https?:)/i.test(parsed.url) &&
+        !parsed.url.includes('/functions/v1/wasabi-proxy')
+      ) {
         cachedUrl = parsed.url;
       }
       if (parsed?.key && typeof parsed.key === 'string') {
@@ -258,7 +263,7 @@ class AvatarStore {
     // INSTANT: If we have cached data, show it immediately and skip DB fetch
     // This ensures avatars appear instantly on login with ZERO delay
     // Removing this will cause visible loading delays and poor UX
-    if (!forceRefresh && current.lastGoodUrl && current.lastGoodUrl.startsWith('http')) {
+    if (!forceRefresh && current.lastGoodUrl && current.lastGoodUrl.startsWith('http') && !current.lastGoodUrl.includes('/functions/v1/wasabi-proxy')) {
       console.log('⚡ Using cached avatar instantly:', current.lastGoodUrl.substring(0, 80));
       setState(userId, { 
         url: current.lastGoodUrl,

@@ -83,18 +83,18 @@ export const useAvatar = (userId?: string) => {
       try {
         const cached = localStorage.getItem(`avatar_cache_${targetUserId}`);
         if (cached) {
-          const { key, url, timestamp } = JSON.parse(cached);
-          const age = Date.now() - timestamp;
-          if (age < 24 * 60 * 60 * 1000 && url) {
-            console.log('🚀 AvatarDebug/initial state from cache for user:', targetUserId);
-            return {
-              key,
-              resolvedUrl: url,
-              loading: false,
-              uploading: false,
-              lastGoodUrl: url
-            };
-          }
+        const { key, url, timestamp } = JSON.parse(cached);
+        const age = Date.now() - timestamp;
+        if (age < 24 * 60 * 60 * 1000 && url && !String(url).includes('/functions/v1/wasabi-proxy')) {
+          console.log('🚀 AvatarDebug/initial state from cache for user:', targetUserId);
+          return {
+            key,
+            resolvedUrl: url,
+            loading: false,
+            uploading: false,
+            lastGoodUrl: url
+          };
+        }
         }
       } catch (e) {
         console.warn('⚠️ Initial cache read failed:', e);
@@ -239,8 +239,8 @@ export const useAvatar = (userId?: string) => {
         if (cached) {
           const { key, url, timestamp } = JSON.parse(cached);
           const age = Date.now() - timestamp;
-          // Use cache if less than 24 hours old - show immediately to prevent avatar disappearing
-          if (age < 24 * 60 * 60 * 1000 && url) {
+          // Use cache if less than 24 hours old - show immediately, but avoid protected function URLs
+          if (age < 24 * 60 * 60 * 1000 && url && !String(url).includes('/functions/v1/wasabi-proxy')) {
             const cachedState = {
               key,
               resolvedUrl: url,

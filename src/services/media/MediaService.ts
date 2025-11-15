@@ -76,19 +76,19 @@ class MediaService {
    * Race presigned URL vs proxy blob for fastest display
    */
   private async resolveUrl(key: string, cacheKey: string): Promise<string> {
-    // Prefer presigned URLs to reduce proxy errors/noise; fallback to proxy blob
+    // Prefer authenticated proxy blob (works with JWT-protected function); fallback to presigned
     try {
-      const presigned = await this.getPresignedUrl(key);
-      this.cacheUrl(cacheKey, presigned, 'presigned');
-      lastGoodUrls.set(cacheKey, { url: presigned, timestamp: Date.now() });
-      return presigned;
+      const blobUrl = await this.getProxyBlob(key);
+      this.cacheUrl(cacheKey, blobUrl, 'blob');
+      lastGoodUrls.set(cacheKey, { url: blobUrl, timestamp: Date.now() });
+      return blobUrl;
     } catch (e1) {
-      console.warn('⚠️ Presigned URL failed, trying proxy blob for key:', key);
+      console.warn('⚠️ Proxy blob failed, trying presigned URL for key:', key);
       try {
-        const blobUrl = await this.getProxyBlob(key);
-        this.cacheUrl(cacheKey, blobUrl, 'blob');
-        lastGoodUrls.set(cacheKey, { url: blobUrl, timestamp: Date.now() });
-        return blobUrl;
+        const presigned = await this.getPresignedUrl(key);
+        this.cacheUrl(cacheKey, presigned, 'presigned');
+        lastGoodUrls.set(cacheKey, { url: presigned, timestamp: Date.now() });
+        return presigned;
       } catch (e2) {
         console.error('❌ Both media URL sources failed for key:', key, { e1, e2 });
         // Notify UI that resolution failed (debug banners can listen)
@@ -123,11 +123,29 @@ class MediaService {
       body: { key, expires: 900 }
     });
 
-    // Accept different response shapes from edge function
     const url = (data as any)?.url || (data as any)?.getUrl || (data as any)?.signedUrl;
 
     if (error || !url) {
       throw new Error(`Failed to get presigned URL: ${error?.message || (data && JSON.stringify(data))}`);
+    }
+
+    // If the function returned the protected proxy URL, fetch it with auth and return a blob URL
+    if (typeof url === 'string' && url.includes('/functions/v1/wasabi-proxy')) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session for proxy fetch');
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: supabase.supabaseKey,
+        }
+      });
+      if (!response.ok) {
+        const t = await response.text().catch(() => '');
+        throw new Error(`Proxy URL fetch failed: ${response.status} ${t}`);
+      }
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
     }
 
     return url as string;
