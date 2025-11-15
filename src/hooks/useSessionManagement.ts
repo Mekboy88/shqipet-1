@@ -113,12 +113,18 @@ export const useSessionManagement = () => {
   }, [user, currentDeviceId]);
 
   const trustDevice = async (deviceStableId: string) => {
+    // Find the session to determine new state
+    const targetSession = sessions.find(s => s.device_stable_id === deviceStableId);
+    if (!targetSession) return;
+    
+    const newTrustState = !targetSession.is_trusted;
+    
     // Optimistically update the UI immediately
     const previousSessions = [...sessions];
     setSessions(prevSessions =>
       prevSessions.map(session =>
         session.device_stable_id === deviceStableId
-          ? { ...session, is_trusted: !session.is_trusted }
+          ? { ...session, is_trusted: newTrustState }
           : session
       )
     );
@@ -129,10 +135,6 @@ export const useSessionManagement = () => {
       });
 
       if (error) throw error;
-      
-      // Find the updated session to show appropriate message
-      const updatedSession = sessions.find(s => s.device_stable_id === deviceStableId);
-      const newTrustState = !updatedSession?.is_trusted;
       
       toast.success(newTrustState ? 'Device marked as trusted' : 'Device trust removed');
       
