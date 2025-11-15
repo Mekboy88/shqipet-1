@@ -50,24 +50,30 @@ class DeviceDetectionService {
     if (deviceType === 'mobile') return 'mobile';
     if (deviceType === 'tablet') return 'tablet';
     
-    // Priority 3: Check for touch support + screen size for physical device detection
+    // Priority 3: Check for touch support + viewport size for physical device detection
     const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const screenWidth = window.screen.width;
-    const screenHeight = window.screen.height;
-    const maxDimension = Math.max(screenWidth, screenHeight);
-    
-    // Mobile: Touch device with small screen
-    if (hasTouch && maxDimension < 768) {
-      return 'mobile';
-    }
-    
-    // Tablet: Touch device with medium screen
-    if (hasTouch && maxDimension >= 768 && maxDimension < 1024) {
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || window.screen.width;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || window.screen.height;
+    const maxViewport = Math.max(viewportWidth, viewportHeight);
+
+    // Special case: iPadOS can report as Mac with touch
+    const isIpadLike = /mac os x/.test(ua) && (navigator.platform === 'MacIntel') && navigator.maxTouchPoints > 1;
+    if (isIpadLike) {
       return 'tablet';
     }
     
-    // Priority 4: Use screen size for desktop/laptop distinction
-    if (screenWidth < 1440) return 'laptop';
+    // Mobile: Touch device or narrow viewport
+    if ((hasTouch && maxViewport < 768) || viewportWidth < 640) {
+      return 'mobile';
+    }
+    
+    // Tablet: Touch device with medium viewport or typical tablet width
+    if ((hasTouch && maxViewport >= 768 && maxViewport < 1024) || (viewportWidth >= 640 && viewportWidth < 1024)) {
+      return 'tablet';
+    }
+    
+    // Priority 4: Use viewport width for desktop/laptop distinction
+    if (viewportWidth < 1440) return 'laptop';
     return 'desktop';
   }
 
@@ -87,7 +93,7 @@ class DeviceDetectionService {
       operatingSystem: `${os.name || 'Unknown'} ${os.version || ''}`.trim(),
       browserName: browser.name || 'Unknown Browser',
       browserVersion: browser.version || '',
-      screenResolution: `${window.screen.width}x${window.screen.height}`,
+      screenResolution: `${window.innerWidth || window.screen.width}x${window.innerHeight || window.screen.height}`,
       platform: navigator.platform || 'Unknown',
       userAgent: navigator.userAgent,
     };
