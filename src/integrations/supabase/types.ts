@@ -1715,6 +1715,7 @@ export type Database = {
       }
       user_sessions: {
         Row: {
+          active_tabs_count: number
           browser_name: string | null
           browser_version: string | null
           city: string | null
@@ -1740,6 +1741,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          active_tabs_count?: number
           browser_name?: string | null
           browser_version?: string | null
           city?: string | null
@@ -1765,6 +1767,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          active_tabs_count?: number
           browser_name?: string | null
           browser_version?: string | null
           city?: string | null

@@ -81,16 +81,23 @@ Deno.serve(async (req) => {
         detectedType: detectedDeviceType
       });
 
-      // Check if this device already exists and is trusted
+      // Check if this device already exists and get current state
       const { data: existingSession } = await supabase
         .from('user_sessions')
-        .select('is_trusted')
+        .select('is_trusted, active_tabs_count')
         .eq('user_id', user.id)
         .eq('device_stable_id', sessionData.deviceStableId)
         .single();
 
-      // Preserve trust status for existing devices, default to false for new devices
+      // Preserve trust status and increment tab count for existing devices
       const isTrusted = existingSession?.is_trusted ?? false;
+      const activeTabsCount = existingSession ? (existingSession.active_tabs_count || 0) + 1 : 1;
+
+      console.log('Updating session with tab count:', { 
+        deviceStableId: sessionData.deviceStableId,
+        previousCount: existingSession?.active_tabs_count || 0,
+        newCount: activeTabsCount 
+      });
 
       const { data, error } = await supabase
         .from('user_sessions')
@@ -107,6 +114,7 @@ Deno.serve(async (req) => {
           user_agent: sessionData.userAgent,
           is_current_device: true,
           is_trusted: isTrusted,
+          active_tabs_count: activeTabsCount,
           ...locationData,
         }, {
           onConflict: 'user_id,device_stable_id',
