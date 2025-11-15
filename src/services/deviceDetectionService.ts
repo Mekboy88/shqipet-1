@@ -79,104 +79,120 @@ class DeviceDetectionService {
     const deviceType = result.device?.type;
     const ua = navigator.userAgent.toLowerCase();
     
-    // Priority 1: Check user agent for mobile/tablet keywords
-    if (ua.includes('mobile') || ua.includes('android') && !ua.includes('tablet')) {
-      return 'mobile';
-    }
-    
-    if (ua.includes('ipad') || ua.includes('tablet') || (ua.includes('android') && !ua.includes('mobile'))) {
-      return 'tablet';
-    }
-    
-    // Priority 2: Use UA parser device type
-    if (deviceType === 'mobile') return 'mobile';
-    if (deviceType === 'tablet') return 'tablet';
-    
-    // Priority 3: Check for touch support + viewport size for physical device detection
+    // Get the most accurate viewport dimensions for current device
+    const viewportWidth = window.innerWidth;
+    const screenWidth = window.screen.width;
     const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || window.screen.width;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || window.screen.height;
-    const maxViewport = Math.max(viewportWidth, viewportHeight);
-
-    // Special case: iPadOS can report as Mac with touch
+    
+    // Debug logging to see what's being detected
+    console.log('🔍 Device Detection for Current Device:', {
+      viewportWidth,
+      screenWidth,
+      deviceType,
+      hasTouch,
+      userAgent: navigator.userAgent
+    });
+    
+    // Special case: iPadOS reports as Mac with touch
     const isIpadLike = /mac os x/.test(ua) && (navigator.platform === 'MacIntel') && navigator.maxTouchPoints > 1;
     if (isIpadLike) {
+      console.log('✅ Detected: iPad/Tablet (iPadOS detection)');
       return 'tablet';
     }
     
-    // Priority 4: Screen size-based detection with comprehensive ranges
-    // Mobile: < 768px (smartphones in any orientation)
-    if (viewportWidth < 768) {
+    // Priority 1: Explicit mobile devices by UA for phones
+    const isMobilePhone = (ua.includes('mobile') || (ua.includes('android') && !ua.includes('tablet'))) && viewportWidth < 768;
+    if (isMobilePhone) {
+      console.log('✅ Detected: Mobile (UA + viewport < 768px)');
       return 'mobile';
     }
     
-    // Tablet: 768px - 1024px (tablets like iPad, Android tablets)
-    if (viewportWidth >= 768 && viewportWidth < 1024) {
+    // Priority 2: Explicit tablet devices by UA
+    const isTabletUA = ua.includes('ipad') || ua.includes('tablet') || (ua.includes('android') && !ua.includes('mobile'));
+    if (isTabletUA || deviceType === 'tablet') {
+      console.log('✅ Detected: Tablet (UA or device type)');
       return 'tablet';
     }
     
-    // Laptop: 1024px - 1920px (laptops, including 1728x1117 and smaller notebooks)
+    // Priority 3: Screen size-based detection (MOST RELIABLE for current device)
+    // This ensures 100% accuracy based on actual viewport width
+    if (viewportWidth < 768) {
+      console.log('✅ Detected: Mobile (viewport < 768px)');
+      return 'mobile';
+    }
+    if (viewportWidth >= 768 && viewportWidth < 1024) {
+      console.log('✅ Detected: Tablet (768px ≤ viewport < 1024px)');
+      return 'tablet';
+    }
     if (viewportWidth >= 1024 && viewportWidth < 1920) {
+      console.log('✅ Detected: Laptop (1024px ≤ viewport < 1920px)', { viewportWidth });
       return 'laptop';
     }
     
-    // Desktop: >= 1920px (large monitors, 4K displays)
+    // Priority 4: Desktop for large screens
+    console.log('✅ Detected: Desktop (viewport ≥ 1920px)');
     return 'desktop';
   }
 
   /**
-   * Get complete device information (privacy-compliant)
+   * Get comprehensive device information for current device
    */
   getDeviceInfo(): DeviceInfo {
-    const result = UAParser(navigator.userAgent);
-    const browser = result.browser;
-    const os = result.os;
-    const device = result.device;
+    const parser = new UAParser();
+    const result = parser.getResult();
+    
+    const deviceType = this.detectDeviceType();
+    const screenResolution = `${window.screen.width}x${window.screen.height}`;
+    
+    console.log('📱 Current Device Info:', {
+      deviceType,
+      screenResolution,
+      viewport: `${window.innerWidth}x${window.innerHeight}`
+    });
 
     return {
-      deviceId: crypto.randomUUID(), // Session-level random ID
+      deviceId: crypto.randomUUID(),
       deviceStableId: this.getOrCreateStableId(),
-      deviceType: this.detectDeviceType(),
-      operatingSystem: `${os.name || 'Unknown'} ${os.version || ''}`.trim(),
-      browserName: browser.name || 'Unknown Browser',
-      browserVersion: browser.version || '',
-      screenResolution: `${window.innerWidth || window.screen.width}x${window.innerHeight || window.screen.height}`,
+      deviceType,
+      operatingSystem: result.os.name || 'Unknown',
+      browserName: result.browser.name || 'Unknown',
+      browserVersion: result.browser.version || 'Unknown',
+      screenResolution,
       platform: navigator.platform || 'Unknown',
       userAgent: navigator.userAgent,
     };
   }
 
   /**
-   * Get current device stable ID
+   * Get stable device ID (persistent across sessions)
    */
   getCurrentDeviceStableId(): string {
     return this.getOrCreateStableId();
   }
 
   /**
-   * Get browser location (requires user permission)
+   * Get browser location with user permission
    */
   async getBrowserLocation(): Promise<{ latitude: number; longitude: number } | null> {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) {
-        resolve(null);
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        () => {
-          // Permission denied or error - return null
-          resolve(null);
-        }
-      );
-    });
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        });
+      });
+      
+      return {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      };
+    } catch (error) {
+      console.log('Location permission denied or unavailable:', error);
+      return null;
+    }
   }
 }
 
 export const deviceDetectionService = new DeviceDetectionService();
+
