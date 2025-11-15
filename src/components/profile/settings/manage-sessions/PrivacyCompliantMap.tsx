@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import type mapboxgl from 'mapbox-gl';
+// CSS will be lazy-loaded at runtime to avoid bundling worker issues
 
 interface PrivacyCompliantMapProps {
   latitude: number;
@@ -29,56 +29,75 @@ export const PrivacyCompliantMap = ({
     }
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
 
-    // Round coordinates to 2 decimals for privacy (approx 1.1km precision)
-    const roundedLat = Math.round(latitude * 100) / 100;
-    const roundedLng = Math.round(longitude * 100) / 100;
+    let mapInstance: mapboxgl.Map | null = null;
+    let cancelled = false;
 
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [roundedLng, roundedLat],
-      zoom: 9, // City level zoom, not street level
-      interactive: false, // Disable all interactions
-      attributionControl: false,
-    });
+    (async () => {
+      try {
+        const [{ default: mapboxgl }] = await Promise.all([
+          import('mapbox-gl'),
+          import('mapbox-gl/dist/mapbox-gl.css'),
+        ]);
 
-    // Add blur effect for privacy
-    map.current.on('load', () => {
-      // Add a circle to show approximate location area (5km radius)
-      if (map.current) {
-        map.current.addLayer({
-          id: 'location-circle',
-          type: 'circle',
-          source: {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              geometry: {
-                type: 'Point',
-                coordinates: [roundedLng, roundedLat]
-              },
-              properties: {}
-            }
-          },
-          paint: {
-            'circle-radius': 40,
-            'circle-color': '#3b82f6',
-            'circle-opacity': 0.3,
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#3b82f6',
-            'circle-stroke-opacity': 0.8
-          }
+        if (cancelled || !mapContainer.current) return;
+
+        // Round coordinates to 2 decimals for privacy (approx 1.1km precision)
+        const roundedLat = Math.round(latitude * 100) / 100;
+        const roundedLng = Math.round(longitude * 100) / 100;
+
+        mapboxgl.accessToken = mapboxToken;
+
+        mapInstance = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [roundedLng, roundedLat],
+          zoom: 9, // City level zoom, not street level
+          interactive: false, // Disable all interactions
+          attributionControl: false,
         });
+
+        // Add blur effect for privacy
+        mapInstance.on('load', () => {
+          if (!mapInstance) return;
+          // Add a circle to show approximate location area (5km radius)
+          mapInstance.addLayer({
+            id: 'location-circle',
+            type: 'circle',
+            source: {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates: [roundedLng, roundedLat],
+                },
+                properties: {},
+              },
+            },
+            paint: {
+              'circle-radius': 40,
+              'circle-color': '#3b82f6',
+              'circle-opacity': 0.3,
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#3b82f6',
+              'circle-stroke-opacity': 0.8,
+            },
+          });
+        });
+
+        map.current = mapInstance;
+      } catch (err) {
+        console.error('[Mapbox] Failed to load mapbox-gl', err);
       }
-    });
+    })();
 
     return () => {
-      map.current?.remove();
+      cancelled = true;
+      mapInstance?.remove();
+      map.current = null;
     };
   }, [latitude, longitude, mapboxToken]);
 
