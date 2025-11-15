@@ -1979,6 +1979,8 @@ export type Database = {
         | "user"
         | "super_admin"
         | "platform_owner_root"
+        | "developer"
+        | "support"
       device_type:
         | "mobile_ios"
         | "mobile_android"
@@ -2129,6 +2131,8 @@ export const Constants = {
         "user",
         "super_admin",
         "platform_owner_root",
+        "developer",
+        "support",
       ],
       device_type: [
         "mobile_ios",
