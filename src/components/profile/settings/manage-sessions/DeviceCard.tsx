@@ -80,8 +80,8 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick }: DeviceCardProp
                 <p className="break-words">{locationText}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-muted-foreground">Screen</p>
-                <p>{session.screen_resolution || 'Unknown'}</p>
+                <p className="text-muted-foreground">Device Category</p>
+                <p className="capitalize">{deviceLabel}</p>
               </div>
             </div>
           </div>

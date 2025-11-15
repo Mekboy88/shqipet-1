@@ -118,12 +118,8 @@ export const DeviceDetailsModal = ({
                   <span>{session.browser_name || 'Unknown'} {session.browser_version || ''}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Platform:</span>
-                  <span>{session.platform || 'Unknown'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Screen Resolution:</span>
-                  <span>{session.screen_resolution || 'Unknown'}</span>
+                  <span className="text-muted-foreground">Device Category:</span>
+                  <span className="capitalize">{session.device_type || 'Unknown'}</span>
                 </div>
               </div>
             </div>
