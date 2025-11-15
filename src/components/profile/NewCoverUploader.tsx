@@ -140,6 +140,7 @@ const NewCoverUploader: React.FC<NewCoverUploaderProps> = ({
         height={height}
         className={className}
         overridePosition={isDragMode ? dragPosition : undefined}
+        isDragging={isDragMode}
         onMouseMove={handleMouseMove}
         style={{
           cursor: isDragMode ? 'grabbing' : 'grab'
