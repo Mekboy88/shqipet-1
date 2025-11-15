@@ -3,7 +3,15 @@ import type { Database } from '@/integrations/supabase/types';
 
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
-// Map device_type to icon component
+/**
+ * Map device_type to icon component based on screen size detection
+ * 
+ * Screen size ranges:
+ * - Mobile (< 768px): Smartphone icon
+ * - Tablet (768px - 1024px): Tablet icon
+ * - Laptop (1024px - 1920px): Laptop icon
+ * - Desktop (>= 1920px): Monitor icon
+ */
 export const getDeviceIcon = (deviceType: string | null) => {
   switch (deviceType) {
     case 'mobile':
@@ -18,7 +26,15 @@ export const getDeviceIcon = (deviceType: string | null) => {
   }
 };
 
-// Map device_type to display label
+/**
+ * Map device_type to display label with screen size context
+ * 
+ * Labels match the comprehensive screen size ranges:
+ * - Mobile: < 768px (320px - 768px range)
+ * - Tablet: 768px - 1024px
+ * - Laptop: 1024px - 1920px (includes 1728x1117)
+ * - Desktop: >= 1920px (Full HD and above)
+ */
 export const getDeviceLabel = (deviceType: string | null): string => {
   switch (deviceType) {
     case 'mobile':
