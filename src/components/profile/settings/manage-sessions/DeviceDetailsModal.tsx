@@ -131,14 +131,14 @@ export const DeviceDetailsModal = ({
           </div>
         </DialogHeader>
 
-        <div className="flex flex-1 overflow-hidden">
-          <div className="flex-1 px-4 py-3 overflow-y-auto space-y-3">
+        <div className="flex flex-1 overflow-hidden gap-2">
+          <div className="flex-1 px-3 py-3 overflow-y-auto space-y-3">
             <div className="space-y-1.5">
-              <h4 className="font-semibold text-xs flex items-center gap-1.5">
-                <Monitor size={14} />
+              <h4 className="font-semibold text-sm flex items-center gap-1.5">
+                <Monitor size={16} />
                 Device Information
               </h4>
-              <div className="text-xs space-y-1">
+              <div className="text-sm space-y-1">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Device Type:</span>
                   <span>{session.device_type || 'Unknown'}</span>
@@ -160,11 +160,11 @@ export const DeviceDetailsModal = ({
 
             {(session.city || session.country) && (
               <div className="space-y-1.5">
-                <h4 className="font-semibold text-xs flex items-center gap-1.5">
-                  <MapPin size={14} />
+                <h4 className="font-semibold text-sm flex items-center gap-1.5">
+                  <MapPin size={16} />
                   Location Information
                 </h4>
-                <div className="text-xs space-y-1">
+                <div className="text-sm space-y-1">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Location:</span>
                     <span>{locationText}</span>
@@ -178,7 +178,7 @@ export const DeviceDetailsModal = ({
                   {session.latitude && session.longitude && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Coordinates:</span>
-                      <span className="text-xs font-mono">
+                      <span className="text-sm font-mono">
                         {session.latitude.toFixed(4)}, {session.longitude.toFixed(4)}
                       </span>
                     </div>
@@ -188,11 +188,11 @@ export const DeviceDetailsModal = ({
             )}
 
             <div className="space-y-1.5">
-              <h4 className="font-semibold text-xs flex items-center gap-1.5">
-                <Clock size={14} />
+              <h4 className="font-semibold text-sm flex items-center gap-1.5">
+                <Clock size={16} />
                 Session Information
               </h4>
-              <div className="text-xs space-y-1">
+              <div className="text-sm space-y-1">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Session Started:</span>
                   <span>{getSessionStartTime()}</span>
@@ -213,11 +213,11 @@ export const DeviceDetailsModal = ({
             </div>
 
             <div className="space-y-1.5">
-              <h4 className="font-semibold text-xs flex items-center gap-1.5">
-                <Shield size={14} />
+              <h4 className="font-semibold text-sm flex items-center gap-1.5">
+                <Shield size={16} />
                 Security Information
               </h4>
-              <div className="text-xs space-y-1">
+              <div className="text-sm space-y-1">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Trusted Device:</span>
                   <div className="flex items-center gap-2">
@@ -237,7 +237,7 @@ export const DeviceDetailsModal = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Session ID:</span>
-                  <span className="text-xs font-mono truncate max-w-[150px]">
+                  <span className="text-sm font-mono truncate max-w-[150px]">
                     ...{session.session_id.slice(-12)}
                   </span>
                 </div>
@@ -250,8 +250,8 @@ export const DeviceDetailsModal = ({
           </div>
 
           {session.latitude && session.longitude && (
-            <div className="w-[400px] border-l">
-              <PrivacyCompliantMap 
+            <div className="flex-1 border-l">
+              <PrivacyCompliantMap
                 latitude={session.latitude} 
                 longitude={session.longitude}
                 city={session.city}
