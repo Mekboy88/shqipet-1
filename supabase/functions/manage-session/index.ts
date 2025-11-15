@@ -81,6 +81,17 @@ Deno.serve(async (req) => {
         detectedType: detectedDeviceType
       });
 
+      // Check if this device already exists and is trusted
+      const { data: existingSession } = await supabase
+        .from('user_sessions')
+        .select('is_trusted')
+        .eq('user_id', user.id)
+        .eq('device_stable_id', sessionData.deviceStableId)
+        .single();
+
+      // Preserve trust status for existing devices, default to false for new devices
+      const isTrusted = existingSession?.is_trusted ?? false;
+
       const { data, error } = await supabase
         .from('user_sessions')
         .upsert({
@@ -95,7 +106,7 @@ Deno.serve(async (req) => {
           platform: sessionData.platform,
           user_agent: sessionData.userAgent,
           is_current_device: true,
-          is_trusted: false,
+          is_trusted: isTrusted,
           ...locationData,
         }, {
           onConflict: 'user_id,device_stable_id',
