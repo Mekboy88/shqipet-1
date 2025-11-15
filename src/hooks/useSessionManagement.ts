@@ -19,6 +19,13 @@ export const useSessionManagement = () => {
 
     const registerSession = async () => {
       try {
+        // Ensure we have a valid session before calling the edge function
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.error('No active session found');
+          return;
+        }
+
         const deviceInfo = deviceDetectionService.getDeviceInfo();
         const location = await deviceDetectionService.getBrowserLocation();
 
@@ -51,6 +58,13 @@ export const useSessionManagement = () => {
     setError(null);
 
     try {
+      // Verify session is active
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('No active session');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('user_sessions')
         .select('*')
