@@ -86,17 +86,6 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: Devi
                 ) : (
                   <Badge variant="outline" className="text-xs">Not Trusted</Badge>
                 )}
-                {!isCurrentDevice && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRevoke}
-                    className="h-7 px-2"
-                  >
-                    <LogOut size={14} className="mr-1" />
-                    <span className="text-xs">Log Out</span>
-                  </Button>
-                )}
               </div>
             </div>
 
@@ -144,6 +133,20 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: Devi
                 <p className="capitalize">{deviceLabel}</p>
               </div>
             </div>
+
+            {!isCurrentDevice && (
+              <div className="pt-3 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRevoke}
+                  className="w-full bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/20"
+                >
+                  <LogOut size={14} className="mr-2" />
+                  Log Out from This Device
+                </Button>
+              </div>
+            )}
           </div>
 
           {session.latitude && session.longitude && (
