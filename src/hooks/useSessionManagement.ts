@@ -17,16 +17,22 @@ export const useSessionManagement = () => {
   useEffect(() => {
     if (!user) return;
 
+    let isRegistering = false;
     const registerSession = async () => {
+      // Prevent duplicate registration calls
+      if (isRegistering) return;
+      isRegistering = true;
+
       try {
         // Ensure we have a valid session before calling the edge function
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           console.error('No active session found');
+          isRegistering = false;
           return;
         }
 
-        const deviceInfo = deviceDetectionService.getDeviceInfo();
+        const deviceInfo = await deviceDetectionService.getDeviceInfo();
         const location = await deviceDetectionService.getBrowserLocation();
 
         const { data, error } = await supabase.functions.invoke('manage-session', {
@@ -45,6 +51,8 @@ export const useSessionManagement = () => {
       } catch (err: any) {
         console.error('Failed to register session:', err);
         toast.error('Failed to register device session');
+      } finally {
+        isRegistering = false;
       }
     };
 
