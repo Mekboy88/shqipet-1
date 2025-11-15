@@ -143,6 +143,7 @@ const ManageSessionsForm = () => {
               session={session}
               isCurrentDevice={session.device_stable_id === currentDeviceId}
               onClick={() => handleCardClick(session)}
+              onTrustDevice={() => trustDevice(session.device_stable_id)}
               onRevoke={() => revokeSession(session.device_stable_id)}
             />
           ))}

@@ -1,4 +1,4 @@
-import { Circle, LogOut, Clock } from 'lucide-react';
+import { Circle, LogOut, Clock, ShieldCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,10 @@ interface DeviceCardProps {
   isCurrentDevice: boolean;
   onClick: () => void;
   onRevoke?: () => void;
+  onTrustDevice?: () => void;
 }
 
-export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: DeviceCardProps) => {
+export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke, onTrustDevice }: DeviceCardProps) => {
   const DeviceIcon = getDeviceIcon(session.device_type);
   const BrowserIcon = getBrowserIcon(session.browser_name);
   const displayTitle = deriveTitle(session.browser_name, session.operating_system, session.device_type);
@@ -65,6 +66,11 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: Devi
   const handleRevoke = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onRevoke) onRevoke();
+  };
+
+  const handleTrustDevice = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onTrustDevice) onTrustDevice();
   };
 
   return (
@@ -135,6 +141,20 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke }: Devi
                 <p className="capitalize">{deviceLabel}</p>
               </div>
             </div>
+
+            {isCurrentDevice && !session.is_trusted && (
+              <div className="pt-3 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTrustDevice}
+                  className="w-full bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20"
+                >
+                  <ShieldCheck size={14} className="mr-2" />
+                  Trust This Device
+                </Button>
+              </div>
+            )}
 
             {!isCurrentDevice && (
               <div className="pt-3 border-t">
