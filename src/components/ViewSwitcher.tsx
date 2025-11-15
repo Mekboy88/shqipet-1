@@ -9,6 +9,10 @@ import { VideoSettingsProvider } from "@/contexts/VideoSettingsContext";
 import { PostsProvider } from "@/contexts/PostsContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PublishingProgressProvider } from "@/contexts/PublishingProgressContext";
+import { SessionsProvider } from '@/contexts/SessionsContext';
+import { ProfileSettingsProvider } from '@/contexts/ProfileSettingsContext';
+import GlobalSessionRevocationMonitor from '@/components/auth/GlobalSessionRevocationMonitor';
+import SessionBootstrapper from '@/components/sessions/SessionBootstrapper';
 
 import LaptopApp from '@/components/apps/LaptopApp';
 import DesktopApp from '@/components/apps/DesktopApp';
@@ -327,29 +331,35 @@ const ViewSwitcher: React.FC = () => {
       <RootLoadingWrapper>
         <SafetyWrapper>
           <AuthProvider>
-            <QueryClientProvider client={queryClient}>
-              <VideoSettingsProvider>
-                <ThemeProvider>
-                  <TooltipProvider>
-                    <BrowserRouter>
-                      <RoutePersistence />
-                      <CentralizedAuthGuard>
-                        <PostsProvider>
-                             <PublishingProgressProvider>
-                             <div className={`app-container is-${layoutType}-view vw-100 vh-100`} data-auth-ready>
-                               <AppComponent />
-                               <DesktopMobileToggle />
-                             </div>
-                             <GlobalScrollIndicator />
-                             {/* Removed toast system - using notification system */}
-                           </PublishingProgressProvider>
-                        </PostsProvider>
-                      </CentralizedAuthGuard>
-                    </BrowserRouter>
-                  </TooltipProvider>
-                </ThemeProvider>
-              </VideoSettingsProvider>
-            </QueryClientProvider>
+            <SessionsProvider>
+              <SessionBootstrapper />
+              <GlobalSessionRevocationMonitor />
+              <QueryClientProvider client={queryClient}>
+                <VideoSettingsProvider>
+                  <ProfileSettingsProvider>
+                    <ThemeProvider>
+                      <TooltipProvider>
+                        <BrowserRouter>
+                          <RoutePersistence />
+                          <CentralizedAuthGuard>
+                            <PostsProvider>
+                                 <PublishingProgressProvider>
+                                 <div className={`app-container is-${layoutType}-view vw-100 vh-100`} data-auth-ready>
+                                   <AppComponent />
+                                   <DesktopMobileToggle />
+                                 </div>
+                                 <GlobalScrollIndicator />
+                                 {/* Removed toast system - using notification system */}
+                               </PublishingProgressProvider>
+                            </PostsProvider>
+                          </CentralizedAuthGuard>
+                        </BrowserRouter>
+                      </TooltipProvider>
+                    </ThemeProvider>
+                  </ProfileSettingsProvider>
+                </VideoSettingsProvider>
+              </QueryClientProvider>
+            </SessionsProvider>
           </AuthProvider>
         </SafetyWrapper>
       </RootLoadingWrapper>
