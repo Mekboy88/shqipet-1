@@ -143,7 +143,7 @@ const SessionBootstrapper = () => {
 
         console.log('📍 Registering session with device info:', deviceInfo.deviceStableId, 'resetTabs:', sessionData.resetTabs);
 
-        const { error: invokeError } = await supabase.functions.invoke('manage-session', {
+        const { data: response, error: invokeError } = await supabase.functions.invoke('manage-session', {
           body: {
             action: 'upsert',
             sessionData,
@@ -172,7 +172,7 @@ const SessionBootstrapper = () => {
 
         registered = true;
         sessionStorage.setItem(TAB_FLAG, '1');
-        console.log('✅ Session registered successfully');
+        console.log('✅ Session registered successfully, new tab count:', response?.count || 'unknown');
       } catch (err: any) {
         console.error('Failed to register session:', err);
         toast.error('Failed to register device session', { description: err.message });
@@ -192,13 +192,18 @@ const SessionBootstrapper = () => {
         const deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
         console.log('📍 Tab closing/hidden, decrementing count for:', deviceStableId);
 
-        await supabase.functions.invoke('manage-session', {
+        const { data: response, error: decrementError } = await supabase.functions.invoke('manage-session', {
           body: {
             action: 'tab_close',
             deviceStableId,
           },
         });
-        console.log('✅ Tab count decremented successfully');
+        
+        if (decrementError) {
+          console.error('❌ Tab decrement error:', decrementError);
+        } else {
+          console.log('✅ Tab count decremented successfully, new count:', response?.count || 'unknown');
+        }
       } catch (err) {
         console.error('Failed to decrement tab count (best effort):', err);
       } finally {
