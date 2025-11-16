@@ -169,7 +169,7 @@ export const DeviceDetailsModal = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Active Tabs:</span>
-                  <span className="font-medium">{session.active_tabs_count || 1} {(session.active_tabs_count || 1) === 1 ? 'tab' : 'tabs'}</span>
+                  <span className="font-medium">{session.active_tabs_count ?? 0} {(session.active_tabs_count ?? 0) === 1 ? 'tab' : 'tabs'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Device Category:</span>
