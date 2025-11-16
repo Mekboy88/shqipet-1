@@ -19,12 +19,31 @@ const SessionBootstrapper = () => {
     let registered = sessionStorage.getItem(TAB_FLAG) === '1';
     let decremented = false;
 
+    // Simple cross-tab probe using BroadcastChannel
+    const channel = new BroadcastChannel('lovable_session_tabs');
+    let gotPong = false;
+
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (data?.type === 'ping') {
+        channel.postMessage({ type: 'pong' });
+      } else if (data?.type === 'pong') {
+        gotPong = true;
+      }
+    };
+
     const registerSession = async () => {
       if (registered) {
         console.log('ℹ️ Session already registered for this tab — skipping');
         return;
       }
       try {
+        // Probe for other open tabs
+        gotPong = false;
+        channel.postMessage({ type: 'ping' });
+        await new Promise((r) => setTimeout(r, 200));
+        const hasPeers = gotPong;
+
         const deviceInfo = deviceDetectionService.getDeviceInfo();
         const location = await deviceDetectionService.getBrowserLocation().catch(() => null);
 
@@ -32,9 +51,10 @@ const SessionBootstrapper = () => {
           ...deviceInfo,
           latitude: location?.latitude,
           longitude: location?.longitude,
-        };
+          resetTabs: !hasPeers, // if no peers responded, re-baseline to 1
+        } as const;
 
-        console.log('📍 Registering session with device info:', deviceInfo.deviceStableId);
+        console.log('📍 Registering session with device info:', deviceInfo.deviceStableId, 'resetTabs:', sessionData.resetTabs);
 
         const { error: invokeError } = await supabase.functions.invoke('manage-session', {
           body: {

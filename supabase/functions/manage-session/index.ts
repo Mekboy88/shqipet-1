@@ -96,15 +96,35 @@ Deno.serve(async (req) => {
         ...locationData,
       };
 
-      // Check if a session row already exists to decide delta (0 on first insert, 1 on updates)
+      // Check if a session row already exists and compute smart delta
       const { data: existingRow } = await supabase
         .from('user_sessions')
-        .select('id')
+        .select('id, active_tabs_count, updated_at')
         .eq('user_id', user.id)
         .eq('device_stable_id', normalizedId)
         .maybeSingle();
 
-      const delta = existingRow ? 1 : 0;
+      // New smart delta policy:
+      // - First insert => delta 0 (bump_tabs_count inserts row with count=1)
+      // - Subsequent tab opens => delta 1
+      // - If the existing row looks stale (no updates for a while) or wildly inflated,
+      //   re-baseline the count back to 1 by using a negative delta.
+      let delta = 0;
+      if (existingRow) {
+        const currentCount = typeof existingRow.active_tabs_count === 'number' ? existingRow.active_tabs_count : 0;
+        const lastUpdateMs = existingRow.updated_at ? new Date(existingRow.updated_at).getTime() : 0;
+        const ageMs = Date.now() - lastUpdateMs;
+        const STALE_MS = 10 * 60 * 1000; // 10 minutes
+        const looksInflated = currentCount > 20; // simple guardrail
+
+        if (ageMs > STALE_MS || looksInflated) {
+          // Re-baseline to 1
+          delta = 1 - currentCount;
+        } else {
+          // Normal new tab
+          delta = 1;
+        }
+      }
 
       // Atomic increment via RPC (never below 1, single row per device)
       const { data: count, error: rpcError } = await supabase.rpc('bump_tabs_count', {
