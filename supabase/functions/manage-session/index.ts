@@ -205,21 +205,40 @@ Deno.serve(async (req) => {
 
       const targetId = (targetDeviceStableId || '').toLowerCase();
 
-      // Use RPC to decrement tab count (clamped at 0)
-      const { data: newCount, error: rpcError } = await supabase.rpc('bump_tabs_count', {
-        p_device_stable_id: targetId,
-        p_delta: -1,
-        p_device: {},
-      });
+      // Fetch current count, decrement, and update
+      const { data: session, error: fetchError } = await supabase
+        .from('user_sessions')
+        .select('active_tabs_count')
+        .eq('user_id', user.id)
+        .eq('device_stable_id', targetId)
+        .single();
 
-      if (rpcError) {
-        console.error('RPC bump_tabs_count error:', rpcError);
+      if (fetchError || !session) {
+        console.error('Tab close fetch error:', fetchError);
         return new Response(
-          JSON.stringify({ error: rpcError.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Session not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
+      const newCount = Math.max(session.active_tabs_count - 1, 0);
+
+      const { error: updateError } = await supabase
+        .from('user_sessions')
+        .update({ 
+          active_tabs_count: newCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .eq('device_stable_id', targetId);
+
+      if (updateError) {
+        console.error('Tab close update error:', updateError);
+        return new Response(
+          JSON.stringify({ error: updateError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       console.log(`✅ Tab closed for device ${targetId}, new count: ${newCount}`);
       return new Response(
         JSON.stringify({ success: true, count: newCount }),
