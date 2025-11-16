@@ -178,7 +178,7 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { error: invokeError } = await supabase.functions.invoke('manage-session', {
         body: {
           action: 'revoke',
-          deviceStableId,
+          deviceStableId: deviceStableId.toLowerCase(), // Normalize for consistent matching
         },
       });
 
@@ -206,7 +206,7 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         await supabase.functions.invoke('manage-session', {
           body: {
             action: 'revoke',
-            deviceStableId: session.device_stable_id,
+            deviceStableId: session.device_stable_id.toLowerCase(), // Normalize for consistent matching
           },
         });
       }
@@ -224,22 +224,22 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     const bc = new BroadcastChannel('lovable_session_tabs');
     
-    const adjustTabCount = (deviceId: string, delta: number, timestamp: number) => {
+    const adjustTabCount = (deviceId: string, delta: number, sequence: number) => {
       setSessions(prev => prev.map(s => {
         if (s.device_stable_id?.toLowerCase() === deviceId?.toLowerCase()) {
-          // Only apply if this update is newer than the last one we processed
-          const lastUpdate = (s as any).__lastOptimisticUpdate || 0;
-          if (timestamp < lastUpdate) {
-            console.log(`⏭️ Skipping stale optimistic update (${timestamp} < ${lastUpdate})`);
+          // Use sequence instead of timestamp to avoid clock skew issues
+          const lastSequence = (s as any).__optimisticSequence || 0;
+          if (sequence <= lastSequence) {
+            console.log(`⏭️ Skipping duplicate optimistic update (seq ${sequence} <= ${lastSequence})`);
             return s;
           }
           
           const newCount = Math.max((s.active_tabs_count || 0) + delta, 0);
-          console.log(`📊 Optimistic update: ${s.device_stable_id} ${delta > 0 ? '+' : ''}${delta} → ${newCount} tabs`);
+          console.log(`📊 Optimistic update: ${s.device_stable_id} ${delta > 0 ? '+' : ''}${delta} → ${newCount} tabs (seq ${sequence})`);
           return { 
             ...s, 
             active_tabs_count: newCount,
-            __lastOptimisticUpdate: timestamp 
+            __optimisticSequence: sequence 
           };
         }
         return s;
@@ -247,13 +247,13 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     
     bc.onmessage = (e) => {
-      const { type, deviceStableId, timestamp } = e.data || {};
-      if (!deviceStableId || !timestamp) return;
+      const { type, deviceStableId, sequence } = e.data || {};
+      if (!deviceStableId || typeof sequence !== 'number') return;
       
       if (type === 'tab_opened') {
-        adjustTabCount(deviceStableId, +1, timestamp);
+        adjustTabCount(deviceStableId, +1, sequence);
       } else if (type === 'tab_closed') {
-        adjustTabCount(deviceStableId, -1, timestamp);
+        adjustTabCount(deviceStableId, -1, sequence);
       }
     };
     
@@ -313,19 +313,18 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 const updated = [...prev];
                 const oldSession = updated[index];
                 
-                // ONLY update if realtime count is different from optimistic count
-                // This prevents stale DB updates from overwriting fresh optimistic updates
-                const optimisticTimestamp = (oldSession as any).__lastOptimisticUpdate || 0;
+                const optimisticSeq = (oldSession as any).__optimisticSequence || 0;
                 const realtimeAge = Date.now() - new Date(updatedSession.updated_at).getTime();
                 
-                if (optimisticTimestamp > 0 && realtimeAge > 1000) {
-                  // Optimistic update is fresher, keep it
-                  console.log(`⏭️ Keeping optimistic count (${oldSession.active_tabs_count}) over stale realtime (${updatedSession.active_tabs_count})`);
+                // If we have optimistic updates AND realtime data is old, keep optimistic
+                if (optimisticSeq > 0 && realtimeAge > 800) {
+                  console.log(`⏭️ Keeping optimistic count (${oldSession.active_tabs_count}) over stale realtime (${updatedSession.active_tabs_count}), age: ${realtimeAge}ms`);
                   return prev;
                 }
                 
-                updated[index] = { ...oldSession, ...updatedSession };
-                console.log(`📊 Tab count updated for device ${updatedSession.device_stable_id}: ${updatedSession.active_tabs_count}`);
+                // Apply realtime update and clear optimistic sequence
+                updated[index] = { ...oldSession, ...updatedSession, __optimisticSequence: 0 } as UserSession;
+                console.log(`📊 Realtime tab count: ${updatedSession.device_stable_id} → ${updatedSession.active_tabs_count} tabs`);
                 
                 // Only run deduplication if hardware characteristics changed (not just tab count)
                 if (

@@ -34,6 +34,9 @@ const SessionBootstrapper = () => {
       sessionStorage.setItem(TAB_ID_KEY, tabId);
     }
 
+    // Sequence counter for BroadcastChannel messages (avoids clock skew issues)
+    let broadcastSequence = 0;
+
     // BroadcastChannel for cross-tab coordination
     const channel = new BroadcastChannel('lovable_session_tabs');
     let gotPong = false;
@@ -187,7 +190,7 @@ const SessionBootstrapper = () => {
           type: 'tab_opened', 
           deviceStableId: deviceInfo.deviceStableId, 
           tabId,
-          timestamp: Date.now()
+          sequence: ++broadcastSequence // Use incrementing sequence
         });
       } catch (err: any) {
         console.error('Failed to register session:', err);
@@ -227,7 +230,7 @@ const SessionBootstrapper = () => {
               type: 'tab_closed', 
               deviceStableId, 
               tabId,
-              timestamp: Date.now()
+              sequence: ++broadcastSequence // Use incrementing sequence
             });
           }
         }

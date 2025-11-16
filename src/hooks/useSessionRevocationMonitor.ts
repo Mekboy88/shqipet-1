@@ -45,57 +45,84 @@ export const useSessionRevocationMonitor = () => {
               filter: `user_id=eq.${user.id}`,
             },
             async (payload) => {
-              console.log('🚨 Revocation signal received:', payload.new);
+              console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              console.log('🚨 REVOCATION SIGNAL RECEIVED (INSERT event)');
+              console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              console.log('Payload:', JSON.stringify(payload, null, 2));
               
-              const revokedDeviceId = (payload.new?.device_stable_id || '').toLowerCase();
-              const currentDeviceId = deviceStableIdRef.current?.toLowerCase();
+              const rawRevokedId = payload.new?.device_stable_id;
+              const rawCurrentId = deviceStableIdRef.current;
               
-              console.log('🔍 Comparing revoked device with current:');
-              console.log('   Revoked:', revokedDeviceId);
-              console.log('   Current:', currentDeviceId);
-              console.log('   Match:', revokedDeviceId === currentDeviceId);
+              console.log('📋 Raw IDs (before normalization):');
+              console.log('  Revoked (from DB):', rawRevokedId);
+              console.log('  Current (from ref):', rawCurrentId);
               
-              // Check if this revocation is for the current device (case-insensitive)
+              const revokedDeviceId = (rawRevokedId || '').toLowerCase().trim();
+              const currentDeviceId = (rawCurrentId || '').toLowerCase().trim();
+              
+              console.log('📋 Normalized IDs (lowercase + trimmed):');
+              console.log('  Revoked:', revokedDeviceId);
+              console.log('  Current:', currentDeviceId);
+              console.log('  Length:', `revoked=${revokedDeviceId.length}, current=${currentDeviceId.length}`);
+              console.log('  Match:', revokedDeviceId === currentDeviceId);
+              console.log('  Byte comparison:', revokedDeviceId.split('').map((c, i) => 
+                `${i}: ${c.charCodeAt(0)} ${c === currentDeviceId[i] ? '✓' : '✗'}`
+              ));
+              
               if (revokedDeviceId === currentDeviceId) {
-                console.log('⚠️ INSTANT REVOCATION: Current device session revoked! Logging out...');
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('⚠️ MATCH CONFIRMED - LOGGING OUT THIS DEVICE');
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 
                 toast.error('Your session was revoked from another device', {
                   description: 'You have been logged out for security reasons.',
                   duration: 5000,
                 });
 
-                // Give toast time to show
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // Perform logout
+                console.log('🚪 Calling signOut()...');
                 await signOut();
+                console.log('✅ signOut() completed');
               } else {
-                console.log('✅ Revocation signal for different device, ignoring');
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('✅ NO MATCH - This revocation is for a different device');
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
               }
             }
           )
           .subscribe((status, err) => {
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('📡 Session Revocation Monitor Status:', status);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
             if (err) {
-              console.error('❌ Session revocation monitor subscription error:', err);
+              console.error('❌ Subscription error:', err);
               isSettingUpRef.current = false;
               return;
             }
             
-            console.log('📡 Session revocation monitor status:', status);
-            
             if (status === 'SUBSCRIBED') {
-              console.log('✅ Session revocation monitor: ACTIVE and listening');
+              console.log('✅ MONITOR ACTIVE - Listening for revocations');
+              console.log('   User ID:', user.id);
+              console.log('   Device ID:', deviceStableIdRef.current);
+              console.log('   Channel:', channelName);
               channelRef.current = channel;
               isSettingUpRef.current = false;
             } else if (status === 'CHANNEL_ERROR') {
-              console.error('❌ Session revocation monitor: CHANNEL ERROR');
+              console.error('❌ CHANNEL ERROR - Monitor failed to subscribe');
               isSettingUpRef.current = false;
             } else if (status === 'TIMED_OUT') {
-              console.error('⏱️ Session revocation monitor: TIMED OUT - retrying...');
-              isSettingUpRef.current = false;
-              // Could add retry logic here if needed
+              console.warn('⏱️ SUBSCRIPTION TIMED OUT - Retrying in 2 seconds...');
+              setTimeout(() => {
+                if (user && !channelRef.current) {
+                  console.log('🔄 Retrying subscription...');
+                  isSettingUpRef.current = false;
+                  setupMonitoring(); // Retry once
+                }
+              }, 2000);
             } else if (status === 'CLOSED') {
-              console.log('🔌 Session revocation monitor: CLOSED');
+              console.log('🔒 Channel closed');
               isSettingUpRef.current = false;
             }
           });
