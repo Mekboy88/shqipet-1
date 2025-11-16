@@ -119,8 +119,9 @@ Deno.serve(async (req) => {
         detectedType: detectedDeviceType,
       });
 
-      // Build device payload for RPC
-      let normalizedId = (sessionData.deviceStableId || '').toLowerCase();
+      // Use the device_stable_id from client, normalized to lowercase
+      const normalizedId = (sessionData.deviceStableId || '').toLowerCase();
+      
       const devicePayload = {
         deviceId: sessionData.deviceId,
         detectedDeviceType,
@@ -132,20 +133,6 @@ Deno.serve(async (req) => {
         userAgent: sessionData.userAgent,
         ...locationData,
       };
-
-      // Canonicalize: reuse the latest row with same UA+platform if it exists (prevents per-tab cards)
-      const { data: canon } = await supabase
-        .from('user_sessions')
-        .select('device_stable_id, created_at')
-        .eq('user_id', user.id)
-        .eq('user_agent', sessionData.userAgent)
-        .eq('platform', sessionData.platform)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (canon?.device_stable_id) {
-        normalizedId = (canon.device_stable_id || '').toLowerCase();
-      }
 
       // Atomic increment via RPC (never below 1, single row per device)
       const { data: count, error: rpcError } = await supabase.rpc('bump_tabs_count', {
