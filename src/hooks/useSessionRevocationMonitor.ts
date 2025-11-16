@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { perTabSupabase } from '@/integrations/supabase/perTabClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { deviceDetectionService } from '@/services/deviceDetectionService';
 import { toast } from 'sonner';
@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 export const useSessionRevocationMonitor = () => {
   const { user, signOut } = useAuth();
   const deviceStableIdRef = useRef<string | null>(null);
-  const channelRef = useRef<ReturnType<typeof perTabSupabase.channel> | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isSettingUpRef = useRef(false);
 
   useEffect(() => {
@@ -27,12 +27,12 @@ export const useSessionRevocationMonitor = () => {
         const deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
         deviceStableIdRef.current = deviceStableId.toLowerCase(); // Normalize to lowercase
 
-        console.log('🔒 Session revocation monitor (per-tab): Setting up for device:', deviceStableIdRef.current);
+        console.log('🔒 Session revocation monitor (unified): Setting up for device:', deviceStableIdRef.current);
         console.log('👤 User ID:', user.id);
 
         // Create unique channel name to avoid conflicts
         const channelName = `session-revocation-${deviceStableId}-${Date.now()}`;
-        const channel = perTabSupabase.channel(channelName);
+        const channel = supabase.channel(channelName);
 
         // Subscribe ONLY to explicit revocation signals (session_revocations INSERT)
         channel
@@ -112,7 +112,7 @@ export const useSessionRevocationMonitor = () => {
     return () => {
       if (channelRef.current) {
         console.log('🔓 Session revocation monitor: Cleaning up');
-        perTabSupabase.removeChannel(channelRef.current);
+        supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
       deviceStableIdRef.current = null;
