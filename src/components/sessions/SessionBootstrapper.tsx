@@ -60,9 +60,9 @@ const SessionBootstrapper = () => {
       }, 500); // Reduced delay for faster response
     };
 
-    const announceGoodbye = () => {
+    const announceGoodbye = async () => {
       try {
-        const deviceStableId = deviceDetectionService.getCurrentDeviceStableId();
+        const deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
         channel.postMessage({ type: 'goodbye', tabId, deviceStableId });
         // Fallback local decrement attempt
         scheduleDecrement();
@@ -130,7 +130,7 @@ const SessionBootstrapper = () => {
         await new Promise((r) => setTimeout(r, 100)); // Reduced wait time
         const hasPeers = gotPong;
 
-        const deviceInfo = deviceDetectionService.getDeviceInfo();
+        const deviceInfo = await deviceDetectionService.getDeviceInfo();
         const location = await deviceDetectionService.getBrowserLocation().catch(() => null);
 
         const sessionData = {
@@ -188,7 +188,7 @@ const SessionBootstrapper = () => {
       
       decremented = true;
       try {
-        const deviceStableId = deviceDetectionService.getCurrentDeviceStableId();
+        const deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
         console.log('📍 Tab closing/hidden, decrementing count for:', deviceStableId);
 
         await supabase.functions.invoke('manage-session', {
