@@ -117,11 +117,13 @@ Deno.serve(async (req) => {
         userId: user.id
       });
 
+      const targetId = (sessionData?.deviceStableId || '').toLowerCase();
+
       const { error } = await supabase
         .from('user_sessions')
         .update({ is_trusted: sessionData?.isTrusted ?? true })
         .eq('user_id', user.id)
-        .eq('device_stable_id', sessionData?.deviceStableId);
+        .eq('device_stable_id', targetId);
 
       if (error) {
         console.error('❌ Trust update failed:', error);
@@ -144,14 +146,16 @@ Deno.serve(async (req) => {
         });
       }
 
-      console.log('🔥 Revoking device session:', deviceStableId, 'for user:', user.id);
+      const targetId = (deviceStableId || '').toLowerCase();
+
+      console.log('🔥 Revoking device session:', targetId, 'for user:', user.id);
 
       // 1) Insert revocation signal to trigger instant logout on target device
       const { error: signalError } = await supabase
         .from('session_revocations')
         .insert({
           user_id: user.id,
-          device_stable_id: deviceStableId
+          device_stable_id: targetId
         });
 
       if (signalError) {
@@ -159,21 +163,21 @@ Deno.serve(async (req) => {
         throw signalError;
       }
 
-      console.log('✅ Revocation signal inserted for device:', deviceStableId);
+      console.log('✅ Revocation signal inserted for device:', targetId);
 
       // 2) Delete the session from user_sessions
       const { error: deleteError } = await supabase
         .from('user_sessions')
         .delete()
         .eq('user_id', user.id)
-        .eq('device_stable_id', deviceStableId);
+        .eq('device_stable_id', targetId);
 
       if (deleteError) {
         console.error('❌ Failed to delete session:', deleteError);
         throw deleteError;
       }
 
-      console.log('✅ Session deleted for device:', deviceStableId);
+      console.log('✅ Session deleted for device:', targetId);
 
       return new Response(
         JSON.stringify({ success: true }),
@@ -189,12 +193,14 @@ Deno.serve(async (req) => {
         );
       }
 
+      const targetId = (targetDeviceStableId || '').toLowerCase();
+
       // Get current count
       const { data: existing } = await supabase
         .from('user_sessions')
         .select('active_tabs_count')
         .eq('user_id', user.id)
-        .eq('device_stable_id', targetDeviceStableId)
+        .eq('device_stable_id', targetId)
         .single();
 
       // CRITICAL: Ensure tab count never goes below 1 (one card per device)
@@ -202,7 +208,7 @@ Deno.serve(async (req) => {
       
       // Log if we would have gone to 0 (for debugging)
       if ((existing?.active_tabs_count ?? 1) - 1 < 1) {
-        console.log('⚠️ Tab count clamped to 1 for device:', targetDeviceStableId);
+        console.log('⚠️ Tab count clamped to 1 for device:', targetId);
       }
 
       // Update count only (device always remains active with minimum 1 tab)
@@ -212,7 +218,7 @@ Deno.serve(async (req) => {
           active_tabs_count: newCount
         })
         .eq('user_id', user.id)
-        .eq('device_stable_id', targetDeviceStableId);
+        .eq('device_stable_id', targetId);
 
       if (error) {
         console.error('Failed to decrement tab count:', error);
@@ -222,7 +228,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      console.log(`✅ Tab closed for device ${targetDeviceStableId}, new count: ${newCount}`);
+      console.log(`✅ Tab closed for device ${targetId}, new count: ${newCount}`);
       return new Response(
         JSON.stringify({ success: true, count: newCount }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

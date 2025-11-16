@@ -27,16 +27,25 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [error, setError] = useState<string | null>(null);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
 
-  // Deduplicate sessions by device_stable_id (keep most recent)
-  // CRITICAL: Ensures only ONE card per physical device
   const deduplicateSessions = (sessionsArray: UserSession[]): UserSession[] => {
     const map = new Map<string, UserSession>();
+
+    const mkKey = (s: Partial<UserSession>): string => {
+      const dsid = typeof s.device_stable_id === 'string' && s.device_stable_id.length > 0 ? s.device_stable_id.toLowerCase() : null;
+      const id = typeof s.id === 'string' && s.id.length > 0 ? s.id.toLowerCase() : null;
+      const ua = (s.user_agent || '').toLowerCase();
+      const plat = (s.platform || '').toLowerCase();
+      const sr = (s.screen_resolution || '').toLowerCase();
+      return dsid || id || `${ua}|${plat}|${sr}`;
+    };
+
     let duplicatesFound = 0;
-    
+
     for (const session of sessionsArray) {
-      const existing = map.get(session.device_stable_id);
+      const key = mkKey(session);
+      const existing = map.get(key);
       if (!existing) {
-        map.set(session.device_stable_id, session);
+        map.set(key, session);
       } else {
         duplicatesFound++;
         // Keep most recent by created_at, then by updated_at
@@ -44,26 +53,16 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const sessionCreated = new Date(session.created_at).getTime();
         const existingUpdated = new Date(existing.updated_at).getTime();
         const sessionUpdated = new Date(session.updated_at).getTime();
-        
-        if (sessionCreated > existingCreated || 
-           (sessionCreated === existingCreated && sessionUpdated > existingUpdated)) {
-          map.set(session.device_stable_id, session);
+        if (sessionCreated > existingCreated || (sessionCreated === existingCreated && sessionUpdated > existingUpdated)) {
+          map.set(key, session);
         }
       }
     }
-    
-    // Warn if duplicates were found (shouldn't happen with UNIQUE constraint)
+
     if (duplicatesFound > 0) {
-      console.warn(`⚠️ Found ${duplicatesFound} duplicate device_stable_id entries (fixed by deduplication)`);
+      console.warn(`⚠️ Found ${duplicatesFound} duplicate device entries (fixed by deduplication)`);
     }
-    
-    // Validate device count
-    const uniqueDevices = map.size;
-    const totalSessions = sessionsArray.length;
-    if (totalSessions !== uniqueDevices) {
-      console.log(`📊 Deduplicated ${totalSessions} sessions → ${uniqueDevices} unique devices`);
-    }
-    
+
     return Array.from(map.values());
   };
 
@@ -237,17 +236,35 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
               const newSession = payload.new as UserSession;
               setSessions(prev => {
-                // Replace-by-device: never append, always replace existing entry
+                const mkKey = (s: Partial<UserSession>) => {
+                  const dsid = typeof s.device_stable_id === 'string' && s.device_stable_id.length > 0 ? s.device_stable_id.toLowerCase() : null;
+                  const id = typeof s.id === 'string' && s.id.length > 0 ? s.id.toLowerCase() : null;
+                  const ua = (s.user_agent || '').toLowerCase();
+                  const plat = (s.platform || '').toLowerCase();
+                  const sr = (s.screen_resolution || '').toLowerCase();
+                  return dsid || id || `${ua}|${plat}|${sr}`;
+                };
                 const map = new Map<string, UserSession>();
                 for (const s of prev) {
-                  map.set(s.device_stable_id.toLowerCase(), s);
+                  map.set(mkKey(s), s);
                 }
-                map.set(newSession.device_stable_id.toLowerCase(), newSession);
+                map.set(mkKey(newSession), newSession);
                 return Array.from(map.values());
               });
             } else if (payload.eventType === 'DELETE') {
-              const oldSession = payload.old as UserSession;
-              setSessions(prev => prev.filter(s => s.device_stable_id.toLowerCase() !== oldSession.device_stable_id.toLowerCase()));
+              const oldSession = payload.old as Partial<UserSession>;
+              setSessions(prev => {
+                const mkKey = (s: Partial<UserSession>) => {
+                  const dsid = typeof s.device_stable_id === 'string' && s.device_stable_id.length > 0 ? s.device_stable_id.toLowerCase() : null;
+                  const id = typeof s.id === 'string' && s.id.length > 0 ? s.id.toLowerCase() : null;
+                  const ua = (s.user_agent || '').toLowerCase();
+                  const plat = (s.platform || '').toLowerCase();
+                  const sr = (s.screen_resolution || '').toLowerCase();
+                  return dsid || id || `${ua}|${plat}|${sr}`;
+                };
+                const deleteKey = mkKey(oldSession);
+                return prev.filter(s => mkKey(s) !== deleteKey);
+              });
               console.log('🗑️ Session deleted, card removed instantly');
             }
           }
