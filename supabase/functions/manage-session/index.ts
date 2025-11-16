@@ -205,40 +205,41 @@ Deno.serve(async (req) => {
 
       const targetId = (targetDeviceStableId || '').toLowerCase();
 
-      // Fetch current count, decrement, and update
+      // Fetch current session
       const { data: session, error: fetchError } = await supabase
         .from('user_sessions')
         .select('active_tabs_count')
         .eq('user_id', user.id)
         .eq('device_stable_id', targetId)
-        .single();
+        .maybeSingle();
 
+      // If session doesn't exist, just return success (tab is closing anyway)
       if (fetchError || !session) {
-        console.error('Tab close fetch error:', fetchError);
+        console.log(`Session not found for device ${targetId}, ignoring tab close`);
         return new Response(
-          JSON.stringify({ error: 'Session not found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ success: true, count: 0 }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       const newCount = Math.max(session.active_tabs_count - 1, 0);
 
+      // Update only the tab count - trigger will handle updated_at
       const { error: updateError } = await supabase
         .from('user_sessions')
-        .update({ 
-          active_tabs_count: newCount,
-          updated_at: new Date().toISOString()
-        })
+        .update({ active_tabs_count: newCount })
         .eq('user_id', user.id)
         .eq('device_stable_id', targetId);
 
       if (updateError) {
         console.error('Tab close update error:', updateError);
+        // Don't fail on update errors for tab close - it's not critical
         return new Response(
-          JSON.stringify({ error: updateError.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ success: true, count: newCount }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
       console.log(`✅ Tab closed for device ${targetId}, new count: ${newCount}`);
       return new Response(
         JSON.stringify({ success: true, count: newCount }),
