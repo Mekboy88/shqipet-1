@@ -240,14 +240,14 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 // Replace-by-device: never append, always replace existing entry
                 const map = new Map<string, UserSession>();
                 for (const s of prev) {
-                  map.set(s.device_stable_id, s);
+                  map.set(s.device_stable_id.toLowerCase(), s);
                 }
-                map.set(newSession.device_stable_id, newSession);
-                return deduplicateSessions(Array.from(map.values()));
+                map.set(newSession.device_stable_id.toLowerCase(), newSession);
+                return Array.from(map.values());
               });
             } else if (payload.eventType === 'DELETE') {
               const oldSession = payload.old as UserSession;
-              setSessions(prev => prev.filter(s => s.device_stable_id !== oldSession.device_stable_id));
+              setSessions(prev => prev.filter(s => s.device_stable_id.toLowerCase() !== oldSession.device_stable_id.toLowerCase()));
               console.log('🗑️ Session deleted, card removed instantly');
             }
           }
