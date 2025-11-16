@@ -19,9 +19,42 @@ const SessionBootstrapper = () => {
     let registered = sessionStorage.getItem(TAB_FLAG) === '1';
     let decremented = false;
 
-    // Simple cross-tab probe using BroadcastChannel
+    // Per-tab stable ID to detect reload vs real close
+    const TAB_ID_KEY = '__tab_instance_id_v1';
+    let tabId = sessionStorage.getItem(TAB_ID_KEY);
+    if (!tabId) {
+      try {
+        tabId = crypto.randomUUID();
+      } catch {
+        tabId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      }
+      sessionStorage.setItem(TAB_ID_KEY, tabId);
+    }
+
+    // Simple cross-tab probe + reload coordination using BroadcastChannel
     const channel = new BroadcastChannel('lovable_session_tabs');
     let gotPong = false;
+    let cancelPending = false;
+    let hideTimer: number | null = null;
+
+    const cancelDecrement = () => {
+      cancelPending = true;
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+      }
+    };
+
+    const scheduleDecrement = () => {
+      if (decremented || hideTimer) return;
+      cancelPending = false;
+      hideTimer = window.setTimeout(() => {
+        if (!cancelPending) {
+          decrementTabCount();
+        }
+        hideTimer = null;
+      }, 1500);
+    };
 
     channel.onmessage = (event) => {
       const data = event.data;
@@ -29,9 +62,14 @@ const SessionBootstrapper = () => {
         channel.postMessage({ type: 'pong' });
       } else if (data?.type === 'pong') {
         gotPong = true;
+      } else if (data?.type === 'hello' && data?.tabId === tabId) {
+        // Same-tab reload detected: cancel any pending decrement
+        cancelDecrement();
       }
     };
 
+    // Announce presence immediately (used to cancel pending decrement on reload)
+    channel.postMessage({ type: 'hello', tabId });
     const registerSession = async () => {
       if (registered) {
         console.log('ℹ️ Session already registered for this tab — skipping');
@@ -108,18 +146,27 @@ const SessionBootstrapper = () => {
       } catch (err) {
         console.error('Failed to decrement tab count (best effort):', err);
       } finally {
-        sessionStorage.removeItem(TAB_FLAG);
+        // Keep TAB_FLAG during tab lifetime; sessionStorage clears on real tab close
       }
     };
 
     // Register on mount (guarded)
     registerSession();
 
-    // Decrement reliably on close/hidden
-    window.addEventListener('beforeunload', decrementTabCount);
-    window.addEventListener('pagehide', decrementTabCount);
+    // Decrement on explicit logout instantly
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        decrementTabCount();
+      }
+    });
+
+    // Decrement reliably on close/hidden with reload protection
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') decrementTabCount();
+      if (document.visibilityState === 'hidden') {
+        scheduleDecrement();
+      } else {
+        cancelDecrement();
+      }
     });
 
     return () => {

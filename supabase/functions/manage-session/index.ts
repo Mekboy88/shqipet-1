@@ -107,8 +107,8 @@ Deno.serve(async (req) => {
       // New smart delta policy:
       // - First insert => delta 0 (bump_tabs_count inserts row with count=1)
       // - Subsequent tab opens => delta 1
-      // - If the existing row looks stale (no updates for a while) or wildly inflated,
-      //   re-baseline the count back to 1 by using a negative delta.
+      // - If resetTabs is true (no peers), re-baseline to exactly 1
+      // - If the existing row looks stale or inflated, re-baseline to 1
       let delta = 0;
       if (existingRow) {
         const currentCount = typeof existingRow.active_tabs_count === 'number' ? existingRow.active_tabs_count : 0;
@@ -116,9 +116,10 @@ Deno.serve(async (req) => {
         const ageMs = Date.now() - lastUpdateMs;
         const STALE_MS = 10 * 60 * 1000; // 10 minutes
         const looksInflated = currentCount > 20; // simple guardrail
+        const resetTabs = !!(sessionData && sessionData.resetTabs);
 
-        if (ageMs > STALE_MS || looksInflated) {
-          // Re-baseline to 1
+        if (resetTabs || ageMs > STALE_MS || looksInflated) {
+          // Re-baseline to exactly 1
           delta = 1 - currentCount;
         } else {
           // Normal new tab
