@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 export const useSessionRevocationMonitor = () => {
   const { user, signOut } = useAuth();
   const deviceStableIdRef = useRef<string | null>(null);
+  const deviceInfoRef = useRef<any>(null); // Store full device info for hardware comparison
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isSettingUpRef = useRef(false);
 
@@ -23,12 +24,21 @@ export const useSessionRevocationMonitor = () => {
 
     const setupMonitoring = async () => {
       try {
-        // Get current device ID (wait for it to complete)
-        const deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
+        // Get current device info including hardware characteristics
+        const deviceInfo = await deviceDetectionService.getDeviceInfo();
+        const deviceStableId = deviceInfo.deviceStableId;
         deviceStableIdRef.current = deviceStableId.toLowerCase(); // Normalize to lowercase
+        deviceInfoRef.current = deviceInfo; // Store for hardware comparison
 
-        console.log('🔒 Session revocation monitor (unified): Setting up for device:', deviceStableIdRef.current);
+        console.log('🔒 Session revocation monitor: Setting up');
         console.log('👤 User ID:', user.id);
+        console.log('🖥️ Current Device:', {
+          id: deviceStableIdRef.current,
+          os: deviceInfo.operatingSystem,
+          screen: deviceInfo.screenResolution,
+          platform: deviceInfo.platform,
+          browser: deviceInfo.browserName
+        });
 
         // Create unique channel name to avoid conflicts
         const channelName = `session-revocation-${deviceStableId}-${Date.now()}`;
@@ -44,34 +54,82 @@ export const useSessionRevocationMonitor = () => {
               table: 'session_revocations',
               filter: `user_id=eq.${user.id}`,
             },
-            async (payload) => {
+          async (payload) => {
               console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
               console.log('🚨 REVOCATION SIGNAL RECEIVED (INSERT event)');
               console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
               console.log('Payload:', JSON.stringify(payload, null, 2));
               
-              const rawRevokedId = payload.new?.device_stable_id;
-              const rawCurrentId = deviceStableIdRef.current;
+              const revokedDeviceId = (payload.new?.device_stable_id || '').toLowerCase().trim();
+              const currentDeviceId = (deviceStableIdRef.current || '').toLowerCase().trim();
               
-              console.log('📋 Raw IDs (before normalization):');
-              console.log('  Revoked (from DB):', rawRevokedId);
-              console.log('  Current (from ref):', rawCurrentId);
+              console.log('📋 Step 1: ID Comparison');
+              console.log('  Revoked ID:', revokedDeviceId);
+              console.log('  Current ID:', currentDeviceId);
+              console.log('  Direct Match:', revokedDeviceId === currentDeviceId);
               
-              const revokedDeviceId = (rawRevokedId || '').toLowerCase().trim();
-              const currentDeviceId = (rawCurrentId || '').toLowerCase().trim();
+              // Step 1: Check if device IDs match directly
+              let shouldLogout = revokedDeviceId === currentDeviceId;
               
-              console.log('📋 Normalized IDs (lowercase + trimmed):');
-              console.log('  Revoked:', revokedDeviceId);
-              console.log('  Current:', currentDeviceId);
-              console.log('  Length:', `revoked=${revokedDeviceId.length}, current=${currentDeviceId.length}`);
-              console.log('  Match:', revokedDeviceId === currentDeviceId);
-              console.log('  Byte comparison:', revokedDeviceId.split('').map((c, i) => 
-                `${i}: ${c.charCodeAt(0)} ${c === currentDeviceId[i] ? '✓' : '✗'}`
-              ));
-              
-              if (revokedDeviceId === currentDeviceId) {
+              // Step 2: If no direct match, check hardware characteristics
+              // This handles different browsers on the same physical device
+              if (!shouldLogout) {
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                console.log('⚠️ MATCH CONFIRMED - LOGGING OUT THIS DEVICE');
+                console.log('🔍 No ID match - Checking hardware characteristics');
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                
+                try {
+                  // Fetch the revoked session's hardware info
+                  const { data: revokedSession, error } = await supabase
+                    .from('user_sessions')
+                    .select('operating_system, screen_resolution, platform, device_type')
+                    .eq('device_stable_id', revokedDeviceId)
+                    .eq('user_id', user.id)
+                    .single();
+                  
+                  if (error) {
+                    console.error('❌ Failed to fetch revoked session:', error);
+                  } else if (revokedSession) {
+                    const currentDevice = deviceInfoRef.current;
+                    console.log('📋 Revoked Session Hardware:', revokedSession);
+                    console.log('📋 Current Device Hardware:', {
+                      os: currentDevice.operatingSystem,
+                      screen: currentDevice.screenResolution,
+                      platform: currentDevice.platform,
+                      type: currentDevice.deviceType
+                    });
+                    
+                    // Compare hardware characteristics (ignoring browser differences)
+                    const osMatch = revokedSession.operating_system === currentDevice.operatingSystem;
+                    const screenMatch = revokedSession.screen_resolution === currentDevice.screenResolution;
+                    const platformMatch = revokedSession.platform === currentDevice.platform;
+                    
+                    console.log('🔍 Hardware Comparison:');
+                    console.log('  OS Match:', osMatch, `(${revokedSession.operating_system} vs ${currentDevice.operatingSystem})`);
+                    console.log('  Screen Match:', screenMatch, `(${revokedSession.screen_resolution} vs ${currentDevice.screenResolution})`);
+                    console.log('  Platform Match:', platformMatch, `(${revokedSession.platform} vs ${currentDevice.platform})`);
+                    
+                    // If all hardware characteristics match, it's the same physical device
+                    shouldLogout = osMatch && screenMatch && platformMatch;
+                    
+                    if (shouldLogout) {
+                      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                      console.log('⚠️ HARDWARE MATCH - Same physical device detected!');
+                      console.log('   This is likely a different browser on the same device');
+                      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    } else {
+                      console.log('✅ Hardware does NOT match - Different physical device');
+                    }
+                  }
+                } catch (err) {
+                  console.error('❌ Error checking hardware characteristics:', err);
+                }
+              }
+              
+              // Step 3: Log out if either ID matched or hardware matched
+              if (shouldLogout) {
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('⚠️ LOGOUT TRIGGERED - Closing session NOW');
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 
                 toast.error('Your session was revoked from another device', {
@@ -86,7 +144,7 @@ export const useSessionRevocationMonitor = () => {
                 console.log('✅ signOut() completed');
               } else {
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                console.log('✅ NO MATCH - This revocation is for a different device');
+                console.log('✅ NO MATCH - Different device, ignoring revocation');
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
               }
             }
@@ -143,6 +201,7 @@ export const useSessionRevocationMonitor = () => {
         channelRef.current = null;
       }
       deviceStableIdRef.current = null;
+      deviceInfoRef.current = null;
       isSettingUpRef.current = false;
     };
   }, [user, signOut]);
