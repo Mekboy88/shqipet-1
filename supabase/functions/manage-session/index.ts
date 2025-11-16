@@ -205,35 +205,17 @@ Deno.serve(async (req) => {
 
       const targetId = (targetDeviceStableId || '').toLowerCase();
 
-      // Get current count
-      const { data: existing } = await supabase
-        .from('user_sessions')
-        .select('active_tabs_count')
-        .eq('user_id', user.id)
-        .eq('device_stable_id', targetId)
-        .single();
+      // Use RPC to decrement tab count (clamped at 0)
+      const { data: newCount, error: rpcError } = await supabase.rpc('bump_tabs_count', {
+        p_device_stable_id: targetId,
+        p_delta: -1,
+        p_device: {},
+      });
 
-      // CRITICAL: Ensure tab count never goes below 1 (one card per device)
-      const newCount = Math.max((existing?.active_tabs_count ?? 1) - 1, 1);
-      
-      // Log if we would have gone to 0 (for debugging)
-      if ((existing?.active_tabs_count ?? 1) - 1 < 1) {
-        console.log('⚠️ Tab count clamped to 1 for device:', targetId);
-      }
-
-      // Update count only (device always remains active with minimum 1 tab)
-      const { error } = await supabase
-        .from('user_sessions')
-        .update({ 
-          active_tabs_count: newCount
-        })
-        .eq('user_id', user.id)
-        .eq('device_stable_id', targetId);
-
-      if (error) {
-        console.error('Failed to decrement tab count:', error);
+      if (rpcError) {
+        console.error('RPC bump_tabs_count error:', rpcError);
         return new Response(
-          JSON.stringify({ error: error.message }),
+          JSON.stringify({ error: rpcError.message }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
