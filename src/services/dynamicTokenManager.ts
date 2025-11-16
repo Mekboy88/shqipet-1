@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { perTabSupabase } from '@/integrations/supabase/perTabClient';
 import { deviceAuthService } from './deviceAuthService';
 import { secureSessionManager } from '@/utils/security/secureSessionManager';
 
@@ -154,12 +155,12 @@ class DynamicTokenManager {
     (window as any).tokenRefreshTimer = setTimeout(async () => {
       try {
         console.log('🔄 Auto-refreshing token due to dynamic lifetime');
-        const { error } = await supabase.auth.refreshSession();
+        const { error } = await perTabSupabase.auth.refreshSession();
         
         if (error) {
           console.error('Token refresh failed:', error);
-          // Force logout on refresh failure
-          await supabase.auth.signOut();
+          // Force logout on refresh failure (tab-only)
+          await perTabSupabase.auth.signOut({ scope: 'local' });
         } else {
           console.log('✅ Token refreshed successfully');
         }

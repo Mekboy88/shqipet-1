@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { perTabSupabase } from '@/integrations/supabase/perTabClient';
 import { deviceAuthService } from '@/services/deviceAuthService';
 
 class ImmediateLogoutService {
@@ -28,7 +28,7 @@ class ImmediateLogoutService {
       console.log('✅ Device auth state cleared');
       
       // Sign out from Supabase (this will trigger the auth state change)
-      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      const { error } = await perTabSupabase.auth.signOut({ scope: 'local' });
       if (error) {
         console.error('❌ Supabase signOut error:', error);
       } else {
@@ -65,7 +65,7 @@ class ImmediateLogoutService {
       console.log('✅ Device auth state cleared');
       
       // Sign out from Supabase (this will trigger the auth state change)
-      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      const { error } = await perTabSupabase.auth.signOut({ scope: 'local' });
       if (error) {
         console.error('❌ Supabase signOut error:', error);
       } else {

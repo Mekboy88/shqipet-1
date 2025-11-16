@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { perTabSupabase } from '@/integrations/supabase/perTabClient';
 import { toast } from 'sonner';
 import { getPhoneVariations } from '../utils/phoneUtils';
 
@@ -71,7 +72,7 @@ export const loginWithPhone = async (phoneNumber: string): Promise<PhoneLoginRes
     }
 
     // STEP 2: Get current session to check authentication state
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    const { data: { session: currentSession } } = await perTabSupabase.auth.getSession();
     
     if (currentSession?.user?.id === profile.auth_user_id) {
       console.log('✅ User already signed in with correct account');
@@ -85,12 +86,12 @@ export const loginWithPhone = async (phoneNumber: string): Promise<PhoneLoginRes
     // STEP 3: If different user is signed in, sign them out first
     if (currentSession?.user && currentSession.user.id !== profile.auth_user_id) {
       console.log('🔄 Different user signed in, signing out first');
-      await supabase.auth.signOut();
+      await perTabSupabase.auth.signOut({ scope: 'local' });
     }
 
     // STEP 4: The user should already be authenticated via OTP at this point
     // Just get the session and validate it matches our expected user
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { session }, error: sessionError } = await perTabSupabase.auth.getSession();
     
     if (sessionError || !session?.user) {
       console.error('❌ No valid session found after OTP verification:', sessionError);

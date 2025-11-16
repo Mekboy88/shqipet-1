@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { perTabSupabase } from '@/integrations/supabase/perTabClient';
 import { authLogger } from './authLogger';
 
 interface AuthValidationResult {
@@ -24,7 +25,7 @@ class AuthGuard {
       console.log('🔒 CRITICAL: Performing immediate session validation');
       
       // Get current session with strict validation
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const { data: { session }, error } = await perTabSupabase.auth.getSession();
       
       if (error) {
         console.error('🚨 Session retrieval error:', error);
@@ -38,7 +39,7 @@ class AuthGuard {
       }
 
       // CRITICAL: Validate user actually exists in auth
-      const { data: authUser, error: userError } = await supabase.auth.getUser();
+      const { data: authUser, error: userError } = await perTabSupabase.auth.getUser();
       if (userError || !authUser.user || authUser.user.id !== session.user.id) {
         console.error('🚨 CRITICAL: User validation failed');
         authLogger.logSecurityAlert('User validation failed during immediate validation');
@@ -82,7 +83,7 @@ class AuthGuard {
     authLogger.logSecurityAlert('Forced security logout', { reason });
     
     try {
-      await supabase.auth.signOut();
+      await perTabSupabase.auth.signOut({ scope: 'local' });
     } catch (error) {
       console.error('Error during security logout:', error);
     }
