@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { deviceDetectionService } from '@/services/deviceDetectionService';
@@ -7,6 +7,7 @@ import { immediateLogoutService } from '@/utils/auth/immediateLogoutService';
 
 const SessionBootstrapper = () => {
   const { user } = useAuth();
+  const registrationPendingRef = useRef(false);
 
   useEffect(() => {
     if (!user) {
@@ -17,6 +18,7 @@ const SessionBootstrapper = () => {
 
     const TAB_FLAG = '__tab_session_registered_v1';
     let registered = sessionStorage.getItem(TAB_FLAG) === '1';
+    let pending = sessionStorage.getItem(TAB_FLAG) === 'pending';
     let decremented = false;
 
     // Per-tab stable ID to detect reload vs real close
@@ -31,11 +33,12 @@ const SessionBootstrapper = () => {
       sessionStorage.setItem(TAB_ID_KEY, tabId);
     }
 
-    // Simple cross-tab probe + reload coordination using BroadcastChannel
+    // BroadcastChannel for cross-tab coordination
     const channel = new BroadcastChannel('lovable_session_tabs');
     let gotPong = false;
     let cancelPending = false;
     let hideTimer: number | null = null;
+    let decrementLock = false;
 
     const cancelDecrement = () => {
       cancelPending = true;
@@ -46,14 +49,26 @@ const SessionBootstrapper = () => {
     };
 
     const scheduleDecrement = () => {
-      if (decremented || hideTimer) return;
+      if (decremented || hideTimer || decrementLock) return;
       cancelPending = false;
       hideTimer = window.setTimeout(() => {
-        if (!cancelPending) {
+        if (!cancelPending && !decrementLock) {
+          decrementLock = true;
           decrementTabCount();
         }
         hideTimer = null;
-      }, 1500);
+      }, 500); // Reduced delay for faster response
+    };
+
+    const announceGoodbye = () => {
+      try {
+        const deviceStableId = deviceDetectionService.getCurrentDeviceStableId();
+        channel.postMessage({ type: 'goodbye', tabId, deviceStableId });
+        // Fallback local decrement attempt
+        scheduleDecrement();
+      } catch (e) {
+        console.warn('Failed to announce goodbye', e);
+      }
     };
 
     channel.onmessage = (event) => {
@@ -65,21 +80,54 @@ const SessionBootstrapper = () => {
       } else if (data?.type === 'hello' && data?.tabId === tabId) {
         // Same-tab reload detected: cancel any pending decrement
         cancelDecrement();
+      } else if (data?.type === 'decrementing') {
+        // Another tab is handling decrement, back off
+        decrementLock = true;
+        cancelDecrement();
+      } else if (data?.type === 'goodbye' && data?.tabId !== tabId) {
+        // A peer is closing: one tab should handle decrement immediately
+        const tryHandle = async () => {
+          try {
+            const hasLocks = (navigator as any).locks && typeof (navigator as any).locks.request === 'function';
+            if (hasLocks) {
+              await (navigator as any).locks.request('manage-session-decrement', { ifAvailable: true, mode: 'exclusive' }, async (lock: any) => {
+                if (!lock) return;
+                if (!decrementLock) {
+                  decrementLock = true;
+                  await decrementTabCount();
+                }
+              });
+            } else {
+              if (!decrementLock) {
+                decrementLock = true;
+                await decrementTabCount();
+              }
+            }
+          } catch (e) {
+            console.warn('Peer-assisted decrement failed', e);
+          }
+        };
+        tryHandle();
       }
     };
 
     // Announce presence immediately (used to cancel pending decrement on reload)
     channel.postMessage({ type: 'hello', tabId });
+    
     const registerSession = async () => {
-      if (registered) {
+      if (registered || pending || registrationPendingRef.current) {
         console.log('ℹ️ Session already registered for this tab — skipping');
         return;
       }
+      
+      registrationPendingRef.current = true;
+      sessionStorage.setItem(TAB_FLAG, 'pending');
+      
       try {
         // Probe for other open tabs
         gotPong = false;
         channel.postMessage({ type: 'ping' });
-        await new Promise((r) => setTimeout(r, 200));
+        await new Promise((r) => setTimeout(r, 100)); // Reduced wait time
         const hasPeers = gotPong;
 
         const deviceInfo = deviceDetectionService.getDeviceInfo();
@@ -127,11 +175,17 @@ const SessionBootstrapper = () => {
       } catch (err: any) {
         console.error('Failed to register session:', err);
         toast.error('Failed to register device session', { description: err.message });
+      } finally {
+        registrationPendingRef.current = false;
       }
     };
 
     const decrementTabCount = async () => {
-      if (!registered || decremented) return;
+      if (!registered || decremented || decrementLock) return;
+      
+      // Signal to other tabs that this one is handling the decrement
+      channel.postMessage({ type: 'decrementing' });
+      
       decremented = true;
       try {
         const deviceStableId = deviceDetectionService.getCurrentDeviceStableId();
@@ -143,6 +197,7 @@ const SessionBootstrapper = () => {
             deviceStableId,
           },
         });
+        console.log('✅ Tab count decremented successfully');
       } catch (err) {
         console.error('Failed to decrement tab count (best effort):', err);
       } finally {
@@ -156,6 +211,7 @@ const SessionBootstrapper = () => {
     // Decrement on explicit logout instantly
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
+        announceGoodbye();
         decrementTabCount();
       }
     });
