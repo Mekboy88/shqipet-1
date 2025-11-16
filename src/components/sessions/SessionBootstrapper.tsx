@@ -216,18 +216,24 @@ const SessionBootstrapper = () => {
       }
     });
 
-    // Decrement reliably on close/hidden with reload protection
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
-        scheduleDecrement();
-      } else {
-        cancelDecrement();
-      }
-    });
+    // Decrement only on real close/unload. Do NOT decrement on tab hide/switch.
+    const onPageHide = () => {
+      announceGoodbye();
+      scheduleDecrement();
+    };
+    const onBeforeUnload = () => {
+      announceGoodbye();
+      scheduleDecrement();
+    };
+
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('beforeunload', onBeforeUnload);
 
     return () => {
-      window.removeEventListener('beforeunload', decrementTabCount);
-      window.removeEventListener('pagehide', decrementTabCount);
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      // Unsubscribe auth listener
+      (authListener as any)?.subscription?.unsubscribe?.();
     };
   }, [user]);
 
