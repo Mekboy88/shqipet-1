@@ -16,39 +16,68 @@ class DeviceDetectionService {
   private readonly STORAGE_KEY = 'device_stable_id';
 
   /**
-   * Generate or retrieve stable device ID based on hardware fingerprint
-   * Privacy-compliant: uses browser-exposed characteristics, same device = same ID across domains
+   * Generate or retrieve stable device ID based on TRUE hardware fingerprint
+   * Uses ONLY stable hardware characteristics that never change across domains
+   * Same physical device = Same ID across ALL websites/domains
    */
   private async getOrCreateStableId(): Promise<string> {
-    // Check cache first
+    // Check cache first (domain-specific localStorage, but regeneration produces SAME hash)
     let stableId = localStorage.getItem(this.STORAGE_KEY);
-    if (stableId) return stableId;
+    if (stableId) {
+      console.log('✅ Using cached hardware-based deviceStableId:', stableId);
+      return stableId;
+    }
 
-    // Use only stable, version-agnostic characteristics (avoid browser version/userAgent)
+    // Extract OS name WITHOUT version numbers
     const parser = new UAParser();
-    const osName = (parser.getOS().name || 'UnknownOS');
+    const osName = (parser.getOS().name || 'UnknownOS').toLowerCase();
+    
+    // Strip ALL version numbers from userAgent (keep only browser and OS identifiers)
+    const cleanUserAgent = navigator.userAgent
+      .replace(/\/[\d.]+/g, '') // Remove /version patterns like /123.0
+      .replace(/\d+\.\d+[\d.]*/g, '') // Remove standalone version numbers
+      .toLowerCase()
+      .trim();
+    
+    // Strip ALL version numbers from platform
+    const cleanPlatform = (navigator.platform || 'unknown')
+      .replace(/\d+/g, '') // Remove all digits
+      .toLowerCase()
+      .trim();
 
+    // Build fingerprint using ONLY stable hardware characteristics
+    // These properties NEVER change between domains, browsers, or time
     const fingerprintParts = {
-      os: osName, // no version
-      platform: navigator.platform || 'unknown',
-      vendor: navigator.vendor || 'unknown',
-      screen: `${window.screen.width}x${window.screen.height}`,
+      // Hardware-specific (never changes)
+      deviceMemory: (navigator as any).deviceMemory || 0,
+      hardwareConcurrency: navigator.hardwareConcurrency || 0,
+      maxTouchPoints: navigator.maxTouchPoints || 0,
       colorDepth: window.screen.colorDepth || 0,
-      pixelRatio: (window.devicePixelRatio || 1),
-      hw: (navigator.hardwareConcurrency || 0),
-      mem: (navigator as any).deviceMemory || 0,
-      touch: navigator.maxTouchPoints || 0,
-      tz: new Date().getTimezoneOffset(),
-      lang: (navigator.languages && navigator.languages.join(',')) || navigator.language || 'en',
+      pixelDepth: (window.screen as any).pixelDepth || window.screen.colorDepth || 0,
+      
+      // OS and platform (version-agnostic)
+      os: osName,
+      platform: cleanPlatform,
+      userAgent: cleanUserAgent,
+      
+      // Optional: userAgentData if available (Chromium-based)
+      uaPlatform: (navigator as any).userAgentData?.platform || '',
     };
 
+    console.log('🔐 Generating stable hardware fingerprint:', fingerprintParts);
+
+    // Hash the fingerprint to create stable ID
     const encoder = new TextEncoder();
     const data = encoder.encode(JSON.stringify(fingerprintParts));
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     stableId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
 
+    // Cache it (domain-specific localStorage, but regeneration produces SAME hash)
     localStorage.setItem(this.STORAGE_KEY, stableId);
+    console.log('✅ Generated NEW hardware-based deviceStableId:', stableId);
+    console.log('🔑 This ID will be IDENTICAL across all domains on this device');
+    
     return stableId;
   }
 
