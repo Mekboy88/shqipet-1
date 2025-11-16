@@ -116,61 +116,47 @@ Deno.serve(async (req) => {
       const detectedDeviceType = detectDeviceType(sessionData.screenResolution);
       console.log('Device detection:', {
         screenResolution: sessionData.screenResolution,
-        detectedType: detectedDeviceType
+        detectedType: detectedDeviceType,
       });
 
-      // Check if this device already exists and get current state
-      const { data: existingSession } = await supabase
+      // Build device payload for RPC
+      let normalizedId = (sessionData.deviceStableId || '').toLowerCase();
+      const devicePayload = {
+        deviceId: sessionData.deviceId,
+        detectedDeviceType,
+        operatingSystem: sessionData.operatingSystem,
+        browserName: sessionData.browserName,
+        browserVersion: sessionData.browserVersion,
+        screenResolution: sessionData.screenResolution,
+        platform: sessionData.platform,
+        userAgent: sessionData.userAgent,
+        ...locationData,
+      };
+
+      // Canonicalize: reuse the latest row with same UA+platform if it exists (prevents per-tab cards)
+      const { data: canon } = await supabase
         .from('user_sessions')
-        .select('is_trusted, active_tabs_count')
+        .select('device_stable_id, created_at')
         .eq('user_id', user.id)
-        .eq('device_stable_id', sessionData.deviceStableId)
-        .single();
+        .eq('user_agent', sessionData.userAgent)
+        .eq('platform', sessionData.platform)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (canon?.device_stable_id) {
+        normalizedId = (canon.device_stable_id || '').toLowerCase();
+      }
 
-      // Preserve trust status and increment tab count for existing devices
-      const isTrusted = existingSession?.is_trusted ?? false;
-      const activeTabsCount = existingSession ? (existingSession.active_tabs_count || 0) + 1 : 1;
-
-      console.log('Updating session with tab count:', { 
-        deviceStableId: sessionData.deviceStableId,
-        previousCount: existingSession?.active_tabs_count || 0,
-        newCount: activeTabsCount 
+      // Atomic increment via RPC (never below 1, single row per device)
+      const { data: count, error: rpcError } = await supabase.rpc('bump_tabs_count', {
+        p_device_stable_id: normalizedId,
+        p_delta: 1,
+        p_device: devicePayload,
       });
-
-      const { data, error } = await supabase
-        .from('user_sessions')
-        .upsert({
-          user_id: user.id,
-          device_id: sessionData.deviceId,
-          device_stable_id: sessionData.deviceStableId,
-          device_type: detectedDeviceType,
-          operating_system: sessionData.operatingSystem,
-          browser_name: sessionData.browserName,
-          browser_version: sessionData.browserVersion,
-          screen_resolution: sessionData.screenResolution,
-          platform: sessionData.platform,
-          user_agent: sessionData.userAgent,
-          is_current_device: true,
-          is_trusted: isTrusted,
-          active_tabs_count: activeTabsCount,
-          ...locationData,
-        }, {
-          onConflict: 'user_id,device_stable_id',
-          ignoreDuplicates: false,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      await supabase
-        .from('user_sessions')
-        .update({ is_current_device: false })
-        .neq('device_stable_id', sessionData.deviceStableId)
-        .eq('user_id', user.id);
+      if (rpcError) throw rpcError;
 
       return new Response(
-        JSON.stringify({ success: true, session: data }),
+        JSON.stringify({ success: true, count }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
