@@ -146,7 +146,7 @@ const ManageSessionsForm = () => {
         <div className="space-y-3">
           {sortedSessions.map((session) => (
             <MobileDeviceCard
-              key={session.id}
+              key={session.device_stable_id}
               session={session}
               isCurrentDevice={session.device_stable_id === currentDeviceId}
               onClick={() => handleCardClick(session)}
@@ -159,7 +159,7 @@ const ManageSessionsForm = () => {
         <div className="grid grid-cols-1 gap-4">
           {sortedSessions.map((session) => (
             <DeviceCard
-              key={session.id}
+              key={session.device_stable_id}
               session={session}
               isCurrentDevice={session.device_stable_id === currentDeviceId}
               onClick={() => handleCardClick(session)}
