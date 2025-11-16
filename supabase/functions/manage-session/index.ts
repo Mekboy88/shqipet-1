@@ -176,13 +176,24 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'trust') {
+      console.log('🔐 Trust action received:', {
+        deviceStableId: sessionData?.deviceStableId,
+        isTrusted: sessionData?.isTrusted,
+        userId: user.id
+      });
+
       const { error } = await supabase
         .from('user_sessions')
         .update({ is_trusted: sessionData?.isTrusted ?? true })
         .eq('user_id', user.id)
         .eq('device_stable_id', sessionData?.deviceStableId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Trust update failed:', error);
+        throw error;
+      }
+
+      console.log('✅ Trust state updated successfully');
 
       return new Response(
         JSON.stringify({ success: true }),
