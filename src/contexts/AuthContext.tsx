@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Set up auth state listener FIRST to catch any auth events
         // Use unified supabase client for consistent auth
         console.log('🔐 AuthProvider: Setting up auth listener with unified client');
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        const { data: { subscription } } = perTabSupabase.auth.onAuthStateChange(
           (event, session) => {
             if (!isMounted) return;
             
@@ -137,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const cleanupSubscription = () => subscription.unsubscribe();
         
         // Then get initial session
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await perTabSupabase.auth.getSession();
         
         if (error) {
           console.error('❌ AuthProvider: Session check error:', error);
@@ -334,8 +334,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Formati i email-it nuk është valid');
       }
       
-      // Attempt authentication with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({ 
+      // Attempt authentication with per-tab client
+      const { data, error } = await perTabSupabase.auth.signInWithPassword({ 
         email: cleanEmail, 
         password 
       });
@@ -376,7 +376,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({ 
+      const { error } = await perTabSupabase.auth.signUp({ 
         email, 
         password,
         options: {
