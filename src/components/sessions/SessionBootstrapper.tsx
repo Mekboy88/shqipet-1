@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { perTabSupabase } from '@/integrations/supabase/perTabClient';
 import { deviceDetectionService } from '@/services/deviceDetectionService';
 import { toast } from 'sonner';
 import { immediateLogoutService } from '@/utils/auth/immediateLogoutService';

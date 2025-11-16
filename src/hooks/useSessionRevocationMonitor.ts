@@ -1,11 +1,12 @@
-import { useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
+import { perTabSupabase } from '@/integrations/supabase/perTabClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { deviceDetectionService } from '@/services/deviceDetectionService';
 import { toast } from 'sonner';
 
 /**
- * Monitor for session revocations and auto-logout if current device session is revoked
+ * Monitor for explicit session revocations only (via session_revocations table)
+ * Does NOT auto-logout on user_sessions DELETE or heartbeat failures
  */
 export const useSessionRevocationMonitor = () => {
   const { user, signOut } = useAuth();
@@ -14,19 +15,19 @@ export const useSessionRevocationMonitor = () => {
     if (!user) return;
 
     let deviceStableId: string | null = null;
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-    let heartbeatInterval: NodeJS.Timeout | null = null;
+    let channel: ReturnType<typeof perTabSupabase.channel> | null = null;
 
     const setupMonitoring = async () => {
       try {
         // Get current device ID
         deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
 
-        console.log('🔒 Session revocation monitor: Watching device', deviceStableId);
+        console.log('🔒 Session revocation monitor (per-tab): Watching device', deviceStableId);
         console.log('👤 User ID:', user.id);
 
-        // Subscribe to revocation signals AND session deletions
-        channel = supabase
+        // Subscribe ONLY to explicit revocation signals (session_revocations INSERT)
+        // Do NOT listen to user_sessions DELETE to avoid cross-tab logout issues
+        channel = perTabSupabase
           .channel('session-revocation-monitor')
           .on(
             'postgres_changes',
@@ -37,7 +38,7 @@ export const useSessionRevocationMonitor = () => {
               filter: `user_id=eq.${user.id}`,
             },
             async (payload) => {
-              console.log('🚨 Revocation signal received:', payload.new);
+              console.log('🚨 Explicit revocation signal received:', payload.new);
               console.log('🔍 Comparing:', payload.new?.device_stable_id, '===', deviceStableId);
               
               // Check if this revocation is for the current device
@@ -56,93 +57,12 @@ export const useSessionRevocationMonitor = () => {
               }
             }
           )
-          .on(
-            'postgres_changes',
-            {
-              event: 'DELETE',
-              schema: 'public',
-              table: 'user_sessions',
-              filter: `user_id=eq.${user.id}`,
-            },
-            async (payload) => {
-              console.log('🚨 Session DELETE event received:', { 
-                hasOld: !!payload.old, 
-                deviceStableId: payload.old?.device_stable_id 
-              });
-              
-              // Direct match: if we have the device_stable_id in old data
-              if (payload.old?.device_stable_id === deviceStableId) {
-                console.log('⚠️ Current device session was deleted (direct match)! Logging out...');
-                
-                toast.error('Your session was revoked from another device', {
-                  description: 'You have been logged out for security reasons.',
-                  duration: 5000,
-                });
+          .subscribe();
 
-                await new Promise(resolve => setTimeout(resolve, 300));
-                await signOut();
-                return;
-              }
-
-              // Fallback: if old data is missing or incomplete, verify session exists
-              console.log('🔍 Fallback check: querying if current device session still exists...');
-              const { data, error } = await supabase
-                .from('user_sessions')
-                .select('id')
-                .eq('user_id', user.id)
-                .eq('device_stable_id', deviceStableId)
-                .maybeSingle();
-
-              if (!data) {
-                console.log('⚠️ Current device session was deleted (fallback check)! Logging out...');
-                
-                toast.error('Your session was revoked from another device', {
-                  description: 'You have been logged out for security reasons.',
-                  duration: 5000,
-                });
-
-                await new Promise(resolve => setTimeout(resolve, 300));
-                await signOut();
-              } else if (error) {
-                console.error('❌ Error checking session:', error);
-              } else {
-                console.log('✅ Current device session still exists, no logout needed');
-              }
-            }
-          )
-          .subscribe((status) => {
-            console.log('📡 Session revocation monitor status:', status);
-            if (status === 'SUBSCRIBED') {
-              console.log('✅ Successfully subscribed to session revocation events');
-            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-              console.error('❌ Subscription error:', status);
-            }
-          });
-
-        // Heartbeat: every 1 second, verify session still exists (hardened fallback)
-        heartbeatInterval = setInterval(async () => {
-          if (!deviceStableId) return;
-
-          const { data, error } = await supabase
-            .from('user_sessions')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('device_stable_id', deviceStableId)
-            .maybeSingle();
-
-          // Immediate logout if session missing OR error querying
-          if (!data || error) {
-            console.log('💔 Heartbeat detected missing session or error! Logging out...');
-            if (error) console.error('Heartbeat error:', error);
-            
-            toast.error('Your session was revoked', {
-              description: 'You have been logged out for security reasons.',
-              duration: 5000,
-            });
-
-            await signOut();
-          }
-        }, 1000);
+        console.log('✅ Session revocation monitor: Subscribed successfully');
+        
+        // Heartbeat disabled - only explicit revocation signals trigger logout
+        // This prevents false positives from DB row changes during normal operations
 
       } catch (error) {
         console.error('Failed to setup session revocation monitor:', error);
@@ -155,10 +75,7 @@ export const useSessionRevocationMonitor = () => {
     return () => {
       if (channel) {
         console.log('🔓 Session revocation monitor: Cleaning up');
-        supabase.removeChannel(channel);
-      }
-      if (heartbeatInterval) {
-        clearInterval(heartbeatInterval);
+        channel.unsubscribe();
       }
     };
   }, [user, signOut]);

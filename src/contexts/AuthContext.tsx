@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { perTabSupabase } from '@/integrations/supabase/perTabClient';
 import { immediateLogoutService } from '@/utils/auth/immediateLogoutService';
 import { userDataSynchronizer } from '@/services/userDataSynchronizer';
 import { sessionProtection } from '@/utils/auth/sessionProtection';
@@ -76,11 +77,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       try {
         // Set up auth state listener FIRST to catch any auth events
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        // Use per-tab client for auth isolation
+        const { data: { subscription } } = perTabSupabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!isMounted) return;
             
-            console.log('🔄 AuthProvider: Auth state changed:', event, !!session?.user);
+            console.log('🔄 AuthProvider (per-tab): Auth state changed:', event, !!session?.user);
             
             // CRITICAL: Prevent automatic logout - only respond to explicit SIGNED_OUT events
             if (event === 'SIGNED_OUT') {

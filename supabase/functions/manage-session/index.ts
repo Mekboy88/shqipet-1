@@ -96,69 +96,10 @@ Deno.serve(async (req) => {
         ...locationData,
       };
 
-      // Consolidate legacy duplicates created before stable fingerprinting
-      // Criteria: same user + same OS + platform + screen + device_type (ignore browser version)
-      const { data: possibleDupes } = await supabase
-        .from('user_sessions')
-        .select('id, device_stable_id, active_tabs_count')
-        .eq('user_id', user.id)
-        .eq('operating_system', sessionData.operatingSystem)
-        .eq('platform', sessionData.platform)
-        .eq('screen_resolution', sessionData.screenResolution)
-        .eq('device_type', detectedDeviceType)
-        .neq('device_stable_id', normalizedId);
-
-      if (possibleDupes && possibleDupes.length > 0) {
-        // See if the target row already exists
-        const { data: existingForNewId } = await supabase
-          .from('user_sessions')
-          .select('id, active_tabs_count')
-          .eq('user_id', user.id)
-          .eq('device_stable_id', normalizedId)
-          .maybeSingle();
-
-        const totalExtra = possibleDupes.reduce((sum, r) => sum + (r.active_tabs_count || 0), 0);
-
-        if (existingForNewId) {
-          // Add counts to existing normalized row
-          await supabase
-            .from('user_sessions')
-            .update({ active_tabs_count: (existingForNewId.active_tabs_count || 0) + totalExtra })
-            .eq('id', existingForNewId.id);
-
-          // Remove duplicates
-          await supabase
-            .from('user_sessions')
-            .delete()
-            .in('id', possibleDupes.map(r => r.id));
-        } else {
-          // Promote the most recent duplicate as the canonical row by switching its stable id
-          const base = possibleDupes[0];
-          const rest = possibleDupes.slice(1);
-
-          await supabase
-            .from('user_sessions')
-            .update({
-              device_stable_id: normalizedId,
-              browser_name: sessionData.browserName,
-              browser_version: sessionData.browserVersion,
-              user_agent: sessionData.userAgent,
-              platform: sessionData.platform,
-              screen_resolution: sessionData.screenResolution,
-              operating_system: sessionData.operatingSystem,
-              device_type: detectedDeviceType,
-              active_tabs_count: (base.active_tabs_count || 0) + rest.reduce((s, r) => s + (r.active_tabs_count || 0), 0),
-            })
-            .eq('id', base.id);
-
-          if (rest.length > 0) {
-            await supabase
-              .from('user_sessions')
-              .delete()
-              .in('id', rest.map(r => r.id));
-          }
-        }
-      }
+      // TEMPORARILY DISABLED: Duplicate consolidation
+      // This was causing DELETE noise that triggers false logouts in other tabs
+      // We can reintroduce a safer non-destructive consolidation later
+      console.log('Duplicate consolidation disabled to prevent cross-tab logout issues');
 
       // Check if a session row already exists and compute smart delta
       const { data: existingRow } = await supabase
