@@ -77,14 +77,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       try {
         // Set up auth state listener FIRST to catch any auth events
-        // Use per-tab client for auth isolation
-        const { data: { subscription } } = perTabSupabase.auth.onAuthStateChange(
-          async (event, session) => {
+        // Use unified supabase client for consistent auth
+        console.log('🔐 AuthProvider: Setting up auth listener with unified client');
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (event, session) => {
             if (!isMounted) return;
             
-            console.log('🔄 AuthProvider (per-tab): Auth state changed:', event, !!session?.user);
+            console.log('🔄 AuthProvider: Auth state changed:', event, !!session?.user);
             
-            // CRITICAL: Prevent automatic logout - only respond to explicit SIGNED_OUT events
+            // CRITICAL: Synchronous updates only - NO async operations in callback
             if (event === 'SIGNED_OUT') {
               console.log('🚪 User explicitly signed out');
               setSession(null);
@@ -97,8 +98,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return;
             }
             
-            // Update auth state for active sessions
+            // Update auth state immediately (synchronous)
             if (session?.user) {
+              console.log('✅ Setting session and user (synchronous)');
               setSession(session);
               setUser(session.user);
               
@@ -107,20 +109,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setLoading(false);
               }
               
-              // Handle sign in and token refresh
-              if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                // Only fetch if not already cached to prevent constant reloading
-                if (!authDataCached || event === 'TOKEN_REFRESHED') {
+              // Defer profile/role fetch to avoid blocking the callback
+              setTimeout(() => {
+                if (!isMounted) return;
+                
+                // Only fetch if not cached or on fresh login/refresh
+                if (!authDataCached || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                  console.log('📥 Deferred: Fetching user profile and role...');
+                  
+                  // Fetch profile
                   fetchUserProfile(session.user.id).catch(console.warn);
+                  // Fetch role
                   fetchUserRole(session.user.id).catch(console.warn);
-                  // Prefetch profile settings so settings pages are instant
+                  // Prefetch settings
                   import('@/lib/profileSettingsCache').then(m => m.prefetchProfileSettings(session.user!.id)).catch(console.warn);
-                  // Synchronize all user data immediately
+                  // Sync user data
                   userDataSynchronizer.syncUserData(session.user.id).catch(console.warn);
-                  // INSTANT MEDIA: Preload avatar and cover immediately on login
+                  // Preload media
                   instantMediaPreloader.preloadUserMedia(session.user.id).catch(() => {});
                 }
-              }
+              }, 0);
             }
           }
         );
