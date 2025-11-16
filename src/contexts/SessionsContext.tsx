@@ -237,8 +237,13 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
               const newSession = payload.new as UserSession;
               setSessions(prev => {
-                const filtered = prev.filter(s => s.device_stable_id !== newSession.device_stable_id);
-                return deduplicateSessions([...filtered, newSession]);
+                // Replace-by-device: never append, always replace existing entry
+                const map = new Map<string, UserSession>();
+                for (const s of prev) {
+                  map.set(s.device_stable_id, s);
+                }
+                map.set(newSession.device_stable_id, newSession);
+                return deduplicateSessions(Array.from(map.values()));
               });
             } else if (payload.eventType === 'DELETE') {
               const oldSession = payload.old as UserSession;

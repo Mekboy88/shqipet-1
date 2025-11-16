@@ -1811,6 +1811,10 @@ export type Database = {
         Args: { p_window_minutes?: number }
         Returns: Json
       }
+      bump_tabs_count: {
+        Args: { p_delta: number; p_device?: Json; p_device_stable_id: string }
+        Returns: number
+      }
       calculate_current_month_costs: {
         Args: never
         Returns: {
