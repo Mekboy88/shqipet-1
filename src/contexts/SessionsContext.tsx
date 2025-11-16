@@ -93,6 +93,8 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       const newTrustedState = !session.is_trusted;
 
+      console.log('🔄 Toggling trust for device:', deviceStableId, 'from', session.is_trusted, 'to', newTrustedState);
+
       const { error: invokeError } = await supabase.functions.invoke('manage-session', {
         body: {
           action: 'trust',
@@ -105,9 +107,10 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (invokeError) throw invokeError;
 
+      console.log('✅ Trust toggle successful');
       toast.success(newTrustedState ? 'Device trusted' : 'Device untrusted');
     } catch (err: any) {
-      console.error('Failed to trust device:', err);
+      console.error('❌ Failed to trust device:', err);
       toast.error('Failed to update device trust status');
     }
   };
