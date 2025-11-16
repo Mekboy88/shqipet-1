@@ -96,10 +96,20 @@ Deno.serve(async (req) => {
         ...locationData,
       };
 
+      // Check if a session row already exists to decide delta (0 on first insert, 1 on updates)
+      const { data: existingRow } = await supabase
+        .from('user_sessions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('device_stable_id', normalizedId)
+        .maybeSingle();
+
+      const delta = existingRow ? 1 : 0;
+
       // Atomic increment via RPC (never below 1, single row per device)
       const { data: count, error: rpcError } = await supabase.rpc('bump_tabs_count', {
         p_device_stable_id: normalizedId,
-        p_delta: 1,
+        p_delta: delta,
         p_device: devicePayload,
       });
       if (rpcError) throw rpcError;

@@ -28,39 +28,49 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
 
   const deduplicateSessions = (sessionsArray: UserSession[]): UserSession[] => {
+    // Strong "one card per device" grouping with aggregation
     const map = new Map<string, UserSession>();
 
     const mkKey = (s: Partial<UserSession>): string => {
       const dsid = typeof s.device_stable_id === 'string' && s.device_stable_id.length > 0 ? s.device_stable_id.toLowerCase() : null;
-      const id = typeof s.id === 'string' && s.id.length > 0 ? s.id.toLowerCase() : null;
-      const ua = (s.user_agent || '').toLowerCase();
+      const did = typeof s.device_id === 'string' && s.device_id.length > 0 ? s.device_id.toLowerCase() : null;
+      const os = (s.operating_system || '').toLowerCase();
+      const browser = (s.browser_name || '').toLowerCase();
+      const browserVer = (s.browser_version || '').toLowerCase().split('.')[0]; // major only
       const plat = (s.platform || '').toLowerCase();
       const sr = (s.screen_resolution || '').toLowerCase();
-      return dsid || id || `${ua}|${plat}|${sr}`;
+      // Priority: stable id -> device id -> normalized fingerprint
+      return dsid || did || `${os}|${browser}${browserVer}|${plat}|${sr}`;
     };
 
     let duplicatesFound = 0;
 
-    for (const session of sessionsArray) {
-      const key = mkKey(session);
+    for (const s of sessionsArray) {
+      const key = mkKey(s);
       const existing = map.get(key);
       if (!existing) {
-        map.set(key, session);
+        map.set(key, s);
       } else {
         duplicatesFound++;
-        // Keep most recent by created_at, then by updated_at
-        const existingCreated = new Date(existing.created_at).getTime();
-        const sessionCreated = new Date(session.created_at).getTime();
-        const existingUpdated = new Date(existing.updated_at).getTime();
-        const sessionUpdated = new Date(session.updated_at).getTime();
-        if (sessionCreated > existingCreated || (sessionCreated === existingCreated && sessionUpdated > existingUpdated)) {
-          map.set(key, session);
-        }
+        // Aggregate into a single canonical record
+        map.set(key, {
+          ...((new Date(s.updated_at).getTime() > new Date(existing.updated_at).getTime()) ? s : existing),
+          // Sum active tabs across duplicates so badge shows true active tabs
+          active_tabs_count: (existing.active_tabs_count ?? 1) + (s.active_tabs_count ?? 1) - 1, // both rows minimum 1 → avoid double baseline
+          // If any is current/trusted, keep it
+          is_current_device: existing.is_current_device || s.is_current_device,
+          is_trusted: existing.is_trusted || s.is_trusted,
+          // Prefer earliest creation time for history, keep latest update time
+          created_at: (new Date(existing.created_at).getTime() <= new Date(s.created_at).getTime()) ? existing.created_at : s.created_at,
+          updated_at: (new Date(existing.updated_at).getTime() >= new Date(s.updated_at).getTime()) ? existing.updated_at : s.updated_at,
+          // Ensure we preserve a canonical stable id if present on any
+          device_stable_id: (existing.device_stable_id?.toLowerCase() || s.device_stable_id?.toLowerCase() || existing.device_stable_id || s.device_stable_id) as string,
+        });
       }
     }
 
     if (duplicatesFound > 0) {
-      console.warn(`⚠️ Found ${duplicatesFound} duplicate device entries (fixed by deduplication)`);
+      console.warn(`⚠️ Found ${duplicatesFound} duplicate device entries (merged into single device card)`);
     }
 
     return Array.from(map.values());
@@ -256,11 +266,13 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               setSessions(prev => {
                 const mkKey = (s: Partial<UserSession>) => {
                   const dsid = typeof s.device_stable_id === 'string' && s.device_stable_id.length > 0 ? s.device_stable_id.toLowerCase() : null;
-                  const id = typeof s.id === 'string' && s.id.length > 0 ? s.id.toLowerCase() : null;
-                  const ua = (s.user_agent || '').toLowerCase();
+                  const did = typeof s.device_id === 'string' && s.device_id.length > 0 ? s.device_id.toLowerCase() : null;
+                  const os = (s.operating_system || '').toLowerCase();
+                  const browser = (s.browser_name || '').toLowerCase();
+                  const browserVer = (s.browser_version || '').toLowerCase().split('.')[0];
                   const plat = (s.platform || '').toLowerCase();
                   const sr = (s.screen_resolution || '').toLowerCase();
-                  return dsid || id || `${ua}|${plat}|${sr}`;
+                  return dsid || did || `${os}|${browser}${browserVer}|${plat}|${sr}`;
                 };
                 const deleteKey = mkKey(oldSession);
                 return prev.filter(s => mkKey(s) !== deleteKey);
