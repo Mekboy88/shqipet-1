@@ -27,53 +27,65 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [error, setError] = useState<string | null>(null);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
 
+  // Create stable device fingerprint for bulletproof one-card-per-device
+  const createDeviceFingerprint = (s: UserSession): string => {
+    const os = (s.operating_system || '').toLowerCase().trim();
+    const browser = (s.browser_name || '').toLowerCase().trim();
+    const browserVersion = (s.browser_version || '').split('.')[0] || '';
+    const platform = (s.platform || '').toLowerCase().trim();
+    const resolution = (s.screen_resolution || '').toLowerCase().trim();
+    
+    return `${os}::${browser}::${browserVersion}::${platform}::${resolution}`;
+  };
+
   const deduplicateSessions = (sessionsArray: UserSession[]): UserSession[] => {
-    // Strong "one card per device" grouping with aggregation
-    const map = new Map<string, UserSession>();
-
-    const mkKey = (s: Partial<UserSession>): string => {
-      const dsid = typeof s.device_stable_id === 'string' && s.device_stable_id.length > 0 ? s.device_stable_id.toLowerCase() : null;
-      const did = typeof s.device_id === 'string' && s.device_id.length > 0 ? s.device_id.toLowerCase() : null;
-      const os = (s.operating_system || '').toLowerCase();
-      const browser = (s.browser_name || '').toLowerCase();
-      const browserVer = (s.browser_version || '').toLowerCase().split('.')[0]; // major only
-      const plat = (s.platform || '').toLowerCase();
-      const sr = (s.screen_resolution || '').toLowerCase();
-      // Priority: stable id -> device id -> normalized fingerprint
-      return dsid || did || `${os}|${browser}${browserVer}|${plat}|${sr}`;
-    };
-
-    let duplicatesFound = 0;
-
-    for (const s of sessionsArray) {
-      const key = mkKey(s);
-      const existing = map.get(key);
-      if (!existing) {
-        map.set(key, s);
-      } else {
-        duplicatesFound++;
-        // Aggregate into a single canonical record
-        map.set(key, {
-          ...((new Date(s.updated_at).getTime() > new Date(existing.updated_at).getTime()) ? s : existing),
-          // Sum active tabs across duplicates so badge shows true active tabs
-          active_tabs_count: (existing.active_tabs_count ?? 1) + (s.active_tabs_count ?? 1) - 1, // both rows minimum 1 → avoid double baseline
-          // If any is current/trusted, keep it
-          is_current_device: existing.is_current_device || s.is_current_device,
-          is_trusted: existing.is_trusted || s.is_trusted,
-          // Prefer earliest creation time for history, keep latest update time
-          created_at: (new Date(existing.created_at).getTime() <= new Date(s.created_at).getTime()) ? existing.created_at : s.created_at,
-          updated_at: (new Date(existing.updated_at).getTime() >= new Date(s.updated_at).getTime()) ? existing.updated_at : s.updated_at,
-          // Ensure we preserve a canonical stable id if present on any
-          device_stable_id: (existing.device_stable_id?.toLowerCase() || s.device_stable_id?.toLowerCase() || existing.device_stable_id || s.device_stable_id) as string,
-        });
-      }
+    const groups = new Map<string, UserSession[]>();
+    
+    // Group sessions by fingerprint
+    for (const session of sessionsArray) {
+      const fingerprint = createDeviceFingerprint(session);
+      const group = groups.get(fingerprint) || [];
+      group.push(session);
+      groups.set(fingerprint, group);
     }
-
-    if (duplicatesFound > 0) {
-      console.warn(`⚠️ Found ${duplicatesFound} duplicate device entries (merged into single device card)`);
+    
+    // Aggregate each group into a single canonical session
+    const deduplicated: UserSession[] = [];
+    const currentDeviceStableId = localStorage.getItem('device_stable_id')?.toLowerCase();
+    
+    for (const [fingerprint, group] of groups.entries()) {
+      // Find canonical: prefer current device's stable_id, otherwise most recent
+      let canonical = group.find(s => 
+        s.device_stable_id?.toLowerCase() === currentDeviceStableId
+      ) || group.sort((a, b) => 
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      )[0];
+      
+      // Aggregate data from all sessions in group
+      const aggregated: UserSession = {
+        ...canonical,
+        active_tabs_count: group.reduce((sum, s) => sum + s.active_tabs_count, 0),
+        is_current_device: group.some(s => s.is_current_device),
+        is_trusted: group.some(s => s.is_trusted),
+        created_at: group.reduce((earliest, s) => 
+          s.created_at < earliest ? s.created_at : earliest, 
+          group[0].created_at
+        ),
+        updated_at: group.reduce((latest, s) => 
+          s.updated_at > latest ? s.updated_at : latest,
+          group[0].updated_at
+        ),
+        device_stable_id: canonical.device_stable_id || fingerprint,
+      };
+      
+      deduplicated.push(aggregated);
     }
-
-    return Array.from(map.values());
+    
+    if (groups.size < sessionsArray.length) {
+      console.warn(`⚠️ Merged ${sessionsArray.length - groups.size} duplicate device entries into ${groups.size} cards`);
+    }
+    
+    return deduplicated;
   };
 
   // Fetch all sessions for the user
@@ -246,36 +258,14 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
               const newSession = payload.new as UserSession;
               setSessions(prev => {
-                const mkKey = (s: Partial<UserSession>) => {
-                  const dsid = typeof s.device_stable_id === 'string' && s.device_stable_id.length > 0 ? s.device_stable_id.toLowerCase() : null;
-                  const id = typeof s.id === 'string' && s.id.length > 0 ? s.id.toLowerCase() : null;
-                  const ua = (s.user_agent || '').toLowerCase();
-                  const plat = (s.platform || '').toLowerCase();
-                  const sr = (s.screen_resolution || '').toLowerCase();
-                  return dsid || id || `${ua}|${plat}|${sr}`;
-                };
-                const map = new Map<string, UserSession>();
-                for (const s of prev) {
-                  map.set(mkKey(s), s);
-                }
-                map.set(mkKey(newSession), newSession);
-                return Array.from(map.values());
+                const allSessions = [...prev.filter(s => s.id !== newSession.id), newSession];
+                return deduplicateSessions(allSessions);
               });
             } else if (payload.eventType === 'DELETE') {
               const oldSession = payload.old as Partial<UserSession>;
               setSessions(prev => {
-                const mkKey = (s: Partial<UserSession>) => {
-                  const dsid = typeof s.device_stable_id === 'string' && s.device_stable_id.length > 0 ? s.device_stable_id.toLowerCase() : null;
-                  const did = typeof s.device_id === 'string' && s.device_id.length > 0 ? s.device_id.toLowerCase() : null;
-                  const os = (s.operating_system || '').toLowerCase();
-                  const browser = (s.browser_name || '').toLowerCase();
-                  const browserVer = (s.browser_version || '').toLowerCase().split('.')[0];
-                  const plat = (s.platform || '').toLowerCase();
-                  const sr = (s.screen_resolution || '').toLowerCase();
-                  return dsid || did || `${os}|${browser}${browserVer}|${plat}|${sr}`;
-                };
-                const deleteKey = mkKey(oldSession);
-                return prev.filter(s => mkKey(s) !== deleteKey);
+                const filtered = prev.filter(s => s.id !== oldSession.id);
+                return deduplicateSessions(filtered);
               });
               console.log('🗑️ Session deleted, card removed instantly');
             }

@@ -159,7 +159,7 @@ const ManageSessionsForm = () => {
         <div className="grid grid-cols-1 gap-4">
           {sortedSessions.map((session) => (
             <DeviceCard
-              key={session.device_stable_id}
+              key={session.device_stable_id || session.id}
               session={session}
               isCurrentDevice={session.device_stable_id === currentDeviceId}
               onClick={() => handleCardClick(session)}
