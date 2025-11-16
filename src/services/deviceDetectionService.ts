@@ -16,16 +16,33 @@ class DeviceDetectionService {
   private readonly STORAGE_KEY = 'device_stable_id';
 
   /**
-   * Generate or retrieve stable device ID from localStorage
-   * Privacy-compliant: uses random seed, NOT hardware identifiers
+   * Generate or retrieve stable device ID based on hardware fingerprint
+   * Privacy-compliant: uses browser-exposed characteristics, same device = same ID across domains
    */
-  private getOrCreateStableId(): string {
+  private async getOrCreateStableId(): Promise<string> {
+    // Check cache first
     let stableId = localStorage.getItem(this.STORAGE_KEY);
-    if (!stableId) {
-      // Generate random UUID-based stable ID
-      stableId = crypto.randomUUID();
-      localStorage.setItem(this.STORAGE_KEY, stableId);
-    }
+    if (stableId) return stableId;
+    
+    // Generate deterministic fingerprint from device characteristics
+    const fingerprint = [
+      navigator.userAgent,
+      `${window.screen.width}x${window.screen.height}`,
+      window.screen.colorDepth.toString(),
+      navigator.platform,
+      navigator.language,
+      new Date().getTimezoneOffset().toString(),
+    ].join('|');
+    
+    // Hash to create stable ID
+    const encoder = new TextEncoder();
+    const data = encoder.encode(fingerprint);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    stableId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
+    
+    // Cache it
+    localStorage.setItem(this.STORAGE_KEY, stableId);
     return stableId;
   }
 
@@ -68,7 +85,7 @@ class DeviceDetectionService {
   /**
    * Get comprehensive device information for current device
    */
-  getDeviceInfo(): DeviceInfo {
+  async getDeviceInfo(): Promise<DeviceInfo> {
     const parser = new UAParser();
     const result = parser.getResult();
     
@@ -83,7 +100,7 @@ class DeviceDetectionService {
 
     return {
       deviceId: crypto.randomUUID(),
-      deviceStableId: this.getOrCreateStableId(),
+      deviceStableId: await this.getOrCreateStableId(),
       deviceType,
       operatingSystem: result.os.name || 'Unknown',
       browserName: result.browser.name || 'Unknown',
@@ -97,8 +114,8 @@ class DeviceDetectionService {
   /**
    * Get stable device ID (persistent across sessions)
    */
-  getCurrentDeviceStableId(): string {
-    return this.getOrCreateStableId();
+  async getCurrentDeviceStableId(): Promise<string> {
+    return await this.getOrCreateStableId();
   }
 
   /**

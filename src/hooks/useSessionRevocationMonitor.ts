@@ -20,7 +20,7 @@ export const useSessionRevocationMonitor = () => {
     const setupMonitoring = async () => {
       try {
         // Get current device ID
-        deviceStableId = deviceDetectionService.getCurrentDeviceStableId();
+        deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
 
         console.log('🔒 Session revocation monitor: Watching device', deviceStableId);
         console.log('👤 User ID:', user.id);
