@@ -218,6 +218,37 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // Optimistic UI updates via BroadcastChannel
+  useEffect(() => {
+    if (!user) return;
+    
+    const bc = new BroadcastChannel('lovable_session_tabs');
+    
+    const adjustTabCount = (deviceId: string, delta: number) => {
+      setSessions(prev => prev.map(s => {
+        if (s.device_stable_id?.toLowerCase() === deviceId?.toLowerCase()) {
+          const newCount = Math.max((s.active_tabs_count || 0) + delta, 0);
+          console.log(`📊 Optimistic update: ${s.device_stable_id} ${delta > 0 ? '+' : ''}${delta} → ${newCount} tabs`);
+          return { ...s, active_tabs_count: newCount };
+        }
+        return s;
+      }));
+    };
+    
+    bc.onmessage = (e) => {
+      const { type, deviceStableId } = e.data || {};
+      if (!deviceStableId) return;
+      
+      if (type === 'tab_opened') {
+        adjustTabCount(deviceStableId, +1);
+      } else if (type === 'tab_closed') {
+        adjustTabCount(deviceStableId, -1);
+      }
+    };
+    
+    return () => bc.close();
+  }, [user]);
+
   // Setup realtime subscriptions
   useEffect(() => {
     if (!user) {

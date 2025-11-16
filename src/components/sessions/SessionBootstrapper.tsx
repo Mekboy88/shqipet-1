@@ -113,7 +113,15 @@ const SessionBootstrapper = () => {
     };
 
     // Announce presence immediately (used to cancel pending decrement on reload)
-    channel.postMessage({ type: 'hello', tabId });
+    const announceHello = async () => {
+      try {
+        const deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
+        channel.postMessage({ type: 'hello', tabId, deviceStableId });
+      } catch (e) {
+        channel.postMessage({ type: 'hello', tabId });
+      }
+    };
+    announceHello();
     
     const registerSession = async () => {
       if (registered || pending || registrationPendingRef.current) {
@@ -173,6 +181,9 @@ const SessionBootstrapper = () => {
         registered = true;
         sessionStorage.setItem(TAB_FLAG, '1');
         console.log('✅ Session registered successfully, new tab count:', response?.count || 'unknown');
+        
+        // Broadcast tab_opened for optimistic UI update
+        channel.postMessage({ type: 'tab_opened', deviceStableId: deviceInfo.deviceStableId, tabId });
       } catch (err: any) {
         console.error('Failed to register session:', err);
         toast.error('Failed to register device session', { description: err.message });
@@ -188,8 +199,10 @@ const SessionBootstrapper = () => {
       channel.postMessage({ type: 'decrementing' });
       
       decremented = true;
+      let deviceStableId: string | null = null;
+      
       try {
-        const deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
+        deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
         console.log('📍 Tab closing/hidden, decrementing count for:', deviceStableId);
 
         const { data: response, error: decrementError } = await supabase.functions.invoke('manage-session', {
@@ -203,6 +216,10 @@ const SessionBootstrapper = () => {
           console.error('❌ Tab decrement error:', decrementError);
         } else {
           console.log('✅ Tab count decremented successfully, new count:', response?.count || 'unknown');
+          // Broadcast tab_closed for optimistic UI update
+          if (deviceStableId) {
+            channel.postMessage({ type: 'tab_closed', deviceStableId, tabId });
+          }
         }
       } catch (err) {
         console.error('Failed to decrement tab count (best effort):', err);
@@ -225,6 +242,38 @@ const SessionBootstrapper = () => {
     // Decrement only on real close/unload. Do NOT decrement on tab hide/switch.
     const onPageHide = () => {
       announceGoodbye();
+      
+      // sendBeacon fallback: guaranteed delivery even if page unloads
+      if (!decremented && registered) {
+        (async () => {
+          try {
+            const deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
+            const session = await supabase.auth.getSession();
+            const authToken = session?.data?.session?.access_token;
+            
+            if (authToken) {
+              const payload = JSON.stringify({ 
+                action: 'tab_close', 
+                deviceStableId 
+              });
+              const beaconUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-session`;
+              
+              // Create FormData for beacon (more reliable than Blob in some browsers)
+              const formData = new FormData();
+              formData.append('Authorization', `Bearer ${authToken}`);
+              formData.append('payload', payload);
+              
+              const success = navigator.sendBeacon(beaconUrl, new Blob([payload], { type: 'application/json' }));
+              if (success) {
+                console.log('📡 Sent beacon fallback for tab close');
+              }
+            }
+          } catch (e) {
+            console.warn('Beacon fallback failed:', e);
+          }
+        })();
+      }
+      
       scheduleDecrement();
     };
     const onBeforeUnload = () => {
