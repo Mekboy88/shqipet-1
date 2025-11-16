@@ -100,7 +100,7 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke, onTrus
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-sm font-semibold leading-tight">{displayTitle}</h3>
                   <Badge variant="secondary" className="text-xs">
-                    {session.active_tabs_count || 1} {(session.active_tabs_count || 1) === 1 ? 'tab' : 'tabs'}
+                    {session.active_tabs_count ?? 0} {(session.active_tabs_count ?? 0) === 1 ? 'tab' : 'tabs'}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2 mt-1">

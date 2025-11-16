@@ -64,7 +64,7 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Aggregate data from all sessions in group
       const aggregated: UserSession = {
         ...canonical,
-        active_tabs_count: group.reduce((sum, s) => sum + s.active_tabs_count, 0),
+        active_tabs_count: canonical.active_tabs_count, // Use canonical count, not sum
         is_current_device: group.some(s => s.is_current_device),
         is_trusted: group.some(s => s.is_trusted),
         created_at: group.reduce((earliest, s) => 

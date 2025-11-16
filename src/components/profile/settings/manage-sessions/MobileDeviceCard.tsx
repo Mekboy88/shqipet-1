@@ -139,7 +139,7 @@ export const MobileDeviceCard = ({
                 </h3>
                 <Badge variant="outline" className="text-xs">{deviceLabel}</Badge>
                 <Badge variant="secondary" className="text-xs">
-                  {session.active_tabs_count || 1} {(session.active_tabs_count || 1) === 1 ? 'tab' : 'tabs'}
+                  {session.active_tabs_count ?? 0} {(session.active_tabs_count ?? 0) === 1 ? 'tab' : 'tabs'}
                 </Badge>
               </div>
 
