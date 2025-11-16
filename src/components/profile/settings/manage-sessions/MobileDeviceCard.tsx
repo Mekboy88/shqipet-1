@@ -138,11 +138,9 @@ export const MobileDeviceCard = ({
                   {displayTitle}
                 </h3>
                 <Badge variant="outline" className="text-xs">{deviceLabel}</Badge>
-                {session.active_tabs_count && session.active_tabs_count > 1 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {session.active_tabs_count} tabs
-                  </Badge>
-                )}
+                <Badge variant="secondary" className="text-xs">
+                  {session.active_tabs_count || 1} {(session.active_tabs_count || 1) === 1 ? 'tab' : 'tabs'}
+                </Badge>
               </div>
 
               <div className="flex items-center gap-2 mb-2 flex-wrap">

@@ -28,14 +28,42 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
 
   // Deduplicate sessions by device_stable_id (keep most recent)
+  // CRITICAL: Ensures only ONE card per physical device
   const deduplicateSessions = (sessionsArray: UserSession[]): UserSession[] => {
     const map = new Map<string, UserSession>();
+    let duplicatesFound = 0;
+    
     for (const session of sessionsArray) {
       const existing = map.get(session.device_stable_id);
-      if (!existing || new Date(session.created_at) > new Date(existing.created_at)) {
+      if (!existing) {
         map.set(session.device_stable_id, session);
+      } else {
+        duplicatesFound++;
+        // Keep most recent by created_at, then by updated_at
+        const existingCreated = new Date(existing.created_at).getTime();
+        const sessionCreated = new Date(session.created_at).getTime();
+        const existingUpdated = new Date(existing.updated_at).getTime();
+        const sessionUpdated = new Date(session.updated_at).getTime();
+        
+        if (sessionCreated > existingCreated || 
+           (sessionCreated === existingCreated && sessionUpdated > existingUpdated)) {
+          map.set(session.device_stable_id, session);
+        }
       }
     }
+    
+    // Warn if duplicates were found (shouldn't happen with UNIQUE constraint)
+    if (duplicatesFound > 0) {
+      console.warn(`⚠️ Found ${duplicatesFound} duplicate device_stable_id entries (fixed by deduplication)`);
+    }
+    
+    // Validate device count
+    const uniqueDevices = map.size;
+    const totalSessions = sessionsArray.length;
+    if (totalSessions !== uniqueDevices) {
+      console.log(`📊 Deduplicated ${totalSessions} sessions → ${uniqueDevices} unique devices`);
+    }
+    
     return Array.from(map.values());
   };
 

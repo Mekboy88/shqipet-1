@@ -262,14 +262,19 @@ Deno.serve(async (req) => {
         .eq('device_stable_id', targetDeviceStableId)
         .single();
 
-      const newCount = Math.max((existing?.active_tabs_count ?? 1) - 1, 0);
+      // CRITICAL: Ensure tab count never goes below 1 (one card per device)
+      const newCount = Math.max((existing?.active_tabs_count ?? 1) - 1, 1);
+      
+      // Log if we would have gone to 0 (for debugging)
+      if ((existing?.active_tabs_count ?? 1) - 1 < 1) {
+        console.log('⚠️ Tab count clamped to 1 for device:', targetDeviceStableId);
+      }
 
-      // Update count and set is_current_device false if no tabs remain
+      // Update count only (device always remains active with minimum 1 tab)
       const { error } = await supabase
         .from('user_sessions')
         .update({ 
-          active_tabs_count: newCount,
-          is_current_device: newCount > 0
+          active_tabs_count: newCount
         })
         .eq('user_id', user.id)
         .eq('device_stable_id', targetDeviceStableId);
