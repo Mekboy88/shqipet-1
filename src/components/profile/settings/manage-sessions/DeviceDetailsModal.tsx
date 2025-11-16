@@ -306,7 +306,10 @@ export const DeviceDetailsModal = ({
                   Report Unknown Device
                 </Button>
                 <Button 
-                  onClick={() => onRevokeSession(session.device_stable_id)} 
+                  onClick={() => {
+                    onRevokeSession(session.device_stable_id);
+                    onClose();
+                  }} 
                   variant="destructive"
                   size="sm"
                   className="text-xs"
