@@ -117,7 +117,7 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { error: invokeError } = await supabase.functions.invoke('manage-session', {
         body: {
           action: 'revoke',
-          sessionData: { deviceStableId },
+          deviceStableId,
         },
       });
 
