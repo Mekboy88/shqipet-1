@@ -38,7 +38,9 @@ export const getDeviceIcon = (deviceType: string | null) => {
     case 'laptop':
       return Laptop;
     case 'desktop':
+      return Monitor;
     default:
+      // Default to Monitor for unrecognized types
       return Monitor;
   }
 };
@@ -63,7 +65,8 @@ export const getDeviceLabel = (deviceType: string | null): string => {
     case 'desktop':
       return 'Desktop';
     default:
-      return 'Desktop';
+      // If deviceType is not recognized, return it as-is (capitalized) or 'Unknown Device'
+      return deviceType ? deviceType.charAt(0).toUpperCase() + deviceType.slice(1) : 'Unknown Device';
   }
 };
 

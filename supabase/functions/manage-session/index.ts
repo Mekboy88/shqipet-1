@@ -178,9 +178,9 @@ Deno.serve(async (req) => {
     if (action === 'trust') {
       const { error } = await supabase
         .from('user_sessions')
-        .update({ is_trusted: true })
+        .update({ is_trusted: sessionData?.isTrusted ?? true })
         .eq('user_id', user.id)
-        .eq('device_stable_id', deviceStableId);
+        .eq('device_stable_id', sessionData?.deviceStableId);
 
       if (error) throw error;
 

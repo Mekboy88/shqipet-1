@@ -43,6 +43,7 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const refreshSessions = async () => {
     if (!user) {
       setSessions([]);
+      setCurrentDeviceId(null);
       return;
     }
 
@@ -50,6 +51,12 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setError(null);
 
     try {
+      // Get current device ID from local storage (instant detection)
+      const localDeviceId = localStorage.getItem('device_stable_id');
+      if (localDeviceId) {
+        setCurrentDeviceId(localDeviceId);
+      }
+
       const { data, error: fetchError } = await supabase
         .from('user_sessions')
         .select('*')
@@ -61,10 +68,12 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const dedupedSessions = deduplicateSessions(data || []);
       setSessions(dedupedSessions);
 
-      // Identify current device
-      const current = dedupedSessions.find(s => s.is_current_device);
-      if (current) {
-        setCurrentDeviceId(current.device_stable_id);
+      // Verify current device from database (fallback)
+      if (!localDeviceId) {
+        const current = dedupedSessions.find(s => s.is_current_device);
+        if (current) {
+          setCurrentDeviceId(current.device_stable_id);
+        }
       }
     } catch (err: any) {
       console.error('Failed to fetch sessions:', err);
@@ -161,7 +170,14 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     if (!user) {
       setSessions([]);
+      setCurrentDeviceId(null);
       return;
+    }
+
+    // Set current device immediately from localStorage
+    const localDeviceId = localStorage.getItem('device_stable_id');
+    if (localDeviceId) {
+      setCurrentDeviceId(localDeviceId);
     }
 
     console.log('📡 Setting up global sessions realtime subscriptions');

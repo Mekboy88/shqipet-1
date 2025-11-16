@@ -147,31 +147,29 @@ export const DeviceCard = ({ session, isCurrentDevice, onClick, onRevoke, onTrus
               </div>
             </div>
 
-            {isCurrentDevice && !session.is_trusted && (
-              <div className="pt-3 border-t">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleTrustDevice}
-                  className="w-full bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20"
-                >
-                  <ShieldCheck size={14} className="mr-2" />
-                  Trust This Device
-                </Button>
-              </div>
-            )}
-
             {!isCurrentDevice && (
               <div className="pt-3 border-t">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRevoke}
-                  className="w-full bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/20"
-                >
-                  <LogOut size={14} className="mr-2" />
-                  Log Out from This Device
-                </Button>
+                {session.is_trusted ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRevoke}
+                    className="w-full bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/20"
+                  >
+                    <LogOut size={14} className="mr-2" />
+                    Log Out This Device
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleTrustDevice}
+                    className="w-full bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20"
+                  >
+                    <ShieldCheck size={14} className="mr-2" />
+                    Trust This Device
+                  </Button>
+                )}
               </div>
             )}
           </div>
