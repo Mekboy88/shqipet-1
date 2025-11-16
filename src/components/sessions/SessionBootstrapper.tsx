@@ -183,7 +183,12 @@ const SessionBootstrapper = () => {
         console.log('✅ Session registered successfully, new tab count:', response?.count || 'unknown');
         
         // Broadcast tab_opened for optimistic UI update
-        channel.postMessage({ type: 'tab_opened', deviceStableId: deviceInfo.deviceStableId, tabId });
+        channel.postMessage({ 
+          type: 'tab_opened', 
+          deviceStableId: deviceInfo.deviceStableId, 
+          tabId,
+          timestamp: Date.now()
+        });
       } catch (err: any) {
         console.error('Failed to register session:', err);
         toast.error('Failed to register device session', { description: err.message });
@@ -218,7 +223,12 @@ const SessionBootstrapper = () => {
           console.log('✅ Tab count decremented successfully, new count:', response?.count || 'unknown');
           // Broadcast tab_closed for optimistic UI update
           if (deviceStableId) {
-            channel.postMessage({ type: 'tab_closed', deviceStableId, tabId });
+            channel.postMessage({ 
+              type: 'tab_closed', 
+              deviceStableId, 
+              tabId,
+              timestamp: Date.now()
+            });
           }
         }
       } catch (err) {

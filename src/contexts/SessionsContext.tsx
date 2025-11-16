@@ -206,7 +206,7 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         await supabase.functions.invoke('manage-session', {
           body: {
             action: 'revoke',
-            sessionData: { deviceStableId: session.device_stable_id },
+            deviceStableId: session.device_stable_id,
           },
         });
       }
@@ -224,25 +224,36 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     const bc = new BroadcastChannel('lovable_session_tabs');
     
-    const adjustTabCount = (deviceId: string, delta: number) => {
+    const adjustTabCount = (deviceId: string, delta: number, timestamp: number) => {
       setSessions(prev => prev.map(s => {
         if (s.device_stable_id?.toLowerCase() === deviceId?.toLowerCase()) {
+          // Only apply if this update is newer than the last one we processed
+          const lastUpdate = (s as any).__lastOptimisticUpdate || 0;
+          if (timestamp < lastUpdate) {
+            console.log(`⏭️ Skipping stale optimistic update (${timestamp} < ${lastUpdate})`);
+            return s;
+          }
+          
           const newCount = Math.max((s.active_tabs_count || 0) + delta, 0);
           console.log(`📊 Optimistic update: ${s.device_stable_id} ${delta > 0 ? '+' : ''}${delta} → ${newCount} tabs`);
-          return { ...s, active_tabs_count: newCount };
+          return { 
+            ...s, 
+            active_tabs_count: newCount,
+            __lastOptimisticUpdate: timestamp 
+          };
         }
         return s;
       }));
     };
     
     bc.onmessage = (e) => {
-      const { type, deviceStableId } = e.data || {};
-      if (!deviceStableId) return;
+      const { type, deviceStableId, timestamp } = e.data || {};
+      if (!deviceStableId || !timestamp) return;
       
       if (type === 'tab_opened') {
-        adjustTabCount(deviceStableId, +1);
+        adjustTabCount(deviceStableId, +1, timestamp);
       } else if (type === 'tab_closed') {
-        adjustTabCount(deviceStableId, -1);
+        adjustTabCount(deviceStableId, -1, timestamp);
       }
     };
     
@@ -301,8 +312,19 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 // Update the specific session in-place
                 const updated = [...prev];
                 const oldSession = updated[index];
-                updated[index] = { ...oldSession, ...updatedSession };
                 
+                // ONLY update if realtime count is different from optimistic count
+                // This prevents stale DB updates from overwriting fresh optimistic updates
+                const optimisticTimestamp = (oldSession as any).__lastOptimisticUpdate || 0;
+                const realtimeAge = Date.now() - new Date(updatedSession.updated_at).getTime();
+                
+                if (optimisticTimestamp > 0 && realtimeAge > 1000) {
+                  // Optimistic update is fresher, keep it
+                  console.log(`⏭️ Keeping optimistic count (${oldSession.active_tabs_count}) over stale realtime (${updatedSession.active_tabs_count})`);
+                  return prev;
+                }
+                
+                updated[index] = { ...oldSession, ...updatedSession };
                 console.log(`📊 Tab count updated for device ${updatedSession.device_stable_id}: ${updatedSession.active_tabs_count}`);
                 
                 // Only run deduplication if hardware characteristics changed (not just tab count)
