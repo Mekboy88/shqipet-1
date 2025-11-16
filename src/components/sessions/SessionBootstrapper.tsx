@@ -15,9 +15,15 @@ const SessionBootstrapper = () => {
 
     console.log('📍 SessionBootstrapper: Registering user session', user.id);
 
-    let registered = false;
+    const TAB_FLAG = '__tab_session_registered_v1';
+    let registered = sessionStorage.getItem(TAB_FLAG) === '1';
+    let decremented = false;
 
     const registerSession = async () => {
+      if (registered) {
+        console.log('ℹ️ Session already registered for this tab — skipping');
+        return;
+      }
       try {
         const deviceInfo = deviceDetectionService.getDeviceInfo();
         const location = await deviceDetectionService.getBrowserLocation().catch(() => null);
@@ -41,8 +47,8 @@ const SessionBootstrapper = () => {
           const status = (invokeError as any)?.context?.status || (invokeError as any)?.status;
           const body = (invokeError as any)?.context?.body || (invokeError as any)?.body;
           const code = body?.error || body?.code || (invokeError as any)?.code;
-          const message = body?.message || invokeError?.message || '';
-          const isRevoked = code === 'DEVICE_REVOKED' || message.includes('DEVICE_REVOKED') || status === 403;
+          const message = body?.message || (invokeError as any)?.message || '';
+          const isRevoked = code === 'DEVICE_REVOKED' || String(message).includes('DEVICE_REVOKED') || status === 403;
 
           if (isRevoked) {
             console.log('🚫 DEVICE_REVOKED detected during registration - signing out immediately');
@@ -58,21 +64,20 @@ const SessionBootstrapper = () => {
         }
 
         registered = true;
+        sessionStorage.setItem(TAB_FLAG, '1');
         console.log('✅ Session registered successfully');
       } catch (err: any) {
         console.error('Failed to register session:', err);
-        toast.error('Failed to register device session', {
-          description: err.message,
-        });
+        toast.error('Failed to register device session', { description: err.message });
       }
     };
 
     const decrementTabCount = async () => {
-      if (!registered) return;
-
+      if (!registered || decremented) return;
+      decremented = true;
       try {
         const deviceStableId = deviceDetectionService.getCurrentDeviceStableId();
-        console.log('📍 Tab closing, decrementing count for:', deviceStableId);
+        console.log('📍 Tab closing/hidden, decrementing count for:', deviceStableId);
 
         await supabase.functions.invoke('manage-session', {
           body: {
@@ -82,15 +87,20 @@ const SessionBootstrapper = () => {
         });
       } catch (err) {
         console.error('Failed to decrement tab count (best effort):', err);
+      } finally {
+        sessionStorage.removeItem(TAB_FLAG);
       }
     };
 
-    // Register on mount
+    // Register on mount (guarded)
     registerSession();
 
-    // Decrement on tab close/unload
+    // Decrement reliably on close/hidden
     window.addEventListener('beforeunload', decrementTabCount);
     window.addEventListener('pagehide', decrementTabCount);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') decrementTabCount();
+    });
 
     return () => {
       window.removeEventListener('beforeunload', decrementTabCount);
