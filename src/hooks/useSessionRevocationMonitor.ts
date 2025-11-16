@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { deviceDetectionService } from '@/services/deviceDetectionService';
 import { toast } from 'sonner';
+import { immediateLogoutService } from '@/utils/auth/immediateLogoutService';
 
 /**
  * Monitor for explicit session revocations only (via session_revocations table)
@@ -139,7 +140,11 @@ export const useSessionRevocationMonitor = () => {
 
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
-                console.log('🚪 Calling signOut()...');
+                console.log('🚪 Calling DEVICE-WIDE logout (all tabs will be logged out)...');
+                await immediateLogoutService.performDeviceWideLogout();
+                console.log('✅ Device-wide logout completed');
+                
+                console.log('🚪 Calling signOut() for cleanup...');
                 await signOut();
                 console.log('✅ signOut() completed');
               } else {

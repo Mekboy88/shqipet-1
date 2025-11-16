@@ -12,15 +12,52 @@ class ImmediateLogoutService {
     return ImmediateLogoutService.instance;
   }
 
-  // Immediate, synchronous logout without delays
-  async performImmediateLogout(isAdminLogout = false): Promise<void> {
+  // Tab-only logout - only logs out current tab, keeps other tabs logged in
+  async performTabOnlyLogout(): Promise<void> {
     if (this.logoutInProgress) {
       console.log('⏳ Logout already in progress, skipping...');
       return;
     }
 
     this.logoutInProgress = true;
-    console.log('🚪 Starting EXPLICIT logout process - user requested logout');
+    console.log('🚪 Starting TAB-ONLY logout - only this tab will be logged out');
+    
+    try {
+      // Clear device auth state immediately
+      deviceAuthService.clearDeviceAuthState();
+      console.log('✅ Device auth state cleared');
+      
+      // Sign out from Supabase (this will trigger the auth state change)
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) {
+        console.error('❌ Supabase signOut error:', error);
+      } else {
+        console.log('✅ Supabase session cleared');
+      }
+      
+      // CRITICAL: Only clear sessionStorage (tab-specific)
+      // Do NOT clear localStorage so other tabs remain logged in
+      sessionStorage.clear();
+      console.log('✅ Session storage cleared (tab-only)');
+      
+      console.log('✅ TAB-ONLY logout completed - other tabs remain logged in');
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+    } finally {
+      this.logoutInProgress = false;
+    }
+  }
+
+  // Device-wide logout - logs out ALL tabs and clears all auth data
+  // Used for session revocation
+  async performDeviceWideLogout(isAdminLogout = false): Promise<void> {
+    if (this.logoutInProgress) {
+      console.log('⏳ Logout already in progress, skipping...');
+      return;
+    }
+
+    this.logoutInProgress = true;
+    console.log('🚪 Starting DEVICE-WIDE logout - all tabs will be logged out');
     
     try {
       // Clear device auth state immediately
@@ -51,12 +88,18 @@ class ImmediateLogoutService {
       });
       console.log('✅ Auth-related localStorage cleared');
       
-      console.log('✅ EXPLICIT logout completed successfully');
+      console.log('✅ DEVICE-WIDE logout completed - all tabs logged out');
     } catch (error) {
       console.error('❌ Logout error:', error);
     } finally {
       this.logoutInProgress = false;
     }
+  }
+
+  // DEPRECATED: Use performTabOnlyLogout or performDeviceWideLogout instead
+  async performImmediateLogout(isAdminLogout = false): Promise<void> {
+    console.warn('⚠️ DEPRECATED: Use performTabOnlyLogout() or performDeviceWideLogout() instead');
+    return this.performDeviceWideLogout(isAdminLogout);
   }
 
   // Admin-only logout

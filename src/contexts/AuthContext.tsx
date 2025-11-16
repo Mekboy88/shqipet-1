@@ -391,7 +391,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    console.log('🚪 User explicitly requested sign out');
+    console.log('🚪 User explicitly requested sign out - TAB-ONLY logout');
     
     try {
       // Stop session protection first
@@ -405,8 +405,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserLevel(0);
       setAuthDataCached(false);
       
-      // Perform immediate logout
-      await immediateLogoutService.performImmediateLogout();
+      // Perform TAB-ONLY logout (keeps other tabs logged in)
+      await immediateLogoutService.performTabOnlyLogout();
       
       console.log('✅ Sign out completed');
     } catch (error) {

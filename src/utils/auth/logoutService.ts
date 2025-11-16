@@ -25,18 +25,16 @@ class LogoutService {
     return immediateLogoutService.performAdminOnlyLogout();
   }
 
-  // DEPRECATED: Use immediateLogoutService instead
+  // DEPRECATED: Use immediateLogoutService.performTabOnlyLogout() instead
   async performCompleteLogout(options: LogoutOptions = {}): Promise<void> {
-    console.warn('⚠️ DEPRECATED: Use immediateLogoutService.performImmediateLogout() instead');
-    const { isAdminLogout = false } = options;
-    return immediateLogoutService.performImmediateLogout(isAdminLogout);
+    console.warn('⚠️ DEPRECATED: Use immediateLogoutService.performTabOnlyLogout() or performDeviceWideLogout() instead');
+    return immediateLogoutService.performTabOnlyLogout();
   }
 
-  // DEPRECATED: Use immediateLogoutService instead
+  // DEPRECATED: Use immediateLogoutService.performTabOnlyLogout() instead
   async performFastCompleteLogout(options: LogoutOptions = {}): Promise<void> {
-    console.warn('⚠️ DEPRECATED: Use immediateLogoutService.performImmediateLogout() instead');
-    const { isAdminLogout = false } = options;
-    return immediateLogoutService.performImmediateLogout(isAdminLogout);
+    console.warn('⚠️ DEPRECATED: Use immediateLogoutService.performTabOnlyLogout() or performDeviceWideLogout() instead');
+    return immediateLogoutService.performTabOnlyLogout();
   }
 
   isLogoutInProgress(): boolean {
