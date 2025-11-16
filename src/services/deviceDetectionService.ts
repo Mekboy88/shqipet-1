@@ -23,25 +23,31 @@ class DeviceDetectionService {
     // Check cache first
     let stableId = localStorage.getItem(this.STORAGE_KEY);
     if (stableId) return stableId;
-    
-    // Generate deterministic fingerprint from device characteristics
-    const fingerprint = [
-      navigator.userAgent,
-      `${window.screen.width}x${window.screen.height}`,
-      window.screen.colorDepth.toString(),
-      navigator.platform,
-      navigator.language,
-      new Date().getTimezoneOffset().toString(),
-    ].join('|');
-    
-    // Hash to create stable ID
+
+    // Use only stable, version-agnostic characteristics (avoid browser version/userAgent)
+    const parser = new UAParser();
+    const osName = (parser.getOS().name || 'UnknownOS');
+
+    const fingerprintParts = {
+      os: osName, // no version
+      platform: navigator.platform || 'unknown',
+      vendor: navigator.vendor || 'unknown',
+      screen: `${window.screen.width}x${window.screen.height}`,
+      colorDepth: window.screen.colorDepth || 0,
+      pixelRatio: (window.devicePixelRatio || 1),
+      hw: (navigator.hardwareConcurrency || 0),
+      mem: (navigator as any).deviceMemory || 0,
+      touch: navigator.maxTouchPoints || 0,
+      tz: new Date().getTimezoneOffset(),
+      lang: (navigator.languages && navigator.languages.join(',')) || navigator.language || 'en',
+    };
+
     const encoder = new TextEncoder();
-    const data = encoder.encode(fingerprint);
+    const data = encoder.encode(JSON.stringify(fingerprintParts));
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     stableId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
-    
-    // Cache it
+
     localStorage.setItem(this.STORAGE_KEY, stableId);
     return stableId;
   }
