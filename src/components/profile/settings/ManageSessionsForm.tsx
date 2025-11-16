@@ -27,6 +27,21 @@ const ManageSessionsForm = () => {
   const [selectedSession, setSelectedSession] = useState<UserSession | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Debug current device detection
+  React_useEffect(() => {
+    console.log('🔍 Current Device Detection:', {
+      currentDeviceId,
+      localStorageId: localStorage.getItem('device_stable_id'),
+      sessionsCount: sessions.length,
+      sessions: sessions.map(s => ({
+        id: s.device_stable_id,
+        type: s.device_type,
+        isCurrent: s.device_stable_id === currentDeviceId,
+        isTrusted: s.is_trusted
+      }))
+    });
+  }, [currentDeviceId, sessions]);
+
   const handleCardClick = (session: UserSession) => {
     setSelectedSession(session);
     setIsModalOpen(true);
