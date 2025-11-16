@@ -255,7 +255,39 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           (payload) => {
             console.log('📡 Session realtime event:', payload.eventType, payload);
 
-            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            if (payload.eventType === 'UPDATE') {
+              const updatedSession = payload.new as UserSession;
+              
+              // Fast path for tab count updates - update in-place without full deduplication
+              setSessions(prev => {
+                const index = prev.findIndex(s => s.id === updatedSession.id);
+                
+                if (index === -1) {
+                  // Session doesn't exist yet, add it with deduplication
+                  return deduplicateSessions([...prev, updatedSession]);
+                }
+                
+                // Update the specific session in-place
+                const updated = [...prev];
+                const oldSession = updated[index];
+                updated[index] = { ...oldSession, ...updatedSession };
+                
+                console.log(`📊 Tab count updated for device ${updatedSession.device_stable_id}: ${updatedSession.active_tabs_count}`);
+                
+                // Only run deduplication if hardware characteristics changed (not just tab count)
+                if (
+                  oldSession.operating_system !== updatedSession.operating_system ||
+                  oldSession.platform !== updatedSession.platform ||
+                  oldSession.screen_resolution !== updatedSession.screen_resolution ||
+                  oldSession.browser_name !== updatedSession.browser_name
+                ) {
+                  console.log('🔄 Device characteristics changed, running deduplication');
+                  return deduplicateSessions(updated);
+                }
+                
+                return updated;
+              });
+            } else if (payload.eventType === 'INSERT') {
               const newSession = payload.new as UserSession;
               setSessions(prev => {
                 const allSessions = [...prev.filter(s => s.id !== newSession.id), newSession];

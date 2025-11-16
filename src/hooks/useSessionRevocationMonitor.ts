@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { perTabSupabase } from '@/integrations/supabase/perTabClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { deviceDetectionService } from '@/services/deviceDetectionService';
@@ -7,28 +7,35 @@ import { toast } from 'sonner';
 /**
  * Monitor for explicit session revocations only (via session_revocations table)
  * Does NOT auto-logout on user_sessions DELETE or heartbeat failures
+ * 
+ * FIXED: Proper async handling, refs, lowercase normalization, subscription status checking
  */
 export const useSessionRevocationMonitor = () => {
   const { user, signOut } = useAuth();
+  const deviceStableIdRef = useRef<string | null>(null);
+  const channelRef = useRef<ReturnType<typeof perTabSupabase.channel> | null>(null);
+  const isSettingUpRef = useRef(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || isSettingUpRef.current) return;
 
-    let deviceStableId: string | null = null;
-    let channel: ReturnType<typeof perTabSupabase.channel> | null = null;
+    isSettingUpRef.current = true;
 
     const setupMonitoring = async () => {
       try {
-        // Get current device ID
-        deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
+        // Get current device ID (wait for it to complete)
+        const deviceStableId = await deviceDetectionService.getCurrentDeviceStableId();
+        deviceStableIdRef.current = deviceStableId.toLowerCase(); // Normalize to lowercase
 
-        console.log('🔒 Session revocation monitor (per-tab): Watching device', deviceStableId);
+        console.log('🔒 Session revocation monitor (per-tab): Setting up for device:', deviceStableIdRef.current);
         console.log('👤 User ID:', user.id);
 
+        // Create unique channel name to avoid conflicts
+        const channelName = `session-revocation-${deviceStableId}-${Date.now()}`;
+        const channel = perTabSupabase.channel(channelName);
+
         // Subscribe ONLY to explicit revocation signals (session_revocations INSERT)
-        // Do NOT listen to user_sessions DELETE to avoid cross-tab logout issues
-        channel = perTabSupabase
-          .channel('session-revocation-monitor')
+        channel
           .on(
             'postgres_changes',
             {
@@ -38,11 +45,18 @@ export const useSessionRevocationMonitor = () => {
               filter: `user_id=eq.${user.id}`,
             },
             async (payload) => {
-              console.log('🚨 Explicit revocation signal received:', payload.new);
-              console.log('🔍 Comparing:', payload.new?.device_stable_id, '===', deviceStableId);
+              console.log('🚨 Revocation signal received:', payload.new);
               
-              // Check if this revocation is for the current device
-              if (payload.new?.device_stable_id === deviceStableId) {
+              const revokedDeviceId = (payload.new?.device_stable_id || '').toLowerCase();
+              const currentDeviceId = deviceStableIdRef.current?.toLowerCase();
+              
+              console.log('🔍 Comparing revoked device with current:');
+              console.log('   Revoked:', revokedDeviceId);
+              console.log('   Current:', currentDeviceId);
+              console.log('   Match:', revokedDeviceId === currentDeviceId);
+              
+              // Check if this revocation is for the current device (case-insensitive)
+              if (revokedDeviceId === currentDeviceId) {
                 console.log('⚠️ INSTANT REVOCATION: Current device session revoked! Logging out...');
                 
                 toast.error('Your session was revoked from another device', {
@@ -50,22 +64,45 @@ export const useSessionRevocationMonitor = () => {
                   duration: 5000,
                 });
 
-                await new Promise(resolve => setTimeout(resolve, 300));
+                // Give toast time to show
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Perform logout
                 await signOut();
               } else {
                 console.log('✅ Revocation signal for different device, ignoring');
               }
             }
           )
-          .subscribe();
-
-        console.log('✅ Session revocation monitor: Subscribed successfully');
-        
-        // Heartbeat disabled - only explicit revocation signals trigger logout
-        // This prevents false positives from DB row changes during normal operations
+          .subscribe((status, err) => {
+            if (err) {
+              console.error('❌ Session revocation monitor subscription error:', err);
+              isSettingUpRef.current = false;
+              return;
+            }
+            
+            console.log('📡 Session revocation monitor status:', status);
+            
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Session revocation monitor: ACTIVE and listening');
+              channelRef.current = channel;
+              isSettingUpRef.current = false;
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('❌ Session revocation monitor: CHANNEL ERROR');
+              isSettingUpRef.current = false;
+            } else if (status === 'TIMED_OUT') {
+              console.error('⏱️ Session revocation monitor: TIMED OUT - retrying...');
+              isSettingUpRef.current = false;
+              // Could add retry logic here if needed
+            } else if (status === 'CLOSED') {
+              console.log('🔌 Session revocation monitor: CLOSED');
+              isSettingUpRef.current = false;
+            }
+          });
 
       } catch (error) {
-        console.error('Failed to setup session revocation monitor:', error);
+        console.error('❌ Failed to setup session revocation monitor:', error);
+        isSettingUpRef.current = false;
       }
     };
 
@@ -73,10 +110,13 @@ export const useSessionRevocationMonitor = () => {
 
     // Cleanup
     return () => {
-      if (channel) {
+      if (channelRef.current) {
         console.log('🔓 Session revocation monitor: Cleaning up');
-        channel.unsubscribe();
+        perTabSupabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
+      deviceStableIdRef.current = null;
+      isSettingUpRef.current = false;
     };
   }, [user, signOut]);
 };
