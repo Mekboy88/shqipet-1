@@ -94,6 +94,7 @@ import Directory from './pages/Directory';
 import Events from './pages/Events';
 import Tasks from './pages/Tasks';
 import CreatePostDesktop from './pages/CreatePostDesktop';
+import UIExport from './pages/UIExport';
 import './App.css';
 import DynamicAdminPortalManager from '@/components/admin/DynamicAdminPortalManager';
 import GlobalNotificationsListener from '@/components/realtime/GlobalNotificationsListener';
@@ -331,8 +332,9 @@ function App() {
                        <Route path="/information" element={<Information />} />
                         <Route path="/directory" element={<Directory />} />
                          <Route path="/events" element={<Events />} />
-                         <Route path="/tasks" element={<Tasks />} />
-                        
+                          <Route path="/tasks" element={<Tasks />} />
+                          <Route path="/ui-export" element={<UIExport />} />
+                         
                          {/* Catch-all admin route for under construction pages */}
                         <Route path="/admin/*" element={<AdminDashboard />}>
                           <Route index element={<div className="flex items-center justify-center h-full"><div className="text-center"><h2 className="text-2xl font-bold mb-4">Admin Page</h2><p className="text-gray-600">This admin page is under construction</p></div></div>} />
