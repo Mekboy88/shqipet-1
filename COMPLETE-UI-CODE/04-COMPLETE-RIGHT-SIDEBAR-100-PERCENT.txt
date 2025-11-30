@@ -1,0 +1,927 @@
+================================================================================
+COMPLETE RIGHT SIDEBAR CODE - 100% AS IT IS
+================================================================================
+
+This file contains the complete code for the entire right sidebar, including all components and their dependencies.
+
+================================================================================
+1. MAIN RIGHT SIDEBAR COMPONENT
+================================================================================
+
+File: src/components/sidebar/right/RightSidebar.tsx
+
+```tsx
+import React from 'react';
+import ProfileSummaryCard from './ProfileSummaryCard';
+import TrendingCard from './TrendingCard';
+import ProMembersCard from './ProMembersCard';
+import PeopleYouMayKnowCard from './PeopleYouMayKnowCard';
+import PagesYouMayLikeCard from './PagesYouMayLikeCard';
+import SuggestedGroupsCard from './SuggestedGroupsCard';
+import OnlineUsersCard from './OnlineUsersCard';
+import InviteFriendsCard from './InviteFriendsCard';
+import LatestProductsCard from './LatestProductsCard';
+import LatestActivitiesCard from './LatestActivitiesCard';
+import SponsoredCard from './SponsoredCard';
+import RightSidebarFooter from './RightSidebarFooter';
+const RightSidebar = () => {
+  return <aside className="w-full">
+      <div className="flex flex-col gap-3 py-0 px-0 mx-px my-0">
+        <ProfileSummaryCard />
+        <TrendingCard />
+        <ProMembersCard />
+        <PeopleYouMayKnowCard />
+        <PagesYouMayLikeCard />
+        <SuggestedGroupsCard />
+        <OnlineUsersCard />
+        <InviteFriendsCard />
+        <LatestProductsCard />
+        <LatestActivitiesCard />
+        {/* SponsoredCard components will be dynamically loaded from database when ads/sponsors are available */}
+        <RightSidebarFooter />
+      </div>
+    </aside>;
+};
+export default RightSidebar;
+```
+
+================================================================================
+2. PROFILE SUMMARY CARD
+================================================================================
+
+File: src/components/sidebar/right/ProfileSummaryCard.tsx
+
+```tsx
+import React, { useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Avatar from '@/components/Avatar';
+import { useUniversalUser } from '@/hooks/useUniversalUser';
+import { useAuth } from '@/contexts/AuthContext';
+import NewCoverPhoto from '@/components/ui/NewCoverPhoto';
+import NotificationPanelWrapper from '@/components/notifications/NotificationPanelWrapper';
+import SlidingChatWindow from '@/components/chat/SlidingChatWindow';
+import SlidingMenuPanel from '@/components/menu/SlidingMenuPanel';
+
+const ProfileSummaryCard = () => {
+  const { user, loading } = useAuth();
+  // Use the universal user system for 100% consistency - NO LOADING STATES
+  const { displayName, firstName, lastName, email, username } = useUniversalUser(user?.id);
+  
+  // Cover shown via NewCoverPhoto for consistency and no flicker
+
+
+  // State for notification panel
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+  
+  // State for chat window
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
+
+  // State for menu panel
+  const [isMenuPanelOpen, setIsMenuPanelOpen] = useState(false);
+
+  // Use a global cache key that doesn't depend on user ID being available immediately
+  const GLOBAL_PROFILE_CACHE_KEY = 'current_user_profile_name';
+  
+  const getInitialName = React.useMemo(() => {
+    // Try to get from global cache first (works even when user ID isn't loaded yet)
+    try {
+      const globalCached = localStorage.getItem(GLOBAL_PROFILE_CACHE_KEY);
+      if (globalCached) return globalCached;
+    } catch {}
+    
+    // If we have user data immediately, use it
+    if (firstName && lastName) return `${firstName} ${lastName}`;
+    if (displayName && displayName.trim().includes(' ')) return displayName;
+    
+    return '';
+  }, [firstName, lastName, displayName]);
+  
+  const [stableName, setStableName] = useState<string>(getInitialName);
+
+  React.useEffect(() => {
+    // Only update if we have actual user data (not loading states)
+    if (!user?.id || loading) return;
+    
+    const fullName = firstName && lastName ? `${firstName} ${lastName}` : '';
+    const fallbackName = displayName && displayName.trim().includes(' ') ? displayName : '';
+    const finalName = fullName || fallbackName;
+    
+    if (finalName && finalName !== stableName) {
+      setStableName(finalName);
+      // Store in both global cache and user-specific cache
+      try { 
+        localStorage.setItem(GLOBAL_PROFILE_CACHE_KEY, finalName);
+        if (user?.id) {
+          localStorage.setItem(`profile_name_${user.id}`, finalName);
+        }
+      } catch {}
+    }
+  }, [firstName, lastName, displayName, user?.id, loading, stableName]);
+
+  return (
+    <>
+      <Card className="bg-card rounded-lg border border-border shadow-md overflow-hidden w-full">
+        <div className="relative">
+        <NewCoverPhoto userId={user?.id} height={96} className="rounded-none" />
+          {/* Avatar positioned at the bottom of the cover, half out and half in */}
+          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
+            <Avatar 
+              size="lg" 
+              className="w-12 h-12 border-2 border-white rounded-full shadow-md"
+            />
+          </div>
+        </div>
+        <div className="pt-8 pb-4 px-4 text-center">
+          <h3 className="font-bold text-lg">{stableName}</h3>
+          {/* Action buttons replacing the ID text */}
+          <div className="flex justify-center space-x-2 mt-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-14 w-14"
+              onClick={() => setIsMenuPanelOpen(true)}
+            >
+              <svg 
+                className="h-14 w-14" 
+                viewBox="0 0 482.8 482.8" 
+                fill="currentColor"
+              >
+                <path d="M108.2,0.1H33c-18.2,0-33,14.8-33,33v75.1c0,18.2,14.8,33,33,33h75.1c18.2,0,33-14.8,33-33V33 C141.2,14.9,126.4,0.1,108.2,0.1z M114.2,108.2c0,3.3-2.7,6-6,6H33c-3.3,0-6-2.7-6-6V33c0-3.3,2.7-6,6-6h75.1c3.3,0,6,2.7,6,6 v75.2H114.2z"></path>
+                <path d="M108.2,170.9H33c-18.2,0-33,14.8-33,33V279c0,18.2,14.8,33,33,33h75.1c18.2,0,33-14.8,33-33v-75.1 C141.2,185.7,126.4,170.9,108.2,170.9z M114.2,279c0,3.3-2.7,6-6,6H33c-3.3,0-6-2.7-6-6v-75.1c0-3.3,2.7-6,6-6h75.1 c3.3,0,6,2.7,6,6V279H114.2z"></path>
+                <path d="M108.2,341.6H33c-18.2,0-33,14.8-33,33v75.1c0,18.2,14.8,33,33,33h75.1c18.2,0,33-14.8,33-33v-75.1 C141.2,356.4,126.4,341.6,108.2,341.6z M114.2,449.8c0,3.3-2.7,6-6,6H33c-3.3,0-6-2.7-6-6v-75.1c0-3.3,2.7-6,6-6h75.1 c3.3,0,6,2.7,6,6v75.1H114.2z"></path>
+                <path d="M279,170.9h-75.1c-18.2,0-33,14.8-33,33V279c0,18.2,14.8,33,33,33H279c18.2,0,33-14.8,33-33v-75.1 C311.9,185.7,297.2,170.9,279,170.9z M284.9,279c0,3.3-2.7,6-6,6h-75.1c-3.3,0-6-2.7-6-6v-75.1c0-3.3,2.7-6,6-6h75.1 c3.3,0,6,2.7,6,6V279z"></path>
+                <path d="M279,341.6h-75.1c-18.2,0-33,14.8-33,33v75.1c0,18.2,14.8,33,33,33H279c18.2,0,33-14.8,33-33v-75.1 C311.9,356.4,297.2,341.6,279,341.6z M284.9,449.8c0,3.3-2.7,6-6,6h-75.1c-3.3,0-6-2.7-6-6v-75.1c0-3.3,2.7-6,6-6h75.1 c3.3,0,6,2.7,6,6V449.8z"></path>
+                <path d="M449.8,170.9h-75.1c-18.2,0-33,14.8-33,33V279c0,18.2,14.8,33,33,33h75.1c18.2,0,33-14.8,33-33v-75.1 C482.7,185.7,467.9,170.9,449.8,170.9z M455.7,279c0,3.3-2.7,6-6,6h-75.1c-3.3,0-6-2.7-6-6v-75.1c0-3.3,2.7-6,6-6h75.1 c3.3,0,6,2.7,6,6V279z"></path>
+                <path d="M449.8,341.6h-75.1c-18.2,0-33,14.8-33,33v75.1c0,18.2,14.8,33,33,33h75.1c18.2,0,33-14.8,33-33v-75.1 C482.7,356.4,467.9,341.6,449.8,341.6z M455.7,449.8c0,3.3-2.7,6-6,6h-75.1c-3.3,0-6-2.7-6-6v-75.1c0-3.3,2.7-6,6-6h75.1 c3.3,0,6,2.7,6,6V449.8z"></path>
+                <path d="M449.8,0.1h-75.1c-18.2,0-33,14.8-33,33v75.1c0,18.2,14.8,33,33,33h75.1c18.2,0,33-14.8,33-33V33 C482.7,14.9,467.9,0.1,449.8,0.1z M455.7,108.2c0,3.3-2.7,6-6,6h-75.1c-3.3,0-6-2.7-6-6V33c0-3.3,2.7-6,6-6h75.1c3.3,0,6,2.7,6,6 V108.2z"></path>
+                <path d="M279,0.1h-75.1c-18.2,0-33,14.8-33,33v75.1c0,18.2,14.8,33,33,33H279c18.2,0,33-14.8,33-33V33 C311.9,14.9,297.2,0.1,279,0.1z M284.9,108.2c0,3.3-2.7,6-6,6h-75.1c-3.3,0-6-2.7-6-6V33c0-3.3,2.7-6,6-6h75.1c3.3,0,6,2.7,6,6 V108.2z"></path>
+              </svg>
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-14 w-14 hover:bg-primary/20 transition-all duration-200"
+              onClick={() => {
+                if (isChatMinimized) {
+                  setIsChatMinimized(false);
+                  setIsChatOpen(true);
+                } else {
+                  setIsChatOpen(true);
+                }
+              }}
+            >
+              <svg 
+                className="h-14 w-14 text-primary hover:scale-110 transition-transform duration-200" 
+                viewBox="0 0 32 32" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <line x1="10" y1="12" x2="19" y2="12"></line>
+                <line x1="10" y1="16" x2="14" y2="16"></line>
+                <path d="M11,4c-4.4,0-8,3.6-8,8v12v5l0,0c3.7-3.2,8.4-5,13.3-5H21c4.4,0,8-3.6,8-8v-4c0-4.4-3.6-8-8-8H11z"></path>
+              </svg>
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-14 w-14"
+              onClick={() => setIsNotificationPanelOpen(true)}
+            >
+              <svg 
+                width="28" 
+                height="28" 
+                viewBox="0 0 1800 1800" 
+                fill="currentColor"
+                className="h-14 w-14"
+              >
+                <path d="M942.432,362.391c28.336,0,78.253,16.538,120.884,52.848c33.173,28.25,72.71,77.44,72.71,151.333 c0,17.307,14.031,31.336,31.336,31.336c17.312,0,31.336-14.029,31.336-31.336c0-175.203-166.831-266.854-256.266-266.854 c-17.304,0-31.336,14.028-31.336,31.336C911.096,348.362,925.128,362.391,942.432,362.391z"></path>
+                <path d="M1555.292,1240.33c-11.603-18.885-24.035-39.138-36.538-60.862c-1.408-5.24-4.108-9.945-7.79-13.722 c-49.513-88.479-97.741-200.637-97.741-344.862c0-339.747-187.438-622.592-438.45-681.168 c7.458-12.796,11.813-27.633,11.813-43.511c0-47.816-38.768-86.576-86.583-86.576c-47.813,0-86.581,38.759-86.581,86.576 c0,15.878,4.35,30.715,11.813,43.511c-251.011,58.576-438.455,341.421-438.455,681.168c0,188.204-82.117,321.858-142.074,419.446 c-47.275,76.945-81.431,132.54-53.413,182.688c34.706,62.133,150.24,84.154,527.356,89.08 c-11.577,25.247-18.085,53.287-18.085,82.834c0,109.974,89.466,199.439,199.438,199.439c109.971,0,199.432-89.466,199.432-199.439 c0-29.547-6.505-57.587-18.09-82.834c377.126-4.926,492.65-26.947,527.361-89.08 C1636.728,1372.87,1602.566,1317.275,1555.292,1240.33z M900.002,1731.698c-75.415,0-136.767-61.352-136.767-136.767 c0-30.793,10.234-59.236,27.477-82.121c34.47,0.25,70.82,0.385,109.26,0.424c0.021,0,0.039,0,0.061,0 c38.438-0.039,74.783-0.174,109.26-0.424c17.231,22.885,27.471,51.328,27.471,82.121 C1036.763,1670.347,975.412,1731.698,900.002,1731.698z M1553.997,1392.455c-5.909,10.575-33.067,30.156-148.601,42.466 c-80.962,8.635-194.844,13.343-368.712,14.981c-41.952,0.395-87.355,0.612-136.683,0.66c-49.33-0.048-94.734-0.266-136.688-0.66 c-173.864-1.639-287.75-6.347-368.713-14.981c-115.524-12.31-142.686-31.891-148.596-42.466 c-10.098-18.081,20.114-67.255,52.102-119.314c10.208-16.613,21.303-34.704,32.686-54.227h131.308 c17.307,0,31.335-14.029,31.335-31.336c0-17.309-14.029-31.337-31.335-31.337H365.03c44.478-87.962,84.421-199.001,84.421-335.357 c0-165.03,47.721-321.097,134.371-439.463c84.238-115.071,196.471-182.333,316.179-189.546 c119.712,7.213,231.939,74.476,316.182,189.546c86.646,118.366,134.367,274.434,134.367,439.463 c0,136.356,39.939,247.396,84.424,335.357H598.516c-17.308,0-31.336,14.028-31.336,31.337c0,17.307,14.028,31.336,31.336,31.336 h870.699c11.375,19.522,22.479,37.609,32.683,54.221C1533.88,1325.2,1564.098,1374.374,1553.997,1392.455z"></path>
+              </svg>
+            </Button>
+          </div>
+        </div>
+        <div className="flex justify-around border-t p-2">
+          <div className="text-center">
+            <p className="font-bold">-</p>
+            <p className="text-sm text-gray-500">Posts</p>
+          </div>
+          <div className="text-center">
+            <p className="font-bold">-</p>
+            <p className="text-sm text-gray-500">Following</p>
+          </div>
+          <div className="text-center">
+            <p className="font-bold">-</p>
+            <p className="text-sm text-gray-500">Followers</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Notification Panel */}
+      <NotificationPanelWrapper 
+        isOpen={isNotificationPanelOpen} 
+        onClose={() => setIsNotificationPanelOpen(false)} 
+      />
+
+      {/* Sliding Chat Window */}
+      <SlidingChatWindow 
+        isOpen={isChatOpen}
+        isMinimized={isChatMinimized}
+        onClose={() => {
+          setIsChatOpen(false);
+          setIsChatMinimized(false);
+        }}
+        onMinimize={() => {
+          setIsChatOpen(false);
+          setIsChatMinimized(true);
+        }}
+        onMaximize={() => {
+          setIsChatMinimized(false);
+          setIsChatOpen(true);
+        }}
+      />
+
+      {/* Sliding Menu Panel */}
+      <SlidingMenuPanel 
+        isOpen={isMenuPanelOpen}
+        onClose={() => setIsMenuPanelOpen(false)}
+      />
+    </>
+  );
+};
+
+export default ProfileSummaryCard;
+```
+
+================================================================================
+3. TRENDING CARD
+================================================================================
+
+File: src/components/sidebar/right/TrendingCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { TrendingUp } from 'lucide-react';
+
+const trendingTopics: Array<{ tag: string; posts: string }> = [];
+
+const TrendingCard = () => {
+  return (
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full">
+      <CardHeader>
+        <CardTitle className="text-lg font-bold">Trending !</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {trendingTopics.length > 0 ? (
+          <ul>
+            {trendingTopics.map((topic) => (
+              <li key={topic.tag} className="mb-3">
+                <a href="#" onClick={(e) => e.preventDefault()} className="font-semibold text-gray-800 hover:underline">
+                  <div className="flex items-center">
+                    <TrendingUp className="w-4 h-4 mr-2 text-red-500" />
+                    <span>#{topic.tag}</span>
+                  </div>
+                </a>
+                <p className="text-sm text-gray-500 ml-6">{topic.posts} posts</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-sm text-gray-500">No trending topics available</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default TrendingCard;
+```
+
+================================================================================
+4. PRO MEMBERS CARD
+================================================================================
+
+File: src/components/sidebar/right/ProMembersCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Crown } from 'lucide-react';
+import Avatar from '@/components/Avatar';
+import { Button } from '@/components/ui/button';
+
+const proMembers: Array<{ name: string; image: string }> = [];
+
+const ProMembersCard = () => {
+  return (
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full">
+        <div className="p-4 bg-muted dark:bg-card rounded-none">
+            <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                    <Crown className="w-5 h-5 text-orange-500 mr-2" />
+                    <h3 className="font-bold text-md text-orange-800">Pro Members</h3>
+                </div>
+                <Button variant="ghost" className="text-sm font-semibold text-orange-800 bg-white shadow-sm h-8 hover:bg-gray-50">Put Me Here</Button>
+            </div>
+        </div>
+      <CardContent className="p-4">
+        {proMembers.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4">
+            {proMembers.map((member) => (
+              <div key={member.name} className="flex flex-col items-center text-center">
+                <Avatar 
+                  size="xl"
+                  src={member.image}
+                  initials={member.name.charAt(0)}
+                  className="mb-2 img-locked"
+                />
+                <p className="text-sm font-semibold truncate w-full">{member.name}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-sm text-gray-500">No pro members to display</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ProMembersCard;
+```
+
+================================================================================
+5. PEOPLE YOU MAY KNOW CARD
+================================================================================
+
+File: src/components/sidebar/right/PeopleYouMayKnowCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { RefreshCw } from 'lucide-react';
+import Avatar from '@/components/Avatar';
+import { Button } from '@/components/ui/button';
+
+const people: Array<{ name: string; image: string }> = [];
+
+const PeopleYouMayKnowCard = () => {
+  return (
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-lg font-bold">People you may know</CardTitle>
+        <Button variant="ghost" size="icon">
+          <RefreshCw className="w-4 h-4 text-gray-500" />
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {people.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4">
+            {people.map((person) => (
+              <div key={person.name} className="flex flex-col items-center text-center p-2 border rounded-lg">
+                <Avatar 
+                  size="xl"
+                  src={person.image}
+                  initials={person.name.charAt(0)}
+                  className="mb-2 img-locked"
+                />
+                <p className="text-sm font-semibold truncate w-full mb-2">{person.name}</p>
+                <Button 
+                  className="w-full text-xs font-semibold py-0.5 shadow-sm border" 
+                  variant="ghost" 
+                  style={{
+                    background: 'linear-gradient(to right, rgba(220, 38, 38, 0.1) 0%, rgba(239, 68, 68, 0.1) 50%, rgba(127, 29, 29, 0.1) 100%)',
+                    borderColor: 'rgba(220, 38, 38, 0.3)'
+                  }}
+                >
+                  <span style={{
+                    background: 'linear-gradient(to right, #dc2626 0%, #ef4444 50%, #7f1d1d 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    color: 'transparent'
+                  }}>
+                    Më bëj shok
+                  </span>
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-sm text-gray-500">No suggestions available</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default PeopleYouMayKnowCard;
+```
+
+================================================================================
+6. PAGES YOU MAY LIKE CARD
+================================================================================
+
+File: src/components/sidebar/right/PagesYouMayLikeCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
+
+const PagesYouMayLikeCard = () => {
+  return (
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
+        <h3 className="font-bold text-md">Pages you may like</h3>
+        <Button variant="ghost" size="icon">
+          <RefreshCw className="w-4 h-4 text-gray-500" />
+        </Button>
+      </CardHeader>
+      <CardContent className="p-4">
+        <div className="text-center py-4">
+          <p className="text-sm text-gray-500">No page suggestions available</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default PagesYouMayLikeCard;
+```
+
+================================================================================
+7. SUGGESTED GROUPS CARD
+================================================================================
+
+File: src/components/sidebar/right/SuggestedGroupsCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
+
+const GroupIcon = () => (
+  <div className="bg-red-100 rounded-lg p-4 flex items-center justify-center h-24">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.282-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.282.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  </div>
+);
+
+const PlusIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+)
+
+const groups: Array<{ name: string; members: string }> = [];
+
+const SuggestedGroupsCard = () => {
+  return (
+    <Card className="dark:bg-[hsl(0,0%,5%)] bg-card rounded-lg shadow-md w-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
+        <h3 className="font-bold text-md">Suggested groups</h3>
+        <Button variant="ghost" size="icon">
+          <RefreshCw className="w-4 h-4 text-gray-500" />
+        </Button>
+      </CardHeader>
+      <CardContent className="p-4">
+        {groups.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4">
+            {groups.map((group) => (
+              <div key={group.name} className="border rounded-lg overflow-hidden">
+                <GroupIcon />
+                <div className="p-2 text-center">
+                  <p className="font-bold truncate">{group.name}</p>
+                  <p className="text-sm text-gray-500">{group.members}</p>
+                  <Button className="w-full mt-2 bg-red-600 hover:bg-red-700 text-white text-sm h-8">
+                    <PlusIcon />
+                    Join
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-sm text-gray-500">No group suggestions available</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default SuggestedGroupsCard;
+```
+
+================================================================================
+8. ONLINE USERS CARD
+================================================================================
+
+File: src/components/sidebar/right/OnlineUsersCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+
+const OnlineUsersIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.282-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.282.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+)
+
+const OnlineUsersCard = () => {
+  return (
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full">
+      <CardContent className="p-3 flex items-center justify-center space-x-2">
+        <OnlineUsersIcon />
+        <span className="font-bold text-blue-800">- Online Users</span>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default OnlineUsersCard;
+```
+
+================================================================================
+9. INVITE FRIENDS CARD
+================================================================================
+
+File: src/components/sidebar/right/InviteFriendsCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
+const SendIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M3.105 3.35a1 1 0 011.59-.854l12.449 6.225a1 1 0 010 1.708L4.695 17.505a1 1 0 01-1.59-.854V3.35z" />
+    </svg>
+);
+
+const InviteFriendsCard = () => {
+  return (
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full text-center">
+      <CardContent className="p-4">
+        <div className="flex justify-center mb-2">
+           <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 512 512">
+            <path d="M448 64H64C46.33 64 32 78.33 32 96v320c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32V96c0-17.67-14.33-32-32-32zM256 295.1L84.84 153.64h342.32L256 295.1z" fill="#ffce31"/>
+            <path d="M448 64H64c-1.2 0-2.37.07-3.52.2L256 240l195.52-175.8c-1.15-.13-2.32-.2-3.52-.2z" fill="#ffac33"/>
+            <path d="M256 295.1l-192-172.8V416c0 17.67 14.33 32 32 32h320c17.67 0 32-14.33 32-32V122.3L256 295.1z" fill="#ffce31"/>
+            <path d="M256 295.1L64 122.3V96c0-17.67 14.33-32 32-32h32.14l128 115.2 127.86-115.2H416c17.67 0 32 14.33 32 32v26.3L256 295.1z" fill="#ffac33"/>
+            <path d="M352 128H160c-8.84 0-16 7.16-16 16v128c0 8.84 7.16 16 16 16h192c8.84 0 16-7.16 16-16V144c0-8.84-7.16-16-16-16z" fill="#f8f8f8"/>
+            <path d="M344.38 174.62a40.02 40.02 0 00-56.76 0L256 206.25l-31.62-31.63a40.02 40.02 0 00-56.76 56.76L256 280l88.38-88.38a40.02 40.02 0 000-56.76z" fill="#e04f5f"/>
+            </svg>
+        </div>
+        <h3 className="font-bold text-md mb-3 text-gray-700">Invite Your Friends</h3>
+        <div className="flex">
+          <Input type="email" placeholder="E-mail" className="rounded-r-none border-gray-300 focus:border-red-500 focus:ring-red-500" />
+          <Button className="bg-red-600 hover:bg-red-700 rounded-l-none px-4">
+            <SendIcon />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default InviteFriendsCard;
+```
+
+================================================================================
+10. LATEST PRODUCTS CARD
+================================================================================
+
+File: src/components/sidebar/right/LatestProductsCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
+const products: Array<{ name: string; price: string }> = [];
+
+const ProductImage = () => (
+    <div className="bg-[#fcfaf6] p-4 rounded-none flex flex-col items-center justify-center text-center h-[120px] border-b">
+        <p className="font-bold text-sm text-black">Wowonder Developer</p>
+        <p className="text-xs text-black">Help & Support</p>
+        <div className="flex items-center text-green-500 font-bold my-1">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.225.651 4.315 1.731 6.096l.16.287-1.173 4.279 4.387-1.152.265.158z" />
+            </svg>
+            <span className="text-xl">Phone</span>
+        </div>
+        <p className="font-bold text-sm text-black">+447577942001</p>
+    </div>
+);
+
+const LatestProductsCard = () => {
+  return (
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full">
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-lg font-bold text-gray-700">Latest Products</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-2">
+        {products.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3">
+            {products.map((product, index) => (
+              <div key={index} className="border rounded-lg overflow-hidden bg-white dark:bg-card">
+                <ProductImage />
+                <div className="p-2 text-center bg-muted dark:bg-muted/20">
+                  <p className="font-semibold truncate text-sm">{product.name}</p>
+                  <p className="text-sm text-gray-600 font-bold">{product.price}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-sm text-gray-500">No products available</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default LatestProductsCard;
+```
+
+================================================================================
+11. LATEST ACTIVITIES CARD
+================================================================================
+
+File: src/components/sidebar/right/LatestActivitiesCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Avatar from '@/components/Avatar';
+import { RefreshCw } from 'lucide-react';
+
+const activities: Array<{
+  user: string;
+  action: string;
+  target: string;
+  time: string;
+  avatar: string;
+  icon: string;
+}> = [];
+
+const LatestActivitiesCard = () => {
+    return (
+        <Card className="bg-card rounded-lg border border-border shadow-md w-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
+                <CardTitle className="text-lg font-bold text-gray-700">Latest Activities</CardTitle>
+                <Button variant="ghost" size="icon">
+                    <RefreshCw className="w-4 h-4 text-gray-500" />
+                </Button>
+            </CardHeader>
+            <CardContent className="p-4 pt-2">
+                {activities.length > 0 ? (
+                    <ul className="space-y-2">
+                        {activities.map((activity, index) => (
+                            <li key={index} className="flex items-center space-x-3 bg-secondary dark:bg-muted/20 p-2 rounded-lg border border-border/50">
+                                <div className="relative">
+                                    <Avatar 
+                                      size="md"
+                                      src={activity.avatar}
+                                      initials={activity.user.charAt(0)}
+                                      className="img-locked"
+                                    />
+                                    <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 flex items-center justify-center border">
+                                        <span className="text-xs">{activity.icon}</span>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                    <a href="#" onClick={(e) => e.preventDefault()} className="font-semibold text-red-600 hover:underline">{activity.user}</a>
+                                    {' '}{activity.action}{' '}
+                                    <a href="#" onClick={(e) => e.preventDefault()} className="font-bold text-gray-800 hover:underline">{activity.target}</a>.
+                                    {' '}{activity.time}
+                                </p>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <div className="text-center py-4">
+                        <p className="text-sm text-gray-500">No recent activities</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+};
+
+export default LatestActivitiesCard;
+```
+
+================================================================================
+12. SPONSORED CARD
+================================================================================
+
+File: src/components/sidebar/right/SponsoredCard.tsx
+
+```tsx
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
+interface SponsoredCardProps {
+  imgSrc: string;
+  altText: string;
+  title: string;
+  description: string;
+  link: string;
+  linkText: string;
+}
+
+const SponsoredCard: React.FC<SponsoredCardProps> = ({ imgSrc, altText, title, description, link, linkText }) => {
+  return (
+    <Card className="bg-card rounded-lg border border-border shadow-md w-full">
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-md font-semibold text-gray-500">Sponsored</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-2">
+        <img 
+          src={imgSrc} 
+          alt={altText} 
+          className="w-full h-40 object-cover rounded-lg mb-3"
+        />
+        <h4 className="font-bold text-gray-800">{title}</h4>
+        <p className="text-sm text-gray-600">{description}</p>
+        <a href={link} className="text-sm text-red-600 hover:underline">{linkText}</a>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default SponsoredCard;
+```
+
+================================================================================
+13. RIGHT SIDEBAR FOOTER
+================================================================================
+
+File: src/components/sidebar/right/RightSidebarFooter.tsx
+
+```tsx
+import React, { useState, useRef, useEffect } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from '@/components/ui/button';
+import { ChevronUp, ChevronDown } from 'lucide-react';
+import { useLanguage, languages } from '@/contexts/LanguageContext';
+
+const CustomLanguageIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <g>
+      <path 
+        fillRule="evenodd" 
+        clipRule="evenodd" 
+        d="M4 0H6V2H10V4H8.86807C8.57073 5.66996 7.78574 7.17117 6.6656 8.35112C7.46567 8.73941 8.35737 8.96842 9.29948 8.99697L10.2735 6H12.7265L15.9765 16H13.8735L13.2235 14H9.77647L9.12647 16H7.0235L8.66176 10.9592C7.32639 10.8285 6.08165 10.3888 4.99999 9.71246C3.69496 10.5284 2.15255 11 0.5 11H0V9H0.5C1.5161 9 2.47775 8.76685 3.33437 8.35112C2.68381 7.66582 2.14629 6.87215 1.75171 6H4.02179C4.30023 6.43491 4.62904 6.83446 4.99999 7.19044C5.88743 6.33881 6.53369 5.23777 6.82607 4H0V2H4V0ZM12.5735 12L11.5 8.69688L10.4265 12H12.5735Z" 
+        fill="currentColor"
+      />
+    </g>
+  </svg>
+);
+const RightSidebarFooter = () => {
+  const { currentLanguage, setLanguage, t, getCurrentLanguage } = useLanguage();
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const [dropDirection, setDropDirection] = useState<'up' | 'down'>('up');
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const checkDropDirection = () => {
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        
+        // If there's more space above and we're in the bottom 40% of screen, drop up
+        setDropDirection(spaceAbove > spaceBelow && rect.top > window.innerHeight * 0.6 ? 'up' : 'down');
+      }
+    };
+
+    checkDropDirection();
+    window.addEventListener('resize', checkDropDirection);
+    window.addEventListener('scroll', checkDropDirection);
+
+    return () => {
+      window.removeEventListener('resize', checkDropDirection);
+      window.removeEventListener('scroll', checkDropDirection);
+    };
+  }, [isLanguageOpen]);
+
+  const currentLang = getCurrentLanguage();
+
+  return <div className="text-sm text-gray-500 mt-4 px-2">
+      <div className="flex justify-between items-center mb-4 border-b pb-4">
+        <span>© 2025 shqipet.com</span>
+        <DropdownMenu open={isLanguageOpen} onOpenChange={setIsLanguageOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              ref={buttonRef}
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1 text-gray-500 hover:text-gray-800 p-1 h-auto"
+            >
+              <CustomLanguageIcon className="w-4 h-4" />
+              <div className="flex flex-col text-xs">
+                <span>{t('language')}</span>
+                <span className="flex items-center gap-1">
+                  <span>{currentLang.flag}</span>
+                  <span>{currentLang.nativeName}</span>
+                </span>
+              </div>
+              {isLanguageOpen ? (
+                dropDirection === 'up' ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />
+              ) : (
+                dropDirection === 'up' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            className="dark:bg-[hsl(0,0%,5%)] w-64 bg-popover border shadow-lg z-50 max-h-80 overflow-y-auto"
+            side={dropDirection === 'up' ? 'top' : 'bottom'}
+            align="end"
+            sideOffset={4}
+          >
+            {languages.map((language) => (
+              <DropdownMenuItem
+                key={language.code}
+                onClick={() => {
+                  setLanguage(language.code);
+                  setIsLanguageOpen(false);
+                }}
+                className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50 ${
+                  currentLanguage === language.code ? 'bg-gray-100' : ''
+                }`}
+              >
+                <span className="text-lg">{language.flag}</span>
+                <div className="flex flex-col">
+                  <span className="font-medium text-sm">{language.nativeName}</span>
+                  <span className="text-xs text-gray-500">{language.name}</span>
+                </div>
+                {currentLanguage === language.code && (
+                  <span className="ml-auto text-blue-600">✓</span>
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-500">
+        <button className="hover:underline hover:text-gray-800" onClick={(e) => e.preventDefault()}>{t('about')}</button>
+        <button className="hover:underline hover:text-gray-800" onClick={(e) => e.preventDefault()}>Directory</button>
+        <button className="hover:underline hover:text-gray-800" onClick={(e) => e.preventDefault()}>Blog</button>
+        <button className="hover:underline hover:text-gray-800" onClick={(e) => e.preventDefault()}>{t('contact')}</button>
+        <button className="hover:underline hover:text-gray-800" onClick={(e) => e.preventDefault()}>Developers</button>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="flex items-center gap-1 p-0 h-auto text-gray-500 hover:text-gray-800">
+              <span>{t('more')}</span>
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="dark:bg-[hsl(0,0%,5%)] w-48 bg-popover" side="top" align="end">
+            <DropdownMenuItem asChild>
+              <button onClick={(e) => e.preventDefault()} className="w-full cursor-pointer text-left">{t('privacy')} Policy</button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button onClick={(e) => e.preventDefault()} className="w-full cursor-pointer text-left">{t('terms')} of Use</button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button onClick={(e) => e.preventDefault()} className="w-full cursor-pointer text-left">Request a Refund</button>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>;
+};
+export default RightSidebarFooter;
+```
+
+================================================================================
+END OF RIGHT SIDEBAR CODE
+================================================================================
+
+This file contains 100% of the right sidebar code exactly as it is in the project,
+including all components, styling, logic, and functionality.
