@@ -1,0 +1,288 @@
+===========================================
+COMPLETE MIDDLE SECTION INTERFACE - 100% AS IS
+CREATE POST CARD - EXACT COPY
+===========================================
+
+📋 IMPLEMENTATION PROMPT FOR AI:
+===========================================
+
+You need to implement the exact middle section interface for a create post page. This is the main content card where users create posts with text, media, and various options.
+
+CRITICAL REQUIREMENTS:
+1. Copy this code EXACTLY as provided - do NOT modify styling, structure, or functionality
+2. Maintain all component imports and dependencies exactly as shown
+3. Preserve all className combinations and Tailwind classes precisely
+4. Keep all state management, handlers, and logic identical
+5. Include all child components referenced (CreatePostUserInfo, CreatePostTextArea, AnonymousSwitch, PostIntentSection, CreatePostFilePreview, AISmartSummary, CreatePostAttachments)
+
+VISUAL STRUCTURE:
+- Rounded card with backdrop blur and border transitions
+- User info section with avatar and anonymous toggle
+- Large text area with character counter
+- Voice input and AI suggestion buttons
+- Category selection section
+- AI smart summary display
+- File preview grid
+- Media attachment buttons (Photo, Video, Audio, Location, Poll, Tag, Link, Background, Anonymous)
+- Action buttons (Preview Post, Publish Post)
+
+DEPENDENCIES YOU NEED:
+- All child components listed in imports
+- Framer Motion for animations
+- Lucide React for icons
+- Custom hooks: usePostCreation, useUniversalUser
+- Services: UploadService, MediaService
+
+STYLING DETAILS:
+- bg-card/80 with backdrop-blur-xl for glassmorphism
+- rounded-3xl borders
+- Red accent color (#FB4444) for focus states
+- Smooth transitions on all interactive elements
+- Responsive padding (p-8)
+- Overflow-y-auto for scrollable content
+
+STATE MANAGEMENT:
+- postText state for text content
+- selectedFiles state for media uploads
+- isAnonymous state for anonymous posting
+- selectedIntent state for post category
+- Character limit tracking (0/10000)
+
+INTERACTIVE FEATURES:
+- Voice input modal toggle
+- AI suggestion panel toggle
+- Category selection popup
+- File upload with preview
+- Real-time character counting
+- Anonymous mode toggle
+- Preview before publish
+
+===========================================
+EXACT CODE - 100% AS IS:
+===========================================
+
+{/* Middle Section - Create Post Card */}
+<div className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col">
+  {/* Header Section */}
+  <div className="flex items-start justify-between mb-6">
+    <div className="flex-1">
+      <CreatePostUserInfo isAnonymous={isAnonymous} />
+    </div>
+    
+    <div className="flex items-center gap-3">
+      <span className="text-sm text-muted-foreground">
+        {isAnonymous ? "Anonymous" : "Public"}
+      </span>
+      <AnonymousSwitch
+        checked={isAnonymous}
+        onCheckedChange={setIsAnonymous}
+        onIcon={
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm10 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-5 7c2.21 0 4-1.79 4-4h-8c0 2.21 1.79 4 4 4z"/>
+          </svg>
+        }
+        offIcon={
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+          </svg>
+        }
+      />
+    </div>
+  </div>
+
+  {/* Text Input Section */}
+  <div className="mb-6 relative">
+    <CreatePostTextArea
+      value={postText}
+      onChange={setPostText}
+      userName={displayName || "User"}
+    />
+    <div className="flex items-center justify-between mt-3">
+      <span className="text-xs text-muted-foreground">
+        Çdo moment është një fillim i ri
+      </span>
+      <span className="text-xs text-muted-foreground">
+        {postText.length} characters
+      </span>
+    </div>
+  </div>
+
+  {/* Action Buttons Row */}
+  <div className="flex gap-3 mb-6">
+    <button
+      onClick={() => setShowVoiceInput(true)}
+      className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl transition-colors text-sm font-medium"
+    >
+      <Mic className="w-4 h-4" />
+      Voice Input
+    </button>
+    
+    <button
+      onClick={() => setShowAIPanel(!showAIPanel)}
+      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-red-600 rounded-xl transition-colors text-sm font-medium"
+    >
+      <Sparkles className="w-4 h-4" />
+      AI Suggestion
+    </button>
+  </div>
+
+  {/* Category Selection */}
+  <div className="mb-6">
+    <PostIntentSection
+      selectedIntent={selectedIntent}
+      onSelectIntent={setSelectedIntent}
+    />
+  </div>
+
+  {/* AI Smart Summary */}
+  {postText.length > 0 && (
+    <div className="mb-6">
+      <AISmartSummary content={postText} />
+    </div>
+  )}
+
+  {/* Shqipet AI Assistant Section */}
+  <div className="mb-6">
+    <ShqipetAIAssistant postContent={postText} />
+  </div>
+
+  {/* File Preview Section */}
+  {selectedFiles.length > 0 && (
+    <div className="mb-6">
+      <CreatePostFilePreview
+        files={selectedFiles}
+        onRemoveFile={handleRemoveFile}
+      />
+    </div>
+  )}
+
+  {/* Attachments Section */}
+  <div className="mb-6">
+    <p className="text-sm font-medium text-foreground mb-3">
+      Add to your post
+    </p>
+    <CreatePostAttachments onFileSelect={handleFileSelect} />
+  </div>
+
+  {/* Hidden File Inputs */}
+  <input
+    ref={imageInputRef}
+    type="file"
+    accept="image/*"
+    multiple
+    onChange={(e) => handleFileSelect(Array.from(e.target.files || []))}
+    className="hidden"
+  />
+  <input
+    ref={videoInputRef}
+    type="file"
+    accept="video/*"
+    multiple
+    onChange={(e) => handleFileSelect(Array.from(e.target.files || []))}
+    className="hidden"
+  />
+
+  {/* Anonymous Warning */}
+  {isAnonymous && (
+    <button
+      onClick={() => setShowAnonymousInfo(true)}
+      className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-700 dark:text-amber-400 text-sm mb-6 hover:bg-amber-500/20 transition-colors"
+    >
+      <Info className="w-4 h-4 flex-shrink-0" />
+      <span>
+        Anonymous posts hide your identity but are still subject to community guidelines
+      </span>
+    </button>
+  )}
+
+  {/* Action Buttons */}
+  <div className="flex gap-3 mt-auto pt-4">
+    <button
+      onClick={handlePreview}
+      disabled={!postText.trim() && selectedFiles.length === 0}
+      className="flex-1 py-3 px-6 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    >
+      <Eye className="w-4 h-4" />
+      Preview Post
+    </button>
+    
+    <button
+      onClick={handleSubmit}
+      disabled={!postText.trim() && selectedFiles.length === 0}
+      className="flex-1 py-3 px-6 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-500/30 flex items-center justify-center gap-2"
+    >
+      <Send className="w-4 h-4" />
+      Publish Post
+    </button>
+  </div>
+</div>
+
+===========================================
+REQUIRED CHILD COMPONENTS:
+===========================================
+
+You must also implement these exact components that are used in the middle section:
+
+1. CreatePostUserInfo - Shows user avatar and name with anonymous option
+2. CreatePostTextArea - Large text input with placeholder and emoji icon
+3. AnonymousSwitch - Custom switch with user/anonymous icons
+4. PostIntentSection - Category selection with popup menu
+5. AISmartSummary - AI-generated content summary display
+6. ShqipetAIAssistant - AI assistant panel for post suggestions
+7. CreatePostFilePreview - Grid display of uploaded media files
+8. CreatePostAttachments - Icon buttons for different attachment types
+
+All these components are provided in the project and must be used exactly as implemented.
+
+===========================================
+STYLING TOKENS USED:
+===========================================
+
+- bg-card/80 - Semi-transparent card background
+- backdrop-blur-xl - Strong blur effect
+- border-border - Theme border color
+- border-red-400/80 - Red focus border
+- text-muted-foreground - Muted text color
+- bg-primary/10, bg-primary/20 - Primary color backgrounds
+- text-primary - Primary text color
+- bg-secondary - Secondary background
+- text-secondary-foreground - Secondary text
+- rounded-3xl - Extra large rounded corners
+- rounded-xl - Large rounded corners
+- shadow-md - Medium shadow
+- shadow-lg shadow-red-500/30 - Large shadow with red glow
+
+===========================================
+IMPORTANT NOTES:
+===========================================
+
+1. This is ONLY the middle section - do NOT include left sidebar or right sidebar
+2. The parent container handles the three-column layout
+3. All animations use framer-motion with smooth transitions
+4. Character counter shows live count as user types
+5. File uploads trigger hidden file inputs
+6. Anonymous mode shows warning message
+7. Preview button opens preview modal (not shown here)
+8. Publish button triggers post creation with validation
+9. All icons from lucide-react library
+10. Responsive design with proper spacing and overflow handling
+
+IMPLEMENTATION CHECKLIST:
+□ Copy exact JSX structure from line 647-1030
+□ Import all required components
+□ Import all required icons from lucide-react
+□ Set up all state variables (postText, selectedFiles, isAnonymous, etc.)
+□ Implement all handler functions (handleFileSelect, handleRemoveFile, handleSubmit, handlePreview)
+□ Include all refs (imageInputRef, videoInputRef)
+□ Preserve all className combinations exactly
+□ Maintain framer-motion animations
+□ Test file upload functionality
+□ Test anonymous mode toggle
+□ Test character counter
+□ Test all action buttons
+□ Verify responsive design
+□ Check dark mode support
+
+===========================================
+END OF IMPLEMENTATION GUIDE
+===========================================
