@@ -1,0 +1,430 @@
+========================================
+CRITICAL: EXACT MIDDLE SECTION CODE
+DO NOT MODIFY, DO NOT REDESIGN, DO NOT ADD FEATURES
+IMPLEMENT EXACTLY AS WRITTEN BELOW
+========================================
+
+⚠️ IMPLEMENTATION RULES:
+1. Copy this code EXACTLY as written
+2. Do NOT add a left sidebar with settings
+3. Do NOT add "Post Settings" panel
+4. Do NOT redesign the layout
+5. Do NOT add collapsible sections
+6. Use ONLY the components referenced in this code
+7. Maintain the EXACT structure shown below
+
+This is the middle section from src/pages/CreatePostDesktop.tsx lines 647-1030.
+The layout is: Avatar + Visibility → Textarea → AI Buttons → File Preview → Media Toolbar → Preview Button → Publish Button
+
+========================================
+EXACT JSX CODE - START
+========================================
+
+        <motion.div initial={{
+        opacity: 0,
+        scale: 0.96,
+        y: 40
+      }} animate={{
+        opacity: 1,
+        scale: 1,
+        y: 0
+      }} transition={{
+        duration: 0.5,
+        delay: 0.1
+      }} className="bg-card/80 backdrop-blur-xl shadow-md rounded-3xl border border-border focus-within:border-red-400/80 transition-all p-8 overflow-y-auto flex flex-col">
+          {/* Header with Avatar & Visibility */}
+          <div className="flex items-center gap-4 mb-6">
+            {isAnonymous ? (
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                <AnonymousIcon className="w-7 h-7 text-gray-600" />
+              </div>
+            ) : (
+              <Avatar size="lg" />
+            )}
+            <div className="flex-1">
+              <p className="font-semibold text-lg">{isAnonymous ? "Anonymous" : (displayName || "User")}</p>
+              <Select value={visibility} onValueChange={setVisibility}>
+                <SelectTrigger className="w-48 h-8 text-sm border-red-200/40 hover:border-red-300/50 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none transition-all duration-200">
+                  {visibility === 'public' ? (
+                    <div className="flex items-center gap-2">
+                      <PublicIcon className="w-4 h-4 text-gray-600" />
+                      <span>Public</span>
+                    </div>
+                  ) : visibility === 'anonymous' ? (
+                    <div className="flex items-center gap-2">
+                      <AnonymousIcon className="w-4 h-4 text-gray-600" />
+                      <span>Anonymous</span>
+                    </div>
+                  ) : visibility === 'onlyme' ? (
+                    <div className="flex items-center gap-2">
+                      <OnlyMeIcon className="w-4 h-4 text-gray-600" />
+                      <span>Only Me</span>
+                    </div>
+                  ) : visibility === 'followers' ? (
+                    <div className="flex items-center gap-2">
+                      <FollowersIcon className="w-4 h-4 text-gray-600" />
+                      <span>Followers</span>
+                    </div>
+                  ) : visibility === 'friends' ? (
+                    <div className="flex items-center gap-2">
+                      <FriendsIcon className="w-4 h-4 text-gray-600" />
+                      <span>Friends</span>
+                    </div>
+                  ) : (
+                    <SelectValue />
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public" icon={<PublicIcon className="w-4 h-4 text-gray-600" />}>
+                    <span>Public</span>
+                  </SelectItem>
+                  <SelectItem value="friends" icon={<FriendsIcon className="w-4 h-4 text-gray-600" />}>
+                    <span>Friends</span>
+                  </SelectItem>
+                  <SelectItem value="followers" icon={<FollowersIcon className="w-4 h-4 text-gray-600" />}>
+                    <span>Followers</span>
+                  </SelectItem>
+                  <SelectItem value="onlyme" icon={<OnlyMeIcon className="w-4 h-4 text-gray-600" />}>
+                    <span>Only Me</span>
+                  </SelectItem>
+                  <SelectItem value="anonymous" icon={<AnonymousIcon className="w-4 h-4 text-gray-600" />}>
+                    <span>Anonymous</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <AnonymousSwitch
+                checked={isAnonymous}
+                onCheckedChange={setIsAnonymous}
+                onIcon={<AnonymousIcon className="w-5 h-5 text-gray-600" />}
+                offIcon={
+                  visibility === 'public' ? (
+                    <PublicIcon className="w-5 h-5 text-gray-600" />
+                  ) : visibility === 'friends' ? (
+                    <FriendsIcon className="w-5 h-5 text-gray-600" />
+                  ) : visibility === 'followers' ? (
+                    <FollowersIcon className="w-5 h-5 text-gray-600" />
+                  ) : visibility === 'onlyme' ? (
+                    <OnlyMeIcon className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <PublicIcon className="w-5 h-5 text-gray-600" />
+                  )
+                }
+              />
+              <span className="text-sm text-muted-foreground"> Anonymous</span>
+            </div>
+          </div>
+
+          {/* Text Editor */}
+          <div className="flex-1 mb-6 relative">
+            {!postContent && <div className="absolute left-4 top-1 flex items-center gap-2 pointer-events-none text-lg text-muted-foreground leading-tight z-10">
+                <span>{isAnonymous ? "Edhe vetë platforma Shqipet nuk e di botuesin" : "Çdo moment është një fillim i ri"}</span>
+                <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-5 h-5 text-gray-600 flex-shrink-0">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
+                  <path d="M11.315 10.014a.5.5 0 0 1 .548.736A4.498 4.498 0 0 1 7.965 13a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .548-.736h.005l.017.005.067.015.252.055c.215.046.515.108.857.169.693.124 1.522.242 2.152.242.63 0 1.46-.118 2.152-.242a26.58 26.58 0 0 0 1.109-.224l.067-.015.017-.004.005-.002zM4.756 4.566c.763-1.424 4.02-.12.952 3.434-4.496-1.596-2.35-4.298-.952-3.434zm6.488 0c1.398-.864 3.544 1.838-.952 3.434-3.067-3.554.19-4.858.952-3.434z"></path>
+                </svg>
+              </div>}
+            <div className="relative">
+              {/* Anonymous watermark inside textarea boundaries */}
+              {isAnonymous && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden rounded-[14px]">
+                  <AnonymousIcon className="w-48 h-48 text-gray-400 opacity-10" />
+                </div>
+              )}
+              <Textarea value={postContent} onChange={e => setPostContent(e.target.value)} placeholder="" className="min-h-[200px] text-lg resize-none border border-red-200/55 rounded-[14px] px-4 transition-all duration-200 ease-out hover:border-red-300/60 focus-visible:border-red-300/70 focus-visible:ring-0 focus-visible:shadow-[0_0_20px_rgba(239,68,68,0.08)] relative z-10 bg-transparent" style={{
+              backgroundImage: `repeating-linear-gradient(
+                    to bottom,
+                    transparent 0px,
+                    transparent 25px,
+                    rgba(239, 68, 68, 0.10) 25px,
+                    rgba(239, 68, 68, 0.10) 26px
+                  )`,
+              lineHeight: '26px',
+              paddingTop: '4px',
+              paddingBottom: '4px',
+              caretColor: 'rgba(239, 68, 68, 0.6)',
+              verticalAlign: 'baseline'
+            }} />
+            </div>
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-muted-foreground">
+                {charCount} characters {isOptimal && <span className="text-green-600 font-medium">✓ Optimal</span>}
+              </span>
+              <Button variant="ghost" size="sm">
+                <Mic2 className="w-4 h-4 mr-2" />
+                Voice Input
+              </Button>
+            </div>
+          </div>
+
+          {/* AI Buttons Row */}
+          <div className="flex items-center justify-center gap-4 -mt-4 mb-4">
+            <FloatingAIButton />
+            <PostIntentSection selectedIntent={postIntent} onSelectIntent={setPostIntent} />
+            
+            {/* AI Chat Toggle Button */}
+            {!showAIChat && <motion.button onClick={() => setShowAIChat(true)} className="relative group" whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }}>
+                {/* Pulsing Glow Ring */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-200 to-purple-300 opacity-75 blur-md animate-pulse" />
+                
+                {/* Main Button */}
+                <div className="relative flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-200 to-purple-300 rounded-full shadow-lg">
+                  <MessageSquare className="w-5 h-5 text-foreground animate-pulse" />
+                  <span className="font-semibold text-foreground text-sm">Shqipet AI</span>
+                </div>
+              </motion.button>}
+          </div>
+
+          {/* AI Smart Summary */}
+          <AISmartSummary content={postContent} />
+
+          {/* File Preview */}
+          {selectedFiles.length > 0 && (
+            <div className="mb-6">
+              <div className="text-xs text-muted-foreground mb-2">
+                📎 {selectedFiles.length} file(s) attached
+              </div>
+              <CreatePostFilePreview 
+                files={selectedFiles} 
+                onRemoveFile={handleRemoveFile} 
+              />
+            </div>
+          )}
+          
+          {/* Debug info */}
+          {selectedFiles.length === 0 && (
+            <div className="text-xs text-muted-foreground mb-2">
+              No files selected yet
+            </div>
+          )}
+
+          {/* Media Toolbar */}
+          <div className="border-t border-border pt-4 mb-6">
+            <p className="text-sm font-medium text-foreground mb-3">Add to your post</p>
+            <div className="flex flex-wrap gap-3">
+              {mediaTools.map((tool, idx) => <motion.button key={idx} onClick={tool.onClick} whileHover={{
+              scale: 1.1
+            }} whileTap={{
+              scale: 0.95
+            }} className={`flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-accent transition-all ${tool.color}`}>
+                  <tool.icon className="w-6 h-6" />
+                  <span className="text-xs text-muted-foreground">{tool.label}</span>
+                </motion.button>)}
+            </div>
+          </div>
+
+          {/* Hidden file inputs */}
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif"
+            multiple
+            className="hidden"
+            onChange={handlePhotoChange}
+          />
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+            multiple
+            className="hidden"
+            onChange={handleVideoChange}
+          />
+
+          {/* Preview Button */}
+          <Dialog open={showPreview} onOpenChange={setShowPreview}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full mb-4">
+                <svg className="w-64 h-64" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                  <path d="M64.32 103.32c-34.03 0-53.56-33.13-56.94-39.38c3.07-6.27 20.91-39.26 56.94-39.26s53.87 32.98 56.94 39.26c-3.38 6.25-22.92 39.38-56.94 39.38z" fill="#fafafa" />
+                  <path d="M64.32 27.12c15.81 0 29.84 6.42 41.7 19.09c6.63 7.08 10.73 14.26 12.49 17.67c-4.51 7.99-23.05 36.99-54.19 36.99c-14.88 0-28.63-6.45-40.89-19.17c-6.89-7.15-11.37-14.41-13.3-17.82c1.75-3.41 5.86-10.6 12.49-17.67c11.86-12.67 25.89-19.09 41.7-19.09m0-4.88C22.56 22.24 4.66 64 4.66 64s20.25 41.76 59.66 41.76S123.97 64 123.97 64s-17.9-41.76-59.65-41.76z" fill="#b0bec5" />
+                  <path d="M64.32 37c26.97 0 45.47 16.51 53.66 27.71c.96 1.31 1.99-4.99 1.12-6.36c-7.84-12.26-25.41-32.91-54.77-32.91S17.38 46.1 9.54 58.36c-.88 1.37.3 6.83 1.41 5.64c8.54-9.17 26.39-27 53.37-27z" fill="#b0bec5" />
+                  <circle cx="64.32" cy="60.79" r="33.15" fill="#9c7a63" />
+                  <path d="M64.32 37c10.87 0 20.36 2.68 28.36 6.62c-5.81-9.58-16.34-15.97-28.36-15.97c-12.28 0-23 6.69-28.72 16.61C43.61 40.04 53.18 37 64.32 37z" fill="#806451" />
+                  <circle cx="64.32" cy="60.79" r="15.43" fill="#212121" />
+                  <circle cx="88.86" cy="59.37" r="7.72" fill="#d9baa5" />
+                  <path d="M7.21 67.21c-.52 0-1.05-.13-1.54-.4a3.207 3.207 0 0 1-1.27-4.35c.85-1.55 21.28-40.21 59.92-40.21s58.47 37.89 59.29 39.41c.84 1.56.27 3.5-1.29 4.35c-1.56.84-3.5.27-4.35-1.29c-.18-.34-18.88-33.86-53.66-33.86c-34.79 0-54.11 34.34-54.3 34.69a3.185 3.185 0 0 1-2.8 1.66z" fill="#616161" />
+                </svg>
+                Preview Post
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-300">
+              <DialogHeader>
+                <DialogTitle>Post Preview</DialogTitle>
+              </DialogHeader>
+              
+              {/* Render post exactly as it would appear in feed */}
+              <div className="bg-card rounded-lg shadow-sm border border-border animate-fade-in">
+                {/* Post Header */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {isAnonymous ? (
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <AnonymousIcon className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                      ) : (
+                        <Avatar size="md" />
+                      )}
+                      <div>
+                        <p className="font-semibold text-foreground">{isAnonymous ? "Anonymous" : displayName}</p>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <svg className="w-4 h-4" viewBox="0 0 512 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M350.907,241.75c-0.016,0-0.04,0-0.056,0l-67.206,0.322c-6.068-13.137-20.863-20.33-35.218-16.25 c-3.678,1.048-6.952,2.79-9.827,4.968l-105.782-92.774c-2.548-2.25-6.492-2-8.734,0.573c-2.258,2.572-2,6.484,0.572,8.742 l105.788,92.782c-3.692,6.67-4.857,14.742-2.609,22.653c0.774,2.718,2.006,5.162,3.423,7.452l-73.587,81.065 c-3.064,3.371-2.814,8.597,0.565,11.661c1.58,1.436,3.564,2.145,5.548,2.145c2.242,0,4.484-0.911,6.113-2.71l73.572-81.04 c6.404,3.145,13.901,4.121,21.302,2.016c8.815-2.508,15.452-8.766,18.956-16.508l67.234-0.323 c6.847-0.032,12.363-5.605,12.331-12.443C363.262,247.258,357.722,241.75,350.907,241.75z"></path>
+                            <path d="M256,0C114.839,0,0,114.847,0,256c0,141.161,114.839,256,256,256s256-114.839,256-256 C512,114.847,397.161,0,256,0z M411.611,342.814c-1.26,2.266-2.57,4.492-3.913,6.67l26.645,16.484 c-17.686,28.573-42.028,52.597-70.865,69.895l-16.044-26.887c-2.226,1.33-4.478,2.605-6.762,3.838l14.865,27.597 C325.907,456.468,292,465.597,256,465.597c-37.008,0-71.782-9.678-101.992-26.581l15.182-27.403 c-2.234-1.25-4.436-2.54-6.603-3.863l-16.397,26.686c-28.595-17.662-52.643-41.984-69.964-70.815l26.863-16.088 c-1.327-2.218-2.605-4.468-3.831-6.742l-27.593,14.895C55.558,326.024,46.403,292.064,46.403,256 c0-36.758,9.542-71.322,26.238-101.395l8.51,4.186l18.871,11.048l0.698-1.242c1.125-1.992,2.276-3.952,3.462-5.879l-26.696-16.403 c17.643-28.613,41.956-52.677,70.768-70.016l16.081,26.863c2.226-1.33,4.486-2.613,6.762-3.855L156.18,71.734 c29.696-16.145,63.706-25.331,99.82-25.331c36.905,0,71.593,9.621,101.746,26.444l-4.843,8.548l-10.089,19 c2.166,1.21,4.29,2.452,6.391,3.734l16.339-26.734c28.631,17.621,52.722,41.927,70.089,70.734l-26.861,16.097 c1.345,2.234,2.629,4.492,3.865,6.774l27.55-14.96c16.202,29.726,25.417,63.79,25.417,99.96c0,36.831-9.581,71.444-26.331,101.548 L411.611,342.814z"></path>
+                          </svg>
+                          <span>Just now</span>
+                          <span>•</span>
+                          {visibility === 'public' && <PublicIcon className="w-3 h-3" />}
+                          {visibility === 'anonymous' && <AnonymousIcon className="w-3 h-3" />}
+                          {visibility === 'onlyme' && <OnlyMeIcon className="w-3 h-3" />}
+                          {visibility === 'followers' && <FollowersIcon className="w-3 h-3" />}
+                          {visibility === 'friends' && <FriendsIcon className="w-3 h-3" />}
+                          <span className="capitalize">{visibility}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Post Text Content */}
+                {postContent && (
+                  <div className="px-4 pb-4">
+                    <p className="text-foreground whitespace-pre-wrap">{postContent}</p>
+                  </div>
+                )}
+
+                {/* Post Media */}
+                {selectedFiles.length > 0 && (
+                  <div className="w-full">
+                    <CreatePostFilePreview 
+                      files={selectedFiles}
+                      onRemoveFile={() => {}}
+                    />
+                  </div>
+                )}
+
+                {/* Placeholder if no content */}
+                {!postContent && selectedFiles.length === 0 && (
+                  <div className="px-4 pb-4">
+                    <p className="text-muted-foreground italic">No content yet...</p>
+                  </div>
+                )}
+
+                {/* Separator */}
+                <div className="px-4">
+                  <div className="border-t border-border" />
+                </div>
+
+                {/* Post Actions */}
+                <div className="px-4 py-3">
+                  <div className="flex justify-around">
+                    <button className="flex items-center justify-between rounded-md p-2 w-full transition-colors duration-200 text-gray-600 hover:text-red-600 hover:bg-gray-100">
+                      <span className="flex items-center gap-2">
+                        <Heart className="w-5 h-5" />
+                        <span className="text-sm font-medium">Like</span>
+                      </span>
+                    </button>
+                    <button className="flex items-center justify-between rounded-md p-2 w-full transition-colors duration-200 text-gray-600 hover:text-blue-600 hover:bg-gray-100">
+                      <span className="flex items-center gap-2">
+                        <MessageCircle className="w-5 h-5" />
+                        <span className="text-sm font-medium">Comment</span>
+                      </span>
+                    </button>
+                    <button className="flex items-center justify-between rounded-md p-2 w-full transition-colors duration-200 text-gray-600 hover:text-green-600 hover:bg-gray-100">
+                      <span className="flex items-center gap-2">
+                        <Share2 className="w-5 h-5" />
+                        <span className="text-sm font-medium">Share</span>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Publish Button */}
+          <Button onClick={handlePublish} disabled={isPublishing || (!postContent.trim() && selectedFiles.length === 0)} className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+            {isPublishing ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Publishing...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <Send className="w-5 h-5" />
+                Publish Post
+              </span>
+            )}
+          </Button>
+        </motion.div>
+
+========================================
+EXACT JSX CODE - END
+========================================
+
+⚠️ REQUIRED IMPORTS:
+import { motion } from 'framer-motion';
+import { Avatar } from '@/components/Avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AnonymousSwitch } from '@/components/create-post/AnonymousSwitch';
+import { FloatingAIButton } from '@/components/create-post/FloatingAIButton';
+import { PostIntentSection } from '@/components/create-post/PostIntentSection';
+import { AISmartSummary } from '@/components/create-post/AISmartSummary';
+import { CreatePostFilePreview } from '@/components/create-post/CreatePostFilePreview';
+import { MessageSquare, Mic2, Heart, MessageCircle, Share2, Send } from 'lucide-react';
+
+⚠️ REQUIRED STATE VARIABLES:
+- isAnonymous (boolean)
+- displayName (string)
+- visibility (string: 'public' | 'friends' | 'followers' | 'onlyme' | 'anonymous')
+- postContent (string)
+- charCount (number)
+- isOptimal (boolean)
+- showAIChat (boolean)
+- postIntent (string)
+- selectedFiles (File[])
+- showPreview (boolean)
+- isPublishing (boolean)
+- photoInputRef (ref)
+- videoInputRef (ref)
+- mediaTools (array of objects with icon, label, color, onClick)
+
+⚠️ REQUIRED FUNCTIONS:
+- setIsAnonymous()
+- setVisibility()
+- setPostContent()
+- setShowAIChat()
+- setPostIntent()
+- handleRemoveFile()
+- handlePhotoChange()
+- handleVideoChange()
+- setShowPreview()
+- handlePublish()
+
+⚠️ REQUIRED ICON COMPONENTS:
+- AnonymousIcon
+- PublicIcon
+- OnlyMeIcon
+- FollowersIcon
+- FriendsIcon
+
+========================================
+CRITICAL REMINDER:
+This code is 100% complete and functional.
+Do NOT redesign it.
+Do NOT add left sidebars.
+Do NOT add settings panels.
+Copy and use EXACTLY as shown.
+========================================
